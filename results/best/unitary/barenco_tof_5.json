@@ -1,0 +1,12 @@
+{
+ "src": "results/qopt_bench.json:barenco_tof_5:circ_evo_ours",
+ "agent": "qopt",
+ "method": "portfolio (evolved programs)",
+ "T": 32,
+ "CX": 32,
+ "A": 0,
+ "N": 9,
+ "meas": 0,
+ "F": 0.9999999999999939,
+ "how": "verify_qasm strict"
+}

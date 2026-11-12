@@ -9,7 +9,8 @@ Checkers (independent of the optimizer's data structures):
     30 random input states (10 for circuits with 20-22 qubits, which take minutes each).
   * > 22 qubits, measurement-based (strict): qopt.contrib.c10.verify_big.check -- sum-over-paths, randomized over
     basis inputs and measurement branches.
-  * > 22 qubits, unitary: PyZX verify_equality (600 s limit).
+  * > 22 qubits, unitary: PyZX verify_equality (600 s limit); if undecided and <= 24 qubits, a numerical check
+    on 2 random states (complex128, ~1.5 GB of memory).
 A row passes if the checker accepts (F > 1 - 1e-9) and T, CX and the number of qubits counted from the file
 equal the table. Exit code 0 only if every row passes."""
 import argparse, csv, re, sys, time
@@ -52,7 +53,12 @@ def check_row(row):
             import bench_real as br  # PyZX only: a numerical check at 24-26 qubits needs several GB of memory
             n = len(names); ref = evo_lib.lower_std(hl)
             ok = bool(qopt.limited(600, lambda: br.ours_to_zx(gates, n).verify_equality(br.ours_to_zx(ref, n))))
-            F, how = (1.0 if ok else 0.0), "pyzx verify_equality"
+            how = "pyzx verify_equality"
+            if not ok and n <= 24:  # PyZX undecided: numerical check on 2 random states (~1.5 GB of memory at 24 qubits)
+                import sys as _s; _s.path.insert(0, str(Path(qopt.__file__).parent / "proto2"))
+                from verify import numeric_equal
+                ok = bool(numeric_equal(gates, ref, n)); how = "numerical (2 random states)"
+            F = 1.0 if ok else 0.0
         else:
             ok, F, how = False, 0.0, "no checker for this model above 22 qubits"
     except Exception as e:  # noqa
@@ -77,8 +83,10 @@ def main():
             and (not a.kind or r["kind"] == a.kind)]
     rows.sort(key=lambda r: -int(r["total_qubits"]))  # big circuits first so the pool stays busy
     bad = 0
-    with ProcessPoolExecutor(a.jobs) as ex:
-        for r in ex.map(check_row, rows):
+    big = [r for r in rows if int(r["total_qubits"]) >= 20]   # memory-heavy: one at a time
+    small = [r for r in rows if int(r["total_qubits"]) < 20]
+    with ProcessPoolExecutor(1) as ex1, ProcessPoolExecutor(a.jobs) as ex:
+        for r in list(ex1.map(check_row, big)) + list(ex.map(check_row, small)):
             good = r["verified"] and r["counts_ok"]
             bad += not good
             print(f"{'PASS' if good else 'FAIL'} {r['model']:8s} {r['kind']:6s} {r['circuit']:15s} T={r['T_found']:>4} "

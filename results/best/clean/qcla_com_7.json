@@ -1,0 +1,12 @@
+{
+ "src": "agents/c10/qcla_com_7_final.qasm",
+ "agent": "c10",
+ "method": "H gadgets + TODD + tg3 CX polish",
+ "T": 59,
+ "CX": 565,
+ "A": 37,
+ "N": 61,
+ "meas": 37,
+ "F": 0.9999999999999993,
+ "how": "strict verdict (strict implies clean)"
+}

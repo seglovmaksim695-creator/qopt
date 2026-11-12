@@ -1,0 +1,12 @@
+{
+ "src": "results/qopt_bench.json:qcla_mod_7:circ_rt_ours",
+ "agent": "qopt",
+ "method": "portfolio + rt blocks",
+ "T": 237,
+ "CX": 256,
+ "A": 0,
+ "N": 26,
+ "meas": 0,
+ "F": 1.0,
+ "how": "PyZX verify_equality"
+}

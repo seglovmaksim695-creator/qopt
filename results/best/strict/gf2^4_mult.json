@@ -1,0 +1,12 @@
+{
+ "src": "agents/c12/out/gf2^4_mult_T58_CX115_A0.qasm",
+ "agent": "c12",
+ "method": "MCX recognition (AND ladder / KG24 rewrite)",
+ "T": 58,
+ "CX": 115,
+ "A": 0,
+ "N": 12,
+ "meas": 0,
+ "F": 0.999999999999992,
+ "how": "verify_qasm strict"
+}

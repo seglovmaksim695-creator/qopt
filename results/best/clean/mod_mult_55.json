@@ -1,0 +1,12 @@
+{
+ "src": "agents/c2/out_clean/mod_mult_55_T12_CX24_A1.qasm",
+ "agent": "c2",
+ "method": "AND compiler (clean ancillas)",
+ "T": 12,
+ "CX": 24,
+ "A": 1,
+ "N": 10,
+ "meas": 1,
+ "F": 0.9999999999999956,
+ "how": "verify_qasm clean"
+}

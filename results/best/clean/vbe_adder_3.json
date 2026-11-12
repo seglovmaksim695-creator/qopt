@@ -1,0 +1,12 @@
+{
+ "src": "agents/c1/best_c2/vbe_adder_3_T12_CX33_A3.qasm",
+ "agent": "c1",
+ "method": "AND compiler + CX resynthesis",
+ "T": 12,
+ "CX": 33,
+ "A": 3,
+ "N": 13,
+ "meas": 3,
+ "F": 0.9999999999999948,
+ "how": "strict verdict (strict implies clean)"
+}

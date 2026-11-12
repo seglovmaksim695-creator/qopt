@@ -1,0 +1,12 @@
+{
+ "src": "results/qopt_bench.json:gf2^5_mult:circ_evo_ours",
+ "agent": "qopt",
+ "method": "portfolio (evolved programs)",
+ "T": 115,
+ "CX": 132,
+ "A": 0,
+ "N": 15,
+ "meas": 0,
+ "F": 0.9999999999999879,
+ "how": "verify_qasm strict"
+}

@@ -1,0 +1,12 @@
+{
+ "src": "agents/c12/out/barenco_tof_4_T12_CX13_A3.qasm",
+ "agent": "c12",
+ "method": "MCX recognition (AND ladder / KG24 rewrite)",
+ "T": 12,
+ "CX": 13,
+ "A": 3,
+ "N": 10,
+ "meas": 3,
+ "F": 0.9999999999999958,
+ "how": "verify_qasm strict"
+}

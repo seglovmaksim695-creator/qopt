@@ -1,0 +1,12 @@
+{
+ "src": "agents/c1/best_clean/mod_red_21.qasm",
+ "agent": "c1",
+ "method": "hand-derived construction (clean ancillas)",
+ "T": 28,
+ "CX": 48,
+ "A": 0,
+ "N": 11,
+ "meas": 6,
+ "F": 0.9999999999999908,
+ "how": "verify_qasm clean"
+}

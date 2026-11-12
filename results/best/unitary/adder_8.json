@@ -1,0 +1,12 @@
+{
+ "src": "results/qopt_bench.json:adder_8:circ_evo_ours",
+ "agent": "qopt",
+ "method": "portfolio (evolved programs)",
+ "T": 193,
+ "CX": 223,
+ "A": 0,
+ "N": 24,
+ "meas": 0,
+ "F": 1.0,
+ "how": "numerical (2 random states, complex128, tol 1e-11)"
+}

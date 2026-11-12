@@ -1,0 +1,12 @@
+{
+ "src": "agents/c2/out_clean/ham15-low_T68_CX177_A1.qasm",
+ "agent": "c2",
+ "method": "AND compiler (clean ancillas)",
+ "T": 68,
+ "CX": 177,
+ "A": 1,
+ "N": 18,
+ "meas": 17,
+ "F": 0.9999999999999803,
+ "how": "verify_qasm clean"
+}

@@ -1,0 +1,12 @@
+{
+ "src": "agents/c1/best_clean/gf2^5_mult.qasm",
+ "agent": "c1",
+ "method": "hand-derived construction (clean ancillas)",
+ "T": 56,
+ "CX": 124,
+ "A": 1,
+ "N": 16,
+ "meas": 14,
+ "F": 0.9999999999999872,
+ "how": "verify_qasm clean"
+}

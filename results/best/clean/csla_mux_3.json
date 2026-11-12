@@ -1,0 +1,12 @@
+{
+ "src": "agents/c1/best_clean/csla_mux_3.qasm",
+ "agent": "c1",
+ "method": "hand-derived construction (clean ancillas)",
+ "T": 28,
+ "CX": 84,
+ "A": 3,
+ "N": 18,
+ "meas": 3,
+ "F": 0.9999999999999939,
+ "how": "verify_qasm clean"
+}

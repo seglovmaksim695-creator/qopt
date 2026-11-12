@@ -1,0 +1,12 @@
+{
+ "src": "agents/c2/out/mod_mult_55_T20_CX35_A2.qasm",
+ "agent": "c2",
+ "method": "AND compiler",
+ "T": 20,
+ "CX": 35,
+ "A": 2,
+ "N": 11,
+ "meas": 5,
+ "F": 0.9999999999999953,
+ "how": "verify_qasm strict"
+}

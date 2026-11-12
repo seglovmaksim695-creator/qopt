@@ -1,0 +1,12 @@
+{
+ "src": "results/qopt_bench.json:qcla_com_7:circ_evo_ours",
+ "agent": "qopt",
+ "method": "portfolio (evolved programs)",
+ "T": 95,
+ "CX": 111,
+ "A": 0,
+ "N": 24,
+ "meas": 0,
+ "F": 1.0,
+ "how": "PyZX verify_equality"
+}

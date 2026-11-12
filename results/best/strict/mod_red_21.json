@@ -1,0 +1,12 @@
+{
+ "src": "agents/c2/out/mod_red_21_T44_CX58_A5.qasm",
+ "agent": "c2",
+ "method": "AND compiler",
+ "T": 44,
+ "CX": 58,
+ "A": 5,
+ "N": 16,
+ "meas": 11,
+ "F": 0.9999999999999908,
+ "how": "verify_qasm strict"
+}

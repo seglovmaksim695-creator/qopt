@@ -1,0 +1,12 @@
+{
+ "src": "agents/c2/out_clean/tof_10_T36_CX37_A1.qasm",
+ "agent": "c2",
+ "method": "AND compiler (clean ancillas)",
+ "T": 36,
+ "CX": 37,
+ "A": 1,
+ "N": 20,
+ "meas": 9,
+ "F": 0.9999999999999896,
+ "how": "verify_qasm clean"
+}

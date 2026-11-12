@@ -1,0 +1,12 @@
+{
+ "src": "agents/c2/out/csla_mux_3_T40_CX70_A1.qasm",
+ "agent": "c2",
+ "method": "AND compiler",
+ "T": 40,
+ "CX": 70,
+ "A": 1,
+ "N": 16,
+ "meas": 10,
+ "F": 0.9999999999999876,
+ "how": "verify_qasm strict"
+}

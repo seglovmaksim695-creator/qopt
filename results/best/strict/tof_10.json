@@ -1,0 +1,12 @@
+{
+ "src": "agents/c2/out/tof_10_T59_CX71_A3.qasm",
+ "agent": "c2",
+ "method": "AND compiler",
+ "T": 59,
+ "CX": 71,
+ "A": 3,
+ "N": 22,
+ "meas": 3,
+ "F": 0.9999999999999769,
+ "how": "verify_qasm strict"
+}

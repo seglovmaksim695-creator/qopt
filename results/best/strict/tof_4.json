@@ -1,0 +1,12 @@
+{
+ "src": "agents/c2/out/tof_4_T12_CX15_A3.qasm",
+ "agent": "c2",
+ "method": "AND compiler",
+ "T": 12,
+ "CX": 15,
+ "A": 3,
+ "N": 10,
+ "meas": 3,
+ "F": 0.9999999999999968,
+ "how": "verify_qasm strict"
+}

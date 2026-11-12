@@ -1,0 +1,12 @@
+{
+ "src": "agents/c1/best_c2/mod5_4_T4_CX11_A1.qasm",
+ "agent": "c1",
+ "method": "AND compiler + CX resynthesis",
+ "T": 4,
+ "CX": 11,
+ "A": 1,
+ "N": 6,
+ "meas": 1,
+ "F": 0.9999999999999977,
+ "how": "verify_qasm strict"
+}

@@ -24,6 +24,11 @@ classifiers = [
     "Intended Audience :: Science/Research",
 ]
 
+[project.urls]
+Homepage = "https://github.com/seglovmaksim695-creator/qopt"
+Repository = "https://github.com/seglovmaksim695-creator/qopt"
+Issues = "https://github.com/seglovmaksim695-creator/qopt/issues"
+
 [project.optional-dependencies]
 test = ["pytest>=8"]
 

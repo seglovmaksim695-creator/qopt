@@ -11,6 +11,7 @@
   "access_right": "open",
   "keywords": ["quantum computing", "quantum circuit optimization", "Clifford+T", "T-count", "CNOT count", "logical AND", "measurement-based uncomputation", "verification"],
   "related_identifiers": [
+    {"identifier": "https://github.com/seglovmaksim695-creator/qopt", "relation": "isSupplementTo", "resource_type": "software", "scheme": "url"},
     {"identifier": "https://github.com/meamy/feynman", "relation": "references", "resource_type": "dataset", "scheme": "url"},
     {"identifier": "arXiv:1709.06648", "relation": "references", "scheme": "arxiv"},
     {"identifier": "arXiv:1805.06908", "relation": "references", "scheme": "arxiv"}

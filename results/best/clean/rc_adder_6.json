@@ -1,0 +1,12 @@
+{
+ "src": "agents/c2/out_clean/rc_adder_6_T24_CX53_A6.qasm",
+ "agent": "c2",
+ "method": "AND compiler (clean ancillas)",
+ "T": 24,
+ "CX": 53,
+ "A": 6,
+ "N": 20,
+ "meas": 7,
+ "F": 0.9999999999999928,
+ "how": "verify_qasm clean"
+}

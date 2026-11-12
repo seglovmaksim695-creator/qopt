@@ -23,4 +23,6 @@ abstract: >-
   resynthesis) and measurement-based modes that place Gidney logical-AND gates with measurement-based
   uncomputation automatically by tracking every wire as a polynomial over GF(2). Every reported circuit is
   re-checked by an independent state-vector simulator (up to 22 qubits) or a sum-over-paths checker.
-# repository-code and doi are added at publication time (see RELEASE_NOTES_RU.md)
+repository-code: "https://github.com/seglovmaksim695-creator/qopt"
+url: "https://github.com/seglovmaksim695-creator/qopt"
+# doi: added after the first Zenodo release (see RELEASE_NOTES_RU.md)

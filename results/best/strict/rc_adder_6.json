@@ -1,0 +1,12 @@
+{
+ "src": "agents/c8/hq/rc_adder_6_T24_CX54_e6.qasm",
+ "agent": "c8",
+ "method": "hybrid AND compiler (genuine H kept)",
+ "T": 24,
+ "CX": 54,
+ "A": 6,
+ "N": 20,
+ "meas": 6,
+ "F": 0.9999999999999918,
+ "how": "verify_qasm strict"
+}

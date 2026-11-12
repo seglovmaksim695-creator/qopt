@@ -1,0 +1,12 @@
+{
+ "src": "agents/c10/qft_4_final.qasm",
+ "agent": "c10",
+ "method": "H gadgets + TODD + tg3 CX polish",
+ "T": 53,
+ "CX": 265,
+ "A": 42,
+ "N": 47,
+ "meas": 42,
+ "F": 0.9999999999999988,
+ "how": "verify_big (sum-over-paths)"
+}

@@ -1,0 +1,12 @@
+{
+ "src": "results/qopt_bench.json:csum_mux_9:circ_ours",
+ "agent": "qopt",
+ "method": "portfolio + neural block resynthesis (--net)",
+ "T": 84,
+ "CX": 112,
+ "A": 0,
+ "N": 30,
+ "meas": 0,
+ "F": 1.0,
+ "how": "PyZX verify_equality"
+}

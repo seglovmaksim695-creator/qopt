@@ -1,0 +1,12 @@
+{
+ "src": "results/qopt_bench.json:barenco_tof_3:circ_ours",
+ "agent": "qopt",
+ "method": "portfolio + neural block resynthesis (--net)",
+ "T": 16,
+ "CX": 14,
+ "A": 0,
+ "N": 5,
+ "meas": 0,
+ "F": 0.9999999999999976,
+ "how": "verify_qasm strict"
+}

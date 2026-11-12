@@ -1,0 +1,12 @@
+{
+ "src": "agents/c2/out_clean/mod5_4_T4_CX11_A0.qasm",
+ "agent": "c2",
+ "method": "AND compiler (clean ancillas)",
+ "T": 4,
+ "CX": 11,
+ "A": 0,
+ "N": 5,
+ "meas": 0,
+ "F": 0.9999999999999976,
+ "how": "verify_qasm clean"
+}

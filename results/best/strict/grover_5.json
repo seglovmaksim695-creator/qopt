@@ -1,0 +1,12 @@
+{
+ "src": "agents/c8/hq/grover_5_T124_CX155_e4.qasm",
+ "agent": "c8",
+ "method": "hybrid AND compiler (genuine H kept)",
+ "T": 124,
+ "CX": 155,
+ "A": 4,
+ "N": 13,
+ "meas": 31,
+ "F": 0.9999999999999681,
+ "how": "verify_qasm strict"
+}
