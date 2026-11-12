@@ -95,7 +95,7 @@ qopt optimize bench_qc/mod_red_21.qc -o m.qasm --mode t --clean     # миним
 ## Как проверить
 
 ```bash
-python scripts/verify_all.py --jobs 4     # перепроверка всех схем из results/table.csv
+python scripts/verify_all.py --jobs 2     # перепроверка всех 200 строк results/table.csv (~40 мин)
 sh scripts/reproduce.sh cx out            # прогон оптимизатора на всех бенчмарках
 ```
 

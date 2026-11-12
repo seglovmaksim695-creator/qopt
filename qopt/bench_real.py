@@ -1,4 +1,4 @@
-"""Этап 12, пункт 2+3 плана Максима: реальные алгоритмы (набор Feynman/Amy–Maslov–Mosca, Clifford+T).
+"""Этап 12, пункт 2+3 плана автора: реальные алгоритмы (набор Feynman/Amy–Maslov–Mosca, Clifford+T).
 Сравнение CX и времени: исходная, Qiskit opt3, PyZX full_optimize, наш блочный (с сетью / без сети),
 и наш блочный поверх результата PyZX. Проверка равенства — PyZX verify_equality (+ Operator для n<=10)."""
 import glob, json, os, sys, time, warnings

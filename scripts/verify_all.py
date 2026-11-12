@@ -7,8 +7,8 @@ Checkers (independent of the optimizer's data structures):
   * <= 22 qubits: qopt.verify_qasm.check -- state-vector simulation with measurements; strict model by default,
     clean=True for the clean-ancilla model; unitary circuits are checked the same way (no measurements).
     30 random input states (10 for circuits with 20-22 qubits, which take minutes each).
-  * > 22 qubits, measurement-based (strict): qopt.contrib.c10.verify_big.check -- sum-over-paths, randomized over
-    basis inputs and measurement branches.
+  * > 22 qubits, measurement-based: qopt.contrib.c10.verify_big.check -- sum-over-paths, randomized over basis inputs
+    and measurement branches; it checks the strict property, which implies validity in the clean model.
   * > 22 qubits, unitary: PyZX verify_equality (600 s limit); if undecided and <= 24 qubits, a numerical check
     on 2 random states (complex128, ~1.5 GB of memory).
 A row passes if the checker accepts (F > 1 - 1e-9) and T, CX and the number of qubits counted from the file
@@ -41,10 +41,11 @@ def check_row(row):
         if N <= 22:
             F = float(verify_qasm.check(str(f), str(qc), trials=30 if N < 20 else 10, clean=(row["model"] == "clean")))
             ok, how = F > THRESH, "verify_qasm" + (" clean" if row["model"] == "clean" else "")
-        elif row["model"] == "strict":
+        elif row["model"] in ("strict", "clean"):
+            # clean model above 22 qubits: check the stronger strict property (strict implies clean)
             from qopt.contrib.c10 import verify_big
             r = verify_big.check(str(f), str(qc), verbose=False)
-            F, ok, how = float(r.get("F", 0.0)), bool(r.get("ok")), "verify_big"
+            F, ok, how = float(r.get("F", 0.0)), bool(r.get("ok")), "verify_big" + (" (strict, implies clean)" if row["model"] == "clean" else "")
         elif row["model"] == "unitary":
             import evo_lib
             names, hl = qopt.load_qc(str(qc))

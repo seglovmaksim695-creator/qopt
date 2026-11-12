@@ -142,7 +142,7 @@ Honest caveats:
 ## How to check the results yourself
 
 ```bash
-python scripts/verify_all.py --jobs 4          # re-verifies every file in results/table.csv (~20-40 min)
+python scripts/verify_all.py --jobs 2          # re-verifies all 200 rows of results/table.csv (~40 min)
 python scripts/verify_all.py --only tof_3       # one circuit
 sh scripts/reproduce.sh cx out                  # re-run the optimizer on all benchmarks (see script header)
 ```

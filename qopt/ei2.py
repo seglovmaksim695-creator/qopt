@@ -473,7 +473,7 @@ def main():
         with open(log_file, "a") as f:
             f.write(json.dumps(rec) + "\n")
         # лучшая модель: больше решено, а при равном проценте — меньше CX (до 7 нояб. учитывался только процент,
-        # и при 100% best переставал обновляться — замечание Максима)
+        # и при 100% best переставал обновляться — замечание автора)
         better = solved > best_test or (solved == best_test and np.isfinite(cx) and cx < best_cx - 1e-9)
         if better:
             best_cx = cx
