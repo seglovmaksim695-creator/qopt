@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this software or its results, please cite it as below."
+title: "qopt: a verified Clifford+T circuit optimizer for T and CNOT counts"
+type: software
+version: 0.2.0
+date-released: "2026-11-12"
+license: Apache-2.0
+authors:
+  - given-names: Maksym
+    family-names: Shchehlov
+keywords:
+  - quantum computing
+  - quantum circuit optimization
+  - Clifford+T
+  - T-count
+  - CNOT count
+  - logical AND
+  - measurement-based uncomputation
+  - verification
+abstract: >-
+  qopt reduces the T count and the CNOT count of Clifford+T circuits given as Toffoli networks.
+  It provides a unitary mode (portfolio of evolved rewriting programs, phase folding, optional neural block
+  resynthesis) and measurement-based modes that place Gidney logical-AND gates with measurement-based
+  uncomputation automatically by tracking every wire as a polynomial over GF(2). Every reported circuit is
+  re-checked by an independent state-vector simulator (up to 22 qubits) or a sum-over-paths checker.
+# repository-code and doi are added at publication time (see RELEASE_NOTES_RU.md)

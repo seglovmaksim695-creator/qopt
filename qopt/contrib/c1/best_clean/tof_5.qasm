@@ -1,0 +1,57 @@
+OPENQASM 3;
+include "stdgates.inc";
+qubit[10] q;
+bit[4] c;
+h q[5];
+t q[5];
+cx q[1], q[5];
+tdg q[5];
+cx q[0], q[5];
+t q[5];
+cx q[1], q[5];
+tdg q[5];
+h q[5];
+sdg q[5];
+h q[6];
+t q[6];
+cx q[2], q[6];
+tdg q[6];
+cx q[5], q[6];
+t q[6];
+cx q[2], q[6];
+tdg q[6];
+h q[6];
+sdg q[6];
+h q[7];
+t q[7];
+cx q[3], q[7];
+tdg q[7];
+cx q[6], q[7];
+t q[7];
+cx q[3], q[7];
+tdg q[7];
+h q[7];
+sdg q[7];
+h q[9];
+t q[9];
+cx q[4], q[9];
+tdg q[9];
+cx q[7], q[9];
+t q[9];
+cx q[4], q[9];
+tdg q[9];
+h q[9];
+sdg q[9];
+cx q[9], q[8];
+h q[9];
+c[0] = measure q[9];
+if (c[0]) {cz q[7], q[4]; x q[9];}
+h q[7];
+c[1] = measure q[7];
+if (c[1]) {cz q[6], q[3]; x q[7];}
+h q[6];
+c[2] = measure q[6];
+if (c[2]) {cz q[5], q[2]; x q[6];}
+h q[5];
+c[3] = measure q[5];
+if (c[3]) {cz q[0], q[1]; x q[5];}

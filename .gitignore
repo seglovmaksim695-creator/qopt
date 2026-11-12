@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+.venv*/
+.pytest_cache/
+# release-engineering scratch (references the private research project)
+_build/
+reproduce_out/
+bench_extra/
+.DS_Store

@@ -1,0 +1,11 @@
+qopt — verified Clifford+T circuit optimizer
+Copyright 2026 Maksym Shchehlov
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Third-party material:
+* bench_qc/*.qc — benchmark circuits from the Feynman toolkit repository
+  (https://github.com/meamy/feynman, benchmarks/qc; repository license BSD-3-Clause), originally collected by
+  M. Amy, D. Maslov, M. Mosca and others (see bench_qc/SOURCES.md). These files are not covered by the
+  Apache-2.0 license of this project; see bench_qc/SOURCES.md for provenance and checksums.
+* qopt/contrib/c12/mcx.py calls multi-controlled-X syntheses from Qiskit (Apache-2.0) at run time.

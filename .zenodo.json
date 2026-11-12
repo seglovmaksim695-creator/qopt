@@ -1,0 +1,19 @@
+{
+  "title": "qopt: a verified Clifford+T circuit optimizer for T and CNOT counts",
+  "upload_type": "software",
+  "version": "0.2.0",
+  "publication_date": "2026-11-12",
+  "description": "qopt reduces the T count and the CNOT count of Clifford+T circuits given as Toffoli networks. It provides a unitary mode (portfolio of evolved rewriting programs, phase folding, optional neural block resynthesis) and measurement-based modes that place Gidney logical-AND gates with measurement-based uncomputation automatically, by tracking every wire as a polynomial over GF(2). Every reported circuit is re-checked by an independent state-vector simulator (up to 22 qubits) or a sum-over-paths checker. Includes verified result circuits for 23 standard benchmarks in three cost models (unitary, strict measurement-based, clean ancillas), a comparison with nine quantum software tools, and reproduction scripts.",
+  "creators": [
+    {"name": "Shchehlov, Maksym"}
+  ],
+  "license": "Apache-2.0",
+  "access_right": "open",
+  "keywords": ["quantum computing", "quantum circuit optimization", "Clifford+T", "T-count", "CNOT count", "logical AND", "measurement-based uncomputation", "verification"],
+  "related_identifiers": [
+    {"identifier": "https://github.com/meamy/feynman", "relation": "references", "resource_type": "dataset", "scheme": "url"},
+    {"identifier": "arXiv:1709.06648", "relation": "references", "scheme": "arxiv"},
+    {"identifier": "arXiv:1805.06908", "relation": "references", "scheme": "arxiv"}
+  ],
+  "notes": "Benchmark circuits in bench_qc/ are third-party data from the Feynman repository and are not covered by the Apache-2.0 license; see bench_qc/SOURCES.md."
+}
