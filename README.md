@@ -101,6 +101,12 @@ Totals over the circuits that have a result in the model: unitary: 23 circuits, 
 Full tables with Pareto fronts and provenance: `results/TABLE.md`, machine-readable `results/table.csv`;
 circuits: `results/best/<model>/<name>.qasm` and `results/pareto/<model>/`.
 
+## Hardware check (IBM Quantum)
+
+On `ibm_marrakesh`, the unitary `qopt` circuits returned the correct answer more often than the input circuits on all
+five benchmarks tried (+2 to +10 percentage points), while the measurement-based circuits were worse on current
+hardware (mid-circuit measurement latency). Details: `results/hardware/README.md`.
+
 ## Comparison with nine tools (summary; details in `results/COMPARISON.md`)
 
 Tools run on the same files: Qiskit 2.6.1, PyZX 0.10.8, pytket 2.18.5, Cirq 1.7, Q# Resource Estimator 1.31,
