@@ -174,6 +174,4 @@ See `CITATION.cff`. A preprint draft is in `paper/preprint.md`.
 ## Acknowledgements
 
 Benchmarks from the Feynman repository (M. Amy). Logical AND construction: C. Gidney, *Halving the cost of quantum
-addition*, Quantum 2, 74 (2018). Sum-over-paths verification: M. Amy, arXiv:1805.06908. The code was developed with
-extensive use of AI coding assistants (Claude) under the author's direction; all reported circuits were verified
-as described above.
+addition*, Quantum 2, 74 (2018). Sum-over-paths verification: M. Amy, arXiv:1805.06908.
