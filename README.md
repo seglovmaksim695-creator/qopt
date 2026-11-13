@@ -1,11 +1,13 @@
 # qopt — a verified Clifford+T circuit optimizer
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24182059.svg)](https://doi.org/10.5281/zenodo.24182059)
+
 `qopt` reduces the **T count** and the **CNOT (CX) count** of Clifford+T circuits given as Toffoli networks
 (Feynman `.qc` format). It has a unitary mode and measurement-based modes, and it **never reports a circuit that
 has not been checked**: unitary outputs are proven equal to the input (or the input is returned), and every
 measurement-based output is re-checked by an independent simulator before it is written.
 
-Repository: <https://github.com/seglovmaksim695-creator/qopt> (to be published) · Version 0.2.0 · License Apache-2.0 (benchmark files: see `bench_qc/SOURCES.md`) · Author: Maksym Shchehlov
+Repository: <https://github.com/seglovmaksim695-creator/qopt>  · Version 0.2.0 · License Apache-2.0 (benchmark files: see `bench_qc/SOURCES.md`) · Author: Maksym Shchehlov
 
 ## Installation
 
