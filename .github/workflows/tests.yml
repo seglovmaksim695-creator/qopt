@@ -1,0 +1,43 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pytest:
+    name: pytest (${{ matrix.os }}, Python ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python: ["3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Build the wheel
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build --wheel
+      - name: Install the wheel (without torch) and pytest
+        run: python -m pip install dist/*.whl pytest
+      - name: Run the tests against the installed package
+        env:
+          OMP_NUM_THREADS: "1"
+        run: |
+          mv qoptct qoptct_src   # make sure the tests import the installed package, not the source tree
+          pytest -q -rs tests
+          mv qoptct_src qoptct
+      - name: Command line smoke test
+        run: |
+          qoptct version
+          qoptct optimize bench_qc/tof_3.qc -o tof_3_opt.qc

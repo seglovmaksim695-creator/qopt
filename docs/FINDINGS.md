@@ -14,7 +14,7 @@ is a dependency of qopt.
   corrections, followed by CX re-synthesis) reported `hwb6` at **51 T / 535 CX** (33 qubits) — equal to the best
   published T-count for hwb6 in the H-gadget model. The circuit was too large for the state-vector checker and had
   been accepted on the pipeline's internal checks only.
-* **How it was found.** The sum-over-paths checker (`qopt/contrib/c10/verify_big.py`, METHOD.md §4) rejects it in
+* **How it was found.** The sum-over-paths checker (`qoptct/contrib/c10/verify_big.py`, METHOD.md §4) rejects it in
   every sampled measurement branch, and also a 51 T / 587 CX variant. The same checker confirms the other large
   circuits of that pipeline (mod_red_21 51/358, qcla_com_7 59/565, rc_adder_6 37/311, qft_4 53/265).
 * **Diagnosis.** Two error types: (a) X flips of output bits that are affine in the measurement outcomes and

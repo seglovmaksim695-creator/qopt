@@ -1,9 +1,9 @@
 {
   "title": "qopt: a verified Clifford+T circuit optimizer for T and CNOT counts",
   "upload_type": "software",
-  "version": "0.2.0",
-  "publication_date": "2026-11-12",
-  "description": "qopt reduces the T count and the CNOT count of Clifford+T circuits given as Toffoli networks. It provides a unitary mode (portfolio of evolved rewriting programs, phase folding, optional neural block resynthesis) and measurement-based modes that place Gidney logical-AND gates with measurement-based uncomputation automatically, by tracking every wire as a polynomial over GF(2). Every reported circuit is re-checked by an independent state-vector simulator (up to 22 qubits) or a sum-over-paths checker. Includes verified result circuits for 23 standard benchmarks in three cost models (unitary, strict measurement-based, clean ancillas), a comparison with nine quantum software tools, and reproduction scripts.",
+  "version": "0.3.0",
+  "publication_date": "2026-11-13",
+  "description": "qopt reduces the T count and the CNOT count of Clifford+T circuits given as Toffoli networks. It provides a unitary mode (portfolio of evolved rewriting programs, phase folding, optional neural block resynthesis) and measurement-based modes that place Gidney logical-AND gates with measurement-based uncomputation automatically, by tracking every wire as a polynomial over GF(2). Every reported circuit is re-checked by an independent state-vector simulator (up to 22 qubits) or a sum-over-paths checker. Includes verified result circuits for 23 standard benchmarks in three cost models (unitary, strict measurement-based, clean ancillas), a comparison with nine quantum software tools, and reproduction scripts. Python package: pip install qoptct (import qoptct); includes a Qiskit transpiler plugin (optimization_method=\"qoptct\").",
   "creators": [
     {"name": "Shchehlov, Maksym"}
   ],

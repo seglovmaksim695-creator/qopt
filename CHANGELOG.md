@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.3.0 — 2026-11-13 (first PyPI release)
+
+### Changed — package renamed to `qoptct`
+* **The distribution, the import package and the command are now called `qoptct`** (the PyPI name `qopt`
+  belongs to an unrelated project with the import name `qopt`). The project itself is still called qopt.
+  Migration: `pip install qoptct`; `import qopt` → `import qoptct`; `from qopt.qiskit_qopt import QoptPass` →
+  `from qoptct.qiskit_qopt import QoptPass`; command `qopt optimize ...` → `qoptct optimize ...`.
+  Environment variables (`QOPT_CACHE`, `QOPT_PROG_SEC`, ...) and the cache directory `~/.cache/qopt` are unchanged.
+* PyTorch is now optional: `pip install "qoptct[net]"`. Only `--net` (and `QoptPass(net=True)`) needs it and
+  stops with an installation hint if it is missing; the other modes no longer import torch at all.
+* Python ≥ 3.11 (was 3.12); tested with 3.11, 3.12 and 3.14.
+
+### Added
+* Qiskit transpiler stage plugins, both named `qoptct`:
+  `transpile(qc, optimization_method="qoptct")` (Qiskit's optimization stage of the chosen level, then
+  `QoptPass` restricted to the target / basis / coupling map) and `init_method="qoptct"` (`QoptPass` at the
+  Toffoli level, before decomposition).
+* `QoptPass` now works on any circuit: it optimizes each maximal Clifford+T run separately (measurements,
+  barriers, rotations and other gates are kept), replaces a run only if the result is proven equal and strictly
+  cheaper, respects basis gates / coupling map / target, keeps the global phase (runs ≤ 10 qubits), and reports
+  `runs`, `replaced`, CX/T before and after in `pass.last`. Messages and documentation in English.
+* `.github/workflows/tests.yml` (pytest on Ubuntu and macOS against the built wheel) and
+  `.github/workflows/publish.yml` (PyPI Trusted Publishing on a published GitHub release).
+* `MANIFEST.in` (the sdist contains the tests and the redistributable benchmark inputs, never hwb6).
+
 ## 0.2.0 — 2026-11-12 (first public release candidate; not yet published)
 
 ### Added

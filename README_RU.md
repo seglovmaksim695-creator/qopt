@@ -1,37 +1,79 @@
 # qopt — проверяемый оптимизатор схем Clifford+T
 
+[![PyPI](https://img.shields.io/pypi/v/qoptct.svg)](https://pypi.org/project/qoptct/)
+[![tests](https://github.com/seglovmaksim695-creator/qopt/actions/workflows/tests.yml/badge.svg)](https://github.com/seglovmaksim695-creator/qopt/actions/workflows/tests.yml)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24182059.svg)](https://doi.org/10.5281/zenodo.24182059)
+
+> **Имя пакета.** Проект называется *qopt*, но имя `qopt` на PyPI занято другим, не связанным проектом. Поэтому
+> начиная с версии 0.3.0 пакет устанавливается и импортируется как **`qoptct`**: `pip install qoptct`,
+> `import qoptct`, команда `qoptct`.
 
 `qopt` уменьшает **число T** и **число CNOT (CX)** в схемах Clifford+T, заданных как сети Тоффоли (формат Feynman
 `.qc`). Есть унитарный режим и режимы с измерениями. Программа **никогда не выдаёт непроверенную схему**: унитарный
 результат доказывается равным входу (иначе возвращается вход), а каждая схема с измерениями перед записью
 перепроверяется независимым симулятором.
 
-Репозиторий: <https://github.com/seglovmaksim695-creator/qopt> (будет опубликован) · Версия 0.2.0 · Лицензия Apache-2.0 (файлы бенчмарков — см. `bench_qc/SOURCES.md`) · Автор: Maksym Shchehlov
+Репозиторий: <https://github.com/seglovmaksim695-creator/qopt> · Версия 0.3.0 · Лицензия Apache-2.0 (файлы бенчмарков — см. `bench_qc/SOURCES.md`) · Автор: Maksym Shchehlov
 
 Основная документация — на английском (`README.md`, `docs/METHOD.md`, `docs/FINDINGS.md`). Здесь — краткое изложение.
 
 ## Установка
 
 ```bash
+pip install qoptct              # Python 3.11+, macOS или Linux; команда `qoptct` и плагин Qiskit
+pip install "qoptct[net]"       # по желанию: + PyTorch для нейросетевого режима --net
+```
+
+Зависимости: numpy, qiskit ≥ 2.0, pyzx. PyTorch нужен только для `--net`; без него остальные режимы работают,
+а `--net` останавливается с сообщением, что именно установить.
+
+Из репозитория (тесты, бенчмарки, скрипты):
+
+```bash
 git clone https://github.com/seglovmaksim695-creator/qopt.git && cd qopt
-python3 -m venv .venv && . .venv/bin/activate        # Python 3.12+ (проверено на 3.14.6, macOS arm64)
-pip install -r requirements.txt                      # точные версии, на которых получены результаты
-pip install -e .                                     # команда `qopt`
-pytest -q tests                                      # около минуты
+python3 -m venv .venv && . .venv/bin/activate
+pip install -r requirements.txt                      # точные версии, на которых получены результаты (вкл. torch)
+pip install -e ".[test]"
+pytest -q tests                                      # несколько минут
 ```
 
 ## Использование
 
 ```bash
-qopt optimize bench_qc/tof_3.qc -o tof_3_opt.qc                     # унитарно, минимум CX (режим по умолчанию)
-qopt optimize bench_qc/tof_3.qc -o tof_3.qasm --mode balanced       # меньше T, CX не больше 1,5 × унитарного
-qopt optimize bench_qc/mod_red_21.qc -o m.qasm --mode t --clean     # минимум T, модель «чистые анциллы»
+qoptct optimize bench_qc/tof_3.qc -o tof_3_opt.qc                     # унитарно, минимум CX (режим по умолчанию)
+qoptct optimize bench_qc/tof_3.qc -o tof_3.qasm --mode balanced       # меньше T, CX не больше 1,5 × унитарного
+qoptct optimize bench_qc/mod_red_21.qc -o m.qasm --mode t --clean     # минимум T, модель «чистые анциллы»
 ```
 
-Опции: `--net` (нейросетевой блочный ресинтез), `--post` (пост-проход CX), `--meas` (старый режим Гидни),
-`--tgad`/`--vartodd` (гаджеты H + TODD; внешний VarTODD — через переменную `QOPT_VARTODD_BIN`), `--report r.json`.
-Кэши пишутся в `$QOPT_CACHE` (по умолчанию `~/.cache/qopt`).
+Опции: `--net` (нейросетевой блочный ресинтез, нужен `pip install "qoptct[net]"`), `--post` (пост-проход CX),
+`--meas` (старый режим Гидни), `--tgad`/`--vartodd` (гаджеты H + TODD; внешний VarTODD — через переменную
+`QOPT_VARTODD_BIN`), `--report r.json`. Кэши пишутся в `$QOPT_CACHE` (по умолчанию `~/.cache/qopt`).
+Из Python: `import qoptct; names, ref, best, how = qoptct.optimize("X.qc")`.
+
+## Плагин Qiskit
+
+После `pip install qoptct` в транспиляторе Qiskit появляются два плагина стадий с именем `qoptct`:
+`optimization_method="qoptct"` (обычная оптимизация Qiskit выбранного уровня, затем `QoptPass` на частях схемы в
+базисе Clifford+T) и `init_method="qoptct"` (`QoptPass` на схеме, пока Тоффоли ещё не разложены, — здесь
+основная экономия).
+
+```python
+from qiskit import QuantumCircuit, transpile
+from qiskit.quantum_info import Operator
+
+qc = QuantumCircuit(5)
+qc.ccx(0, 1, 4); qc.ccx(2, 4, 3); qc.ccx(0, 1, 4)
+basis = ["h", "x", "z", "s", "sdg", "t", "tdg", "cx"]                 # Clifford+T
+ours = transpile(qc, basis_gates=basis, optimization_level=3,
+                 init_method="qoptct", optimization_method="qoptct")
+assert Operator(ours) == Operator(qc)                                  # тот же оператор, включая глобальную фазу
+```
+
+Пример (CX/T, Qiskit 2.6.2, базис Clifford+T): tof_3 — Qiskit 18/19, с плагином 12/15; mod5_4 — 28/22 → 11/8.
+Часть схемы заменяется, только если новая версия **доказанно** равна старой, строго дешевле (CX, затем T) и
+использует только разрешённые базисом / картой связей / target вентили и пары кубитов; всё остальное (измерения,
+повороты, другие вентили) не трогается. Проход можно использовать и напрямую:
+`from qoptct.qiskit_qopt import QoptPass`.
 
 ## Модели стоимости — обязательно перед сравнением чисел
 

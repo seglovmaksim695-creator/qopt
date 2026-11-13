@@ -1,8 +1,8 @@
 # qopt — methods
 
-This document describes what `qopt optimize` does internally, in the order the stages run, and how every
-output is checked. Code locations are relative to the `qopt/` package directory. Directories under
-`qopt/contrib/` keep the names of the development work packages (c1, c2, c8, c10, c12, eng1, eng2, tg2, tg3).
+This document describes what `qoptct optimize` does internally, in the order the stages run, and how every
+output is checked. Code locations are relative to the `qoptct/` package directory (the package of the project qopt; `pip install qoptct`). Directories under
+`qoptct/contrib/` keep the names of the development work packages (c1, c2, c8, c10, c12, eng1, eng2, tg2, tg3).
 
 Terminology used throughout:
 
@@ -133,7 +133,7 @@ for circuits with genuinely non-classical parts.
 Every circuit in `results/` and every output of the measurement-based modes is checked by code that does not share
 the optimizer's data structures:
 
-* `qopt/verify_qasm.py` (≤ 22 qubits): state-vector simulation of an OpenQASM 3 subset with measurements (outcomes
+* `qoptct/verify_qasm.py` (≤ 22 qubits): state-vector simulation of an OpenQASM 3 subset with measurements (outcomes
   sampled) and `if` blocks on ANDs of classical bits. For 30 random input states (complex Gaussian vectors on the
   data wires, fresh ancillas in |0>) it computes `|<U_ref ψ | out>|` **without renormalization**, where `out` is the
   output state projected onto the most likely basis state of every ancilla. A value of 1 therefore certifies that
@@ -141,7 +141,7 @@ the optimizer's data structures:
   input `.qc` lowered with standard 7-T Toffolis). The worst value over the trials is reported; acceptance threshold
   F > 1 − 1e−9. `clean=True` sets to zero the amplitudes in which a non-`.i` wire is 1. This is a randomized test,
   not a proof; a wrong circuit passes only if it acts correctly on all sampled states and branches.
-* `qopt/contrib/c10/verify_big.py` + `pathsum.py` (> 22 qubits, deterministic measurement-based circuits):
+* `qoptct/contrib/c10/verify_big.py` + `pathsum.py` (> 22 qubits, deterministic measurement-based circuits):
   sum-over-paths evaluation (Amy, arXiv:1805.06908) with exact variable elimination. For sampled basis inputs x and
   sampled measurement branches m it checks that the output equals c_m · U_ref|x> with c_m independent of x, and that
   live ancillas end in one basis state. Randomized over (x, m). The engine was validated against brute force on

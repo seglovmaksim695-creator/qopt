@@ -1,0 +1,8 @@
+# Source distribution: package, tests and the redistributable benchmark inputs the tests need.
+include README.md README_RU.md CHANGELOG.md LICENSE NOTICE CITATION.cff
+include bench_qc/*.qc bench_qc/SOURCES.md
+include results/best/strict/tof_3.qasm
+recursive-include tests *.py
+prune _build
+prune results/hardware
+global-exclude *.pyc __pycache__ *hwb*

@@ -8,7 +8,7 @@ from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.circuit import Gate
 
 
-from qopt.qopt_metrics import circuit_metrics
+from qoptct.qopt_metrics import circuit_metrics
 
 
 def test_empty_circuit():

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Example: run qopt on all shipped benchmarks.
+# Example: run qoptct (pip install qoptct) on all shipped benchmarks.
 #   sh scripts/reproduce.sh [MODE] [OUTDIR]       MODE: cx (default) | net | balanced | t | t-clean | all
 # Writes OUTDIR/<mode>/<name>.(qc|qasm) and one JSON report per circuit, then prints a summary.
 # Time: 'cx' takes minutes for small circuits and up to ~1 h for the largest ones (time limits per rewriting
@@ -11,7 +11,7 @@ MODE=${1:-cx}
 OUT=${2:-reproduce_out}
 HERE=$(cd "$(dirname "$0")/.." && pwd)
 BENCH="$HERE/bench_qc"
-QOPT=${QOPT:-qopt}
+QOPT=${QOPT:-qoptct}
 export OMP_NUM_THREADS=${OMP_NUM_THREADS:-1}
 
 run_mode() {

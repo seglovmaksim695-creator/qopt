@@ -5,8 +5,8 @@ Neither hwb6.qc nor circuits derived from it are redistributed with this release
 Expected for the 51 T / 535 CX circuit: ok=False (rejected in every sampled measurement branch)."""
 import sys
 
-import qopt  # noqa: F401  (sets up the package paths)
-from qopt.contrib.c10 import verify_big
+import qoptct  # noqa: F401  (sets up the package paths)
+from qoptct.contrib.c10 import verify_big
 
 if len(sys.argv) != 3:
     sys.exit(__doc__)

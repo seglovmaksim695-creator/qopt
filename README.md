@@ -1,22 +1,38 @@
 # qopt — a verified Clifford+T circuit optimizer
 
+[![PyPI](https://img.shields.io/pypi/v/qoptct.svg)](https://pypi.org/project/qoptct/)
+[![tests](https://github.com/seglovmaksim695-creator/qopt/actions/workflows/tests.yml/badge.svg)](https://github.com/seglovmaksim695-creator/qopt/actions/workflows/tests.yml)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24182059.svg)](https://doi.org/10.5281/zenodo.24182059)
+
+> **Package name:** the project is called *qopt*, but on PyPI the name `qopt` belongs to an unrelated project.
+> Since version 0.3.0 the package is therefore installed and imported as **`qoptct`**:
+> `pip install qoptct`, `import qoptct`, command `qoptct`.
 
 `qopt` reduces the **T count** and the **CNOT (CX) count** of Clifford+T circuits given as Toffoli networks
 (Feynman `.qc` format). It has a unitary mode and measurement-based modes, and it **never reports a circuit that
 has not been checked**: unitary outputs are proven equal to the input (or the input is returned), and every
 measurement-based output is re-checked by an independent simulator before it is written.
 
-Repository: <https://github.com/seglovmaksim695-creator/qopt>  · Version 0.2.0 · License Apache-2.0 (benchmark files: see `bench_qc/SOURCES.md`) · Author: Maksym Shchehlov
+Repository: <https://github.com/seglovmaksim695-creator/qopt>  · Version 0.3.0 · License Apache-2.0 (benchmark files: see `bench_qc/SOURCES.md`) · Author: Maksym Shchehlov
 
 ## Installation
 
 ```bash
+pip install qoptct              # Python 3.11+, macOS or Linux; provides the `qoptct` command and the Qiskit plugin
+pip install "qoptct[net]"       # optional: + PyTorch for the neural mode --net
+```
+
+Dependencies: numpy, qiskit ≥ 2.0, pyzx. PyTorch is needed only for `--net`; without it every other mode works
+and `--net` stops with a message that says what to install.
+
+From the repository (to run the tests, the benchmarks and the scripts):
+
+```bash
 git clone https://github.com/seglovmaksim695-creator/qopt.git && cd qopt
-python3 -m venv .venv && . .venv/bin/activate        # Python 3.12+ (tested with 3.14.6 on macOS arm64)
-pip install -r requirements.txt                      # exact versions used for the results
-pip install -e .                                     # provides the `qopt` command
-pytest -q tests                                      # ~1 minute
+python3 -m venv .venv && . .venv/bin/activate
+pip install -r requirements.txt                      # exact versions used for the results (incl. torch)
+pip install -e ".[test]"
+pytest -q tests                                      # a few minutes
 ```
 
 `requirements-lock.txt` pins the full environment used for testing. Caches are written to `$QOPT_CACHE`
@@ -25,15 +41,14 @@ pytest -q tests                                      # ~1 minute
 ## Usage
 
 ```bash
-qopt optimize bench_qc/tof_3.qc -o tof_3_opt.qc                          # unitary, minimum CX (default --mode cx)
-qopt optimize bench_qc/tof_3.qc -o tof_3_opt.qc --net --post             # + neural block resynthesis + CX post-pass
-qopt optimize bench_qc/tof_3.qc -o tof_3.qasm --mode balanced            # fewer T, CX <= 1.5x unitary CX
-qopt optimize bench_qc/mod_red_21.qc -o m.qasm --mode t --clean          # minimum T, clean-ancilla model
-qopt optimize X.qc --report report.json                                  # JSON report (also printed to stdout)
+qoptct optimize bench_qc/tof_3.qc -o tof_3_opt.qc                          # unitary, minimum CX (default --mode cx)
+qoptct optimize bench_qc/tof_3.qc -o tof_3_opt.qc --net --post             # + neural block resynthesis + CX post-pass
+qoptct optimize bench_qc/tof_3.qc -o tof_3.qasm --mode balanced            # fewer T, CX <= 1.5x unitary CX
+qoptct optimize bench_qc/mod_red_21.qc -o m.qasm --mode t --clean          # minimum T, clean-ancilla model
+qoptct optimize X.qc --report report.json                                  # JSON report (also printed to stdout)
 ```
 
-Python: `names, ref, best, how = qopt.optimize("X.qc")`. Qiskit: `from qopt.qiskit_qopt import QoptPass`
-(a `TransformationPass`; h x z s sdg t tdg cx cz ccx ccz).
+Python: `import qoptct; names, ref, best, how = qoptct.optimize("X.qc")`.
 
 | option | meaning |
 |---|---|
@@ -41,13 +56,60 @@ Python: `names, ref, best, how = qopt.optimize("X.qc")`. Qiskit: `from qopt.qisk
 | `--mode balanced` | measurement-based output (OpenQASM 3) with lower T and CX ≤ `--cx-factor` (1.5) × unitary CX, if one is found and verified |
 | `--mode t` | lowest T found (measurement-based), CX may grow |
 | `--clean` | clean-ancilla model (see below) for the measurement-based modes |
-| `--net` | neural block resynthesis (models in `qopt/models/`) |
+| `--net` | neural block resynthesis (models in `qoptct/models/`; needs `pip install "qoptct[net]"`) |
 | `--post` | CX post-pass on H-free regions (slow) |
 | `--meas` | older Gidney transformation (clean-ancilla model), kept for compatibility |
 | `--tgad`, `--vartodd` | Hadamard gadgets + TODD; `--vartodd` also tries an external VarTODD binary given by `QOPT_VARTODD_BIN` |
 
 Measurement-based outputs are written only if they pass `verify_qasm` (≤ 22 qubits in total); otherwise the unitary
 result is written. The JSON report says which candidate was used.
+
+## Qiskit plugin
+
+`pip install qoptct` registers two stage plugins for the Qiskit transpiler, both named `qoptct`:
+
+* `optimization_method="qoptct"` — Qiskit's own optimization stage of the chosen level, then `QoptPass` on the
+  Clifford+T parts of the (already translated and routed) circuit;
+* `init_method="qoptct"` (optional, recommended for Toffoli circuits) — `QoptPass` on the circuit as written,
+  while the Toffolis are still Toffolis, before Qiskit's own init stage. Most of the savings come from here.
+
+```python
+from qiskit import QuantumCircuit, transpile
+from qiskit.quantum_info import Operator
+
+qc = QuantumCircuit(5)                                                 # tof_3 from bench_qc/
+qc.ccx(0, 1, 4); qc.ccx(2, 4, 3); qc.ccx(0, 1, 4)
+
+basis = ["h", "x", "z", "s", "sdg", "t", "tdg", "cx"]                 # Clifford+T
+plain = transpile(qc, basis_gates=basis, optimization_level=3)
+ours = transpile(qc, basis_gates=basis, optimization_level=3,
+                 init_method="qoptct", optimization_method="qoptct")
+print(plain.count_ops(), ours.count_ops())
+assert Operator(ours) == Operator(qc)                                  # same operator, incl. global phase
+```
+
+CX/T after `transpile` with a Clifford+T basis (Qiskit 2.6.2, levels 1–3 gave the same numbers):
+
+| circuit | Qiskit level 3 | `optimization_method="qoptct"` | `+ init_method="qoptct"` |
+|---|---|---|---|
+| tof_3 | 18 / 19 | 16 / 15 | 12 / 15 |
+| mod5_4 | 28 / 22 | 25 / 16 | 11 / 8 |
+| barenco_tof_3 | 24 / 24 | 20 / 16 | 16 / 16 |
+
+A part of the circuit is replaced only if the new version is **proven** equal, strictly cheaper (CX, then T),
+and uses only gates and qubit pairs allowed by the basis / coupling map / target; everything else
+(measurements, rotations, other gates) is left as it is. With a coupling map, compare with
+`Operator.from_circuit(out)`. On circuits with up to 10 qubits per part the global phase is kept exactly.
+
+The pass can also be used directly:
+
+```python
+from qiskit.transpiler import PassManager
+from qoptct.qiskit_qopt import QoptPass
+p = QoptPass(); out = PassManager([p]).run(qc); print(p.last)   # runs, replaced, CX/T before and after
+```
+
+`QoptMeasPass(ancillas=[...])` is the measurement-based variant (logical AND, needs qubits known to start in |0>).
 
 ## Cost models — read this before comparing numbers
 

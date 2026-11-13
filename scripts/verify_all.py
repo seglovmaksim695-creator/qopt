@@ -4,10 +4,10 @@
   python scripts/verify_all.py [--jobs 2] [--only CIRCUIT] [--model unitary|strict|clean] [--kind best|pareto]
 
 Checkers (independent of the optimizer's data structures):
-  * <= 22 qubits: qopt.verify_qasm.check -- state-vector simulation with measurements; strict model by default,
+  * <= 22 qubits: qoptct.verify_qasm.check -- state-vector simulation with measurements; strict model by default,
     clean=True for the clean-ancilla model; unitary circuits are checked the same way (no measurements).
     30 random input states (10 for circuits with 20-22 qubits, which take minutes each).
-  * > 22 qubits, measurement-based: qopt.contrib.c10.verify_big.check -- sum-over-paths, randomized over basis inputs
+  * > 22 qubits, measurement-based: qoptct.contrib.c10.verify_big.check -- sum-over-paths, randomized over basis inputs
     and measurement branches; it checks the strict property, which implies validity in the clean model.
   * > 22 qubits, unitary: PyZX verify_equality (600 s limit); if undecided and <= 24 qubits, a numerical check
     on 2 random states (complex128, ~1.5 GB of memory).
@@ -29,8 +29,8 @@ def counts(text):
 
 
 def check_row(row):
-    import qopt
-    from qopt import verify_qasm
+    import qoptct
+    from qoptct import verify_qasm
     f = REL / row["file"]; qc = REL / "bench_qc" / f"{row['circuit']}.qc"
     t0 = time.time()
     text = f.read_text()
@@ -43,20 +43,20 @@ def check_row(row):
             ok, how = F > THRESH, "verify_qasm" + (" clean" if row["model"] == "clean" else "")
         elif row["model"] in ("strict", "clean"):
             # clean model above 22 qubits: check the stronger strict property (strict implies clean)
-            from qopt.contrib.c10 import verify_big
+            from qoptct.contrib.c10 import verify_big
             r = verify_big.check(str(f), str(qc), verbose=False)
             F, ok, how = float(r.get("F", 0.0)), bool(r.get("ok")), "verify_big" + (" (strict, implies clean)" if row["model"] == "clean" else "")
         elif row["model"] == "unitary":
             import evo_lib
-            names, hl = qopt.load_qc(str(qc))
+            names, hl = qoptct.load_qc(str(qc))
             gates = [(l.split()[0], tuple(int(x) for x in re.findall(r"q\[(\d+)\]", l)))
                      for l in text.splitlines() if l.strip() and not l.startswith(("OPENQASM", "include", "qubit", "bit"))]
             import bench_real as br  # PyZX only: a numerical check at 24-26 qubits needs several GB of memory
             n = len(names); ref = evo_lib.lower_std(hl)
-            ok = bool(qopt.limited(600, lambda: br.ours_to_zx(gates, n).verify_equality(br.ours_to_zx(ref, n))))
+            ok = bool(qoptct.limited(600, lambda: br.ours_to_zx(gates, n).verify_equality(br.ours_to_zx(ref, n))))
             how = "pyzx verify_equality"
             if not ok and n <= 24:  # PyZX undecided: numerical check on 2 random states (~1.5 GB of memory at 24 qubits)
-                import sys as _s; _s.path.insert(0, str(Path(qopt.__file__).parent / "proto2"))
+                import sys as _s; _s.path.insert(0, str(Path(qoptct.__file__).parent / "proto2"))
                 from verify import numeric_equal
                 ok = bool(numeric_equal(gates, ref, n)); how = "numerical (2 random states)"
             F = 1.0 if ok else 0.0
