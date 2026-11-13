@@ -25,5 +25,4 @@ abstract: >-
   re-checked by an independent state-vector simulator (up to 22 qubits) or a sum-over-paths checker.
 repository-code: "https://github.com/seglovmaksim695-creator/qopt"
 url: "https://github.com/seglovmaksim695-creator/qopt"
-# doi: added after the first Zenodo release (see RELEASE_NOTES_RU.md)
 doi: 10.5281/zenodo.24182059
