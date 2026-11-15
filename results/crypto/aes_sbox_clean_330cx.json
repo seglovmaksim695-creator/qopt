@@ -1,0 +1,19 @@
+{
+ "name": "aes_sbox_clean_330cx",
+ "model": "clean",
+ "AND": 32,
+ "T": 128,
+ "CX": 330,
+ "cx": 273,
+ "cz": 57,
+ "qubits": 26,
+ "measurements": 27,
+ "verdict": "PROVED",
+ "method": "bdd",
+ "detail": "BDD path sum reached the normal form for all inputs and outcomes (27 measurements, 91 H, 59 HH, 0 omega; 15124 BDD nodes)",
+ "prove_time_s": 0.0,
+ "reference": "aes_sbox_clean_330cx.qc",
+ "reference_how": "copied from the development project; checked against an independent definition (AES tables)",
+ "wires": "q[0..7] = x (bit i = coefficient of x^i, AES field GF(2^8)/x^8+x^4+x^3+x+1), q[8..15] = y, q[16..25] clean ancillas",
+ "note": "|x,0> -> |x,S(x)>; 32 AND, 26 qubits. Same AND count as Meuli et al. 2019 (arXiv:1908.01609, 32 AND at 48 qubits); here 26 qubits. T-depth 98 (low-depth designs: 34 AND, T-depth 4-6)."
+}

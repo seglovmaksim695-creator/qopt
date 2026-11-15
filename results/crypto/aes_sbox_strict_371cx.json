@@ -1,0 +1,19 @@
+{
+ "name": "aes_sbox_strict_371cx",
+ "model": "strict",
+ "AND": 32,
+ "T": 128,
+ "CX": 371,
+ "cx": 312,
+ "cz": 59,
+ "qubits": 26,
+ "measurements": 32,
+ "verdict": "PROVED",
+ "method": "bdd",
+ "detail": "BDD path sum reached the normal form for all inputs and outcomes (32 measurements, 96 H, 64 HH, 0 omega; 17538 BDD nodes)",
+ "prove_time_s": 0.1,
+ "reference": "aes_sbox_strict_371cx.qc",
+ "reference_how": "copied from the development project; checked against an independent definition (AES tables)",
+ "wires": "q[0..7] = x (bit i = coefficient of x^i, AES field GF(2^8)/x^8+x^4+x^3+x+1), q[8..15] = y, q[16..25] ancillas (|0> in, |0> out)",
+ "note": "y ^= S(x) for any y; 32 AND, 26 qubits."
+}

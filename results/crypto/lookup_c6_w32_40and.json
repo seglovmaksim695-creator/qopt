@@ -1,0 +1,19 @@
+{
+ "name": "lookup_c6_w32_40and",
+ "model": "clean",
+ "AND": 40,
+ "T": 160,
+ "CX": 1477,
+ "cx": 1437,
+ "cz": 40,
+ "qubits": 47,
+ "measurements": 40,
+ "verdict": "PROVED",
+ "method": "bdd",
+ "detail": "BDD path sum reached the normal form for all inputs and outcomes (40 measurements, 120 H, 80 HH, 0 omega; 19405 BDD nodes)",
+ "prove_time_s": 0.1,
+ "reference": "lookup_c6_w32_40and.qc",
+ "reference_how": "copied from the development project; the reference IS the specification (table as multi-controlled X)",
+ "wires": "a0..a5 address, z0..z31 target, h0..h5 clean work wires",
+ "note": "z ^= T[a], address 6 bits, word 32 bits, 40 AND (2^c-c-1 = 57 for the standard lookup); random table (seed 1). Priority for the idea of a narrow lookup + adder in the GE framework: Luongo et al. 2025 (arXiv:2502.17325)."
+}

@@ -1,0 +1,19 @@
+{
+ "name": "lookup_c6_w21_33and",
+ "model": "clean",
+ "AND": 33,
+ "T": 132,
+ "CX": 991,
+ "cx": 958,
+ "cz": 33,
+ "qubits": 40,
+ "measurements": 33,
+ "verdict": "PROVED",
+ "method": "bdd",
+ "detail": "BDD path sum reached the normal form for all inputs and outcomes (33 measurements, 99 H, 66 HH, 0 omega; 10971 BDD nodes)",
+ "prove_time_s": 0.0,
+ "reference": "lookup_c6_w21_33and.qc",
+ "reference_how": "copied from the development project; the reference IS the specification (table as multi-controlled X)",
+ "wires": "a0..a5 address, z0..z20 target, h* clean work wires",
+ "note": "z ^= T[a], address 6 bits, word 21 bits, 33 AND; random table (seed 5)."
+}

@@ -1,0 +1,19 @@
+{
+ "name": "aes_sbox_depth4_33and",
+ "model": "clean",
+ "AND": 33,
+ "T": 132,
+ "CX": 552,
+ "cx": 380,
+ "cz": 172,
+ "qubits": 44,
+ "measurements": 33,
+ "verdict": "PROVED",
+ "method": "bdd",
+ "detail": "BDD path sum reached the normal form for all inputs and outcomes (33 measurements, 99 H, 66 HH, 0 omega; 18805 BDD nodes)",
+ "prove_time_s": 0.1,
+ "reference": "aes_sbox_depth4_33and.qc",
+ "reference_how": "copied from the development project; checked against an independent definition (AES tables)",
+ "wires": "q[0..7] = x (bit i = coefficient of x^i, AES field GF(2^8)/x^8+x^4+x^3+x+1), q[8..15] = y, q[16..43] clean ancillas",
+ "note": "|x,0> -> |x,S(x)>; 33 AND at AND-depth 4 (published depth-4 designs: 34 AND); 44 qubits, T-depth 13."
+}

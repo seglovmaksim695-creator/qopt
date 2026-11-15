@@ -1,0 +1,181 @@
+{
+ "description": "Proved circuits of cryptographic building blocks (qoptct 0.5). Each entry: <name>.qasm (OpenQASM 3), reference <name>.qc, record <name>.json. Verdict PROVED by qoptct kprove for all inputs and measurement outcomes (model: unitary / strict / clean as in the README). AND = T/4; CX counts cx and cz.",
+ "circuits": [
+  {
+   "name": "aes_isbox_clean_339cx",
+   "model": "clean",
+   "AND": 32,
+   "T": 128,
+   "CX": 339,
+   "qubits": 26,
+   "measurements": 28,
+   "verdict": "PROVED",
+   "method": "bdd"
+  },
+  {
+   "name": "aes_isbox_inplace_64and",
+   "model": "clean",
+   "AND": 64,
+   "T": 256,
+   "CX": 710,
+   "qubits": 26,
+   "measurements": 60,
+   "verdict": "PROVED",
+   "method": "bdd"
+  },
+  {
+   "name": "aes_isbox_strict_365cx",
+   "model": "strict",
+   "AND": 32,
+   "T": 128,
+   "CX": 365,
+   "qubits": 26,
+   "measurements": 32,
+   "verdict": "PROVED",
+   "method": "bdd"
+  },
+  {
+   "name": "aes_mixcolumns_90cx",
+   "model": "unitary",
+   "AND": 0,
+   "T": 0,
+   "CX": 90,
+   "qubits": 32,
+   "measurements": 0,
+   "verdict": "PROVED",
+   "method": "bdd"
+  },
+  {
+   "name": "aes_sbox_clean_330cx",
+   "model": "clean",
+   "AND": 32,
+   "T": 128,
+   "CX": 330,
+   "qubits": 26,
+   "measurements": 27,
+   "verdict": "PROVED",
+   "method": "bdd"
+  },
+  {
+   "name": "aes_sbox_depth4_33and",
+   "model": "clean",
+   "AND": 33,
+   "T": 132,
+   "CX": 552,
+   "qubits": 44,
+   "measurements": 33,
+   "verdict": "PROVED",
+   "method": "bdd"
+  },
+  {
+   "name": "aes_sbox_inplace_64and",
+   "model": "clean",
+   "AND": 64,
+   "T": 256,
+   "CX": 704,
+   "qubits": 26,
+   "measurements": 60,
+   "verdict": "PROVED",
+   "method": "bdd"
+  },
+  {
+   "name": "aes_sbox_strict_371cx",
+   "model": "strict",
+   "AND": 32,
+   "T": 128,
+   "CX": 371,
+   "qubits": 26,
+   "measurements": 32,
+   "verdict": "PROVED",
+   "method": "bdd"
+  },
+  {
+   "name": "gf2m_mult_m8_clean",
+   "model": "clean",
+   "AND": 26,
+   "T": 104,
+   "CX": 347,
+   "qubits": 25,
+   "measurements": 26,
+   "verdict": "PROVED",
+   "method": "anf:pathsum-normal-form"
+  },
+  {
+   "name": "gf2m_square_m163_875cx",
+   "model": "unitary",
+   "AND": 0,
+   "T": 0,
+   "CX": 875,
+   "qubits": 163,
+   "measurements": 0,
+   "verdict": "PROVED",
+   "method": "bdd"
+  },
+  {
+   "name": "gf2m_square_m233_825cx",
+   "model": "unitary",
+   "AND": 0,
+   "T": 0,
+   "CX": 825,
+   "qubits": 233,
+   "measurements": 0,
+   "verdict": "PROVED",
+   "method": "bdd"
+  },
+  {
+   "name": "gf2m_square_m283_1534cx",
+   "model": "unitary",
+   "AND": 0,
+   "T": 0,
+   "CX": 1534,
+   "qubits": 283,
+   "measurements": 0,
+   "verdict": "PROVED",
+   "method": "bdd"
+  },
+  {
+   "name": "gf2m_square_m409_1418cx",
+   "model": "unitary",
+   "AND": 0,
+   "T": 0,
+   "CX": 1418,
+   "qubits": 409,
+   "measurements": 0,
+   "verdict": "PROVED",
+   "method": "bdd"
+  },
+  {
+   "name": "gf2m_square_m571_3239cx",
+   "model": "unitary",
+   "AND": 0,
+   "T": 0,
+   "CX": 3239,
+   "qubits": 571,
+   "measurements": 0,
+   "verdict": "PROVED",
+   "method": "bdd"
+  },
+  {
+   "name": "lookup_c6_w21_33and",
+   "model": "clean",
+   "AND": 33,
+   "T": 132,
+   "CX": 991,
+   "qubits": 40,
+   "measurements": 33,
+   "verdict": "PROVED",
+   "method": "bdd"
+  },
+  {
+   "name": "lookup_c6_w32_40and",
+   "model": "clean",
+   "AND": 40,
+   "T": 160,
+   "CX": 1477,
+   "qubits": 47,
+   "measurements": 40,
+   "verdict": "PROVED",
+   "method": "bdd"
+  }
+ ]
+}

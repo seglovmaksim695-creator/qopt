@@ -1,0 +1,19 @@
+{
+ "name": "gf2m_square_m233_825cx",
+ "model": "unitary",
+ "AND": 0,
+ "T": 0,
+ "CX": 825,
+ "cx": 825,
+ "cz": 0,
+ "qubits": 233,
+ "measurements": 0,
+ "verdict": "PROVED",
+ "method": "bdd",
+ "detail": "BDD path sum reached the normal form for all inputs and outcomes (0 measurements, 0 H, 0 HH, 0 omega; 5619 BDD nodes)",
+ "prove_time_s": 0.0,
+ "reference": "gf2m_square_m233_825cx.qc",
+ "reference_how": "generated from the definition (Gaussian elimination), independent of the circuit; checked against an independent definition (GF(2^m) arithmetic)",
+ "wires": "a_i = coefficient of x^i",
+ "note": "in-place a <- a^2 mod f (NIST polynomial), CNOT only, wire order unchanged. Upper bound used in the literature for a general in-place linear map: m^2-m."
+}

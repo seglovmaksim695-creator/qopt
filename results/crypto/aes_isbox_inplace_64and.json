@@ -1,0 +1,19 @@
+{
+ "name": "aes_isbox_inplace_64and",
+ "model": "clean",
+ "AND": 64,
+ "T": 256,
+ "CX": 710,
+ "cx": 594,
+ "cz": 116,
+ "qubits": 26,
+ "measurements": 60,
+ "verdict": "PROVED",
+ "method": "bdd",
+ "detail": "BDD path sum reached the normal form for all inputs and outcomes (60 measurements, 188 H, 124 HH, 0 omega; 34869 BDD nodes)",
+ "prove_time_s": 0.1,
+ "reference": "aes_isbox_inplace_64and.qc",
+ "reference_how": "copied from the development project; checked against an independent definition (AES tables)",
+ "wires": "q[0..7] = x (bit i = coefficient of x^i, AES field GF(2^8)/x^8+x^4+x^3+x+1), q[8..15] = y, q[16..25] clean ancillas",
+ "note": "|x,0> -> |0,S^-1(x)>; 64 AND, 26 qubits."
+}
