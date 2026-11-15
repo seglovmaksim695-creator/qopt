@@ -13,22 +13,38 @@ sys.path[:0] = [_QPKG, (_QPKG + '/contrib/c2')]
 import andc, qoptct, sweep2, verify_qasm
 
 
-def candidates(path, variants=20, max_extra=None, clean=False):
+def candidates(path, variants=20, max_extra=None, clean=False, deadline=None):
+    """deadline: time.time() value after which no new compilation is started (the unshuffled variant 0 always
+    runs completely); None = no limit."""
+    import time
+    if signal.getsignal(signal.SIGALRM) in (signal.SIG_DFL, signal.SIG_IGN, None):  # the 8 s limit needs a raising handler
+        signal.signal(signal.SIGALRM, sweep2._h)
     names, hl = qoptct.load_qc(path); n = len(names)
     lim = 22 - n if max_extra is None else min(max_extra, 22 - n)
     lg0 = andc.logical(hl, n); rng = random.Random(1); out = {}
     modes = [None] + ([andc.inputs_idx(path, names)] if clean else [])
     for v in range(variants):
+        if v > 0 and deadline is not None and time.time() > deadline: break
         lg = lg0 if v == 0 else sweep2.shuffle(lg0, rng)
         for ins, lazy, lm, ma in itertools.product(modes, (True, False, 0.2, 0.4, 0.6), (3, 1), sorted({lim, 4, 3, 2, 1, 0})):
             if ma > lim or ma < 0: continue
-            signal.alarm(8)
+            if v > 0 and deadline is not None and time.time() > deadline: break
+            outer = signal.getitimer(signal.ITIMER_REAL)[0]  # an enclosing time limit of the caller (0: none)
+            t_c = time.time()
+            signal.setitimer(signal.ITIMER_REAL, 8 if not outer else min(8, outer))
             try:
                 C = andc.Compiler(n, lg, ma, random.Random(v), lazy=lazy, linmax=lm, inputs=ins)
                 ops, N = andc.compact(C.run(), n)
+                ok = True
             except BaseException:
-                signal.alarm(0); continue
-            signal.alarm(0)
+                ok = False
+            signal.setitimer(signal.ITIMER_REAL, 0)
+            if outer:  # re-arm the caller's limit; if it has passed, stop here (it fires right after the return)
+                left = outer - (time.time() - t_c)
+                if left <= 0:
+                    signal.setitimer(signal.ITIMER_REAL, 0.001); return out, n
+                signal.setitimer(signal.ITIMER_REAL, left)
+            if not ok: continue
             for fold in (False, True):
                 txt = andc.to_qasm(ops, N, fold=fold); T, CX = andc.count(txt)
                 k = (T, CX, N - n)

@@ -11,15 +11,18 @@
 `qopt` reduces the **T count** and the **CNOT (CX) count** of Clifford+T circuits given as Toffoli networks
 (Feynman `.qc` format). It has a unitary mode and measurement-based modes, and it **never reports a circuit that
 has not been checked**: unitary outputs are proven equal to the input (or the input is returned), and every
-measurement-based output is re-checked by an independent simulator before it is written.
+measurement-based output is proven equal by the exact prover `qoptct.verify` or, when a proof is out of reach,
+re-checked by independent simulators over many sampled inputs and measurement outcomes before it is written
+(the JSON report says which).
 
-Repository: <https://github.com/seglovmaksim695-creator/qopt>  · Version 0.3.0 · License Apache-2.0 (benchmark files: see `bench_qc/SOURCES.md`) · Author: Maksym Shchehlov
+Repository: <https://github.com/seglovmaksim695-creator/qopt>  · Version 0.4.0 · License Apache-2.0 (benchmark files: see `bench_qc/SOURCES.md`) · Author: Maksym Shchehlov
 
 ## Installation
 
 ```bash
 pip install qoptct              # Python 3.11+, macOS or Linux; provides the `qoptct` command and the Qiskit plugin
 pip install "qoptct[net]"       # optional: + PyTorch for the neural mode --net
+pip install "qoptct[qcec]"      # optional: + MQT QCEC as an extra equivalence checker for unitary circuits
 ```
 
 Dependencies: numpy, qiskit ≥ 2.0, pyzx. PyTorch is needed only for `--net`; without it every other mode works
@@ -46,13 +49,15 @@ qoptct optimize bench_qc/tof_3.qc -o tof_3_opt.qc --net --post             # + n
 qoptct optimize bench_qc/tof_3.qc -o tof_3.qasm --mode balanced            # fewer T, CX <= 1.5x unitary CX
 qoptct optimize bench_qc/mod_red_21.qc -o m.qasm --mode t --clean          # minimum T, clean-ancilla model
 qoptct optimize X.qc --report report.json                                  # JSON report (also printed to stdout)
+qoptct optimize X.qc -o x.qasm --mode t --prove                            # + exact proof of the written result
+qoptct prove x.qasm X.qc                                                   # exact proof of any output against its input
 ```
 
 Python: `import qoptct; names, ref, best, how = qoptct.optimize("X.qc")`.
 
 | option | meaning |
 |---|---|
-| `--mode cx` (default) | unitary output (`.qc`), minimum CX; proven equal to the input, otherwise the input is returned |
+| `--mode cx` (default) | unitary output, minimum CX; proven equal to the input, otherwise the input is returned. Written as `.qc`, or as OpenQASM 3 if the `-o` file name ends in `.qasm` |
 | `--mode balanced` | measurement-based output (OpenQASM 3) with lower T and CX ≤ `--cx-factor` (1.5) × unitary CX, if one is found and verified |
 | `--mode t` | lowest T found (measurement-based), CX may grow |
 | `--clean` | clean-ancilla model (see below) for the measurement-based modes |
@@ -60,9 +65,68 @@ Python: `import qoptct; names, ref, best, how = qoptct.optimize("X.qc")`.
 | `--post` | CX post-pass on H-free regions (slow) |
 | `--meas` | older Gidney transformation (clean-ancilla model), kept for compatibility |
 | `--tgad`, `--vartodd` | Hadamard gadgets + TODD; `--vartodd` also tries an external VarTODD binary given by `QOPT_VARTODD_BIN` |
+| `--prove` | prove the written result exactly with `qoptct.verify` (also for unitary results); the status is in the report |
+| `--no-arith`, `--no-bandc`, `--no-gf2m`, `--no-cxpass` | switch off one optional module (see below) |
+| `--no-contrib` | switch off all optional modules (0.3 behaviour) |
+| `--budget S` | total seconds for all optional-module stages (default 1500; 0 = unlimited) |
+| `--time-limit S` | overall seconds of a run (default 3600; 0 = none): all searches — the unitary portfolio, its proofs, the module stages and the measurement-based searches — stop there and the best result checked so far is written (in the worst case the input itself). Only the final check of a written measurement-based result (or `--prove`) may follow: usually under a minute, at most ~15 min |
+| `--and-sec S` | seconds for the variant search of the logical-AND compiler in balanced/t modes (default 1800; 0 = unlimited) |
+| `--contrib-sec S`, `--source-sec NAME=S` | time limit of one module call (default 240 s; `bandc` gets more on large circuits) |
+| `--require-proof` | accept module results above 22 qubits only with an exact proof |
+| `--keep-temp` | keep the work directory with the intermediate files of the stages (path in the report: `temp_dir`) |
 
-Measurement-based outputs are written only if they pass `verify_qasm` (≤ 22 qubits in total); otherwise the unitary
-result is written. The JSON report says which candidate was used.
+Measurement-based outputs are written only if they pass the checks described below; otherwise the unitary result is
+written. The JSON report (`final`) says which candidate was used, how it was checked and its T/CX/qubit counts
+(`final.file`: `qc` or `openqasm3`; `search_seconds`: time until the searches ended). The written OpenQASM 3 is
+readable by `qiskit.qasm3.loads` (with `qiskit-qasm3-import`): conditions are single measured bits or their negation,
+possibly nested. Where a stage produced an XOR (`^`) or AND (`&&`) condition, the result is rewritten — the condition
+is computed into an idle measured qubit and measured once more (same T and CX, one more measurement), or the
+correction is repeated per term — and proven again; `final.qiskit_rewrite` gives the counts before and after. If no
+rewritten form can be proven, the previous readable result is written. Intermediate files are kept in a private
+temporary directory (removed at the end unless `--keep-temp`), and `-o` is written atomically (temporary file +
+rename), so it never holds a partial or intermediate circuit.
+
+Exit codes of `qoptct optimize`: 0 — a result was written; 3 — usage or input error (missing or unreadable file,
+malformed circuit, unknown gate, undeclared wire, missing output directory), reported as one `error: ...` line on
+stderr. `qoptct prove`: 0 PROVED, 1 REFUTED, 2 UNKNOWN, 3 usage or input error (an input error is never reported as
+REFUTED). `python -m qoptct.verify` uses the same codes.
+
+## Optional modules and exact proofs (new in 0.4)
+
+All modules are part of the package; each one can be switched off, and none of them can break a run: every call
+runs in a child process with a hard time limit, an error or a timeout only skips the module, and **every circuit a
+module returns is checked again by the core** before it is compared with the other candidates.
+
+| module | what it does | used in |
+|---|---|---|
+| `qoptct.contrib.arith` | recognizes classical arithmetic (adders, comparators, addition mod 2^n−1, hidden weighted bit) by its truth table and rebuilds it on logical ANDs | `--mode balanced`, `--mode t` |
+| `qoptct.contrib.bandc` | logical-AND compiler for large classical circuits (hundreds to 1600 wires) with exact wire-value tracking | `--mode balanced`, `--mode t` |
+| `qoptct.contrib.gf2m` | GF(2^m) multipliers from low-rank bilinear decompositions (tables shipped with the package) | `--mode balanced`, `--mode t` |
+| `qoptct.contrib.cxpass` | CX post-pass: block re-synthesis of CX/phase regions, merged and XOR-conditioned corrections | all modes |
+| `qoptct.verify` | exact prover and fast checkers (below) | checks of all measurement-based results |
+
+How a candidate is accepted:
+
+* ≤ 22 qubits in total: the state-vector checker (30 random inputs), then the exact proof; if the proof does not
+  finish in time, a stronger sampled check with 64–256 random inputs and freshly sampled measurement outcomes.
+* > 22 qubits: the exact proof; if it ends UNKNOWN (time or width), the sparse-state / path-sum sampled checks of
+  `qoptct.verify` (not a proof; the report says so). `--require-proof` accepts only proven results.
+* A REFUTED result is never written; the optimizer falls back to the proven unitary result.
+
+`qoptct prove CIRCUIT REF.qc [--clean] [--budget S]` proves that an output (OpenQASM 3 as written by qoptct, or a
+`.qc` file) implements the input in the unitary, strict or clean model. It prints JSON and exits with 0 (PROVED),
+1 (REFUTED), 2 (UNKNOWN) or 3 (usage or input error). The proof covers every basis input and every combination of measurement outcomes
+(sum-over-paths normal form or a trace miter over Z[ω]); unitary circuits can also be handed to MQT QCEC when
+`qoptct[qcec]` is installed. From Python:
+
+```python
+from qoptct.verify import prove, check_dense, check_sparse, quick_check
+r = prove("x.qasm", "X.qc", clean=False, budget_sec=120)    # {"status": "PROVED"|"REFUTED"|"UNKNOWN", "method", "detail", ...}
+```
+
+The prover runs in its own process (`python -m qoptct.verify._worker`), so it can be called from scripts without an
+`if __name__ == "__main__":` guard and from the Qiskit plugin. `QoptPass(cxpass=True)` also applies the CX post-pass
+to every optimized run (a post-pass result is used only if it is proven equal again).
 
 ## Qiskit plugin
 
@@ -85,7 +149,7 @@ plain = transpile(qc, basis_gates=basis, optimization_level=3)
 ours = transpile(qc, basis_gates=basis, optimization_level=3,
                  init_method="qoptct", optimization_method="qoptct")
 print(plain.count_ops(), ours.count_ops())
-assert Operator(ours) == Operator(qc)                                  # same operator, incl. global phase
+assert Operator(ours).equiv(Operator(qc))                              # same operator up to a global phase
 ```
 
 CX/T after `transpile` with a Clifford+T basis (Qiskit 2.6.2, levels 1–3 gave the same numbers):
@@ -100,6 +164,9 @@ A part of the circuit is replaced only if the new version is **proven** equal, s
 and uses only gates and qubit pairs allowed by the basis / coupling map / target; everything else
 (measurements, rotations, other gates) is left as it is. With a coupling map, compare with
 `Operator.from_circuit(out)`. On circuits with up to 10 qubits per part the global phase is kept exactly.
+The "strictly cheaper" rule holds for each replaced part; the later stages of `transpile` (for example the
+synthesis of rotations) can still change the totals, so on circuits with rotations compare the final counts
+with and without the plugin.
 
 The pass can also be used directly:
 
@@ -218,19 +285,22 @@ sh scripts/reproduce.sh cx out                  # re-run the optimizer on all be
 ```
 
 Every qasm in `results/` is self-contained OpenQASM 3 using `h x z s sdg t tdg cx cz`, `measure`, and `if` on
-classical bits; data qubits are `q[0..n-1]` in the order of the `.v` line of the `.qc` file, extra qubits follow
+classical bits (eight files from 0.3.0 — best and Pareto points of qft_4 and qcla_com_7 — use `&&` in conditions, which
+`qiskit.qasm3.loads` does not read; `qoptct prove` and `qoptct.verify` read them); data qubits are `q[0..n-1]` in the order of the `.v` line of the `.qc` file, extra qubits follow
 and start in |0>.
 
 ## Limitations
 
-* The checks are randomized: `verify_qasm` uses 30 random input states (10 for 20–22-qubit circuits) and sampled
-  measurement outcomes; `verify_big` samples basis inputs and branches. A wrong circuit could pass only if it acts
-  correctly on all samples. Unitary results ≤ 10 qubits are proven exactly; larger ones rely on PyZX or a
-  numerical check.
-* Measurement-based modes handle at most 22 qubits in total (state-vector check). Larger outputs are discarded.
+* Not every result is proven: when the exact prover ends UNKNOWN (deep classical logic such as hwb, very wide
+  circuits), measurement-based results rely on sampled checks (many random inputs and measurement outcomes); the
+  report's `final.check` / `final.proof` say which. Use `--require-proof` (modules) or `qoptct prove` to insist on a
+  proof. Unitary results ≤ 10 qubits are proven exactly; larger ones rely on PyZX, a numerical check (≤ 26 qubits)
+  or the exact path-sum prover of `qoptct.verify`.
+* Above 22 qubits in total only the module results (arith, bandc, gf2m, cxpass) are available in the
+  measurement-based modes; the older H-gadget and AND stages need the state-vector check and are skipped there.
 * The neural models were trained on random circuits of 2–4 qubits; `--net` gives small gains (≈ 1–2 % CX).
 * Runtime: unitary mode takes seconds for small circuits and up to an hour for the largest benchmarks; the
-  measurement-based modes take minutes. Several rewriting programs have internal time limits, so results can
+  measurement-based modes take minutes (with the optional modules up to `--budget` seconds more). Several rewriting programs have internal time limits, so results can
   depend on machine speed.
 * Some numbers in `results/` come from longer development searches than a single default run (column `source`
   in `results/TABLE.md`); a default run may give slightly worse points.

@@ -6,7 +6,8 @@ _QCACHE = _qpl.Path(_qos.environ.get('QOPT_CACHE', _qpl.Path.home() / '.cache' /
 import sys, json, os, itertools, random, signal
 class _TO(Exception): pass
 def _h(*a): raise _TO()
-signal.signal(signal.SIGALRM, _h)
+if signal.getsignal(signal.SIGALRM) in (signal.SIG_DFL, signal.SIG_IGN, None):  # keep a caller's handler (qopt_core.limited)
+    signal.signal(signal.SIGALRM, _h)
 sys.path.insert(0, (_QPKG + '/contrib/c2'))
 import andc, qoptct
 B = "tof_3 tof_4 tof_5 barenco_tof_3 barenco_tof_4 mod5_4 vbe_adder_3 hwb6 mod_red_21".split()

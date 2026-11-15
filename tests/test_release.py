@@ -23,7 +23,7 @@ def test_no_absolute_project_paths():
 
 
 def test_version():
-    assert qoptct.__version__ == "0.3.0"
+    assert qoptct.__version__ == "0.4.0"
 
 
 @pytest.mark.skipif(not GOOD, reason="results/best not present")

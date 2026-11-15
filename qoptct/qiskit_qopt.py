@@ -83,15 +83,18 @@ class QoptPass(TransformationPass):
         basis_gates: optional list of allowed gate names (used when no target is given).
         coupling_map: optional :class:`~qiskit.transpiler.CouplingMap` (used when no target is given).
         min_multi: runs with fewer multi-qubit gates than this are not touched (default 1).
+        cxpass: also run the optional CX post-pass ``qoptct.contrib.cxpass`` on every optimized run (slower;
+            a post-pass result is used only if it is proven equal again). Default False.
 
     After ``run`` the attribute ``last`` holds a summary: ``runs`` (candidate runs), ``replaced``,
     ``verified`` (True if at least one run was replaced; every replacement is proven), ``method``,
     ``cx_before``/``cx_after`` and ``t_before``/``t_after`` of the replaced runs, or ``skipped`` with the reason.
     """
 
-    def __init__(self, net=False, target=None, basis_gates=None, coupling_map=None, min_multi=1):
+    def __init__(self, net=False, target=None, basis_gates=None, coupling_map=None, min_multi=1, cxpass=False):
         super().__init__()
         self.net = net
+        self.cxpass = cxpass
         self.target = target
         self.basis = set(basis_gates) if basis_gates else None
         self.cmap = coupling_map
@@ -165,7 +168,7 @@ class QoptPass(TransformationPass):
         n = len(qubits)
         names = [str(i) for i in range(n)]
         try:
-            _, ref, best, how = qoptct.optimize_hl(names, hl, self.net)
+            _, ref, best, how = qoptct.optimize_hl(names, hl, self.net, cxpass=self.cxpass)
         except ImportError:
             raise
         except Exception:  # never break a transpilation: keep the run as it is

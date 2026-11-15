@@ -29,15 +29,17 @@ jobs:
           python -m pip install --upgrade pip build
           python -m build --wheel
       - name: Install the wheel (without torch) and pytest
-        run: python -m pip install dist/*.whl pytest
+        run: python -m pip install dist/*.whl pytest qiskit-qasm3-import
       - name: Run the tests against the installed package
         env:
           OMP_NUM_THREADS: "1"
         run: |
           mv qoptct qoptct_src   # make sure the tests import the installed package, not the source tree
-          pytest -q -rs tests
+          pytest -q -rs -m "not slow" tests   # slow end-to-end tests: run locally with pytest -q tests
           mv qoptct_src qoptct
       - name: Command line smoke test
         run: |
           qoptct version
           qoptct optimize bench_qc/tof_3.qc -o tof_3_opt.qc
+          qoptct optimize bench_qc/tof_3.qc -o tof_3_t.qasm --mode t --clean --sel-sec 10
+          qoptct prove tof_3_t.qasm bench_qc/tof_3.qc --clean   # exit code 0 = PROVED
