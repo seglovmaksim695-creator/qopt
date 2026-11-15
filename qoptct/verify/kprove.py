@@ -856,35 +856,10 @@ def branch_run(ops, x_key, outcomes, cap=1 << 16):
     """Independent sparse simulation of ONE branch (fixed outcomes) from basis input x_key. Renormalises after every
     measurement and keeps the scale as log2, so thousands of measurements do not underflow.
     -> (state dict normalised to max |amp| = 1, log2 of the true scale) or (None, None) if the branch has amplitude 0."""
-    from qoptct.verify.branchsim import apply
-    from qoptct.verify._parse import eval_cond
-    import math
-    st = {x_key: 1.0 + 0j}
-    lg = 0.0
-    cb = {}
-    for op in ops:
-        if op[0] == 'G':
-            if op[1] == 'reset':
-                q = op[2][0]
-                vals = {(k >> q) & 1 for k in st}
-                if len(vals) > 1:
-                    raise ValueError('reset of a superposed wire')
-                st = {(k & ~(1 << q)): a for k, a in st.items()}
-            else:
-                st = apply(st, op[1], op[2], cap)
-        elif op[0] == 'M':
-            q, c = op[1], op[2]
-            r = outcomes[c]
-            st = {k: a for k, a in st.items() if ((k >> q) & 1) == r and abs(a) > 1e-13}
-            cb[c] = r
-            if not st:
-                return None, None
-            mx = max(abs(a) for a in st.values())
-            st = {k: a / mx for k, a in st.items()}
-            lg += math.log2(mx)
-        elif eval_cond(op[1], cb):
-            for name, q in op[2]:
-                st = apply(st, name, q, cap)
+    from .branchsim import run_branch_scaled   # renormalising branch simulator of the package (0.5.0)
+    st, lg = run_branch_scaled(ops, {x_key: 1.0 + 0j}, outcomes, cap)
+    if lg is None or not st:
+        return None, None
     return st, lg
 
 

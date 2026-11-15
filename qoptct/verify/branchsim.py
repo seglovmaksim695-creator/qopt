@@ -114,10 +114,15 @@ def run_sampled(ops, st, rng, cap=1 << 20):
     return st, cbits
 
 
-def run_branch(ops, st, outcomes, cap=1 << 20):
-    """Run the branch with the given outcomes (list indexed by classical bit), without renormalisation.
-    A reset is allowed only on a wire with a definite value (otherwise ValueError)."""
+def run_branch_scaled(ops, st, outcomes, cap=1 << 20):
+    """Run the branch with the given outcomes (list indexed by classical bit).
+
+    The (unnormalised) branch vector is returned as (state, lg) with branch = 2**lg * state: after every measurement the
+    state is rescaled to max |amplitude| = 1 and the scale is kept as a base-2 logarithm, so chains of thousands of
+    measurements neither underflow nor lose small terms (the 1e-14 cut-off of `apply` is relative to that maximum).
+    A branch of amplitude zero gives ({}, None). A reset is allowed only on a wire with a definite value (ValueError)."""
     cbits = {}
+    lg = 0.0
     for op in ops:
         if op[0] == 'G':
             if op[1] == 'reset':
@@ -133,11 +138,27 @@ def run_branch(ops, st, outcomes, cap=1 << 20):
             r = outcomes[c]
             st = _project(st, q, r)
             cbits[c] = r
+            mx = max((abs(a) for a in st.values()), default=0.0)
+            if mx < 1e-13:
+                return {}, None
+            st = {k: a / mx for k, a in st.items() if abs(a) > 1e-14 * mx}
+            lg += math.log2(mx)
         else:
             if eval_cond(op[1], cbits):
                 for name, q in op[2]:
                     st = apply(st, name, q, cap)
-    return st
+    return st, lg
+
+
+def run_branch(ops, st, outcomes, cap=1 << 20):
+    """Run the branch with the given outcomes (list indexed by classical bit); returns the unnormalised branch vector.
+    Internally renormalised after every measurement (see run_branch_scaled, which also returns the scale as log2 and
+    should be used for very long chains, where 2**lg itself underflows)."""
+    out, lg = run_branch_scaled(ops, st, outcomes, cap)
+    if lg is None:
+        return {}
+    f = 2.0 ** lg
+    return {k: a * f for k, a in out.items()}
 
 
 def apply_ref(st, gates, cap=1 << 20):
@@ -163,11 +184,11 @@ def confirm_branch(qasm, qc, xs, m, n, cap=1 << 18):
     mask = (1 << n) - 1
     for x in xs:
         k0 = _key(x, n)
-        out = run_branch(ops, {k0: 1.0 + 0j}, m, cap)
+        out, lg = run_branch_scaled(ops, {k0: 1.0 + 0j}, m, cap)   # renormalised: long measurement chains are fine
         want = apply_ref({k0: 1.0 + 0j}, ref, cap)
         tot = _norm2(out)
-        if tot < 1e-12:
-            ts.append(0j)
+        if lg is None or tot < 1e-12:
+            ts.append(None)
             continue
         wa = {}
         for k, a in out.items():
@@ -177,19 +198,20 @@ def confirm_branch(qasm, qc, xs, m, n, cap=1 << 18):
         col = {k & mask: a for k, a in out.items() if k >> n == anc}
         i = max(want, key=lambda k: abs(want[k]))
         t = col.get(i, 0j) / want[i]
-        if abs(t) < 1e-12:
+        if abs(t) < 1e-9:
             worst = max(worst, 1.0)
-            ts.append(0j)
+            ts.append(None)
             continue
         keys = set(col) | set(want)
         dev = max(abs(col.get(k, 0j) - t * want.get(k, 0j)) for k in keys) / abs(t)
         worst = max(worst, dev)
-        ts.append(t)
-    nz = [t for t in ts if abs(t) > 1e-9]
+        ts.append((math.log2(abs(t)) + lg, t / abs(t)))     # t = 2**(log2|t|) * phase, kept in log form
+    nz = [t for t in ts if t is not None]
     if nz and len(nz) < len(ts):
         worst = max(worst, 1.0)
-    for t in nz:
-        worst = max(worst, abs(t - nz[0]) / abs(nz[0]))
+    for lgt, ph in nz:
+        d = lgt - nz[0][0]
+        worst = max(worst, abs(2.0 ** d - 1) if d < 60 else 1e6, abs(ph - nz[0][1]))
     return float(min(worst, 1e6))
 
 
