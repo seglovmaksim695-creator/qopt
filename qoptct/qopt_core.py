@@ -1358,6 +1358,11 @@ def _main():
     pv.add_argument("--clean", action="store_true", help="clean-ancilla model (wires not in the .i line start and end in |0>)")
     pv.add_argument("--budget", type=float, default=PROVE_SEC, help=f"seconds (default {PROVE_SEC})")
     sp.add_parser("version")
+    sp.add_parser("estimate", add_help=False, help="physical cost (surface code) from logical Toffoli/qubit counts "
+                  "(module qoptct.estimate; `qoptct estimate --help`)")
+    if sys.argv[1:2] == ["estimate"]:
+        from .estimate.cli import main_estimate
+        sys.exit(main_estimate(sys.argv[2:]))
     a = p.parse_args()
     if a.cmd == "version":
         print(f"qoptct {__version__}"); return
