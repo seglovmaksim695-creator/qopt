@@ -15,7 +15,7 @@ measurement-based output is proven equal by the exact prover `qoptct.verify` or,
 re-checked by independent simulators over many sampled inputs and measurement outcomes before it is written
 (the JSON report says which).
 
-Repository: <https://github.com/seglovmaksim695-creator/qopt>  · Version 0.4.0 · License Apache-2.0 (benchmark files: see `bench_qc/SOURCES.md`) · Author: Maksym Shchehlov
+Repository: <https://github.com/seglovmaksim695-creator/qopt>  · Version 0.5.0 (release candidate) · License Apache-2.0 (benchmark files: see `bench_qc/SOURCES.md`) · Author: Maksym Shchehlov
 
 ## Installation
 
@@ -128,6 +128,13 @@ The prover runs in its own process (`python -m qoptct.verify._worker`), so it ca
 `if __name__ == "__main__":` guard and from the Qiskit plugin. `QoptPass(cxpass=True)` also applies the CX post-pass
 to every optimized run (a post-pass result is used only if it is proven equal again).
 
+`qoptct kprove CIRCUIT.qasm REF.qc [--clean] [--budget S] [--json]` (new in 0.5) is an exact prover for large
+circuits with a *classical* reference (arithmetic, table lookups, S-boxes): the same sum-over-paths with symbolic
+measurement outcomes, but wire functions are BDDs, so adders of thousands of bits are proved in seconds. Exit codes
+as above (2 also for SAMPLED, a sampled check that is not a proof). It stops with UNKNOWN when its peak memory
+exceeds `$KPROVE_MAX_MB` (default 900 MB); multiplications and reductions modulo general primes usually do.
+From Python: `from qoptct.verify.kprove import kprove; kprove("c.qasm", "ref.qc", clean=True)`.
+
 ## Qiskit plugin
 
 `pip install qoptct` registers two stage plugins for the Qiskit transpiler, both named `qoptct`:
@@ -229,6 +236,35 @@ Totals over the circuits that have a result in the model: unitary: 23 circuits, 
 
 Full tables with Pareto fronts and provenance: `results/TABLE.md`, machine-readable `results/table.csv`;
 circuits: `results/best/<model>/<name>.qasm` and `results/pareto/<model>/`.
+
+## Cryptographic building blocks (new in 0.5)
+
+`results/crypto/` holds circuits of building blocks of quantum attacks on AES and elliptic-curve cryptography, each
+with its reference (`.qc`) and a `.json` record (counts, model, wire layout, verdict). **Every circuit there is
+proved by `qoptct kprove`** for all inputs and all measurement outcomes; only PROVED circuits are included.
+References of the AES and GF(2^m) circuits were checked against independent definitions (AES tables and the
+MixColumns test vector of FIPS-197; GF(2^m) arithmetic); linear references were generated from the definition,
+independently of the circuit. Model: logical AND = 4 T + 3 CX, uncomputation by X measurement = 0 T (Gidney 2018);
+"CX" below counts `cx` and `cz`, including classically controlled ones.
+
+| circuit | what | AND (T) | CX | qubits | compared with |
+|---|---|---|---|---|---|
+| `aes_sbox_clean_330cx` | \|x,0⟩ → \|x,S(x)⟩ | 32 (128) | 330 | 26 | same AND count as Meuli et al. 2019 (arXiv:1908.01609: 32 AND at 48 qubits); the difference here is 26 qubits and the CX count. T-depth 98 — designs optimized for depth use 34 AND at T-depth 4–6 |
+| `aes_sbox_depth4_33and` | \|x,0⟩ → \|x,S(x)⟩, AND-depth 4 | 33 (132) | 552 | 44 | published AND-depth-4 designs: 34 AND |
+| `aes_sbox_strict_371cx` | y ⊕= S(x), any y | 32 (128) | 371 | 26 | |
+| `aes_isbox_clean_339cx`, `aes_isbox_strict_365cx` | S⁻¹, clean / any y | 32 (128) | 339 / 365 | 26 | |
+| `aes_sbox_inplace_64and`, `aes_isbox_inplace_64and` | \|x,0⟩ → \|0,S(x)⟩ (and S⁻¹) | 64 (256) | 704 / 710 | 26 | Toffoli-model in-place results are not directly comparable |
+| `aes_mixcolumns_90cx` | one MixColumns column in place | 0 | 90 | 32 | published in-place CNOT circuits: 92 (Xiang et al. 2020), 91. Depth 34 is worse than theirs (28–30), and the output bits end on permuted wires (`out_wires` in the .json); circuits that may use new wires (g-XOR metric) reach fewer XORs |
+| `lookup_c6_w32_40and`, `lookup_c6_w21_33and` | table lookup z ⊕= T[a], 6-bit address, 32 / 21-bit word | 40 / 33 | 1477 / 991 | 47 / 40 | 2^c − c − 1 = 57 AND for the standard lookup. The idea of a narrow lookup combined with an adder in the Gidney–Ekerå framework is due to Luongo et al. 2025 (arXiv:2502.17325); with lookups shared between several primes (Sharma–Lau 2026) this construction gives no gain |
+| `gf2m_mult_m8_clean` | c = a·b in GF(2^8) | 26 (104) | 347 | 25 | small analogue of the m = 163…571 multipliers |
+| `gf2m_square_m{163,233,283,409,571}_*` | in place a ← a² mod f (NIST polynomials) | 0 | 875 / 825 / 1534 / 1418 / 3239 | m | compared with the generic in-place bound m² − m used in the literature, not with a published circuit |
+<!--GF163-->
+
+What is **not** claimed: no record for whole attacks (RSA, ECDLP); this release contains proved building blocks, not
+end-to-end attack circuits. The measurement-based erasure of GF(2^m) products (used for division circuits) was
+published before by Khattar et al. 2025 (arXiv:2510.10967).
+<!-- 0.5.0: generators (Kaliski inversion, multiplication/squaring, fold reduction, narrow lookup, GF(2^m)) and the
+     physical-cost estimator are described here when their branches are merged. -->
 
 ## Hardware check (IBM Quantum)
 

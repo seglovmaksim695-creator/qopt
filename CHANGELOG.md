@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.5.0 — unreleased (release candidate)
+
+### Added
+* **`qoptct.verify.kprove`** and the subcommand **`qoptct kprove CIRCUIT.qasm REF.qc [--clean] [--budget S]
+  [--engine auto|bdd|anf|sample] [--pre lt:REG:N] [--json]`**: exact verification of large Clifford+T circuits with
+  mid-circuit measurements and classically controlled corrections against a *classical* (reversible, possibly with
+  diagonal phases) reference. Sum-over-paths with symbolic measurement outcomes, wire functions as reduced ordered
+  BDDs with complement edges (`qoptct.verify.bdd`), so ripple carries stay linear in size; e.g. a 256-bit Gidney adder
+  is proved in about a second. PROVED means for every basis input and every combination of measurement outcomes;
+  REFUTED comes with a witness confirmed by the independent sparse simulator; SAMPLED / UNKNOWN are never a proof.
+  Word-level specifications (`qoptct.verify.ksym`), input promises (`--pre`), garbage wires, phase checked on the
+  promised domain only. Exit codes: 0 PROVED, 1 REFUTED, 2 not proved, 3 usage or input error.
+  Memory guard: the run stops with UNKNOWN when the peak RSS exceeds `$KPROVE_MAX_MB` (default 900 MB).
+  Limits: references must be classical; multiplications (x·y, x·c mod N, high-degree GF(2^m)) and reductions modulo
+  primes with a large c usually exceed the memory guard (UNKNOWN), no induction over the width.
+* **`results/crypto/`**: circuits of cryptographic building blocks with their references, each one proved by
+  `qoptct kprove` (only PROVED entries are kept; see `results/crypto/index.json` and the README section).
+* `qoptct.verify.branchsim.run_branch_scaled`: branch simulation that returns the state with its scale as log2.
+<!-- 0.5.0: generator modules (Kaliski inversion, multiplication/squaring, narrow lookup, fold reduction, GF(2^m)) and
+     the physical-cost estimator are merged here from their branches. -->
+
+### Fixed
+* kprove (research version, before inclusion): after a BDD garbage collection the cached input and outcome literals
+  pointed to foreign nodes, which gave false REFUTED (and "list index out of range" errors) on long runs. Literals are
+  now re-created from their variable level; regression tests run with a collection at every check
+  (`KPROVE_FORCE_GC`) on adders and on a fixed subset of the validation set (correct circuits and mutants of the
+  benchmarks, truth from the dense simulator).
+* `qoptct.verify.branchsim`: a fixed branch was simulated without renormalisation, every X-basis measurement halved
+  the norm and terms below 1e-14 were dropped, so after about 50 measurements the branch vanished and
+  `confirm_branch` silently reported no deviation (a real counterexample on a long circuit could not be confirmed).
+  The state is now rescaled after every measurement and the scale kept as log2; `confirm_branch` compares the
+  factors in log form. Test: a 120-measurement chain.
+
+
 ## 0.4.0 — 2026-11-15
 
 ### Added

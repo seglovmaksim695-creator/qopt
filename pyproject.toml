@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 # Project name: qopt. Distribution and import package: qoptct (the PyPI name "qopt" belongs to an unrelated project).
 name = "qoptct"
-version = "0.4.0"
+version = "0.5.0"
 description = "qopt: verified Clifford+T circuit optimizer (T and CNOT counts) with a Qiskit transpiler plugin"
 readme = "README.md"
 license = "Apache-2.0"
