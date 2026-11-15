@@ -1,0 +1,338 @@
+[
+ {
+  "qasm": "strict_mod5_4_T8_CX12_A0_1.qasm",
+  "qc": "mod5_4.qc",
+  "clean": false,
+  "truth": "ok",
+  "k9": "PROVED"
+ },
+ {
+  "qasm": "clean_barenco_tof_4_T24_CX24_A0_2.qasm",
+  "qc": "barenco_tof_4.qc",
+  "clean": true,
+  "truth": "ok",
+  "k9": "PROVED"
+ },
+ {
+  "qasm": "strict_csla_mux_3_5.qasm",
+  "qc": "csla_mux_3.qc",
+  "clean": false,
+  "truth": "ok",
+  "k9": "PROVED"
+ },
+ {
+  "qasm": "strict_rc_adder_6_T47_CX73_A0_2.qasm",
+  "qc": "rc_adder_6.qc",
+  "clean": false,
+  "truth": "ok",
+  "k9": "PROVED"
+ },
+ {
+  "qasm": "unitary_gf2^4_mult_5.qasm",
+  "qc": "gf2^4_mult.qc",
+  "clean": false,
+  "truth": "ok",
+  "k9": "PROVED"
+ },
+ {
+  "qasm": "strict_tof_5_T16_CX20_A4_1.qasm",
+  "qc": "tof_5.qc",
+  "clean": false,
+  "truth": "ok",
+  "k9": "PROVED"
+ },
+ {
+  "qasm": "unitary_barenco_tof_4_3.qasm",
+  "qc": "barenco_tof_4.qc",
+  "clean": false,
+  "truth": "ok",
+  "k9": "PROVED"
+ },
+ {
+  "qasm": "clean_tof_4_1.qasm",
+  "qc": "tof_4.qc",
+  "clean": true,
+  "truth": "ok",
+  "k9": "PROVED"
+ },
+ {
+  "qasm": "clean_gf2^4_mult_T64_CX75_A1_2.qasm",
+  "qc": "gf2^4_mult.qc",
+  "clean": true,
+  "truth": "ok",
+  "k9": "PROVED"
+ },
+ {
+  "qasm": "clean_tof_3_T8_CX9_A1_1.qasm",
+  "qc": "tof_3.qc",
+  "clean": true,
+  "truth": "ok",
+  "k9": "PROVED"
+ },
+ {
+  "qasm": "clean_gf2^5_mult_T100_CX119_A1_2.qasm",
+  "qc": "gf2^5_mult.qc",
+  "clean": true,
+  "truth": "ok",
+  "k9": "PROVED"
+ },
+ {
+  "qasm": "strict_mod_mult_55_T33_CX55_A0_2.qasm",
+  "qc": "mod_mult_55.qc",
+  "clean": false,
+  "truth": "ok",
+  "k9": "PROVED"
+ },
+ {
+  "qasm": "clean_barenco_tof_5_T23_CX20_A2_2.qasm",
+  "qc": "barenco_tof_5.qc",
+  "clean": true,
+  "truth": "ok",
+  "k9": "PROVED"
+ },
+ {
+  "qasm": "unitary_barenco_tof_5_3.qasm",
+  "qc": "barenco_tof_5.qc",
+  "clean": false,
+  "truth": "ok",
+  "k9": "PROVED"
+ },
+ {
+  "qasm": "clean_barenco_tof_3_T16_CX14_A0_1.qasm",
+  "qc": "barenco_tof_3.qc",
+  "clean": true,
+  "truth": "ok",
+  "k9": "PROVED"
+ },
+ {
+  "qasm": "unitary_mod_mult_55_3.qasm",
+  "qc": "mod_mult_55.qc",
+  "clean": false,
+  "truth": "ok",
+  "k9": "PROVED"
+ },
+ {
+  "qasm": "unitary_barenco_tof_3_2.qasm",
+  "qc": "barenco_tof_3.qc",
+  "clean": false,
+  "truth": "ok",
+  "k9": "PROVED"
+ },
+ {
+  "qasm": "strict_csla_mux_3_T56_CX80_A0_2.qasm",
+  "qc": "csla_mux_3.qc",
+  "clean": false,
+  "truth": "ok",
+  "k9": "PROVED"
+ },
+ {
+  "qasm": "clean_tof_3_1.qasm",
+  "qc": "tof_3.qc",
+  "clean": true,
+  "truth": "ok",
+  "k9": "PROVED"
+ },
+ {
+  "qasm": "strict_vbe_adder_3_T24_CX32_A0_2.qasm",
+  "qc": "vbe_adder_3.qc",
+  "clean": false,
+  "truth": "ok",
+  "k9": "PROVED"
+ },
+ {
+  "qasm": "unitary_mod_red_21_3.qasm",
+  "qc": "mod_red_21.qc",
+  "clean": false,
+  "truth": "ok",
+  "k9": "PROVED"
+ },
+ {
+  "qasm": "strict_vbe_adder_3_T12_CX33_A3_0.qasm",
+  "qc": "vbe_adder_3.qc",
+  "clean": false,
+  "truth": "ok",
+  "k9": "PROVED"
+ },
+ {
+  "qasm": "strict_gf2^5_mult_3.qasm",
+  "qc": "gf2^5_mult.qc",
+  "clean": false,
+  "truth": "ok",
+  "k9": "PROVED"
+ },
+ {
+  "qasm": "strict_tof_4_1.qasm",
+  "qc": "tof_4.qc",
+  "clean": false,
+  "truth": "ok",
+  "k9": "PROVED"
+ },
+ {
+  "qasm": "clean_rc_adder_6_T35_CX65_A2_0.qasm",
+  "qc": "rc_adder_6.qc",
+  "clean": true,
+  "truth": "bad",
+  "k9": "REFUTED"
+ },
+ {
+  "qasm": "strict_gf2^5_mult_T100_CX129_A1_1.qasm",
+  "qc": "gf2^5_mult.qc",
+  "clean": false,
+  "truth": "bad",
+  "k9": "REFUTED"
+ },
+ {
+  "qasm": "clean_gf2^5_mult_T100_CX119_A1_1.qasm",
+  "qc": "gf2^5_mult.qc",
+  "clean": true,
+  "truth": "bad",
+  "k9": "REFUTED"
+ },
+ {
+  "qasm": "unitary_gf2^4_mult_4.qasm",
+  "qc": "gf2^4_mult.qc",
+  "clean": false,
+  "truth": "bad",
+  "k9": "REFUTED"
+ },
+ {
+  "qasm": "strict_barenco_tof_3_T16_CX14_A0_3.qasm",
+  "qc": "barenco_tof_3.qc",
+  "clean": false,
+  "truth": "bad",
+  "k9": "REFUTED"
+ },
+ {
+  "qasm": "strict_gf2^4_mult_T68_CX99_A0_0.qasm",
+  "qc": "gf2^4_mult.qc",
+  "clean": false,
+  "truth": "bad",
+  "k9": "REFUTED"
+ },
+ {
+  "qasm": "strict_tof_5_T19_CX20_A3_0.qasm",
+  "qc": "tof_5.qc",
+  "clean": false,
+  "truth": "bad",
+  "k9": "REFUTED"
+ },
+ {
+  "qasm": "strict_rc_adder_6_T47_CX73_A0_0.qasm",
+  "qc": "rc_adder_6.qc",
+  "clean": false,
+  "truth": "bad",
+  "k9": "REFUTED"
+ },
+ {
+  "qasm": "clean_mod_mult_55_T15_CX24_A0_0.qasm",
+  "qc": "mod_mult_55.qc",
+  "clean": true,
+  "truth": "bad",
+  "k9": "REFUTED"
+ },
+ {
+  "qasm": "strict_tof_4_T12_CX15_A3_0.qasm",
+  "qc": "tof_4.qc",
+  "clean": false,
+  "truth": "bad",
+  "k9": "REFUTED"
+ },
+ {
+  "qasm": "strict_tof_5_T23_CX25_A2_0.qasm",
+  "qc": "tof_5.qc",
+  "clean": false,
+  "truth": "bad",
+  "k9": "REFUTED"
+ },
+ {
+  "qasm": "clean_csla_mux_3_T52_CX66_A0_1.qasm",
+  "qc": "csla_mux_3.qc",
+  "clean": true,
+  "truth": "bad",
+  "k9": "REFUTED"
+ },
+ {
+  "qasm": "clean_barenco_tof_3_2.qasm",
+  "qc": "barenco_tof_3.qc",
+  "clean": true,
+  "truth": "bad",
+  "k9": "REFUTED"
+ },
+ {
+  "qasm": "clean_tof_4_2.qasm",
+  "qc": "tof_4.qc",
+  "clean": true,
+  "truth": "bad",
+  "k9": "REFUTED"
+ },
+ {
+  "qasm": "strict_barenco_tof_5_T16_CX17_A4_3.qasm",
+  "qc": "barenco_tof_5.qc",
+  "clean": false,
+  "truth": "bad",
+  "k9": "REFUTED"
+ },
+ {
+  "qasm": "ham15-low_clean__drop_if.qasm",
+  "qc": "ham15-low.qc",
+  "clean": true,
+  "truth": "bad",
+  "k9": "REFUTED"
+ },
+ {
+  "qasm": "clean_barenco_tof_4_0.qasm",
+  "qc": "barenco_tof_4.qc",
+  "clean": true,
+  "truth": "bad",
+  "k9": "REFUTED"
+ },
+ {
+  "qasm": "clean_barenco_tof_4_T24_CX24_A0_1.qasm",
+  "qc": "barenco_tof_4.qc",
+  "clean": true,
+  "truth": "bad",
+  "k9": "REFUTED"
+ },
+ {
+  "qasm": "unitary_mod_red_21_5.qasm",
+  "qc": "mod_red_21.qc",
+  "clean": false,
+  "truth": "bad",
+  "k9": "REFUTED"
+ },
+ {
+  "qasm": "strict_mod_red_21_2.qasm",
+  "qc": "mod_red_21.qc",
+  "clean": false,
+  "truth": "bad",
+  "k9": "REFUTED"
+ },
+ {
+  "qasm": "strict_barenco_tof_5_T16_CX17_A4_0.qasm",
+  "qc": "barenco_tof_5.qc",
+  "clean": false,
+  "truth": "bad",
+  "k9": "REFUTED"
+ },
+ {
+  "qasm": "ham15-high_clean__drop_corr_gate.qasm",
+  "qc": "ham15-high.qc",
+  "clean": true,
+  "truth": "bad",
+  "k9": "REFUTED"
+ },
+ {
+  "qasm": "unitary_mod_mult_55_0.qasm",
+  "qc": "mod_mult_55.qc",
+  "clean": false,
+  "truth": "bad",
+  "k9": "REFUTED"
+ },
+ {
+  "qasm": "strict_tof_3_T11_CX10_A1_0.qasm",
+  "qc": "tof_3.qc",
+  "clean": false,
+  "truth": "bad",
+  "k9": "REFUTED"
+ }
+]

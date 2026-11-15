@@ -1357,7 +1357,13 @@ def _main():
     pv.add_argument("reference", help="input circuit (.qc)")
     pv.add_argument("--clean", action="store_true", help="clean-ancilla model (wires not in the .i line start and end in |0>)")
     pv.add_argument("--budget", type=float, default=PROVE_SEC, help=f"seconds (default {PROVE_SEC})")
+    sp.add_parser("kprove", add_help=False,
+                  help="exact BDD-based proof for large classical-reference circuits (qoptct.verify.kprove); "
+                       "see `qoptct kprove --help`")
     sp.add_parser("version")
+    if sys.argv[1:2] == ["kprove"]:
+        from .verify.kprove import main as kprove_main
+        sys.exit(kprove_main(sys.argv[2:]))
     a = p.parse_args()
     if a.cmd == "version":
         print(f"qoptct {__version__}"); return
