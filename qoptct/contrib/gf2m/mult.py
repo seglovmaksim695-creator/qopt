@@ -217,6 +217,159 @@ def build_crt(m, f, clean=False, seed=0, tries=4, places=None, n_anc=1, order=Tr
     return C, tuple(places)
 
 
+# ------------------------------------------------------------------------------ CRT products inside larger circuits
+
+def _pull(mask, cols):
+    """beta with mask.(L x) = beta.x for the linear map L with columns cols (None = identity)."""
+    if cols is None:
+        return mask
+    b = 0
+    for j, c in enumerate(cols):
+        if bin(mask & c).count("1") & 1:
+            b |= 1 << j
+    return b
+
+
+class CRTData:
+    """per-field data of the CRT compiler (places, slot columns, batches, ordered ring algorithms)."""
+
+    def __init__(self, m, f, places, seed=0, order=True):
+        self.m, self.f, self.places = m, f, list(places)
+        self.cols = _crt.slot_columns(m, f, self.places)
+        self.batches = split_batches(m, self.places, seed)
+        self.base = [_crt.place_rows(m, pl) for pl in self.places]
+        self.decs = []
+        for pl in self.places:
+            dec = _crt.ring_dec(_crt._ring_key(pl))
+            if order:
+                dec = _best_local_order(dec, _crt.place_degree(pl), seed)
+            self.decs.append(dec)
+        self.rows = []
+        for batch in self.batches:
+            trow, owner = [], []
+            for pi in batch:
+                for j, r in enumerate(self.base[pi]):
+                    trow.append(r)
+                    owner.append((pi, j))
+            trow, added = _complete(trow, m)
+            if added:
+                owner.append(None)
+            ccols, cown = [], []
+            for pi in batch:
+                for j in range(_crt.place_degree(self.places[pi])):
+                    ccols.append(self.cols[(pi, j)])
+                    cown.append((pi, j))
+            ccols, added = _complete(ccols, m)
+            if added:
+                cown.append(None)
+            Kt = LS.inverse(LS.transpose(ccols, m))
+            self.rows.append((trow, owner, Kt, cown))
+        self._syn = {}
+
+    def to_perm(self, cur, target, tries, seed):
+        key = ('p', tuple(cur), tuple(target))
+        if key not in self._syn:
+            if len(self._syn) > 4096:
+                self._syn.clear()
+            self._syn[key] = LS.to_perm(cur, target, tries, seed)
+        return self._syn[key]
+
+    def to_exact(self, cur, target, tries, seed):
+        key = ('e', tuple(cur), tuple(target))
+        if key not in self._syn:
+            if len(self._syn) > 4096:
+                self._syn.clear()
+            self._syn[key] = LS.to_exact(cur, target, tries, seed)
+        return self._syn[key]
+
+
+def emit_product(C, D, wa, wb, wt, anc, cols_a=None, cols_b=None, mode="mul", zero_target=False, mids=None,
+                 same=False, tries=4, seed=0):
+    """CRT product inside a circuit C (GF2Circuit or itoh.StreamCircuit), registers given by wire lists.
+    mode 'mul':   wt ^= F_a(A) * F_b(B)  (F = linear maps with columns cols_*, e.g. Frobenius powers;
+                  zero_target: wt starts at 0, the first frame change is free).
+    mode 'erase': the phase part of a register erasure: wt has been measured (outcome ids `mids`, one per bit);
+                  applies (-1)^(s . F_a(A) F_b(B)) as classically controlled CZ / Z (mids None: only the CX).
+    same=True: wb is a copy of A (the caller made it); a term whose two pulled forms coincide is linear (no AND).
+    A, B (and wt in 'mul') are transformed in place and restored.  -> (ANDs emitted, conditional phases)."""
+    m = D.m
+    RA, RB = _Reg(wa, C), _Reg(wb, C)
+    RC = _Reg(wt, C) if mode == "mul" else None
+    n_and = 0
+    n_ph = 0
+    first = True
+    for bi, batch in enumerate(D.batches):
+        trow, owner, Kt, cown = D.rows[bi]
+        ops, perm = D.to_perm(RA.rows, [_pull(r, cols_a) for r in trow], tries, seed)
+        RA.run(ops)
+        wire_a = {owner[i]: perm[i] for i in range(m) if owner[i] is not None}
+        ops, perm = D.to_perm(RB.rows, [_pull(r, cols_b) for r in trow], tries, seed)
+        RB.run(ops)
+        wire_b = {owner[i]: perm[i] for i in range(m) if owner[i] is not None}
+        zero_ok = False
+        if mode == "mul":
+            if zero_target and first:
+                cperm = list(range(m))
+                RC.rows = list(Kt)
+                zero_ok = True
+            else:
+                cops, cperm = D.to_perm(RC.rows, Kt, tries, seed)
+                RC.run(cops)
+            cwire = {cown[i]: cperm[i] for i in range(m) if cown[i] is not None}
+        first = False
+        touched = set()
+        for pi in batch:
+            Dg = _crt.place_degree(D.places[pi])
+            la = [wire_a[(pi, j)] for j in range(Dg)]
+            lb = [wire_b[(pi, j)] for j in range(Dg)]
+            base_a = [_pull(r, cols_a) for r in D.base[pi]]
+            base_b = [_pull(r, cols_b) for r in D.base[pi]]
+            dec = D.decs[pi]
+            fa = [_comb(base_a, al) for al, be, ga in dec]
+            fb = [_comb(base_b, be) for al, be, ga in dec]
+            for k, (al, be, ga) in enumerate(dec):
+                if not fa[k] or not fb[k]:
+                    continue
+                p = _bring(RA, la, fa[k], fa[k + 1:k + 4])
+                q = _bring(RB, lb, fb[k], fb[k + 1:k + 4])
+                lin_term = same and fa[k] == fb[k]
+                if mode == "mul":
+                    tg = [RC.w[cwire[(pi, j)]] for j in range(Dg) if ga >> j & 1]
+                    if not tg:
+                        continue
+                    if lin_term:
+                        for t in tg:
+                            C.cx(p, t)
+                            touched.add(t)
+                        continue
+                    n_and += 1
+                    if zero_ok and len(tg) == 1 and tg[0] not in touched:
+                        C.AND(p, q, tg[0])
+                        touched.add(tg[0])
+                        continue
+                    C.AND(p, q, anc)
+                    for t in tg:
+                        C.cx(anc, t)
+                        touched.add(t)
+                    C.erase(p, q, anc)
+                else:
+                    g = 0
+                    for j in range(Dg):
+                        if ga >> j & 1:
+                            g ^= D.cols[(pi, j)]
+                    n_ph += bin(g).count("1")
+                    if mids is not None:
+                        for i in range(m):
+                            if g >> i & 1:
+                                C.cphase(mids[i], (p,) if lin_term else (p, q))
+    ident = [1 << i for i in range(m)]
+    RA.run(D.to_exact(RA.rows, ident, tries, seed))
+    RB.run(D.to_exact(RB.rows, ident, tries, seed))
+    if RC is not None:
+        RC.run(D.to_exact(RC.rows, ident, tries, seed))
+    return n_and, n_ph
+
+
 def table_decs(m, f):
     """stored decompositions (data/decomps.json) of F2[x]/(f), transported to f; [] if none."""
     from . import _data

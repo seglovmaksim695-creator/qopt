@@ -325,10 +325,12 @@ class Program:
     condition is checked on them; with `gates=True` every operation is also lowered to a GF2Circuit.
     dec: bilinear algorithm (alpha, beta, gamma) of c = a*b mod f."""
 
-    def __init__(self, m, f, dec, samples, gates=False, count_cz=False, erase_mode="terms"):
+    def __init__(self, m, f, dec, samples, gates=False, count_cz=False, erase_mode="terms", crt=None):
         self.F = Field(m, f)
         self.m, self.dec = m, dec
         self.count_cz = count_cz
+        self.crt = crt               # mult.CRTData -> CRT lowering of products / erasures (else parity lowering)
+        self._fresh = set()
         if erase_mode not in ("terms", "monomials"):
             raise ValueError("erase_mode must be 'terms' or 'monomials'")
         self.erase_mode = erase_mode
@@ -381,6 +383,7 @@ class Program:
         return name
 
     def alloc(self, name):
+        self._fresh.add(name)
         return self.reg(name, [0] * self.S)
 
     def free(self, name):
@@ -396,6 +399,7 @@ class Program:
         """T ^= A^(2^k)  (CNOT only)."""
         F = self.F
         self.val[T] = [t ^ F.frob(a, k) for t, a in zip(self.val[T], self.val[A])]
+        self._fresh.discard(T)
         if self.gates:
             wa, wt = self.wires[A], self.wires[T]
             for j, c in enumerate(F.frob_cols(k)):
@@ -432,9 +436,40 @@ class Program:
         self.val[T] = [t ^ x for t, x in zip(self.val[T], p)]
         self.n_mul += 1
         ands, lins = self._terms(ka, kb, A == B)
-        self.and_count += len(ands)
-        if self.gates:
-            self._lower_mul(T, A, B, ands, lins)
+        if self.gates and self.crt is not None:
+            self.and_count += self._crt_product(T, A, ka, B, kb, "mul")[0]
+        else:
+            self.and_count += len(ands)
+            if self.gates:
+                self._lower_mul(T, A, B, ands, lins)
+        self._fresh.discard(T)
+
+    def _crt_product(self, T, A, ka, B, kb, mode, mids=None):
+        """CRT lowering (mult.emit_product): A and B transformed in place and restored; for A == B the second
+        operand is a temporary copy (m extra wires, 2m CX)."""
+        from .mult import emit_product
+        C, m = self.C, self.m
+        wa, wt = self.wires[A], self.wires[T]
+        same = A == B
+        if same:
+            wb = [self._new() for _ in range(m)]
+            for i in range(m):
+                C.cx(wa[i], wb[i])
+        else:
+            wb = self.wires[B]
+        anc = self._new() if mode == "mul" else None
+        ca = self.F.frob_cols(ka) if ka % m else None
+        cb = self.F.frob_cols(kb) if kb % m else None
+        r = emit_product(C, self.crt, wa, wb, wt, anc, ca, cb, mode=mode, mids=mids, same=same,
+                         zero_target=(mode == "mul" and T in self._fresh))
+        if anc is not None:
+            self._release(anc)
+        if same:
+            for i in range(m):
+                C.cx(wa[i], wb[i])
+            for w in wb:
+                self._release(w)
+        return r
 
     def erase(self, T, A, ka, B, kb, free=True):
         """measure T away; condition T == A^(2^ka) * B^(2^kb) (checked on the samples).  0 ANDs."""
@@ -444,6 +479,18 @@ class Program:
         self.val[T] = [0] * self.S
         self.n_erase += 1
         ands, lins = self._terms(ka, kb, A == B)
+        if self.erase_mode == "terms" and self.gates and self.crt is not None:
+            wt = self.wires[T]
+            if self.stream:
+                self.C.lazy_erase(wt, self.wires[A], ka, self.wires[B], kb, self.F)
+                mids = None
+            else:
+                self.C.check_product(wt, self.wires[A], self.wires[B], ands, lins)
+                mids = [self.C.measure_reset(w) for w in wt]
+            self.cz_count += self._crt_product(T, A, ka, B, kb, "erase", mids)[1]
+            if free:
+                self.free(T)
+            return
         if self.erase_mode == "terms":
             self.cz_count += sum(bin(g).count("1") for _, _, g in ands) + sum(bin(g).count("1") for _, g in lins)
         elif self.count_cz and (self.stream or not self.gates):

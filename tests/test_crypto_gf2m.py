@@ -256,6 +256,29 @@ def test_divide_small_all_pairs():
             assert cost["AND"] <= DIV_AND[m]
 
 
+def test_itoh_lowerings_all_inputs():
+    """CRT lowering (in-place compiler, copies for x^(2^k) * x) and parity lowering: same function, same ANDs."""
+    for m in range(3, 9):
+        f = G.default_modulus(m)
+        X, Y, T = [], [], []
+        for x in range(1 << m):
+            for y in range(1 << m):
+                X.append(x)
+                Y.append(y)
+                T.append((5 * x + 3 * y) % (1 << m))
+        want = [t ^ (mulmod(y, inv(x, m, f), f) if x else 0) for x, y, t in zip(X, Y, T)]
+        ands = set()
+        for low in ("crt", "parity"):
+            C = G.gf2m_divide(m, algorithm="crt", lowering=low)
+            out = C.simulate(dict(x=X, y=Y, t=T), len(X))
+            assert out["x"] == X and out["y"] == Y and out["t"] == want, (m, low)
+            ands.add(C.counts()["AND"])
+            I = G.gf2m_inverse(m, algorithm="crt", lowering=low)
+            o2 = I.simulate(dict(x=list(range(1 << m)), t=[0] * (1 << m)), 1 << m)
+            assert o2["t"] == [inv(x, m, f) if x else 0 for x in range(1 << m)], (m, low)
+        assert len(ands) == 1
+
+
 def test_inverse_small_all_inputs():
     for m in range(3, 9):
         f = G.default_modulus(m)
@@ -325,13 +348,15 @@ def _drop_phase(C):
     return GF2Circuit(C.nq, ops, C.regs, C.meta)
 
 
-@pytest.mark.parametrize("erase", ["terms", "monomials"])
-def test_itoh_prove_small(erase):
+@pytest.mark.parametrize("erase,lowering,alg", [("terms", "crt", "crt"), ("terms", "parity", "auto"),
+                                                ("monomials", "parity", "auto")])
+def test_itoh_prove_small(erase, lowering, alg):
     """exact prover: the measurement-based circuit (all outcomes, phases) equals its Toffoli-level reference;
     the reference's classical map is the field division / inversion (checked on all inputs above)."""
     from qoptct.verify import prove
     for m, kind in ((3, "divide"), (3, "inverse"), (4, "inverse")):
-        C = (G.gf2m_divide(m, erase=erase) if kind == "divide" else G.gf2m_inverse(m, erase=erase))
+        kw = dict(erase=erase, lowering=lowering, algorithm=alg)
+        C = (G.gf2m_divide(m, **kw) if kind == "divide" else G.gf2m_inverse(m, **kw))
         qc = write_tmp(C.reference_qc(), ".qc")
         r = prove(C.qasm(), qc, clean=True, budget_sec=150)
         assert r["status"] == "PROVED", (m, kind, r)
@@ -370,9 +395,12 @@ def test_stream_gate_check_matches_circuit():
 
 @pytest.mark.slow
 @pytest.mark.parametrize("kind", ["divide", "inverse"])
-def test_itoh_163_gate_level(kind):
-    s = G.gf2m_itoh_gate_check(kind, 163, lanes=24)
+@pytest.mark.parametrize("lowering", ["crt", "parity"])
+def test_itoh_163_gate_level(kind, lowering):
+    s = G.gf2m_itoh_gate_check(kind, 163, lanes=24, lowering=lowering)
     assert s["gates"]["AND"] == s["AND"] == (9080 if kind == "divide" else 8172)
+    if lowering == "crt":
+        assert s["gates"]["CX"] < 1.3e6
 
 
 @pytest.mark.slow

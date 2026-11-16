@@ -183,14 +183,34 @@ def _samples(m, n, seed):
     return xs, ys
 
 
-def _itoh_run(kind, m, f, chain, p, use_p, gates, samples, seed, algorithm, count_cz, erase="terms"):
+_CRT_CACHE = {}
+
+
+def _crt_data(m, f, places):
+    key = (m, f, tuple(places))
+    if key not in _CRT_CACHE:
+        if len(_CRT_CACHE) > 8:
+            _CRT_CACHE.clear()
+        _CRT_CACHE[key] = _mult.CRTData(m, f, places)
+    return _CRT_CACHE[key]
+
+
+def _itoh_run(kind, m, f, chain, p, use_p, gates, samples, seed, algorithm, count_cz, erase="terms",
+              lowering="auto"):
     f = _modulus(m, f)
     dec, info = gf2m_bilinear(m, f, algorithm)
+    if lowering not in ("auto", "crt", "parity"):
+        raise ValueError("lowering must be 'auto', 'crt' or 'parity'")
+    if lowering == "crt" and info["algorithm"] != "crt":
+        raise ValueError("lowering='crt' needs the CRT algorithm (algorithm='crt')")
+    use_crt = gates and erase == "terms" and info["algorithm"] == "crt" and lowering in ("auto", "crt")
     ch = _itoh.Chain(m, chain, p, use_p)
     xs, ys = _samples(m, samples, seed)
     regs = dict(x=xs, y=ys) if kind == "divide" else dict(x=xs)
-    P = _itoh.Program(m, f, dec, regs, gates=gates, count_cz=count_cz, erase_mode=erase)
+    P = _itoh.Program(m, f, dec, regs, gates=gates, count_cz=count_cz, erase_mode=erase,
+                      crt=_crt_data(m, f, info["places"]) if use_crt else None)
     P.alloc("t")
+    P._fresh.discard("t")          # t is an input register (t ^= ...), not known to be 0
     if kind == "divide":
         _itoh.divide_program(P, ch, "t", "x", "y")
     else:
@@ -233,20 +253,26 @@ _ITOH_DOC = """
     p: chain registers (default L = chain length -> minimal multiplications; fewer -> recomputation);
     erase: 'terms' (default; register erasure = X measurements + one classically controlled CZ per (bilinear term,
     output bit): O(rank * m) CZ and the parity CX of the terms) or 'monomials' (per-bit quadratic forms, O(m^3) CZ;
-    the k6 lab form).  The register program is checked on `samples` random field elements (every erasure
+    the k6 lab form).
+    lowering: 'auto' (= 'crt' when the CRT algorithm is used and erase='terms', else 'parity'), 'crt' (every
+    product / erasure with the in-place CRT compiler of mult.py: ~5x fewer CX; a product x^(2^k) * x of a
+    register with itself works on a temporary copy, +m qubits) or 'parity' (term by term on parity wires: fewer
+    qubits, many more CX).  The register program is checked on `samples` random field elements (every erasure
     condition) before lowering."""
 
 
-def gf2m_inverse(m, f=None, chain="it", p=None, use_p=None, samples=16, seed=1, algorithm="auto", erase="terms"):
+def gf2m_inverse(m, f=None, chain="it", p=None, use_p=None, samples=16, seed=1, algorithm="auto", erase="terms",
+                 lowering="auto"):
     """out-of-place inversion circuit t ^= x^-1 (x = 0 -> 0); wires x = 0..m-1, t = m..2m-1, then the chain
     registers and temporaries; L multiplications with p = L chain registers."""
-    return _itoh_run("inverse", m, f, chain, p, use_p, True, samples, seed, algorithm, False, erase)
+    return _itoh_run("inverse", m, f, chain, p, use_p, True, samples, seed, algorithm, False, erase, lowering)
 
 
-def gf2m_divide(m, f=None, chain="it", p=None, use_p=None, samples=16, seed=1, algorithm="auto", erase="terms"):
+def gf2m_divide(m, f=None, chain="it", p=None, use_p=None, samples=16, seed=1, algorithm="auto", erase="terms",
+                lowering="auto"):
     """division circuit t ^= y / x (x = 0 -> t ^= 0); wires x = 0..m-1, y = m..2m-1, t = 2m..3m-1, then chain
     registers / temporaries; (L + 1) multiplications with p = L chain registers."""
-    return _itoh_run("divide", m, f, chain, p, use_p, True, samples, seed, algorithm, False, erase)
+    return _itoh_run("divide", m, f, chain, p, use_p, True, samples, seed, algorithm, False, erase, lowering)
 
 
 gf2m_inverse.__doc__ += _ITOH_DOC
@@ -267,7 +293,8 @@ def gf2m_divide_count(m, f=None, chain="it", p=None, use_p=None, samples=8, seed
     return _itoh_run("divide", m, f, chain, p, use_p, False, samples, seed, algorithm, count_cz, erase)
 
 
-def gf2m_itoh_gate_check(kind, m, f=None, chain="it", p=None, use_p=None, lanes=32, seed=1, algorithm="auto"):
+def gf2m_itoh_gate_check(kind, m, f=None, chain="it", p=None, use_p=None, lanes=32, seed=1, algorithm="auto",
+                         lowering="auto"):
     """gate-level check for large m without storing the circuit: kind 'divide' / 'inverse'.  Every gate of the
     products (and the parity CX of the 'terms' register erasures) is executed bitsliced on `lanes` random inputs
     (plus 0, 1, all-ones) with every AND / erasure precondition enforced; register erasures are checked lazily.
@@ -275,4 +302,4 @@ def gf2m_itoh_gate_check(kind, m, f=None, chain="it", p=None, use_p=None, lanes=
     the register erasures are 'CZ_register_erasures') and 'gate_check'; raises on any failure."""
     if kind not in ("divide", "inverse"):
         raise ValueError("kind must be 'divide' or 'inverse'")
-    return _itoh_run(kind, m, f, chain, p, use_p, "stream", lanes, seed, algorithm, False, "terms")
+    return _itoh_run(kind, m, f, chain, p, use_p, "stream", lanes, seed, algorithm, False, "terms", lowering)
