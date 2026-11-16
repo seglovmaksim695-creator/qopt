@@ -488,6 +488,8 @@ class Engine:
         self.aad = {}
         self.aprod = {}
         self.phantom = set()
+        self.in_zero = False
+        self.atom_wire = {}
         self.vint = {}             # virtual carry symbol -> its integer value on every simulation lane
         self.vrange = {}
         self.stats = dict(ands=0, erases=0, cells=0, adders=0, facts=0, stageB=0, stageC=0, splits=0, sem_zero=0,
@@ -629,6 +631,37 @@ class Engine:
             S2 = self.canon(self.apply_facts(S))
             if S2 is not S:
                 self.wires[w] = S = S2
+        if S and S is not ONE:
+            x = 0
+            sim = self.sim
+            kind = self.kind
+            for a in S:
+                x ^= sim[a]
+                if kind[a] == KS and not self.in_zero:
+                    cell = self.sig_cell[a]
+                    if cell.adder is None:
+                        # first use of a sum bit of a finished adder: classify the adder now (range facts such as
+                        # constant top bits must be known before the wire is reused)
+                        self.in_zero = True
+                        try:
+                            J = self.assemble(cell, True)
+                            if J is not None:
+                                self.classify(J)
+                        finally:
+                            self.in_zero = False
+                        if self.facts and not S.isdisjoint(self.facts):
+                            return self.read(w)
+            if (x == 0 or x == self.mask) and S != ONE and not self.in_zero:
+                # 0 (or 1) on every simulated input: try to prove it, so that a reused wire is a clean |0>
+                self.in_zero = True
+                try:
+                    if x == 0:
+                        if self.is_zero(S, 0, False):
+                            self.wires[w] = S = EMPTY
+                    elif self.is_zero(S ^ ONE, 0, False):
+                        self.wires[w] = S = ONE
+                finally:
+                    self.in_zero = False
         return S
 
     # ------------------------------------------------------------------ gates
@@ -650,6 +683,7 @@ class Engine:
                 self.wires[t] = self.fs(kk)
                 self.fresh.pop(t, None)
                 self.last_carry = (kk, self.opi)
+                self.atom_wire[kk] = t
                 return
             if k == KK and self.adef[a][1] == S:
                 self.wires[t] = self.fs(self.adef[a][0])
@@ -732,6 +766,7 @@ class Engine:
             if self.kind[r] == KA and self.adef[r] in ((U, V), (V, U)):
                 self.fresh[t] = r
                 self.last_carry = (r, self.opi)
+                self.atom_wire[r] = t
 
     def op_erase(self, t, corr):
         self.finalize_pend()
@@ -781,7 +816,7 @@ class Engine:
             return self.adef[a]
         return None
 
-    def is_zero(self, D, depth=0):
+    def is_zero(self, D, depth=0, sem=True):
         D = self.apply_facts(D)
         if not D:
             return True
@@ -807,6 +842,8 @@ class Engine:
                     return True
         if depth:
             return False
+        if not sem:
+            return self.tt_zero(D)
         self.stats['sem_zero'] += 1
         for deep in (False, True):
             for a in D:
@@ -877,7 +914,7 @@ class Engine:
         S = cell.sumkey
         return S in self.sum_tab or len(S - ONE) <= 1
 
-    def assemble(self, cell):
+    def assemble(self, cell, strict=False):
         bottom = cell
         while True:
             C = bottom.C
@@ -900,6 +937,12 @@ class Engine:
                 break
             cells.append(nxt)
             cur = nxt
+        if strict:
+            aw = self.atom_wire
+            for c in cells[:-1]:
+                w = aw.get(c.cout)
+                if w is not None and self.wires[w] == self.fs(c.cout):
+                    return None                     # a carry of this chain is still on its wire: adder in progress
         J = Adder(cells)
         for c in cells:
             c.adder = J
