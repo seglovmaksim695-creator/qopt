@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Tests of qoptct.crypto.kaliski (Kaliski modular inversion, 12n^2 + n logical ANDs).
+"""Tests of qoptct.crypto.kaliski (Kaliski modular inversion, 12n^2 - 8n - 3 logical ANDs; legacy=True: 12n^2 + n).
 
 Function checks are classical and exact (bit-sliced run over ALL x in [1, p), with a check of every AND target and
 erase condition); the emitted OpenQASM text is checked independently (qoptct.verify: sparse simulation and the exact
@@ -36,46 +36,87 @@ CASES = [(n, p) for n in range(3, 9) for p in primes(n)]
 
 
 # ------------------------------------------------------------------ function, all inputs
+@pytest.mark.parametrize('legacy', [False, True])
 @pytest.mark.parametrize('n,p', CASES)
-def test_forward_all_inputs_and_count(n, p):
-    C = kaliski_inverse(p)
-    assert C.n == n and C.x == list(range(n))
+def test_forward_all_inputs_and_count(n, p, legacy):
+    C = kaliski_inverse(p, legacy=legacy)
+    assert C.n == n and C.x == list(range(n)) and C.legacy == legacy
     xs = list(range(1, p))
     got, v = C.evaluate(xs, return_wires=True)
     assert got == [expect(p, n, x) for x in xs]
     assert C.read(v, C.regs['u'], len(xs)) == [1] * len(xs)
     assert C.read(v, C.regs['v'], len(xs)) == [0] * len(xs)
     c = C.counts()
-    assert c['AND'] == kaliski_and_count(n) == 12 * n * n + n
-    assert c['qubits'] == 11 * n
+    if legacy:
+        assert c['AND'] == kaliski_and_count(n, legacy=True) == 12 * n * n + n
+        assert c['qubits'] == 11 * n
+    else:
+        assert c['AND'] == kaliski_and_count(n) == 12 * n * n - 8 * n - 3
+        assert c['qubits'] == 11 * n - 2
+        L = kaliski_inverse(p, legacy=True).counts()
+        assert c['CX'] < L['CX'] and c['ERASE'] == L['ERASE'] - 9 * n
     assert c['AND'] < 26 * n * n + 2 * n          # Litinski 2023
 
 
+def test_smallest_prime():
+    C = kaliski_inverse(3)
+    assert C.evaluate([1, 2]) == [expect(3, 2, 1), expect(3, 2, 2)]
+    assert C.counts()['AND'] == kaliski_and_count(2) == 29
+
+
+def _constant_ands(C, xs):
+    """indices of the ANDs whose product a*b is the same on every input (found by a bit-sliced run)."""
+    S = len(xs)
+    M = (1 << S) - 1
+    v = KM._simulate([], C.nqubits, KM._pack(xs, C.x), S)
+    out = []
+    for i, o in enumerate(C.ops):
+        if o[0] == 'and' and (v[o[1]] & v[o[2]]) in (0, M):
+            out.append(i)
+        v = KM._simulate([o], C.nqubits, dict(enumerate(v)), S)
+    return out
+
+
+@pytest.mark.parametrize('n,p', [(n, p) for n in range(3, 8) for p in primes(n, 2)])
+def test_removed_ands_were_constant(n, p):
+    """of the 9n + 3 ANDs removed by default (P1-P5 in the module docstring), 9n + 1 are ANDs of identically constant
+    product in the legacy circuit; the other 2 (w_{k-1}(u_0 ^ v_0) and the comparison carry of step 2n-2, P5) have a
+    varying product but only serve to compute the constant w_{2n-2}. The remaining constant-product ANDs stay."""
+    xs = list(range(1, p))
+    old = _constant_ands(kaliski_inverse(p, legacy=True), xs)
+    new = _constant_ands(kaliski_inverse(p), xs)
+    assert len(old) - len(new) == 9 * n + 1
+
+
+@pytest.mark.parametrize('legacy', [False, True])
 @pytest.mark.parametrize('n,p', [(n, p) for n in range(3, 7) for p in primes(n, 2)])
-def test_clean_all_inputs(n, p):
-    C = kaliski_inverse(p, clean=True)
+def test_clean_all_inputs(n, p, legacy):
+    C = kaliski_inverse(p, clean=True, legacy=legacy)
     assert C.x == list(range(n)) and C.out == list(range(n, 2 * n)) and C.garbage == []
     xs = list(range(1, p))
     got, v = C.evaluate(xs, return_wires=True)
     assert got == [expect(p, n, x) for x in xs]
     assert C.read(v, C.x, len(xs)) == xs
     assert all(v[w] == 0 for w in range(C.nqubits) if w not in C.x + C.out)
-    F = kaliski_inverse(p).counts()
+    F = kaliski_inverse(p, legacy=legacy).counts()
     c = C.counts()
     assert c['AND'] == F['AND'] + F['ERASE']
+    assert c['qubits'] == 12 * n - (0 if legacy else 2)
 
 
+@pytest.mark.parametrize('legacy', [False, True])
 @pytest.mark.parametrize('n', range(4, 9))
-def test_special_reduction(n):
+def test_special_reduction(n, legacy):
     p = pseudo_mersenne(n)
-    C = kaliski_inverse(p, reduction='special')
+    C = kaliski_inverse(p, reduction='special', legacy=legacy)
     xs = list(range(1, p))
     assert C.evaluate(xs) == [expect(p, n, x) for x in xs]
 
 
-def test_special_reduction_any_prime_clean():
+@pytest.mark.parametrize('legacy', [False, True])
+def test_special_reduction_any_prime_clean(legacy):
     for p in (37, 41, 53):
-        C = kaliski_inverse(p, reduction='special', clean=True)
+        C = kaliski_inverse(p, reduction='special', clean=True, legacy=legacy)
         xs = list(range(1, p))
         got, v = C.evaluate(xs, return_wires=True)
         assert got == [expect(p, C.n, x) for x in xs]
@@ -100,8 +141,10 @@ def test_and_count_formula_count_only(n):
         if is_prime(p):
             break
     C = kaliski_inverse(p)
-    assert C.counts()['AND'] == 12 * n * n + n
-    assert C.counts()['qubits'] == 11 * n
+    assert C.counts()['AND'] == 12 * n * n - 8 * n - 3
+    assert C.counts()['qubits'] == 11 * n - 2
+    L = kaliski_inverse(p, legacy=True).counts()
+    assert L['AND'] == 12 * n * n + n and L['qubits'] == 11 * n
     if n == 12:
         xs = [1, 2, p - 1, (p + 1) // 2] + [rng.randrange(1, p) for _ in range(60)]
         assert C.evaluate(xs) == [expect(p, n, x) for x in xs]
@@ -189,10 +232,11 @@ def table(p, n):
     return {x: (expect(p, n, x % p) if x % p else 0) for x in range(1 << n)}
 
 
+@pytest.mark.parametrize('legacy', [False, True])
 @pytest.mark.parametrize('p', [5, 7, 11, 13])
-def test_clean_out_of_domain(p):
+def test_clean_out_of_domain(p, legacy):
     """outside [1, p) the clean circuit is still clean and gives K(x mod p) (0 for x = 0 mod p) at these sizes."""
-    C = kaliski_inverse(p, clean=True)
+    C = kaliski_inverse(p, clean=True, legacy=legacy)
     xs = list(range(1 << C.n))
     got, v = C.evaluate(xs, return_wires=True)
     T = table(p, C.n)
@@ -217,12 +261,13 @@ def test_qasm_text_counts():
             assert ('qubit[%d] q;' % c['qubits']) in C.to_qasm()
 
 
+@pytest.mark.parametrize('legacy', [False, True])
 @pytest.mark.parametrize('p', [5, 7, 13, 31])
-def test_qasm_sparse_and_prove(p, tmp_path):
+def test_qasm_sparse_and_prove(p, legacy, tmp_path):
     """the emitted OpenQASM text against the truth-table reference: sampled sparse simulation, then the exact
     path-sum prover (all inputs, all measurement outcomes, clean model)."""
     from qoptct import verify
-    C = kaliski_inverse(p, clean=True)
+    C = kaliski_inverse(p, clean=True, legacy=legacy)
     ref = reference_qc(p, C.n, tmp_path / 'ref.qc')
     q = C.to_qasm()
     s = verify.check_sparse(q, ref, clean=True, trials=2)
@@ -232,11 +277,28 @@ def test_qasm_sparse_and_prove(p, tmp_path):
 
 
 @pytest.mark.slow
+@pytest.mark.parametrize('legacy', [False, True])
 @pytest.mark.parametrize('p', [61, 127])
-def test_qasm_prove_slow(p, tmp_path):
+def test_qasm_prove_slow(p, legacy, tmp_path):
     from qoptct import verify
-    C = kaliski_inverse(p, clean=True)
+    C = kaliski_inverse(p, clean=True, legacy=legacy)
     r = verify.prove(C.to_qasm(), reference_qc(p, C.n, tmp_path / 'ref.qc'), clean=True, budget_sec=600)
+    assert r['status'] == 'PROVED', r
+
+
+def _kprove(C, ref, tmp_path, txt=None, budget=300):
+    from qoptct.verify.kprove import kprove
+    qa = tmp_path / 'c.qasm'
+    qa.write_text(C.to_qasm() if txt is None else txt)
+    return kprove(str(qa), ref, clean=True, budget_sec=budget, engine='bdd', sample=False)
+
+
+@pytest.mark.parametrize('p', [5, 7, 13, 31, pytest.param(61, marks=pytest.mark.slow),
+                               pytest.param(127, marks=pytest.mark.slow)])
+def test_qasm_kprove(p, tmp_path):
+    """the second exact prover (BDD sum over paths, qoptct.verify.kprove) on the default clean circuit."""
+    C = kaliski_inverse(p, clean=True)
+    r = _kprove(C, reference_qc(p, C.n, tmp_path / 'ref.qc'), tmp_path)
     assert r['status'] == 'PROVED', r
 
 
@@ -264,12 +326,14 @@ def _live_erases(C, xs):
     return out
 
 
-def test_qasm_mutants_refuted(tmp_path):
+@pytest.mark.parametrize('legacy', [False, True])
+def test_qasm_mutants_refuted(legacy, tmp_path):
     """canaries on the OpenQASM text: a T -> T^dagger in an AND, a live CZ correction dropped, the copy CX of the
-    result dropped, a CX inside the forward part dropped. The exact prover must refute each."""
+    result dropped, a CX inside the forward part dropped. The exact prover must refute each; the sampled sparse check
+    (2 trials) must reject the three non-phase mutants (a dropped CZ is a phase error that 2 trials can miss)."""
     from qoptct import verify
     p = 13
-    C = kaliski_inverse(p, clean=True)
+    C = kaliski_inverse(p, clean=True, legacy=legacy)
     ref = reference_qc(p, C.n, tmp_path / 'ref.qc')
     L = C.to_qasm().splitlines()
     rng = random.Random(5)
@@ -288,18 +352,24 @@ def test_qasm_mutants_refuted(tmp_path):
     k = _qasm_line(C, next(i for i, o in enumerate(C.ops) if o[0] == 'cx' and i > 200))
     assert L[k].startswith('cx q')
     muts.append(L[:k] + L[k + 1:])
-    for m in muts:
+    for j, m in enumerate(muts):
         r = verify.prove('\n'.join(m) + '\n', ref, clean=True, budget_sec=120)
         assert r['status'] == 'REFUTED', r
-        assert not verify.check_sparse('\n'.join(m) + '\n', ref, clean=True, trials=2)['ok']
+        if j != 1:
+            assert not verify.check_sparse('\n'.join(m) + '\n', ref, clean=True, trials=2)['ok']
+        if j >= 1 and not legacy:      # kprove on T -> T^dagger takes minutes and ~0.9 GB: checked outside the tests
+            assert _kprove(C, ref, tmp_path, txt='\n'.join(m) + '\n')['status'] == 'REFUTED'
 
 
-def test_reference_rejects_wrong_function(tmp_path):
+@pytest.mark.parametrize('legacy', [False, True])
+def test_reference_rejects_wrong_function(legacy, tmp_path):
     """the truth-table reference is not vacuous: the circuit for p = 13 does not prove against the table of p = 11."""
     from qoptct import verify
-    C = kaliski_inverse(13, clean=True)
-    r = verify.prove(C.to_qasm(), reference_qc(11, 4, tmp_path / 'ref.qc'), clean=True, budget_sec=120)
+    C = kaliski_inverse(13, clean=True, legacy=legacy)
+    ref = reference_qc(11, 4, tmp_path / 'ref.qc')
+    r = verify.prove(C.to_qasm(), ref, clean=True, budget_sec=120)
     assert r['status'] == 'REFUTED', r
+    assert _kprove(C, ref, tmp_path)['status'] == 'REFUTED'
 
 
 @pytest.mark.slow
@@ -310,13 +380,18 @@ def test_and_count_formula_count_only_slow(n):
         p = rng.randrange(2 ** (n - 1) + 1, 2 ** n, 2)
         if pow(2, p - 1, p) == 1 and all(pow(a, p - 1, p) == 1 for a in (3, 5, 7, 11, 13)):
             break
-    assert kaliski_inverse(p).counts()['AND'] == 12 * n * n + n
+    assert kaliski_inverse(p).counts()['AND'] == 12 * n * n - 8 * n - 3
+    assert kaliski_inverse(p, legacy=True).counts()['AND'] == 12 * n * n + n
 
 
 def test_qasm_regression_hashes():
-    """the emitted clean circuits are byte-identical to the lab circuits they were ported from (k4,
-    circ/kal_k4_div_n{4,5,6}.qasm, already checked there by sparse simulation); a change of the generator shows here."""
+    """legacy=True: the emitted clean circuits are byte-identical to the lab circuits they were ported from (k4,
+    circ/kal_k4_div_n{4,5,6}.qasm, already checked there by sparse simulation). Default: the hashes of the circuits
+    proved in this version (P1-P5). A change of the generator shows here."""
     import hashlib
     want = {13: '17b6191c88329c6a', 31: '9cf5ec8ab0dc387f', 61: 'f5054b32241ae363'}
+    for p, h in want.items():
+        assert hashlib.sha256(kaliski_inverse(p, clean=True, legacy=True).to_qasm().encode()).hexdigest()[:16] == h
+    want = {13: '23165abb8e6a8074', 31: 'e99bb8bcbc876500', 61: 'd4ddf16031cd4fe5'}
     for p, h in want.items():
         assert hashlib.sha256(kaliski_inverse(p, clean=True).to_qasm().encode()).hexdigest()[:16] == h

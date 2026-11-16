@@ -4,8 +4,9 @@ state). Model: Gidney 2018 (arXiv:1709.06648), AND = 4 T (+ 3 CX), erased by X-b
 correction (0 T). Every generator checks its circuit at build time or offers an exact check.
 
 Modules:
-    kaliski  kaliski_inverse(p, n=None, reduction='generic', clean=False) -- Kaliski modular inversion,
-             12n^2 + n ANDs forward (counted for every n tested, not proved for all n)
+    kaliski  kaliski_inverse(p, n=None, reduction='generic', clean=False, legacy=False) -- Kaliski modular
+             inversion, 12n^2 - 8n - 3 ANDs forward (legacy=True: 12n^2 + n; counted for every n tested, not
+             proved for all n)
     mulsq    multiply(n, karatsuba_levels=0, ...), square(n, ...) -- integer multiplication / squaring on
              conditionally inverted additions, optional Karatsuba levels with garbage
     fold     fold.reduce_special(p, ...) -- reduction of a 2n-bit product modulo special primes (p = 2^n - c,
