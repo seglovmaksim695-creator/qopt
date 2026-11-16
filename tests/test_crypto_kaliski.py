@@ -311,3 +311,12 @@ def test_and_count_formula_count_only_slow(n):
         if pow(2, p - 1, p) == 1 and all(pow(a, p - 1, p) == 1 for a in (3, 5, 7, 11, 13)):
             break
     assert kaliski_inverse(p).counts()['AND'] == 12 * n * n + n
+
+
+def test_qasm_regression_hashes():
+    """the emitted clean circuits are byte-identical to the lab circuits they were ported from (k4,
+    circ/kal_k4_div_n{4,5,6}.qasm, already checked there by sparse simulation); a change of the generator shows here."""
+    import hashlib
+    want = {13: '17b6191c88329c6a', 31: '9cf5ec8ab0dc387f', 61: 'f5054b32241ae363'}
+    for p, h in want.items():
+        assert hashlib.sha256(kaliski_inverse(p, clean=True).to_qasm().encode()).hexdigest()[:16] == h
