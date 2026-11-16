@@ -48,8 +48,7 @@ __all__ = ['kaliski_inverse', 'kaliski_and_count', 'KaliskiCircuit', 'CheckError
 REDUCTIONS = ('generic', 'special')
 
 
-class CheckError(Exception):
-    """An AND target was not |0>, or an erase condition did not hold, in the classical run."""
+from ._errors import CheckError  # noqa: E402  (shared with qoptct.crypto.mulsq)
 
 
 def kaliski_and_count(n):

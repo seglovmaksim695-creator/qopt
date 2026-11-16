@@ -18,6 +18,11 @@
 * **`results/crypto/`**: circuits of cryptographic building blocks with their references, each one proved by
   `qoptct kprove` (only PROVED entries are kept; see `results/crypto/index.json` and the README section).
 * `qoptct.verify.branchsim.run_branch_scaled`: branch simulation that returns the state with its scale as log2.
+* `qoptct.crypto.mulsq` (`from qoptct.crypto import multiply, square`): generators of out-of-place integer
+  multiplication (x, y, 0) -> (x, y, xy) and squaring (x, 0) -> (x, x²) on conditionally inverted additions in the
+  logical-AND model: base n²+4n and (n²+7n−6)/2 AND, optional Karatsuba levels with garbage (n = 256, L = 3:
+  37 880 and 22 332 AND), Bennett version `clean=True`, OpenQASM 3 output, bit-sliced checker, independent
+  schoolbook reference `.qc` and `prove()` via `qoptct.verify`.
 <!-- 0.5.0: generator modules (Kaliski inversion, multiplication/squaring, narrow lookup, fold reduction, GF(2^m)) and
      the physical-cost estimator are merged here from their branches. -->
 
