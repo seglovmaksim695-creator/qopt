@@ -431,8 +431,8 @@ def test_itoh_kprove_table_reference(kind, m, tmp_path):
 @pytest.mark.parametrize("kind,m", [("inverse", 10), ("inverse", 12), ("divide", 7), ("divide", 8), ("divide", 9),
                                     ("divide", 10)])
 def test_itoh_kprove_table_reference_big(kind, m, tmp_path):
-    """0.1-0.6 GB of BDD (growth budget 1.4 GB); larger proofs (inverse m = 14, divide m = 11: ~1.4 GB / ~0.75 GB)
-    are in the 0.5.0 lab report, inverse m = 16 and divide m = 12 do not fit into 1.4 GB."""
+    """0.1-0.6 GB of BDD (growth budget 1.4 GB); larger proofs (inverse m = 14, divide m = 11, 12: ~1.4 / 0.75 /
+    0.95 GB) are in the 0.5.0 lab report; inverse m = 15, 16 do not fit into 1.7 GB."""
     _kprove_itoh(kind, m, tmp_path)
 
 

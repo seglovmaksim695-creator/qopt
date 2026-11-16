@@ -59,7 +59,7 @@
     `erase='monomials'` keeps the per-bit quadratic forms): its phases are checked exactly for any m by
     `qoptct.contrib.gf2m.qcirc.ErasurePhaseChecker` (symbolic phase polynomial of the emitted gates; all 668 520
     conditional phases of the m = 163 division), and whole circuits are proved by kprove against an independent
-    truth-table reference for inversion m ≤ 14 and division m ≤ 11 (the tests go to 12 and 10; a removed
+    truth-table reference for inversion m ≤ 14 and division m ≤ 12 (the tests go to 12 and 10; a removed
     conditional phase is REFUTED);
     the argument for every m is in the docstring of `qoptct.contrib.gf2m.itoh`.
 * **`qoptct.estimate`** and the subcommand **`qoptct estimate --toffoli T --qubits Q [--depth D] [--shots S]

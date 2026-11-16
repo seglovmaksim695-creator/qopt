@@ -52,8 +52,8 @@ alpha.A' = pull(alpha).A (pull_mask), so  t = sum_k gamma_k (a_k.A)(b_k.B)  with
 Machine checks of the emitted gates: qcirc.ErasurePhaseChecker recomputes, symbolically and for any m, the phase
 polynomial sum_i s_i Q_i(A, B) actually applied by the conditional Z / CZ of every erasure and compares it with the
 asserted form (exact for all inputs and outcomes; m = 163 division: all 668 520 conditional phases); kprove proves
-whole circuits against an independent truth-table reference (inverse m <= 14, division m <= 11 with a 1.4 GB
-budget; tests/test_crypto_gf2m.py), and a removed conditional phase is REFUTED.
+whole circuits against an independent truth-table reference (inverse m <= 14, division m <= 12 within
+1.4 / 1.7 GB; tests/test_crypto_gf2m.py up to 12 / 10), and a removed conditional phase is REFUTED.
 """
 import heapq
 
