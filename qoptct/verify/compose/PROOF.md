@@ -59,8 +59,16 @@ plus a precondition that consists of
 `_seg_prove` then creates one ROBDD variable for every entry wire not in Z (all register bits: up to 4n+2 variables),
 executes the real ops of the segment symbolically and proves, as ROBDD identities, for ALL entry values satisfying
 the precondition: (i) each and-target is 0, (ii) each erase condition holds, (iii) every touched wire ends with the
-contract value (wires outside the contract: unchanged, ancillas: 0), (iv) the postfacts, and that the precondition is
-satisfiable (no vacuous proof). In clean mode also (v): the mirror slice of the inverse half (located by counting
+contract value (wires outside the contract: unchanged, ancillas: 0), (iv) the postfacts and the `proved` properties
+of the contract (e.g. "no borrow", which turns a subtraction modulo 2^w into the exact integer subtraction), and
+that the precondition is satisfiable (no vacuous proof).
+
+Some preconditions are used as *parametrisations* instead of side conditions (argument `subst` of `Chain.seg`): e.g.
+for the fact "A_0 -> B_0" the entry value of the wire B_0 is taken as `B_0 or A_0`. The prover checks, by ROBDD,
+that the substituted values satisfy the precondition identically and that every entry state satisfying the
+preconditions is a fixed point of the substitution; therefore "for all values of the variables" over the substituted
+entry state is exactly "for all entry states satisfying these preconditions". (This only makes the circuit and the
+contract equal as ROBDDs, so that no conjunction with the precondition has to be built per wire.) In clean mode also (v): the mirror slice of the inverse half (located by counting
 ops; erase-with-l mirrors to and + cx), started from the exit state, satisfies (i), (ii) and returns every wire to
 its entry value.
 
@@ -71,10 +79,10 @@ The contracts (frame registers A, B: n wires; R: n wires; S: n+k wires, at most 
 | init    | A = p, S = 1 (B = x, R = 0)                                           | -                                |
 | cmp k   | w = wspec(A,B,w_prev) = [u odd] and ([v even] or [u <= v]), (u,v) = (B,A) if w_prev else (A,B) | M1: A, B < 2^wa   |
 | swap k  | d = w_prev xor w; if d: A<->B, R<->S. Postfacts: A_0 -> B_0; A_0 -> B <= A; not(R_0 and S_0) | wdef (or M5 at k = 2n-2); M2: d -> A_0 = B_0 (k >= 1); M4: d -> S < 2^n |
-| sub k   | e = A_0; A = A - e*B (no borrow); then A_0 = 0 is proved and A := A/2 | facts imp, geodd; M3: e -> B < 2^wb |
+| sub k   | e = A_0; A = A - e*B on wa bits, "no borrow" proved (so it is the integer subtraction); then A_0 = 0 is proved and A := A/2 | facts imp, geodd; M3: e -> B < 2^wb |
 | add k   | R = R + e*S (fits n bits); then S := 2S (fresh zero wire below)       | fact nand; M4: e -> S < 2^n, R + e*S < 2^n; M6 when the top wire of S is dropped |
 | last (k = 2n-1) | nothing but A := A/2, S := 2S                                 | M5: A_0 = 0, wspec = 1           |
-| div j   | W = window (n+1 bits): rem = W mod p (= W - p[W >= p]), f = [W < p], top wire 0. Postfact rem < p | fact: upper n bits of W < p (so W < 2p) |
+| div j   | W = window (n+1 bits): f = bit n of (W - p) mod 2^(n+1), rem = (f ? W : W - p) on n bits, top wire 0; proved: f = [W < p] (so rem = W mod p). Postfact rem < p | fact: upper n bits of W < p (so W < 2p) |
 | sp_const, sp_addL, sp_term | literal additions modulo 2^len (section 5)         | -                                |
 | sp_q    | f = [A >= K_q], A = A - f*K_q. Postfact A < max(K_q, B - K_q)         | fact A < B                       |
 
