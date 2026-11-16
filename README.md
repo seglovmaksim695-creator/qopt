@@ -276,7 +276,7 @@ ANDs (= Toffoli, 4 T each).
 | function | what | count | compared with |
 |---|---|---|---|
 | `kaliski_inverse(p, n=None, reduction='generic'\|'special', clean=False, legacy=False)` | Kaliski modular inversion, result −x⁻¹·2^{2n} mod p | 12n²−8n−3 AND forward (generic; `legacy=True`: 12n²+n); P-256 special 664 966, secp256k1 657 503 | Litinski 2023 (arXiv:2306.08585): 26n²+2n in the same model. The count was checked by counting for every n tried up to n = 256; it is not proved for all n. Circuits proved exactly for n ≤ 7 |
-| `multiply(n, karatsuba_levels=0)`, `square(n, ...)` | integer x·y and x² (no reduction) on conditionally inverted additions | base n²+4n and (n²+7n−6)/2; n = 256, 3 Karatsuba levels: 37 880 / 22 332 | squaring with Karatsuba is about −33 % ANDs against Häner et al. (arXiv:2609.05625), at the cost of qubits (3 029 vs 1 279 at L = 0) and garbage; the conditionally inverted additions are their idea. The base multiplier is not better than theirs |
+| `multiply(n, karatsuba_levels=0, legacy=False)`, `square(n, ...)` | integer x·y and x² (no reduction) on conditionally inverted additions | base n²+4n−2 and (n²+7n−16)/2; n = 256, 3 Karatsuba levels: 37 826 / 22 145 (published construction `legacy=True`: 37 880 / 22 332) | squaring with Karatsuba is −33.2 % ANDs against Häner et al. (arXiv:2609.05625, 33 151), at the cost of qubits (3 000 vs 1 275 at L = 0) and garbage; the conditionally inverted additions are their idea. The base multiplier is not better than theirs |
 | `fold.reduce_special(p, method='auto')` | reduction of a 2n-bit product modulo p = 2^n − c, NIST P-256 (Solinas), Mersenne P-521 | 2^255−19: 1 304, secp256k1: 2 175, P-256: 2 744 | not a record: special-prime arithmetic is already in arXiv:2606.02235 and 2609.05625. The fair comparison is the whole modular multiplication, ≈ −11 % only for special primes |
 | `lookup.narrow_lookup(table, c, w)`, `lookup.lookup_add`, `lookup.qroam1_lookup` | table lookup z ⊕= T[a] with a bilinear address split; QROAM s = 1; measurement-based unlookup | 6→32: 40 AND (2^c−c−1 = 57) | the narrow lookup inside lookup-add in the Gidney–Ekerå framework is due to Luongo et al. 2025 (arXiv:2502.17325); QROAM is Berry et al. 2019 / Low et al. 2018. The saving is per lookup, not end-to-end |
 | `gf2m_multiply(m)`, `gf2m_square`, `gf2m_inverse`, `gf2m_divide` | GF(2^m) for the NIST binary fields: CRT bilinear multiplier, in-place squaring (CNOT only), Itoh–Tsujii inversion / division | m = 163…571: 908 / 1 343 / 1 669 / 2 501 / 3 569 AND per product | same model as Kim et al. 2022 and Garn–Kan; smaller bilinear complexities are published (arXiv:1303.7082: 906 / 1 340 / 1 668 / 2 495 / 3 566). Measurement-based erasure of product registers: Khattar et al. 2025 (arXiv:2510.10967) |
@@ -287,7 +287,7 @@ from qoptct.crypto import fold, lookup
 import random
 
 kaliski_inverse(13).counts()['AND']                    # 157 = 12·4² − 8·4 − 3 (legacy=True: 196)
-multiply(256, karatsuba_levels=3).counts()['AND']      # 37880 (+ garbage, uncomputed after use)
+multiply(256, karatsuba_levels=3).counts()['AND']      # 37826 (+ garbage, uncomputed after use; legacy=True: 37880)
 fold.reduce_special(fold.P25519).n_and                 # 1304
 table = [random.getrandbits(32) for _ in range(64)]
 lookup.narrow_lookup(table, 6, 32).n_and               # 40 for most random tables (sometimes 41)
