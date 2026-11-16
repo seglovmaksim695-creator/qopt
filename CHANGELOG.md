@@ -18,13 +18,38 @@
 * **`results/crypto/`**: circuits of cryptographic building blocks with their references, each one proved by
   `qoptct kprove` (only PROVED entries are kept; see `results/crypto/index.json` and the README section).
 * `qoptct.verify.branchsim.run_branch_scaled`: branch simulation that returns the state with its scale as log2.
-* `qoptct.crypto.mulsq` (`from qoptct.crypto import multiply, square`): generators of out-of-place integer
-  multiplication (x, y, 0) -> (x, y, xy) and squaring (x, 0) -> (x, x²) on conditionally inverted additions in the
-  logical-AND model: base n²+4n and (n²+7n−6)/2 AND, optional Karatsuba levels with garbage (n = 256, L = 3:
-  37 880 and 22 332 AND), Bennett version `clean=True`, OpenQASM 3 output, bit-sliced checker, independent
-  schoolbook reference `.qc` and `prove()` via `qoptct.verify`.
-<!-- 0.5.0: generator modules (Kaliski inversion, multiplication/squaring, narrow lookup, fold reduction, GF(2^m)) and
-     the physical-cost estimator are merged here from their branches. -->
+* **`qoptct.crypto`** — circuit generators for cryptographic arithmetic on logical ANDs (pure functions, OpenQASM 3
+  output, bit-sliced checkers, exact proofs of small instances in the tests; one shared `CheckError`):
+  * `kaliski_inverse(p, n=None, reduction='generic'|'special', clean=False)` — Kaliski modular inversion: 12n²+n ANDs
+    forward for any odd prime (Litinski 2023, arXiv:2306.08585: 26n²+2n in the same model); the count was checked for
+    every n tried (up to 256), not proved for all n. Special-prime reduction (P-256: 667 273, secp256k1: 659 810 ANDs);
+    clean compute-copy-uncompute mode; exact proof of the emitted circuit at n ≤ 7 in the tests.
+  * `multiply` / `square` (`qoptct.crypto.mulsq`): out-of-place integer multiplication (x, y, 0) -> (x, y, xy) and
+    squaring (x, 0) -> (x, x²) on conditionally inverted additions (the idea is Häner et al., arXiv:2609.05625):
+    base n²+4n and (n²+7n−6)/2 ANDs, optional Karatsuba levels with garbage (n = 256, L = 3: 37 880 and 22 332 ANDs;
+    the squaring is about −33 % ANDs against Häner et al. at the cost of qubits), Bennett version `clean=True`,
+    independent schoolbook reference `.qc`, `prove(engine='prove'|'kprove')`.
+  * `qoptct.crypto.fold`: `reduce_special` (fold for p = 2^n − c, Solinas P-256, Mersenne P-521; 2^255−19: 1 304,
+    secp256k1: 2 175, P-256: 2 744 ANDs), `add_const` / `controlled_add_const`; small engine `qoptct.crypto.andcirc`.
+    Not a record: special-prime arithmetic is published (arXiv:2606.02235, 2609.05625); the fair comparison is the
+    whole modular multiplication (≈ −11 %, special primes only).
+  * `qoptct.crypto.lookup`: narrow table lookups z ⊕= T[a] — bilinear address split (6→32: 40 ANDs vs 2^c−c−1 = 57),
+    QROAM s = 1, Davio fallback, measurement-based unlookup, lookup pairs and lookup-add (acc += T[a], 79 ANDs at
+    6→32); exact build-time checks, independent `.qc` references. Prior art: Luongo et al. 2025 (arXiv:2502.17325)
+    for the narrow lookup in the Gidney–Ekerå framework; QROAM: Berry et al. 2019 / Low et al. 2018.
+  * GF(2^m): `gf2m_multiply` (CRT bilinear multiplier, 908 / 1 343 / 1 669 / 2 501 / 3 569 ANDs for the NIST m =
+    163…571; same model as Kim et al. 2022 and Garn–Kan, smaller bilinear complexities are published in
+    arXiv:1303.7082), `gf2m_square` (in place, CNOT only), `gf2m_inverse` / `gf2m_divide` (Itoh–Tsujii with
+    measurement-based erasure of product registers, (L+1)·M ANDs; prior art for that erasure: Khattar et al. 2025,
+    arXiv:2510.10967), exact counts without building, gate-level stream check (`gf2m_itoh_gate_check`). New package
+    data `qoptct/contrib/gf2m/data/crt_ranks.json`.
+* **`qoptct.estimate`** and the subcommand **`qoptct estimate --toffoli T --qubits Q [--depth D] [--shots S]
+  [--model all|ge2019|gidney2025|litinski2023] [--json]`** / **`qoptct estimate --check`**: physical cost of a
+  surface-code run (physical qubits, runtime, expected runtime with retries, failure probability, code distance,
+  megaqubit-days) from logical counts. Formula models calibrated on Gidney–Ekerå 2019 (arXiv:1905.09749), Gidney 2025
+  (arXiv:2505.15917) and Litinski 2023 (arXiv:2306.08585); not a layout tool or a compiler, and each model assumes
+  the architecture of its paper. `--check` reproduces the published figures (see the module docstring for the
+  tolerances and the assumptions that are ours).
 
 ### Fixed
 * kprove (research version, before inclusion): after a BDD garbage collection the cached input and outcome literals
@@ -37,7 +62,6 @@
   `confirm_branch` silently reported no deviation (a real counterexample on a long circuit could not be confirmed).
   The state is now rescaled after every measurement and the scale kept as log2; `confirm_branch` compares the
   factors in log form. Test: a 120-measurement chain.
-
 
 ## 0.4.0 — 2026-11-15
 
