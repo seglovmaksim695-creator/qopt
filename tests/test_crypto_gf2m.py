@@ -175,6 +175,9 @@ def test_multiply_163_exact(mode):
     assert ok, why
     ok, why = G.verify_multiplier(C, exact=True)          # all inputs (degree <= 2 argument)
     assert ok, why
+    from qoptct.contrib.gf2m.qcirc import parse_qasm
+    nq, ops = parse_qasm(C.qasm())                         # the emitted text is exactly the checked circuit
+    assert nq == C.nq and ops == C.ops
     D = mutate(C, "swap_cx", 11)
     assert not G.verify_multiplier(D, lanes=16)[0]
 
