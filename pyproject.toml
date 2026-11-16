@@ -41,6 +41,7 @@ DOI = "https://doi.org/10.5281/zenodo.24182059"
 [project.optional-dependencies]
 net = ["torch>=2.4"]
 qcec = ["mqt.qcec>=3.0"]
+hw = ["qiskit-ibm-runtime>=0.40", "qiskit-aer>=0.17"]
 test = ["pytest>=8", "qiskit-qasm3-import>=0.5"]
 
 [project.scripts]
