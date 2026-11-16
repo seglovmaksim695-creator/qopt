@@ -18,13 +18,15 @@ def _fmt(row):
         row['circuit'], row['variant'], row['qubits'], row['n2q'], row['n2q_cond'], row['n_meas'], row['depth'],
         row['duration_us'], row['f_est'])
     if 'pZ' in row:
-        s += '  sim: Z=%.3f+-%.3f X=%.3f+-%.3f' % (row['pZ'], row['pZ_err'], row['pX'], row['pX_err'])
+        s += '  sim: Z=%.3f+-%.3f' % (row['pZ'], row['pZ_err'])
+    if 'pX' in row:
+        s += ' X=%.3f+-%.3f' % (row['pX'], row['pX_err'])
     return s
 
 
 def _model(a):
     from . import choose, hw
-    return hw.HwModel.from_backend(choose.resolve_backend(a.backend), ff_latency=a.ff_ns * 1e-9)
+    return hw.HwModel.from_backend(choose.resolve_backend(a.backend), ff_latency=a.ff_ns * 1e-9, fast_meas=a.fast_meas)
 
 
 def cmd_choose(a):
@@ -103,6 +105,7 @@ def main(argv=None):
     def common(s):
         s.add_argument('--backend', default='FakeBoston'); s.add_argument('--ff-ns', type=float, default=600.0)
         s.add_argument('--seeds', type=int, default=4)
+        s.add_argument('--fast-meas', action='store_true', help='model mid-circuit measurements with measure_2')
     s = sub.add_parser('choose'); s.add_argument('family'); s.add_argument('size', type=int); common(s)
     s.add_argument('--sim', action='store_true'); s.add_argument('--shots', type=int, default=300)
     s.add_argument('--inputs', type=int, default=8); s.add_argument('--qasm'); s.set_defaults(fn=cmd_choose)

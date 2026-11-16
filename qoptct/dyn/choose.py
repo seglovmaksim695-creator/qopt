@@ -81,7 +81,7 @@ def choose(family, size, model, seeds=(0, 1, 2, 3), simulate=False, shots=300, n
                    depth=comp['tqc'].depth(), **st)
         if simulate and len(S.qubits) <= sim_max_qubits:
             r = sim.run_tests(B, comp, model, shots=shots, n_inputs=n_inputs)
-            row.update({k: r[k] for k in ('pZ', 'pZ_err', 'pX', 'pX_err', 'method') if k in r})
+            row.update({k: r[k] for k in ('pZ', 'pZ_err', 'pX', 'pX_err', 'methodZ', 'methodX') if k in r})
         rows.append(row); comps[label] = comp; blocks[label] = B
     best = max(rows, key=lambda r: r['f_est'])['variant']
     return dict(best=best, rows=rows, comps=comps, blocks=blocks, model=model.summary())

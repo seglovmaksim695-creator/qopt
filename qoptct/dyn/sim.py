@@ -117,7 +117,8 @@ def _ih(qc, q):
     qc.append(HGate(label='ideal'), [q])
 
 
-def run_tests(block, comp, model, shots=400, n_inputs=8, seed=0, method=None, tests=('Z', 'X'), x_repeat=None):
+def run_tests(block, comp, model, shots=400, n_inputs=8, seed=0, method=None, tests=('Z', 'X'), x_repeat=None,
+              x_max_qubits=20):
     """comp: result of hw.compile_circuit for a lowering of `block`. -> dict(pZ, pZ_err, pX, pX_err, n_active,
     method, per_input)."""
     from qiskit import QuantumCircuit
@@ -125,8 +126,6 @@ def run_tests(block, comp, model, shots=400, n_inputs=8, seed=0, method=None, te
     S = comp['sched']; tqc = comp['tqc']
     body, cm, nm = noisy_body(S, model, tqc.num_clbits)
     n = len(cm); init = comp['layout_init']; fin = comp['layout_final']
-    if method is None:
-        method = 'statevector' if n <= 16 else 'matrix_product_state'
     for w in block.data:                                    # a data wire the compiler never touched
         for L in (init, fin):
             if L[w] not in cm:
@@ -147,7 +146,7 @@ def run_tests(block, comp, model, shots=400, n_inputs=8, seed=0, method=None, te
                         _ix(qc, cm[fin[w]])
             qc.save_amplitudes_squared([0], label='p')
             circs.append(qc); kinds.append('Z')
-    if 'X' in tests:
+    if 'X' in tests and n <= x_max_qubits:                  # the superposition test is exponential for MPS beyond that
         ref_inv = _ideal(reference(block.C).inverse())
         pos = []
         for w in range(block.C.N):
@@ -176,15 +175,23 @@ def run_tests(block, comp, model, shots=400, n_inputs=8, seed=0, method=None, te
             qc.save_amplitudes_squared([0], label='p')
             for _ in range(x_repeat or max(1, n_inputs // 4)):   # more trajectories for the single X input
                 circs.append(qc.copy()); kinds.append('X')
-    sim = AerSimulator(method=method, noise_model=nm, max_parallel_threads=1,
-                       max_parallel_experiments=1, max_parallel_shots=1)
-    res = sim.run(circs, shots=shots, seed_simulator=seed).result()
-    out = dict(n_active=n, method=method, shots=shots)
+    out = dict(n_active=n, shots=shots)
     for kind in ('Z', 'X'):
-        ps = [float(res.data(i)['p'][0]) for i, k in enumerate(kinds) if k == kind]
-        if ps:
-            m = float(np.mean(ps))
-            # trajectory noise: p per trajectory is in [0, 1]; a conservative standard error
-            out['p' + kind] = m; out['p%s_err' % kind] = float(np.sqrt(max(m * (1 - m), 1e-9) / (shots * len(ps))))
-            out['n' + kind] = len(ps)
+        cs = [c for c, k in zip(circs, kinds) if k == kind]
+        if not cs:
+            continue
+        # Z (basis states stay nearly product states): MPS is exact and fast beyond 12 qubits.
+        # X (entangled): state vector, with fewer trajectories for large circuits.
+        if kind == 'Z':
+            meth = method or ('statevector' if n <= 12 else 'matrix_product_state'); sh = shots
+        else:
+            meth = method or 'statevector'; sh = shots if n <= 14 else max(40, shots >> (n - 14))
+        sim = AerSimulator(method=meth, noise_model=nm, max_parallel_threads=1, max_parallel_experiments=1,
+                           max_parallel_shots=1)
+        res = sim.run(cs, shots=sh, seed_simulator=seed).result()
+        ps = [float(res.data(i)['p'][0]) for i in range(len(cs))]
+        m = float(np.mean(ps))
+        # trajectory noise: p per trajectory is in [0, 1]; a conservative standard error
+        out['p' + kind] = m; out['p%s_err' % kind] = float(np.sqrt(max(m * (1 - m), 1e-9) / (sh * len(ps))))
+        out['n' + kind] = len(ps); out['method' + kind] = meth
     return out

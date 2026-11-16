@@ -6,6 +6,8 @@ length; per gate error and length. Two numbers are not in the calibration and ar
     ff_latency   classical feed-forward latency between the end of a measurement and the first conditional gate
                  (IBM: about 600 ns);
     p_branch     probability that the conditional body runs (1/2 for an X-basis erasure).
+fast_meas=True takes the length and error of mid-circuit measurements from the `measure_2` entry of the target
+(IBM's shorter MidCircuitMeasure), when the backend has one.
 
 schedule(tqc, model, live) puts a transpiled circuit (if_else allowed) on a time line: every instruction starts when
 its qubits (and, for a conditional, its classical bit + ff_latency) are ready; the gaps are explicit idle periods.
@@ -32,7 +34,7 @@ class HwModel:
         s.ff_latency = ff_latency; s.p_branch = p_branch; s.twoq = twoq; s.backend = backend
 
     @classmethod
-    def from_backend(cls, backend, ff_latency=600e-9, p_branch=0.5):
+    def from_backend(cls, backend, ff_latency=600e-9, p_branch=0.5, fast_meas=False):
         t = backend.target; nq = backend.num_qubits
         med = lambda xs, d: (sorted(xs)[len(xs) // 2] if xs else d)
         qp = t.qubit_properties or [None] * nq
@@ -46,6 +48,13 @@ class HwModel:
                     ro[qa[0]] = min(float(p.error), 0.5)
                 if p.duration is not None:
                     md[qa[0]] = float(p.duration)
+        if fast_meas and 'measure_2' in t.operation_names:  # IBM's faster mid-circuit measurement (MidCircuitMeasure)
+            for qa, p in t['measure_2'].items():
+                if p is not None:
+                    if p.error is not None:
+                        ro[qa[0]] = min(float(p.error), 0.5)
+                    if p.duration is not None:
+                        md[qa[0]] = float(p.duration)
         g1 = {}
         for nm in ('sx', 'x', 'rz', 'id'):
             if nm in t.operation_names:
@@ -59,7 +68,7 @@ class HwModel:
             e = min(float(p.error), 0.9375) if (p and p.error is not None) else 5e-3
             d = float(p.duration) if (p and p.duration is not None) else 7e-8
             g2[tuple(qa)] = (e, d)
-        return cls(getattr(backend, 'name', 'backend'), nq, t1, t2, ro, md, g1, g2, ff_latency, p_branch, twoq,
+        return cls(getattr(backend, 'name', 'backend') + ('+measure_2' if fast_meas else ''), nq, t1, t2, ro, md, g1, g2, ff_latency, p_branch, twoq,
                    backend)
 
     def scaled(s, ro=1.0, meas_dur=1.0, coh=1.0, g2=1.0, g1=1.0, ff_latency=None, name=None):
