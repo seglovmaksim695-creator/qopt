@@ -114,6 +114,11 @@ class _Circ:
         self.ops = []
         self.nw = 0
         self.free = []
+        self.marks = []
+
+    def mark(self, label, **info):
+        """untrusted segment hint for qoptct.verify.compose: (ops so far, label, info). Does not change the ops."""
+        self.marks.append((len(self.ops), label, info))
 
     def reg(self, n):
         out = list(range(self.nw, self.nw + n))
@@ -459,12 +464,15 @@ def _red_special(C, V, p, Vbound):
         for i, w in enumerate(A):
             if (K >> i) & 1:
                 C.x(w)
+        C.mark('sp_const', A=list(A), K=K)
         _add_gen(C, [_W(w) for w in Lw], A)
+        C.mark('sp_addL')
         for s, e in sorted(terms, key=lambda t: -t[0]):     # positive terms first
             if e >= len(A):
                 continue
             Y = [_W(w) for w in Hw][:len(A) - e]
             (_add_gen if s > 0 else _sub_gen)(C, Y, A[e:])
+            C.mark('sp_term', s=s, e=e)
         gar += cur
         cur, B = A, Bn
     A = cur
@@ -475,6 +483,7 @@ def _red_special(C, V, p, Vbound):
         if f is not None:
             _add_k(C, (1 << len(A)) - K, A, ctrl=f)
             gar.append(f)
+            C.mark('sp_q', f=f, K=K)
         j -= 1
     return A[:m], gar + A[m:]
 
@@ -493,6 +502,7 @@ def _kaliski_forward(C, V, p, reduction, legacy=False):
         if (p >> i) & 1:
             C.x(U[i])
     C.x(S[0])
+    C.mark('init', U=list(U), R=list(R), S=list(S))
     A, B, Rr, Ss = U, list(V), R, S
     wprev = None
     garbage = []
@@ -502,6 +512,7 @@ def _kaliski_forward(C, V, p, reduction, legacy=False):
             # (nothing is subtracted or added): the step is the two relabellings u /= 2 and s *= 2 only
             A = A[1:] + A[:1]
             Ss = [C.alloc()] + Ss
+            C.mark('last', k=k, snew=Ss[0])
             if len(Ss) > 2 * n:
                 C.release(Ss.pop())
             continue
@@ -517,6 +528,7 @@ def _kaliski_forward(C, V, p, reduction, legacy=False):
             _cswap(C, d, A[1:wa], B[1:wa])                                 # P3: bit 0 of (u, v) needs no swap
             _cswap(C, d, Rr[:wr], Ss[:wr])
             C.x(d)
+            C.mark('swap', k=k)
             w = None
         else:
             w = _compare_and_swap(C, k, n, A, B, Rr, Ss, wa, wr, wprev, new)
@@ -537,6 +549,7 @@ def _kaliski_forward(C, V, p, reduction, legacy=False):
             _sub_gen(C, [_W(t_) for t_ in m], A[:wa])
         for i in reversed(range(1, wb)):
             C.erase(m[i], e, B[i])
+        C.mark('sub', k=k, e=e)
         # (e) u /= 2: relabelling
         A = A[1:] + A[:1]
         # (f) r += e*s  (r, s <= 2^k -> the sum is < 2^(k+2)); P1: r_0 * s_0 = 0, no carry out of bit 0
@@ -549,6 +562,7 @@ def _kaliski_forward(C, V, p, reduction, legacy=False):
             C.erase(m[i], e, Ss[i])
         # (g) s *= 2: relabelling, the register grows to 2n bits (r_ext < 2^(2n): the top bit is provably 0)
         Ss = [C.alloc()] + Ss
+        C.mark('add', k=k, snew=Ss[0])
         if len(Ss) > 2 * n:
             C.release(Ss.pop())
         garbage += [e] if w is None else [w, e]
@@ -562,12 +576,14 @@ def _kaliski_forward(C, V, p, reduction, legacy=False):
         return A, B, out, Ss, garbage + g2
     # reduction of r_ext (< 2^(2n)) mod p by long division
     R = Rr + [C.alloc() for _ in range(2 * n + 1 - len(Rr))]
+    C.mark('red_init', ext=list(R[len(Rr):]))
     for j in range(n, -1, -1):
         win = R[j:j + n + 1]
         _add_k(C, (1 << (n + 1)) - p, win)
         f = C.alloc(); C.cx(win[n], f); garbage.append(f)
         _add_k(C, p, win[:n], ctrl=f)
         C.cx(f, win[n])
+        C.mark('div', j=j, f=f)
     for w_ in R[n:]:
         C.release(w_)
     return A, B, R[:n], Ss, garbage
@@ -603,6 +619,7 @@ def _compare_and_swap(C, k, n, A, B, Rr, Ss, wa, wr, wprev, new):
         C.cx(t, U0); C.cx(t, V0)
         C.cx(A[0], B[0]); C.erase(t, wprev, B[0]); C.cx(A[0], B[0])
     C.cx(A[0], U0); C.cx(B[0], V0); C.release(V0); C.release(U0)
+    C.mark('cmp', k=k, w=w)
     # (b) merged conditional swap on d = w_{k-1} ^ w_k
     if wprev is None:
         d = w
@@ -613,6 +630,7 @@ def _compare_and_swap(C, k, n, A, B, Rr, Ss, wa, wr, wprev, new):
     _cswap(C, d, Rr[:wr], Ss[:wr])
     if wprev is not None:
         C.cx(wprev, d); C.cx(w, d); C.release(d)
+    C.mark('swap', k=k)
     return w
 
 
@@ -625,26 +643,47 @@ def _g(name, qs):
     return '%s %s;' % (name, ', '.join('q[%d]' % x for x in qs))
 
 
-def _to_qasm(ops, nw):
-    L = []
+def _qasm_lines(ops):
     nb = 0
     for o in ops:
         k = o[0]
         if k == 'x':
-            L.append(_g('x', (o[1],)))
+            yield _g('x', (o[1],))
         elif k == 'cx':
-            L.append(_g('cx', o[1:]))
+            yield _g('cx', o[1:])
         elif k == 'and':
-            L += [_g(a, b) for a, b in _AND_G(*o[1:])]
+            for a, b in _AND_G(*o[1:]):
+                yield _g(a, b)
         elif k == 'erase':
             t, a, b, lin = o[1:]
-            L.append(_g('h', (t,)))
-            L.append('c[%d] = measure q[%d];' % (nb, t))
+            yield _g('h', (t,))
+            yield 'c[%d] = measure q[%d];' % (nb, t)
             body = [_g('cz', (a, b))] + [_g('z', (w,)) for w in lin] + [_g('x', (t,))]
-            L.append('if (c[%d]) {%s}' % (nb, ' '.join(body)))
+            yield 'if (c[%d]) {%s}' % (nb, ' '.join(body))
             nb += 1
-    return ('OPENQASM 3;\ninclude "stdgates.inc";\nqubit[%d] q;\nbit[%d] c;\n' % (nw, max(nb, 1))
-            + '\n'.join(L) + '\n')
+
+
+def _qasm_header(ops, nw):
+    nb = sum(1 for o in ops if o[0] == 'erase')
+    return 'OPENQASM 3;\ninclude "stdgates.inc";\nqubit[%d] q;\nbit[%d] c;\n' % (nw, max(nb, 1))
+
+
+def _to_qasm(ops, nw):
+    return _qasm_header(ops, nw) + '\n'.join(_qasm_lines(ops)) + '\n'
+
+
+def _write_qasm(ops, nw, path, chunk=200000):
+    """the text of _to_qasm written to `path` in chunks (large circuits: no text of hundreds of MB in memory)."""
+    with open(path, 'w') as f:
+        f.write(_qasm_header(ops, nw))
+        buf = []
+        for ln in _qasm_lines(ops):
+            buf.append(ln)
+            if len(buf) >= chunk:
+                f.write('\n'.join(buf) + '\n')
+                buf = []
+        if buf:
+            f.write('\n'.join(buf) + '\n')
 
 
 def _to_qc(ops, nw, inputs):
@@ -720,6 +759,17 @@ class KaliskiCircuit:
                 f.write(txt)
         return txt
 
+    def write_qasm(self, path):
+        """the same text as to_qasm(), streamed to `path` (for large n: the text is never held in memory)."""
+        _write_qasm(self.ops, self.nqubits, path)
+
+    def hints(self):
+        """untrusted certificate for qoptct.verify.compose (segment boundaries and wire roles of the forward part)."""
+        return dict(p=self.p, n=self.n, reduction=self.reduction, clean=self.clean, nqubits=self.nqubits,
+                    x=list(self.x), out=list(self.out), regs={k: list(v) for k, v in self.regs.items()},
+                    fwd_out=list(getattr(self, 'fwd_out', self.out)), fwd_len=getattr(self, 'fwd_len', len(self.ops)),
+                    marks=[[pos, label, info] for pos, label, info in getattr(self, 'marks', [])])
+
     def to_qc(self, path=None):
         """Toffoli-level .qc of the same operations (inputs: the x wires). A reference for the measurement-based
         implementation, not an independent specification of the function."""
@@ -766,5 +816,7 @@ def kaliski_inverse(p, n=None, reduction='generic', clean=False, legacy=False):
             C.cx(a, b)
         C.ops += _inverse_ops(C.ops[s:e])
         K = KaliskiCircuit(p, n, reduction, True, C.ops, C.nw, X, O, {}, [])
+        K.fwd_out, K.fwd_len = list(out), e
     K.legacy = bool(legacy)
+    K.marks = list(C.marks)
     return K
