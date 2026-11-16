@@ -12,9 +12,11 @@ Modules:
              NIST/Solinas P-256, Mersenne P-521); addition of a classical constant and its controlled version
     andcirc  small engine used by fold: wires, AND / measurement-based erase, Gidney adders (register or constant
              addend), exact bit-sliced simulation, OpenQASM 3 output (qoptct dialect)
+    lookup   lookup.narrow_lookup(table, c, w, ...) -- narrow table lookups z ^= T[a] (bilinear split, QROAM s=1,
+             ANF/Davio), measurement-based unlookup, lookup-accumulate acc += T[a]
 
-The names exported here come from kaliski and mulsq; fold is used as a module
-(``from qoptct.crypto import fold``).
+The names exported here come from kaliski and mulsq; fold and lookup are used as modules
+(``from qoptct.crypto import fold, lookup``), since lookup has its own ``reference_qc``.
 
     from qoptct.crypto import multiply, square
     c = multiply(256, karatsuba_levels=3)      # (x, y, 0) -> (x, y, x*y) + garbage
