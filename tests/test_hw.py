@@ -124,7 +124,8 @@ def test_router_variants_valid_and_equivalent(hh, variant):
         rng = random.Random(seed)
         l0 = R.greedy_layout(R.interaction(nodes, 6), hh, rng)
         assert len(set(l0)) == 6
-        ops, lf, cost, nsw = R.route(nodes, dag, hh, l0, R.Params(seed=seed, **kw))
+        ops, lf, cost, nsw, wlog = R.route(nodes, dag, hh, l0, R.Params(seed=seed, **kw))
+        assert wlog > 0
         assert sum(1 for o in ops if o[0] == "g") == len(nodes) and sum(1 for o in ops if o[0] == "s") == nsw
         circ = R.to_circuit(nodes, ops, hh.n)
         for ins in circ.data:
@@ -137,7 +138,7 @@ def test_router_variants_valid_and_equivalent(hh, variant):
         assert valid_for(native, hh)
         assert verify_compiled(qc, native, l0, fin) is True
         # the router's own estimate is an upper bound of what consolidation finds (noise off -> plain count)
-        ops2, _, cost2, _ = R.route(nodes, dag, hh, l0, R.Params(seed=seed, noise=False, **kw))
+        ops2, _, cost2, _, _ = R.route(nodes, dag, hh, l0, R.Params(seed=seed, noise=False, **kw))
         n2 = analyze(finish(R.to_circuit(nodes, ops2, hh.n), hh), hh)["twoq"]
         assert n2 <= round(cost2)
 
@@ -151,7 +152,7 @@ def test_floating_block_absorbs_over_commuting_gates():
     nodes = R.to_nodes(qc)
     dag = R.build_dag(nodes, 3)
     c_strict = R.route(nodes, dag, dev, [0, 1, 2], R.Params(noise=False, floating=False))[2]
-    ops, lf, c_float, nsw = R.route(nodes, dag, dev, [0, 1, 2], R.Params(noise=False, floating=True))
+    ops, lf, c_float, nsw, _ = R.route(nodes, dag, dev, [0, 1, 2], R.Params(noise=False, floating=True))
     assert nsw == 1 and c_float == 7 and c_strict in (7, 9) and c_float <= c_strict
     circ = finish(R.to_circuit(nodes, ops, 3), dev)
     assert analyze(circ, dev)["twoq"] <= 7

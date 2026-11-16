@@ -163,9 +163,10 @@ class Params:
 
 
 def route(nodes, dag, dev, l2p, par, want_ops=True):
-    """Route ``nodes`` from the initial mapping ``l2p`` (logical -> physical).  Returns (ops, final l2p, cost, swaps)
-    where ops = [("g", node index, physical qubits) | ("s", p, q)] in an order in which the members of every merged
-    block are adjacent, and cost = calibration-weighted number of native two-qubit gates of all blocks."""
+    """Route ``nodes`` from the initial mapping ``l2p`` (logical -> physical).  Returns (ops, final l2p, ncz, swaps,
+    wlog) where ops = [("g", node index, physical qubits) | ("s", p, q)] in an order in which the members of every
+    merged block are adjacent, ncz = number of native two-qubit gates of all blocks (KAK counts) and wlog = the same
+    sum weighted by -log(1 - error) of each coupler (minus the log-fidelity of the two-qubit gates)."""
     npred0, succs = dag
     npred = list(npred0)
     rng = random.Random(par.seed)
@@ -177,6 +178,8 @@ def route(nodes, dag, dev, l2p, par, want_ops=True):
     ops = []
     live = {}
     wcost = 0.0
+    ncz = 0
+    wtrue = 0.0
     med = dev.elog_med
     nbr = dev.nbr
     floating = par.floating
@@ -187,7 +190,7 @@ def route(nodes, dag, dev, l2p, par, want_ops=True):
 
     def emit(ws, mat, axes, rec):
         """Append one op (gate or SWAP) on physical wires ``ws``; maintain the live blocks."""
-        nonlocal wcost, stamp
+        nonlocal wcost, stamp, ncz, wtrue
         stamp += 1
         two = len(ws) == 2
         join = None
@@ -236,6 +239,8 @@ def route(nodes, dag, dev, l2p, par, want_ops=True):
             join.u = m @ join.u
             c = kak_cost(join.u)
             wcost += (c - join.cost) * ew((join.lo, join.hi))
+            ncz += c - join.cost
+            wtrue += (c - join.cost) * dev.elog[(join.lo, join.hi)]
             join.cost = c
         else:
             join.u = (np.kron(_I2, mat) if ws[0] == join.lo else np.kron(mat, _I2)) @ join.u
@@ -442,7 +447,7 @@ def route(nodes, dag, dev, l2p, par, want_ops=True):
         stall += 1
         decay[p] = decay.get(p, 0.0) + par.decay
         decay[q] = decay.get(q, 0.0) + par.decay
-    return [tuple(r[1:]) for r in ops if r[0]], l2p, wcost, nswap
+    return [tuple(r[1:]) for r in ops if r[0]], l2p, ncz, nswap, wtrue
 
 
 def to_circuit(nodes, ops, n_phys):

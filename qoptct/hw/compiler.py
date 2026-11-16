@@ -279,7 +279,7 @@ VARIANTS = {
 LAYOUTS = (("greedy", 2), ("greedy", 1), ("line", 0), ("chain", 0), ("chain", 1))
 
 
-def route_hw(qc, dev, layouts=(), seconds=20.0, trials=None, seed=0, top=4, name="hw", variants=None, noise=True,
+def route_hw(qc, dev, layouts=(), seconds=20.0, trials=None, seed=0, top=6, name="hw", variants=None, noise=True,
              do_relocate=True, objective="fid", log=None):
     """Candidates of the qoptct router for the logical circuit ``qc`` (any gates; flattened here).
 
@@ -332,7 +332,7 @@ def route_hw(qc, dev, layouts=(), seconds=20.0, trials=None, seed=0, top=4, name
         v, kind, ref = arm[0], arm[1], arm[2]
         commute, kw = VARIANTS[v]
         nodes, dag, rnodes, rdag = nodeset(commute)
-        par = R.Params(noise=noise, seed=seed * 100003 + n_tr, w_ext=rng.choice((0.25, 0.5, 0.5, 1.0)),
+        par = R.Params(noise=noise and rng.random() < 0.4, seed=seed * 100003 + n_tr, w_ext=rng.choice((0.25, 0.5, 0.5, 1.0)),
                        ext=rng.choice((20, 20, 40)), near=rng.choice((0.0, 0.0, 1.0)) if kw["tau"] is None else 0.0, **kw)
         if kind == "greedy":
             l0 = R.greedy_layout(adj, dev, rng)
@@ -349,10 +349,10 @@ def route_hw(qc, dev, layouts=(), seconds=20.0, trials=None, seed=0, top=4, name
         try:
             l = list(l0)
             for _ in range(ref):
-                _, lf, _, _ = R.route(nodes, dag, dev, l, par, want_ops=False)
-                _, l, _, _ = R.route(rnodes, rdag, dev, lf, par, want_ops=False)
-            ops, lf, cost, nsw = R.route(nodes, dag, dev, l, par)
-            routed.append((cost, n_tr, ops, l, lf, par, nsw, commute, f"{v}/{kind}{ref}"))
+                lf = R.route(nodes, dag, dev, l, par, want_ops=False)[1]
+                l = R.route(rnodes, rdag, dev, lf, par, want_ops=False)[1]
+            ops, lf, cost, nsw, wlog = R.route(nodes, dag, dev, l, par)
+            routed.append((cost, n_tr, ops, l, lf, par, nsw, commute, f"{v}/{kind}{ref}/n{int(par.noise)}", wlog))
             if arm[3] is None or cost < arm[3]:
                 arm[3] = cost
         except RuntimeError as e:
@@ -365,12 +365,20 @@ def route_hw(qc, dev, layouts=(), seconds=20.0, trials=None, seed=0, top=4, name
             break
         if n_tr >= 20000:
             break
-    routed.sort(key=lambda r: (r[0], r[1]))
     t_route = time.time() - t_start
+    # finish the best trials by gate count and the best by calibration-weighted cost (different trials in general)
+    by_n = sorted(routed, key=lambda r: (r[0], r[9], r[1]))
+    by_w = sorted(routed, key=lambda r: (r[9], r[0], r[1]))
+    order = []
+    for k in range(len(routed)):
+        order.append(by_n[k]); order.append(by_w[k])
     cands = []
     seen = set()
-    for cost, _, ops, l, lf, par, nsw, commute, arm_name in routed:
-        sig = (round(cost, 6), nsw, tuple(l))
+    for cost, tid, ops, l, lf, par, nsw, commute, arm_name, wlog in order:
+        if tid in seen:
+            continue
+        sig = (cost, nsw, tuple(l))
+        seen.add(tid)
         if sig in seen:
             continue
         seen.add(sig)
@@ -379,7 +387,7 @@ def route_hw(qc, dev, layouts=(), seconds=20.0, trials=None, seed=0, top=4, name
         if do_relocate:
             circ, init, fin = relocate(circ, init, fin, dev)
         cands.append(Cand(name, circ, init, fin, analyze(circ, dev, fin), 0.0,
-                          note=f"{arm_name}; swaps={nsw}; est={cost:.1f}; trials={n_tr}; route_s={t_route:.0f}"))
+                          note=f"{arm_name}; swaps={nsw}; est={cost}; trials={n_tr}; route_s={t_route:.0f}"))
         if len(cands) >= top:
             break
     total = time.time() - t_start
@@ -412,7 +420,7 @@ def compile_hw(qc, backend, seeds=(0,), seconds=20.0, trials=None, objective="fi
         t0 = time.time()
         try:
             l2, info = qopt_logical(qc, qopt_seconds)
-            if info.get("replaced"):
+            if info.get("replaced") and info.get("cx_after", 0) < info.get("cx_before", 0):
                 alts.append(l2)
                 say(f"qopt logical: CX {info.get('cx_before')} -> {info.get('cx_after')}, T {info.get('t_before')} -> "
                     f"{info.get('t_after')} ({time.time() - t0:.1f} s)")
