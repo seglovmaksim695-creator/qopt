@@ -35,8 +35,11 @@ ENGINE "exact2": qoptct.verify.exact2 (circuits of cx / x / logical AND / AND er
 Tried first by "auto" when the reference is bilinear.
 
 MEMORY: kprove(max_mb=...) / --max-mb / $KPROVE_MAX_MB (default 900): budget of ONE call, counted as the growth of the
-resident set over its value at the start of the call (MemGuard).  Over budget: UNKNOWN, with the share of circuit ops
-processed.
+resident set over its value at the start of the call (MemGuard).  The budget applies to the BDD engine (and to the
+counterexample search of this process): over budget the BDD engine stops with UNKNOWN, with the share of circuit ops
+processed.  With engine="auto" the run then goes on: the "anf" engine runs in a separate worker process
+(qoptct.verify.prove) WITHOUT this memory limit, and then the sampled check, so a small budget usually ends in SAMPLED
+(exit code 2), not UNKNOWN.  To keep the whole call inside the budget use engine="bdd" (--engine bdd).
 
 ENGINE "anf": qoptct.verify.prove (ANF path sum + trace miter; good for GF(2^m), degree-2 outputs).
 ENGINE "sample": qoptct.verify.arith (a8 simulator, random inputs and branches; clean model compares all reference wires).
@@ -1124,7 +1127,10 @@ def kprove(qasm, qc=None, clean=False, budget_sec=600, engine='auto', pre=None, 
     and <= 4000 qubits; then sample.
     max_mb: memory budget of this call in MB, counted as the GROWTH of the process RSS over its value at the start of
     the call (default: $KPROVE_MAX_MB, else 900).  Over budget, the BDD engine stops with UNKNOWN (never a wrong
-    verdict) and the counterexample search stops early.  result['mem'] = dict(max_mb, base_mb, peak_growth_mb)."""
+    verdict) and the counterexample search stops early.  The limit does not apply to the "anf" engine (a separate
+    worker process): with engine='auto' a BDD UNKNOWN is followed by anf (unlimited memory) and by sampling, so the
+    result is then usually SAMPLED; engine='bdd' keeps the call within max_mb.
+    result['mem'] = dict(max_mb, base_mb, peak_growth_mb)."""
     mem = MemGuard(max_mb)
     kw['mem'] = mem
     qasm = os.path.abspath(qasm)
@@ -1207,7 +1213,10 @@ def main(argv=None):
     ap = argparse.ArgumentParser(prog='qoptct kprove', description=__doc__.split('\n')[0],
                                  epilog='Exit code: 0 PROVED, 1 REFUTED, 2 SAMPLED/UNKNOWN (not proved), '
                                         '3 usage or input error. Memory guard: --max-mb, else $KPROVE_MAX_MB, else '
-                                        '900 (MB of RSS growth during the proof).')
+                                        '900 (MB of RSS growth during the proof). The guard limits the BDD engine; '
+                                        'with --engine auto the anf engine (separate process, not limited) and '
+                                        'sampling follow, so the result may be SAMPLED. Use --engine bdd to stay '
+                                        'within the budget.')
     ap.add_argument('qasm')
     ap.add_argument('qc')
     ap.add_argument('--clean', action='store_true')
@@ -1215,7 +1224,8 @@ def main(argv=None):
     ap.add_argument('--engine', default='auto', choices=['auto', 'bdd', 'anf', 'sample', 'exact2'])
     ap.add_argument('--pre', default=None, help="input promise, e.g. 'lt:a:0xFFFF,lt:b:0xFFFF' (register a<N, b<N)")
     ap.add_argument('--max-mb', type=float, default=None,
-                    help='memory budget in MB (growth of the RSS during the proof; default $KPROVE_MAX_MB or 900)')
+                    help='memory budget in MB of the BDD engine (growth of the RSS during the proof; default '
+                         '$KPROVE_MAX_MB or 900); not applied to the anf engine')
     ap.add_argument('--json', action='store_true')
     ap.add_argument('-v', action='store_true')
     try:

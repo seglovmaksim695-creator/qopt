@@ -15,8 +15,10 @@
   Memory budget per call: `kprove(..., max_mb=MB)` / `--max-mb MB` / `$KPROVE_MAX_MB` (default 900), counted as the
   growth of the resident set during the call (plus a floor of 200 bytes per live BDD node, for memory reused from
   earlier work), not as the peak of the whole process — a test process that already used 1 GB is not charged for it;
-  over budget the run stops with UNKNOWN and reports the share of circuit ops processed (`result['mem']` gives the
-  budget, the base and the peak growth).
+  over budget the BDD engine stops with UNKNOWN and reports the share of circuit ops processed (`result['mem']` gives
+  the budget, the base and the peak growth). The budget limits the BDD engine only: with the default `--engine auto`
+  the ANF engine (a separate worker process, not limited by `max_mb`) and the sampled check run next, so a small
+  budget usually ends in SAMPLED (exit code 2); `--engine bdd` keeps the whole call within the budget.
   Engine **`exact2`** (`qoptct.verify.exact2.prove_degree2`, tried first by `auto` for a bilinear reference):
   circuits of cx / x / logical AND / AND erasure whose wires stay of GF(2) degree ≤ 2 are decided exactly by the
   1 + n + n(n−1)/2 inputs of Hamming weight ≤ 2 (a polynomial of degree ≤ 2 vanishing there vanishes everywhere; the
@@ -33,7 +35,8 @@
 * **`qoptct.crypto`** — circuit generators for cryptographic arithmetic on logical ANDs (pure functions, OpenQASM 3
   output, bit-sliced checkers, exact proofs of small instances in the tests; one shared `CheckError`):
   * `kaliski_inverse(p, n=None, reduction='generic'|'special', clean=False, legacy=False)` — Kaliski modular
-    inversion: 12n²−8n−3 ANDs forward for any odd prime, 11n−2 qubits (Litinski 2023, arXiv:2306.08585: 26n²+2n in
+    inversion: 12n²−8n−3 ANDs forward for any odd prime, 11n−2 qubits with the generic reduction (the special
+    reduction needs more: secp256k1 3 107, P-256 5 513 qubits) (Litinski 2023, arXiv:2306.08585: 26n²+2n in
     the same model); the count was checked for every n tried (up to 256), not proved for all n. Special-prime
     reduction (P-256: 664 966, secp256k1: 657 503 ANDs); clean compute-copy-uncompute mode; exact proof of the emitted
     circuit at n ≤ 7 in the tests (qoptct.verify.prove and kprove). The default omits 9n+3 AND/erase pairs whose
@@ -45,7 +48,9 @@
     squaring (x, 0) -> (x, x²) on conditionally inverted additions (the idea is Häner et al., arXiv:2609.05625):
     base n²+4n−2 and (n²+7n−16)/2 ANDs (identically-0 ANDs removed; `legacy=True` keeps the published n²+4n,
     (n²+7n−6)/2 circuits), optional Karatsuba levels with garbage (n = 256, L = 3: 37 826 and 22 145 ANDs, legacy
-    37 880 and 22 332; the squaring is about −33 % ANDs against Häner et al. at the cost of qubits), Bennett
+    37 880 and 22 332; the squaring at L = 3 is −33 % ANDs against the base formula ½n(n+3)−1 = 33 151 of Häner et
+    al., Sec. VII.A, at the cost of qubits and garbage; their App. A has a one-level Karatsuba squaring, Algorithm
+    7, with no published count — our L = 1 is 27 049, −18.4 % against 33 151), Bennett
     version `clean=True`, independent schoolbook reference `.qc`, `prove(engine='prove'|'kprove')`.
   * `qoptct.crypto.fold`: `reduce_special` (fold for p = 2^n − c, Solinas P-256, Mersenne P-521; 2^255−19: 1 304,
     secp256k1: 2 175, P-256: 2 744 ANDs), `add_const` / `controlled_add_const`; small engine `qoptct.crypto.andcirc`.
@@ -64,7 +69,9 @@
     classically controlled CZ per (bilinear term, output bit): 0.67 M CZ instead of 5.4 M for the m = 163 division;
     `erase='monomials'` keeps the per-bit quadratic forms): its phases are checked exactly for any m by
     `qoptct.contrib.gf2m.qcirc.ErasurePhaseChecker` (symbolic phase polynomial of the emitted gates; all 668 520
-    conditional phases of the m = 163 division), and whole circuits are proved by kprove against an independent
+    conditional phases of the m = 163 division; exact for the phase part only, given its classical preconditions —
+    the register content and the |0> wires — which are checked by simulation on sample inputs, 16 at m = 163, so
+    the whole m = 163 circuit is not proved), and whole circuits are proved by kprove against an independent
     truth-table reference for inversion m ≤ 14 and division m ≤ 12 (the tests go to 12 and 10; a removed
     conditional phase is REFUTED);
     the argument for every m is in the docstring of `qoptct.contrib.gf2m.itoh`.

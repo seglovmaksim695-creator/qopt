@@ -11,7 +11,9 @@ x^(2j) mod f.  Two variants:
     graph (strongly connected parts synthesised separately).  For even m: linsynth.to_perm.
 Every returned network is checked exactly (images of all unit vectors; the map is linear).
 Numbers of this implementation (NIST moduli, seeds=3, tests/test_crypto_gf2m.py): exact wire order
-798 / 825 / 1386 / 1418 / 3239 CX (m = 163/233/283/409/571; lab k5 files: 875 / 825 / 1534 / 1418 / 3239);
+798 / 825 / 1386 / 1418 / 3239 CX (m = 163/233/283/409/571; lab k5 files: 875 / 825 / 1534 / 1418 / 3239 --
+these older files are the proved squarers kept in results/crypto; the greedy candidate needs numpy, without it
+the exact-order counts are 888 / 825 / 1653 / 1418 / 3827);
 with relabelling 408 / 153 / 713 / 204 / 1538 CX (the x5 audit re-ran k5/square2 alone: 408/153/713/247/1538;
 for m = 409 the linsynth.to_perm candidate, 204, is shorter than the structured one).
 """

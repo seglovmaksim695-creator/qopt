@@ -31,9 +31,16 @@ Numbers (NIST moduli; reproduced by tests/test_crypto_gf2m.py by counting, witho
     division ANDs (exact count / (L+1)*M): 163: 9080, 233: 14773, 283: 20028 (IT chain, L = 9/10/11);
     409: 27503 / 27511, 571: 46397 (shortest star chain, L = 10/12; IT chain: 30004 / 30012, 49966) -- a few
     terms of the doubling steps x^(2^k) * x are linear and need no AND.
-    squaring CX (exact wire order, seeds=3): 798 / 825 / 1386 / 1418 / 3239; with free wire relabelling
-    408 / 153 / 713 / 204 / 1538 (the earlier lab claims 404 / 709 were not reproduced; the published bound
-    used for comparison in the lab, n^2 - n from LUP decomposition, is an upper bound, not a built circuit).
+    squaring CX (exact wire order, seeds=3): 798 / 825 / 1386 / 1418 / 3239 -- these are the circuits that
+    gf2m_square(m) builds now; with free wire relabelling 408 / 153 / 713 / 204 / 1538 (the earlier lab claims
+    404 / 709 were not reproduced; the published bound used for comparison in the lab, n^2 - n from LUP
+    decomposition, is an upper bound, not a built circuit).
+    The proved squarers in results/crypto (gf2m_square_m163_875cx ... m571_3239cx, CX 875 / 825 / 1534 / 1418 /
+    3239) are the earlier lab k5 files, added to the registry before this generator; they are kept unchanged
+    because they are proved and their files are referenced by name.  For m = 163 and 283 the generator gives fewer
+    CX (798 vs 875, 1386 vs 1534); for m = 233, 409, 571 both coincide.  The exact-order synthesis uses a greedy
+    candidate that needs numpy (a required dependency); without numpy that candidate is skipped and the counts
+    are 888 / 825 / 1653 / 1418 / 3827 (still correct circuits, checked exactly).
     multiplier CX (cx + cz of the text, seed 0): 163 strict 75823, clean 68371.
 """
 import random

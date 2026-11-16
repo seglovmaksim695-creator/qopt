@@ -71,16 +71,22 @@ Honest comparison with published circuits
 -----------------------------------------
 * Haner et al., arXiv:2609.05625 (2026), Sec. VII.A: integer squaring with conditionally inverted adders in
   n(n+3)/2 - 1 AND (n = 256: 33 151).  The idea of conditionally inverted additions for squaring is theirs.  Our
-  base square (n^2+7n-16)/2 is 2n - 7 AND WORSE (33 656).  With Karatsuba (L=3) 22 145 AND, i.e. -33 %, but only at
-  the price of many more qubits (garbage registers) and of an inverse pass to clear them; compare at equal qubits
-  before claiming an improvement.  The same paper notes about n^2 for multiplication with this technique; our base
-  multiplier n^2 + 4n - 2 is not better than that; Karatsuba L=3 gives 0.58 n^2 (37 826), again for qubits.
+  base square (n^2+7n-16)/2 is 2n - 7 AND WORSE (33 656).  With Karatsuba (L=3) 22 145 AND, i.e. -33 % against
+  THIS BASE FORMULA of Sec. VII.A, but only at the price of many more qubits (garbage registers) and of an inverse
+  pass to clear them (clean=True: 44 277 AND in total); compare at equal qubits before claiming an improvement.
+  The same paper also has a one-level Karatsuba squaring for secp256k1 (App. A, Algorithm 7, "one-level Karatsuba
+  square-subtract", three exact squares of the halves); no Toffoli count is published for it.  Our one-level
+  version (L=1) has 27 049 AND, -18.4 % against 33 151; it is not compared with Algorithm 7 itself.
+  The same paper notes about n^2 for multiplication with this technique; our base multiplier
+  n^2 + 4n - 2 is not better than that; Karatsuba L=3 gives 0.58 n^2 (37 826), again for qubits.
 * Litinski 2023, arXiv:2306.08585, Fig. 8: MODULAR Montgomery multiplication 2.25 n^2 + 9 n (n = 256: 149 760),
   any modulus, garbage-free.  The circuits here compute the plain integer product (2n bits, no reduction mod p);
   the reduction must be added before comparing like with like.
 * Karatsuba on quantum circuits itself is known (e.g. Gidney 2019, arXiv:1904.07356, garbage-free with a larger
-  constant); what is new here is only the combination with conditionally inverted rows and garbage left for the
-  enclosing uncomputation.
+  constant), and Karatsuba squaring with conditionally inverted rows is in Haner et al. (one level, App. A).
+  What this module adds is the multi-level recursion (L >= 2) with garbage left for the enclosing
+  uncomputation, the exact AND/qubit counts for every L, and an implementation checked at the gate level
+  (bit-sliced simulation, exact proofs of small instances).
 
 Wire layout of a MulSqCircuit (indices of the OpenQASM qubit array q[]):
     multiply:  x = 0..n-1, y = n..2n-1, out = 2n..4n-1, then garbage, then ancillas

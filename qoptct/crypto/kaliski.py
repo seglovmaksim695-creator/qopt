@@ -15,7 +15,9 @@ removes with a final negation) appears on the wires C.out.
     are consumed; the registers end as u = 1, v = 0 (C.regs['u'], C.regs['v']), the rest (C.garbage: the
     per-step bits w_k, e_k, the quotient bits of the final reduction, the s register) is garbage that a surrounding
     compute-copy-uncompute removes. ANDs: exactly 12n^2 - 8n - 3 for reduction='generic'; qubits 11n - 2
-    (legacy=True: 12n^2 + n ANDs, 11n qubits).
+    for reduction='generic' (legacy=True: 12n^2 + n ANDs, 11n qubits).  reduction='special' changes both
+    counts: at n = 256 secp256k1 657 503 ANDs / 3 107 qubits, P-256 664 966 ANDs / 5 513 qubits (generic: 784 381
+    ANDs / 2 814 qubits); counted by C.counts().
   * clean=True: forward, copy of K to n fresh wires, inverse of the forward part:  |x>|0> -> |x>|K>, every other
     wire returns to |0>. ANDs = forward ANDs + forward erases (the inverse turns erases into ANDs and vice versa);
     qubits 12n - 2 (legacy: 12n). The wires 0..n-1 are x, n..2n-1 the result.
@@ -29,12 +31,23 @@ COST MODEL. Toffoli count = number of logical ANDs (Gidney 2018, arXiv:1709.0664
 CONSTRUCTION (2n Kaliski steps on (u, v, r, s), u = p, v = x, r = 0, s = 1):
   1. the step's swap condition is merged with the next step's (the registers are kept in the frame of w_{k-1}, one
      conditional swap per step on d = w_{k-1} xor w_k; the last swap is a relabelling since w_{2n} = 1 on [1, p));
-  2. widths are truncated by provable bounds: u*v < 2^{2n-k} before step k, so u, v fit in 2n-1-k bits; r, s <= 2^k;
+  2. widths are truncated by provable bounds: before step k (while v >= 1) u, v < 2^{2n-1-k}, so u, v fit in
+     2n-1-k bits (and in n bits always); r, s <= 2^k.  Proof: every step halves exactly one of the two registers
+     (u/2, v/2, (u-v)/2 <= u/2 or (v-u)/2 <= v/2), and a subtraction never increases the operated register.  Let
+     h_u, h_v be the number of halvings of u and of v in steps 0..k-1, so h_u + h_v = k.  Since u = p < 2^n and
+     v = x < 2^n at the start, u < 2^{n-h_u} and v < 2^{n-h_v}.  While v >= 1 both registers are >= 1 (u >= 1
+     always), hence n - h_u >= 1 and n - h_v >= 1, i.e. h_u, h_v <= n-1.  Therefore
+     u < 2^{n-h_u} = 2^{n-k+h_v} <= 2^{2n-1-k} and likewise v < 2^{n-k+h_u} <= 2^{2n-1-k}.  (Once v = 0 the
+     state is u = 1, v = 0, which fits any width >= 1.)  The single product u*v < 2^{2n-k} alone would not suffice
+     (for v = 1 it only gives u < 2^{2n-k});
   3. the doubling of s is a relabelling (s grows to 2n bits); the reduction mod p is done once at the end
      (reduction='generic': long division, n+1 trial subtractions; reduction='special': O(n) folding for primes with
      a short signed-binary 2^m mod p such as pseudo-Mersenne primes, P-256, secp256k1);
-  4. (new here) when e = 1 the step has just swapped so that u >= v, hence bitlen(v) <= floor((2n-k)/2): the high
-     partial products e*v_i of "u -= e*v" are identically 0 and are omitted (-0.5 n^2 ANDs).
+  4. (new here) when e = 1 the step has just swapped so that u >= v (both odd), hence bitlen(v) <= floor((2n-k)/2):
+     the high partial products e*v_i of "u -= e*v" are identically 0 and are omitted (-0.5 n^2 ANDs).  Proof, with
+     h_u + h_v = k as in item 2 (counted per register, the swap only renames them): b = bitlen(v) satisfies
+     b <= n - h_v because v < 2^{n-h_v}, and b <= n - h_u because v <= u < 2^{n-h_u}; adding, 2b <= 2n - k, so
+     b <= floor((2n-k)/2).  (From v^2 <= u*v < 2^{2n-k} alone one would only get ceil((2n-k)/2) for odd 2n-k.)
   5. (default, legacy=False) AND/erase pairs whose product is identically constant on [1, p) are not emitted.
      They were found automatically (bit-sliced run over all x in [1, p) for every prime with n = 3..8, every AND
      whose product is constant); only the classes below are removed, each with a proof for every odd prime p and
@@ -59,7 +72,7 @@ CONSTRUCTION (2n Kaliski steps on (u, v, r, s), u = p, v = x, r = 0, s = 1):
         have a constant product, w_{k-1}(u_0 ^ v_0) and the comparison carry do not but only feed w).
      Total -(9n + 3) ANDs. Found but NOT removed (no proof for all p, or p-dependent; O(1) or a few per n): the
      long-division bits j = 0, 1 (r_ext = 0 mod 4 would allow it, 2 ANDs), single partial products and carries at
-     specific steps near k = n, 2n - 4 (bounds sharper than u*v < 2^(2n-k)), the high borrows of u -= e*v at the
+     specific steps near k = n, 2n - 4 (bounds sharper than those of item 2), the high borrows of u -= e*v at the
      truncation boundary, and the p-dependent constants of the special reduction and of the constant additions.
      legacy=True keeps the old circuit (12n^2 + n, byte-identical OpenQASM to the lab circuits k4).
 The construction and the count were developed in the qopt lab (agent k4, on an earlier version a9 with 12.5n^2+0.5n)
@@ -492,7 +505,8 @@ def _kaliski_forward(C, V, p, reduction, legacy=False):
             if len(Ss) > 2 * n:
                 C.release(Ss.pop())
             continue
-        # widths: u*v < 2^(2n-k) => u, v < 2^(2n-1-k) (v >= 1, otherwise u = 1);  max(r, s) <= 2^k
+        # widths (docstring, item 2): u < 2^(n-h_u), v < 2^(n-h_v), h_u + h_v = k, h_u, h_v <= n-1 while v >= 1
+        # => u, v < 2^(2n-1-k) (v = 0 only with u = 1);  max(r, s) <= 2^k
         wa = min(n, max(1, 2 * n - 1 - k))
         wr = min(n, k + 1)
         wr2 = min(n, k + 2)
@@ -508,7 +522,8 @@ def _kaliski_forward(C, V, p, reduction, legacy=False):
             w = _compare_and_swap(C, k, n, A, B, Rr, Ss, wa, wr, wprev, new)
         # (c) e = u'_0
         e = C.alloc(); C.cx(A[0], e)
-        # (d) u -= e*v; bit 0 of e*v is e. If e = 1 the step swapped to u >= v, so bitlen(v) <= (2n-k)//2:
+        # (d) u -= e*v; bit 0 of e*v is e. If e = 1 the step swapped to u >= v, so bitlen(v) <= (2n-k)//2
+        #     (docstring, item 4: bitlen(v) <= n - h_v and <= n - h_u, summed 2*bitlen(v) <= 2n - k):
         #     the higher partial products are 0 and omitted
         wb = min(wa, max(1, (2 * n - k) // 2))
         m = [e] + [C.AND(e, B[i]) for i in range(1, wb)]

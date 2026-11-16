@@ -128,12 +128,16 @@ The prover runs in its own process (`python -m qoptct.verify._worker`), so it ca
 `if __name__ == "__main__":` guard and from the Qiskit plugin. `QoptPass(cxpass=True)` also applies the CX post-pass
 to every optimized run (a post-pass result is used only if it is proven equal again).
 
-`qoptct kprove CIRCUIT.qasm REF.qc [--clean] [--budget S] [--json]` (new in 0.5) is an exact prover for large
+`qoptct kprove CIRCUIT.qasm REF.qc [--clean] [--budget S] [--engine auto|bdd|anf|sample|exact2] [--max-mb MB] [--json]`
+(new in 0.5) is an exact prover for large
 circuits with a *classical* reference (arithmetic, table lookups, S-boxes): the same sum-over-paths with symbolic
 measurement outcomes, but wire functions are BDDs, so adders of thousands of bits are proved in seconds. Exit codes
-as above (2 also for SAMPLED, a sampled check that is not a proof). It stops with UNKNOWN when the memory it uses
-during the call (growth of the resident set) exceeds `--max-mb` / `kprove(max_mb=...)` / `$KPROVE_MAX_MB` (default
-900 MB); multiplications and reductions modulo general primes usually do. For circuits whose wires stay of GF(2)
+as above (2 also for SAMPLED, a sampled check that is not a proof). The BDD engine stops with UNKNOWN when the memory
+it uses during the call (growth of the resident set) exceeds `--max-mb` / `kprove(max_mb=...)` / `$KPROVE_MAX_MB`
+(default 900 MB); multiplications and reductions modulo general primes usually do. In the default mode
+`--engine auto` the run then continues with the ANF engine, which runs in a separate process and is not limited by
+this budget, and with a sampled check, so the result is then usually SAMPLED (exit code 2). `--engine bdd` uses only
+the BDD engine and keeps the whole call within the budget. For circuits whose wires stay of GF(2)
 degree ≤ 2 (GF(2^m) multipliers) the engine `exact2` decides exactly at any size from the inputs of Hamming weight
 ≤ 2; `auto` tries it first when the reference is bilinear.
 From Python: `from qoptct.verify.kprove import kprove; kprove("c.qasm", "ref.qc", clean=True, max_mb=1500)`.
@@ -261,7 +265,7 @@ independently of the circuit. Model: logical AND = 4 T + 3 CX, uncomputation by 
 | `lookup_c6_w32_40and`, `lookup_c6_w21_33and` | table lookup z ⊕= T[a], 6-bit address, 32 / 21-bit word | 40 / 33 | 1477 / 991 | 47 / 40 | 2^c − c − 1 = 57 AND for the standard lookup. The idea of a narrow lookup combined with an adder in the Gidney–Ekerå framework is due to Luongo et al. 2025 (arXiv:2502.17325); with lookups shared between several primes (Sharma–Lau 2026) this construction gives no gain |
 | `gf2m_mult_m8_clean` | c = a·b in GF(2^8) | 26 (104) | 347 | 25 | small analogue of the m = 163…571 multipliers |
 | `gf2m_mult_m163_908and` | c ⊕= a·b in GF(2^163) (NIST polynomial), any c | 908 (3632) | 75 823 | 490 | same model as Kim et al. 2022 (992 Toffoli) and Garn–Kan (999); smaller bilinear complexity published (906, arXiv:1303.7082). Proved by the `exact2` engine (degree ≤ 2) |
-| `gf2m_square_m{163,233,283,409,571}_*` | in place a ← a² mod f (NIST polynomials) | 0 | 875 / 825 / 1534 / 1418 / 3239 | m | compared with the generic in-place bound m² − m used in the literature, not with a published circuit |
+| `gf2m_square_m{163,233,283,409,571}_*` | in place a ← a² mod f (NIST polynomials) | 0 | 875 / 825 / 1534 / 1418 / 3239 | m | compared with the generic in-place bound m² − m used in the literature, not with a published circuit. These are the earlier lab files kept as proved; the current generator `gf2m_square(m)` builds 798 / 825 / 1386 / 1418 / 3239 CX (fewer for m = 163 and 283) |
 
 What is **not** claimed: no record for whole attacks (RSA, ECDLP); this release contains proved building blocks, not
 end-to-end attack circuits. The measurement-based erasure of GF(2^m) products (used for division circuits) was
@@ -275,8 +279,8 @@ ANDs (= Toffoli, 4 T each).
 
 | function | what | count | compared with |
 |---|---|---|---|
-| `kaliski_inverse(p, n=None, reduction='generic'\|'special', clean=False, legacy=False)` | Kaliski modular inversion, result −x⁻¹·2^{2n} mod p | 12n²−8n−3 AND forward (generic; `legacy=True`: 12n²+n); P-256 special 664 966, secp256k1 657 503 | Litinski 2023 (arXiv:2306.08585): 26n²+2n in the same model. The count was checked by counting for every n tried up to n = 256; it is not proved for all n. Circuits proved exactly for n ≤ 7 |
-| `multiply(n, karatsuba_levels=0, legacy=False)`, `square(n, ...)` | integer x·y and x² (no reduction) on conditionally inverted additions | base n²+4n−2 and (n²+7n−16)/2; n = 256, 3 Karatsuba levels: 37 826 / 22 145 (published construction `legacy=True`: 37 880 / 22 332) | squaring with Karatsuba is −33.2 % ANDs against Häner et al. (arXiv:2609.05625, 33 151), at the cost of qubits (3 000 vs 1 275 at L = 0) and garbage; the conditionally inverted additions are their idea. The base multiplier is not better than theirs |
+| `kaliski_inverse(p, n=None, reduction='generic'\|'special', clean=False, legacy=False)` | Kaliski modular inversion, result −x⁻¹·2^{2n} mod p | 12n²−8n−3 AND forward (generic; `legacy=True`: 12n²+n), 11n−2 qubits (generic); P-256 special 664 966 AND / 5 513 qubits, secp256k1 657 503 / 3 107 | Litinski 2023 (arXiv:2306.08585): 26n²+2n in the same model. The count was checked by counting for every n tried up to n = 256; it is not proved for all n. Circuits proved exactly for n ≤ 7 |
+| `multiply(n, karatsuba_levels=0, legacy=False)`, `square(n, ...)` | integer x·y and x² (no reduction) on conditionally inverted additions | base n²+4n−2 and (n²+7n−16)/2; n = 256, 3 Karatsuba levels: 37 826 / 22 145 (published construction `legacy=True`: 37 880 / 22 332) | squaring with 3 Karatsuba levels is −33.2 % ANDs against the base formula of Häner et al. (arXiv:2609.05625, Sec. VII.A: ½n(n+3)−1 = 33 151), at the cost of qubits (3 000 vs 1 275 at L = 0) and garbage (clearing it by the inverse pass: 44 277 ANDs in total). Häner et al. also give a one-level Karatsuba squaring (App. A, Algorithm 7) without a published count; our one level (L = 1, 27 049) is −18.4 % against 33 151. The conditionally inverted additions and the one-level Karatsuba squaring on them are their ideas; the multi-level recursion with garbage is ours. The base multiplier is not better than theirs |
 | `fold.reduce_special(p, method='auto')` | reduction of a 2n-bit product modulo p = 2^n − c, NIST P-256 (Solinas), Mersenne P-521 | 2^255−19: 1 304, secp256k1: 2 175, P-256: 2 744 | not a record: special-prime arithmetic is already in arXiv:2606.02235 and 2609.05625. The fair comparison is the whole modular multiplication, ≈ −11 % only for special primes |
 | `lookup.narrow_lookup(table, c, w)`, `lookup.lookup_add`, `lookup.qroam1_lookup` | table lookup z ⊕= T[a] with a bilinear address split; QROAM s = 1; measurement-based unlookup | 6→32: 40 AND (2^c−c−1 = 57) | the narrow lookup inside lookup-add in the Gidney–Ekerå framework is due to Luongo et al. 2025 (arXiv:2502.17325); QROAM is Berry et al. 2019 / Low et al. 2018. The saving is per lookup, not end-to-end |
 | `gf2m_multiply(m)`, `gf2m_square`, `gf2m_inverse`, `gf2m_divide` | GF(2^m) for the NIST binary fields: CRT bilinear multiplier, in-place squaring (CNOT only), Itoh–Tsujii inversion / division | m = 163…571: 908 / 1 343 / 1 669 / 2 501 / 3 569 AND per product | same model as Kim et al. 2022 and Garn–Kan; smaller bilinear complexities are published (arXiv:1303.7082: 906 / 1 340 / 1 668 / 2 495 / 3 566). Measurement-based erasure of product registers: Khattar et al. 2025 (arXiv:2510.10967) |
