@@ -437,7 +437,7 @@ class Cell:
 
 class Adder:
     __slots__ = ('cells', 'order', 'E', 'bits', 'pos', 'V', 'rng', 'signed', 'stage', 'virt', 'lhs_cache', 'kindtxt',
-                 'cands', 'deep', 'alt')
+                 'cands', 'deep', 'alt', 'vanish')
 
     def __init__(self, cells):
         self.cells = cells
@@ -447,6 +447,7 @@ class Adder:
         self.virt = None
         self.lhs_cache = None
         self.deep = False
+        self.vanish = ()
 
 
 class Engine:
@@ -1218,9 +1219,40 @@ class Engine:
         self.stats['facts'] += 1
         return True
 
+    def derive_vanish(self, J):
+        """word <= hi < 2^k - 1 (unsigned): for every 0 bit j of hi, (the bits where hi has a 1 above j) and bit j
+        cannot all be 1.  These vanishing monomials make polynomials in the bits of the word canonical."""
+        J.vanish = ()
+        lo, hi = J.rng
+        if J.virt is not None or J.signed or lo < 0 or hi <= 0:
+            return
+        bits = J.bits
+        n = hi.bit_length()
+        if n > len(bits) or hi == (1 << n) - 1:
+            return
+        atoms = []
+        for i in range(n):
+            w, S = bits[i]
+            S = self.apply_facts(S)
+            if w != 1 << i or len(S) != 1 or 0 in S:
+                return
+            atoms.append(next(iter(S)))
+        out = []
+        for j in range(n):
+            if not (hi >> j) & 1:
+                v = frozenset([atoms[j]] + [atoms[i] for i in range(j + 1, n) if (hi >> i) & 1])
+                x = self.mask
+                for a in v:
+                    x &= self.sim[a]
+                if x:
+                    raise Internal('a derived vanishing monomial fails on a simulated input')
+                out.append(v)
+        J.vanish = tuple(out)
+
     def derive_facts(self, J):
         if J.virt is not None:
             return False
+        self.derive_vanish(J)
         lo, hi = J.rng
         bits = J.bits
         ch = False
@@ -1466,7 +1498,12 @@ class Engine:
             for p in quad:
                 R.update(p)
             k = len(R)
-            if set(order[:k]) != R or len(quad) != k * (k - 1) // 2:
+            npairs = k * (k - 1) // 2
+            if J.vanish:
+                for v in J.vanish:
+                    if len(v) == 2 and v <= R:
+                        npairs -= 1
+            if set(order[:k]) != R or len(quad) != npairs:
                 return None
             (a0, b0), c0 = next(iter(quad.items()))
             den0 = 2 * lhs[a0] * lhs[b0]
@@ -1561,6 +1598,19 @@ class Engine:
                     if not monos:
                         continue
             lhs, rhs = self.adder_lhs(J)
+            if J.vanish:
+                keep = []
+                for m in monos:
+                    ms = set(m)
+                    for v in J.vanish:
+                        if v <= ms:
+                            del D[m]                # identically 0 on the range of the word
+                            break
+                    else:
+                        keep.append(m)
+                monos = keep
+                if not monos:
+                    continue
             if assume:
                 hit = [a for a in lhs if a in assume]
                 if hit:
