@@ -46,7 +46,10 @@ def kaliski_hints(p, reduction='generic', clean=False):
 
 
 def _expected(p, n, x):
-    return (-pow(x, -1, p) * pow(2, 2 * n, p)) % p
+    try:
+        return (-pow(x, -1, p) * pow(2, 2 * n, p)) % p
+    except ValueError:                                   # x not invertible mod p: outside the domain
+        return None
 
 
 def _sample_xs(p, count, seed=1):
