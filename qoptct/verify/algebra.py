@@ -637,7 +637,7 @@ class Engine:
             S = ONE
         else:
             S = self.read(c)
-            self.fresh.pop(c, None)
+            self.unfresh(c)
         D = self.read(t)
         self.opi += 1
         if not S:
@@ -677,6 +677,15 @@ class Engine:
         self.wev[t] = (D, S, self.opi)
         self.wires[t] = self.canon(new)
 
+    def unfresh(self, w):
+        """the wire w is read: an AND output that was not turned into AND xor C is a carry / data bit as it is."""
+        f = self.fresh.pop(w, None)
+        if f is not None:
+            self.activate(f)
+            S = self.wires[w]
+            if len(S) == 1 and f in S:
+                pass
+
     def finalize_pend(self):
         p = self.pend
         if p is None:
@@ -699,8 +708,8 @@ class Engine:
     def op_and(self, a, b, t):
         U = self.read(a)
         V = self.read(b)
-        self.fresh.pop(a, None)
-        self.fresh.pop(b, None)
+        self.unfresh(a)
+        self.unfresh(b)
         p = self.pend
         if p is not None:
             if p[0] in U and p[0] in V:
@@ -730,11 +739,11 @@ class Engine:
         self.fresh.pop(t, None)
         for c in corr:
             if c[0] == 'cz':
-                self.fresh.pop(c[1], None)
-                self.fresh.pop(c[2], None)
+                self.unfresh(c[1])
+                self.unfresh(c[2])
                 D = D ^ self.and_set(self.read(c[1]), self.read(c[2]))
             else:
-                self.fresh.pop(c[1], None)
+                self.unfresh(c[1])
                 D = D ^ self.read(c[1])
         self.opi += 1
         self.last_gate = self.opi
@@ -818,7 +827,8 @@ class Engine:
             if p is None:
                 p = False
                 U, V = self.adef[a]
-                if len(U) <= 2 and len(V) <= 2:
+                kd = self.kind
+                if len(U) <= 2 and len(V) <= 2 and not any(kd[b] in (KA, KK) for b in U | V):
                     try:
                         pu, pv = self.val(U), self.val(V)
                         if len(pu.d) <= 3 and len(pv.d) <= 3:
