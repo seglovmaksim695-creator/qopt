@@ -990,15 +990,27 @@ class Engine:
             if not ok:
                 st = 1
                 self.stats['stageB'] += 1
-                Vr = self.reduce(V)
-                iv = _meet(iv, self.bound_runs(Vr))
-                ok = fits(iv)
-                if not ok:
-                    Vd = self.drop_mod(Vr, m)
-                    if Vd is not None:
-                        iv2 = self.bound_runs(Vd)
-                        if fits(iv2):
-                            ok, V, iv, st = True, Vd, iv2, 3
+                box = [iv, None]
+
+                def hook(Q):
+                    box[0] = _meet(box[0], self.bound_runs(Q))
+                    if fits(box[0]):
+                        box[1] = (V, box[0], 1)
+                        return True
+                    Qd = self.drop_mod(Q, m)
+                    if Qd is not None:
+                        iv3 = self.bound_runs(Qd)
+                        if fits(iv3):
+                            box[1] = (Qd, iv3, 3)
+                            return True
+                    return False
+                Vr = self.reduce(V, hook=hook)
+                if box[1] is None:
+                    hook(Vr)
+                iv = box[0]
+                if box[1] is not None:
+                    ok = True
+                    V, iv, st = box[1]
                 if not ok:
                     for a2, b2, V2 in J.alt:        # other readings: only if plainly in range
                         iv2 = self.bound_runs(V2)
@@ -1304,8 +1316,13 @@ class Engine:
         iv = self.bound_runs(P)
         if stage >= 1:
             self.stats['stageB'] += 1
-            P2 = self.reduce(P, assume)
-            iv = _meet(iv, self.bound_runs(P2))
+            box = [iv]
+
+            def hook(Q):
+                box[0] = _meet(box[0], self.bound_runs(Q))
+                return False
+            P2 = self.reduce(P, assume, hook=hook)
+            iv = _meet(box[0], self.bound_runs(P2))
         if stage >= 2:
             r = self.tt_bound(P)
             if r is not None:
@@ -1449,7 +1466,7 @@ class Engine:
                     return None
         return R, A, B, kill, flip, extra
 
-    def reduce(self, P, assume=None):
+    def reduce(self, P, assume=None, _depth=0, fallback=False, hook=None):
         """rewrite P with the adder identities, newest adder first (exact; P keeps its value on every input)."""
         Q = self.pfacts(P).copy() if self.facts else P.copy()
         fv = self.fver
@@ -1469,6 +1486,7 @@ class Engine:
         for m in Q.d:
             reg(m)
         dl = self.deadline
+        nck = 0
         while heap:
             J = heapq.heappop(heap)[2]
             D = Q.d
@@ -1504,6 +1522,11 @@ class Engine:
             if pat is None:
                 continue
             R, A, B, kill, flip, extra = pat
+            if hook is not None and nck < 16 and len(lhs) - len(R) - (1 if J.virt is not None else 0) >= 2:
+                # a word is about to be split (high part := (word - low part) / 2^d): bound the polynomial as it is
+                nck += 1
+                if hook(Q):
+                    return Q
             S = rhs.copy()
             for a, w in lhs.items():
                 if a not in R:
@@ -1541,7 +1564,29 @@ class Engine:
             self.stats['reduce_steps'] += 1
             if dl is not None and time.time() > dl:
                 raise Unknown('time budget exceeded during rewriting')
-        return self.pfacts(Q) if self.facts else Q
+        Q = self.pfacts(Q) if self.facts else Q
+        if fallback and _depth < 4:
+            # bit-level fallback: a left-over lowest sum bit s = x xor y of a half adder whose carry x*y is a product
+            sub = {}
+            for v in Q.vars():
+                if v.__class__ is int and self.kind[v] == KS:
+                    cell = self.sig_cell[v]
+                    k = cell.cout
+                    if k is not None and not cell.C and self.kind[k] == KA and self.val_atom(k).d != {(k,): 1}:
+                        try:
+                            sub[v] = self.val(cell.X) + self.val(cell.Y) - self.val_atom(k) * 2
+                        except Unknown:
+                            pass
+            if sub:
+                out = Poly({}, Q.e)
+                for m, c in Q.d.items():
+                    t = Poly({tuple(v for v in m if v not in sub): c})
+                    for v in m:
+                        if v in sub:
+                            t = t * sub[v]
+                    out.iadd(Poly(t.d, Q.e))
+                return self.reduce(out, assume, _depth + 1, True)
+        return Q
 
     # ------------------------------------------------------------------ exhaustive evaluation over a small cut
     def children(self, a):
@@ -1661,6 +1706,9 @@ class Engine:
 
     def prove_eq(self, P):
         R = self.reduce(P)
+        if not R.d:
+            return True, ''
+        R = self.reduce(R, fallback=True)
         if not R.d:
             return True, ''
         for lane in range(min(self.L, 16)):
