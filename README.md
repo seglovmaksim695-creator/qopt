@@ -258,7 +258,6 @@ independently of the circuit. Model: logical AND = 4 T + 3 CX, uncomputation by 
 | `lookup_c6_w32_40and`, `lookup_c6_w21_33and` | table lookup z ⊕= T[a], 6-bit address, 32 / 21-bit word | 40 / 33 | 1477 / 991 | 47 / 40 | 2^c − c − 1 = 57 AND for the standard lookup. The idea of a narrow lookup combined with an adder in the Gidney–Ekerå framework is due to Luongo et al. 2025 (arXiv:2502.17325); with lookups shared between several primes (Sharma–Lau 2026) this construction gives no gain |
 | `gf2m_mult_m8_clean` | c = a·b in GF(2^8) | 26 (104) | 347 | 25 | small analogue of the m = 163…571 multipliers |
 | `gf2m_square_m{163,233,283,409,571}_*` | in place a ← a² mod f (NIST polynomials) | 0 | 875 / 825 / 1534 / 1418 / 3239 | m | compared with the generic in-place bound m² − m used in the literature, not with a published circuit |
-<!--GF163-->
 
 What is **not** claimed: no record for whole attacks (RSA, ECDLP); this release contains proved building blocks, not
 end-to-end attack circuits. The measurement-based erasure of GF(2^m) products (used for division circuits) was
