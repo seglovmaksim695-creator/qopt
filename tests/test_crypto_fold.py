@@ -274,26 +274,51 @@ def spec_fold(n, p):
     return spec
 
 
-SLOW = bool(os.environ.get('QOPT_SLOW'))
+# explicit memory budget of the slow kprove runs: growth of the RSS during ONE kprove call (kprove(max_mb=...)),
+# chosen so that test process + proof stay below 1.8 GB on the 2 GB lab machine
+SLOW_MAX_MB = 1400
 
 
-@pytest.mark.parametrize('n,c', [(6, 3), (8, 5)] + ([(11, 19), (14, 19), (16, 19)] if SLOW else []))
-def test_kprove_fold(n, c, tmp_path):
-    """n = 11..16 (QOPT_SLOW=1): 1-1.4 M BDD nodes, ~1 GB; kprove's own guard (KPROVE_MAX_MB, default 900) counts
-    the peak RSS of the whole test process."""
-    kprove = _kprove()
+def _kprove_fold(kprove, n, c, tmp_path, max_mb=None):
     p = (1 << n) - c
     R = F.reduce_special(p, n=n)
     path = tmp_path / 'red.qasm'; path.write_text(R.qasm())
     garb = range(2 * n, R.nref)
-    r = kprove(str(path), spec=spec_fold(n, p), n=R.nref, clean_wires=garb, free_wires=garb, budget_sec=300)
+    kw = {} if max_mb is None else dict(max_mb=max_mb)
+    r = kprove(str(path), spec=spec_fold(n, p), n=R.nref, clean_wires=garb, free_wires=garb, budget_sec=300, **kw)
+    return R, p, garb, r
+
+
+@pytest.mark.parametrize('n,c', [(6, 3), (8, 5)])
+def test_kprove_fold(n, c, tmp_path):
+    kprove = _kprove()
+    R, p, garb, r = _kprove_fold(kprove, n, c, tmp_path)
     assert r['status'] == 'PROVED', r.get('detail')
-    if n == 8 and SLOW:       # mutants: the counterexample search of kprove needs ~0.9 GB
-        rng = random.Random(4)
-        for kind, mtxt in _mutants(R.qasm(), rng):
-            mp = tmp_path / ('mut_%s.qasm' % kind); mp.write_text(mtxt)
-            rm = kprove(str(mp), spec=spec_fold(n, p), n=R.nref, clean_wires=garb, free_wires=garb, budget_sec=120)
-            assert rm['status'] != 'PROVED', kind
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize('n,c', [(11, 19), (14, 19), (16, 19)])
+def test_kprove_fold_big(n, c, tmp_path):
+    """1-1.4 M BDD nodes, ~0.5-1 GB of growth; explicit budget max_mb=SLOW_MAX_MB (growth during this call only)."""
+    kprove = _kprove()
+    R, p, garb, r = _kprove_fold(kprove, n, c, tmp_path, max_mb=SLOW_MAX_MB)
+    assert r['status'] == 'PROVED', (r.get('detail'), r.get('mem'))
+    assert r['mem']['max_mb'] == SLOW_MAX_MB and r['mem']['peak_growth_mb'] <= SLOW_MAX_MB
+
+
+@pytest.mark.slow
+def test_kprove_fold_mutants(tmp_path):
+    """n = 8 mutants: never PROVED (the counterexample search of kprove needs up to ~0.9 GB)."""
+    kprove = _kprove()
+    n, c = 8, 5
+    R, p, garb, r = _kprove_fold(kprove, n, c, tmp_path, max_mb=SLOW_MAX_MB)
+    assert r['status'] == 'PROVED', r.get('detail')
+    rng = random.Random(4)
+    for kind, mtxt in _mutants(R.qasm(), rng):
+        mp = tmp_path / ('mut_%s.qasm' % kind); mp.write_text(mtxt)
+        rm = kprove(str(mp), spec=spec_fold(n, p), n=R.nref, clean_wires=garb, free_wires=garb, budget_sec=120,
+                    max_mb=SLOW_MAX_MB)
+        assert rm['status'] != 'PROVED', kind
 
 
 @pytest.mark.parametrize('n', [16, 64])

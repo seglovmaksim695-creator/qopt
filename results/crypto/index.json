@@ -1,5 +1,5 @@
 {
- "description": "Proved circuits of cryptographic building blocks (qoptct 0.5). Each entry: <name>.qasm (OpenQASM 3), reference <name>.qc, record <name>.json. Verdict PROVED by qoptct kprove for all inputs and measurement outcomes (model: unitary / strict / clean as in the README). AND = T/4; CX counts cx and cz.",
+ "description": "Proved circuits of cryptographic building blocks (qoptct 0.5). Each entry: <name>.qasm (OpenQASM 3), reference <name>.qc, record <name>.json. Verdict PROVED by qoptct kprove (BDD / ANF engines; gf2m_mult_m163_908and by its exact2 engine for circuits of GF(2) degree <= 2) for all inputs and measurement outcomes (model: unitary / strict / clean as in the README). AND = T/4; CX counts cx and cz.",
  "circuits": [
   {
    "name": "aes_isbox_clean_339cx",
@@ -88,6 +88,17 @@
    "measurements": 32,
    "verdict": "PROVED",
    "method": "bdd"
+  },
+  {
+   "name": "gf2m_mult_m163_908and",
+   "model": "strict",
+   "AND": 908,
+   "T": 3632,
+   "CX": 75823,
+   "qubits": 490,
+   "measurements": 908,
+   "verdict": "PROVED",
+   "method": "exact2"
   },
   {
    "name": "gf2m_mult_m8_clean",

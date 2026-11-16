@@ -30,6 +30,14 @@ outcomes, phase and guards depend only on outcomes  =>  PROOF for all x and all 
 a witness (x, m) is read off the BDD; it is confirmed by the independent sparse simulator of qoptct.verify when possible.
 Variable order: inputs in order of first use, NEWEST VARIABLE ON TOP (ripple carries reuse the previous carry's BDD).
 
+ENGINE "exact2": qoptct.verify.exact2 (circuits of cx / x / logical AND / AND erasure whose wires stay of GF(2) degree
+<= 2, against a bilinear reference: all inputs of weight <= 2 decide everything; GF(2^163..571) multipliers in seconds).
+Tried first by "auto" when the reference is bilinear.
+
+MEMORY: kprove(max_mb=...) / --max-mb / $KPROVE_MAX_MB (default 900): budget of ONE call, counted as the growth of the
+resident set over its value at the start of the call (MemGuard).  Over budget: UNKNOWN, with the share of circuit ops
+processed.
+
 ENGINE "anf": qoptct.verify.prove (ANF path sum + trace miter; good for GF(2^m), degree-2 outputs).
 ENGINE "sample": qoptct.verify.arith (a8 simulator, random inputs and branches; clean model compares all reference wires).
 """
@@ -54,9 +62,97 @@ class Budget(Exception):
     pass
 
 
+# ============================================================================ memory guard
+DEFAULT_MAX_MB = 900
+NODE_BYTES = 200          # BDD storage per node (arrays + unique table; ~285 B/node incl. caches measured on GF(2^163))
+
+
+def current_rss_mb():
+    """Resident set size of this process NOW, in MB (10^6 bytes); None if the platform gives no way to read it.
+    psutil if installed, else /proc/self/statm (Linux), else mach task_info (macOS, ctypes)."""
+    try:
+        import psutil
+        return psutil.Process().memory_info().rss / 1e6
+    except Exception:
+        pass
+    try:
+        with open('/proc/self/statm') as fh:
+            return int(fh.read().split()[1]) * os.sysconf('SC_PAGE_SIZE') / 1e6
+    except Exception:
+        pass
+    if sys.platform == 'darwin':
+        try:
+            import ctypes
+            import ctypes.util
+
+            class _Info(ctypes.Structure):      # struct mach_task_basic_info
+                _fields_ = [('virtual_size', ctypes.c_uint64), ('resident_size', ctypes.c_uint64),
+                            ('resident_size_max', ctypes.c_uint64), ('user_time', ctypes.c_int32 * 2),
+                            ('system_time', ctypes.c_int32 * 2), ('policy', ctypes.c_int32),
+                            ('suspend_count', ctypes.c_int32)]
+            lib = ctypes.CDLL(ctypes.util.find_library('c'))
+            lib.mach_task_self.restype = ctypes.c_uint32
+            info = _Info()
+            cnt = ctypes.c_uint32(ctypes.sizeof(_Info) // 4)
+            if lib.task_info(lib.mach_task_self(), 20, ctypes.byref(info), ctypes.byref(cnt)) == 0:   # 20 = MACH_TASK_BASIC_INFO
+                return info.resident_size / 1e6
+        except Exception:
+            pass
+    return None
+
+
+def _peak_rss_mb():
+    import resource
+    peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    return (peak if sys.platform == 'darwin' else peak * 1024) / 1e6
+
+
+def resolve_max_mb(max_mb=None):
+    """explicit max_mb > $KPROVE_MAX_MB > DEFAULT_MAX_MB (900)."""
+    if max_mb is not None:
+        return float(max_mb)
+    return float(os.environ.get('KPROVE_MAX_MB', DEFAULT_MAX_MB))
+
+
+class MemGuard:
+    """Memory budget of ONE kprove call, counted as GROWTH of the resident set over its value when the call started
+    (so a test process that already used 1 GB in earlier tests is not charged for it).  Without a current-RSS reading
+    the growth of the peak RSS is used (never charges earlier peaks either).  Freed memory of earlier work can be
+    reused without any RSS growth, so the growth is taken as max(RSS growth, NODE_BYTES * live BDD nodes) once the
+    BDD engine has attached its node counter (nodes_fn)."""
+
+    def __init__(self, max_mb=None, base_mb=None):
+        self.max_mb = resolve_max_mb(max_mb)
+        self.nodes_fn = None
+        cur = current_rss_mb()
+        self.use_peak = cur is None
+        if base_mb is not None:
+            self.base = float(base_mb)
+        else:
+            self.base = _peak_rss_mb() if self.use_peak else cur
+        self.peak_growth = 0.0
+
+    def growth(self):
+        cur = _peak_rss_mb() if self.use_peak else current_rss_mb()
+        if cur is None:
+            cur = _peak_rss_mb()
+        g = cur - self.base
+        if self.nodes_fn is not None:
+            g = max(g, self.nodes_fn() * NODE_BYTES / 1e6)
+        self.peak_growth = max(self.peak_growth, g)
+        return g
+
+    def check(self):
+        g = self.growth()
+        if g > self.max_mb:
+            raise Budget('memory limit: RSS grew by %.0f MB since the start of kprove (base %.0f MB) > %d MB '
+                         '(max_mb / KPROVE_MAX_MB)' % (g, self.base, self.max_mb))
+        return g
+
+
 # ============================================================================ symbolic path sum on BDDs
 class PS:
-    def __init__(self, max_nodes=1_500_000, deadline=None):
+    def __init__(self, max_nodes=1_500_000, deadline=None, mem=None):
         self.B = BDD()
         self.kind = []           # per level: 'x' | 'y' | 'm'
         self.label = []
@@ -85,15 +181,13 @@ class PS:
         self.max_cache = int(os.environ.get('KPROVE_MAX_CACHE', '1000000'))
         self.force_gc = int(os.environ.get('KPROVE_FORCE_GC', '0'))   # regression tests: collect every k checks
         self.gc_tick = 0
-        self.max_mb = int(os.environ.get('KPROVE_MAX_MB', '900'))
+        self.mem = mem if mem is not None else MemGuard()
+        self.max_mb = self.mem.max_mb
+        self.mem.nodes_fn = self.B.nodes
         self.B.hook = self.mem_guard
 
     def mem_guard(self):
-        import resource
-        peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-        peak = peak if sys.platform == 'darwin' else peak * 1024
-        if peak > self.max_mb * 1e6:
-            raise Budget('memory limit: peak RSS %.0f MB > %d MB (KPROVE_MAX_MB)' % (peak / 1e6, self.max_mb))
+        self.mem.check()
         if self.deadline is not None and time.time() > self.deadline:
             raise Budget('time budget exceeded')
 
@@ -302,11 +396,7 @@ class PS:
         if self.deadline is not None and time.time() > self.deadline:
             raise Budget('time budget exceeded')
         B = self.B
-        import resource
-        peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-        peak = peak if sys.platform == 'darwin' else peak * 1024
-        if peak > self.max_mb * 1e6:
-            raise Budget('memory limit: peak RSS %.0f MB > %d MB (KPROVE_MAX_MB)' % (peak / 1e6, self.max_mb))
+        self.mem.check()
         if len(B.c_and) + len(B.c_xor) > self.max_cache:
             B.c_and = {}
             B.c_xor = {}
@@ -487,10 +577,14 @@ def count_gates(txt):
 
 
 def run_bdd(qasm_path, qc_path, clean=False, pre=None, budget_sec=600, max_nodes=1_500_000, reduce_every=64,
-            order=None, verbose=False, spec=None, n=None, clean_wires=(), free_wires=(), cut_K=None):
+            order=None, verbose=False, spec=None, n=None, clean_wires=(), free_wires=(), cut_K=None, max_mb=None,
+            mem=None):
     """BDD engine. pre: optional callable(ps, xedge) -> BDD edge of the input precondition (promise), where xedge(q)
-    returns the BDD literal of input wire q. Returns a result dict."""
+    returns the BDD literal of input wire q. max_mb / mem: memory budget (growth of the RSS, see MemGuard).
+    Returns a result dict."""
     t0 = time.time()
+    if mem is None:
+        mem = MemGuard(max_mb)
     txt = open(qasm_path).read()
     N, nb, ops = parse_qasm_text(txt)
     if spec is not None:
@@ -512,7 +606,7 @@ def run_bdd(qasm_path, qc_path, clean=False, pre=None, budget_sec=600, max_nodes
     cleanw = {i for i, nm in enumerate(names) if nm not in ins} if (clean and ins is not None) else set()
     if spec is not None:
         cleanw = set(clean_wires)
-    ps = PS(max_nodes=max_nodes, deadline=t0 + budget_sec if budget_sec else None)
+    ps = PS(max_nodes=max_nodes, deadline=t0 + budget_sec if budget_sec else None, mem=mem)
     ps.cut_K = cut_K
     B = ps.B
     xv = {}
@@ -584,9 +678,14 @@ def run_bdd(qasm_path, qc_path, clean=False, pre=None, budget_sec=600, max_nodes
                 print('  op %d/%d live=%d terms=%d nodes=%d t=%.1fs' % (i, len(ops), len(ps.live), len(ps.terms),
                                                                          B.nodes(), time.time() - t0), flush=True)
         touch(range(n))
+        i = len(ops)
         ps.reduce(final=True)
+        ps.mem_guard()
     except Budget as e:
-        return dict(status='UNKNOWN', method='bdd', detail=str(e), time=round(time.time() - t0, 2), stats=ps.stats)
+        done = locals().get('i', 0)
+        return dict(status='UNKNOWN', method='bdd', detail='%s [circuit ops processed: %d/%d, %d BDD nodes]'
+                    % (e, done, len(ops), B.nodes()), time=round(time.time() - t0, 2), stats=ps.stats,
+                    progress=(done, len(ops)))
     except (ValueError, KeyError, IndexError) as e:
         return dict(status='ERROR', method='bdd', detail=str(e), time=round(time.time() - t0, 2))
     res = dict(method='bdd', stats=ps.stats, nodes=B.nodes(), time=None)
@@ -908,8 +1007,9 @@ def confirm_witness2(qasm, qc, xs, m, expected_fn=None, n=None):
 
 
 def cex_search(qasm, qc, clean=False, tries=40, seconds=60, seed=1, pre_fn=None, expected_fn=None, n=None,
-               clean_wires=()):
-    """Random (x, m) pairs checked by the independent sparse simulator; dev > 1e-6 = confirmed counterexample."""
+               clean_wires=(), mem=None):
+    """Random (x, m) pairs checked by the independent sparse simulator; dev > 1e-6 = confirmed counterexample.
+    mem: MemGuard; the search stops (no counterexample) once the memory budget is exceeded."""
     from qoptct.verify._parse import nbits_of
     if expected_fn is None:
         names, ins, _ = parse_qc(qc)
@@ -923,6 +1023,8 @@ def cex_search(qasm, qc, clean=False, tries=40, seconds=60, seed=1, pre_fn=None,
     for t in range(tries):
         if time.time() - t0 > seconds:
             break
+        if mem is not None and mem.growth() > mem.max_mb:
+            return None, 'memory budget exceeded'
         xs = []
         for _ in range(2):
             x = {q: (0 if q in cleanw else rng.randint(0, 1)) for q in range(n)}
@@ -1015,8 +1117,16 @@ def is_bilinear_ref(qc):
     return nt > 0 and not (ctrls & targets)
 
 
-def kprove(qasm, qc=None, clean=False, budget_sec=600, engine='auto', pre=None, confirm=True, sample=True, spec=None, **kw):
-    """Main entry. engine: auto (bdd, then anf if <= anf_qubits, then sample) | bdd | anf | sample."""
+def kprove(qasm, qc=None, clean=False, budget_sec=600, engine='auto', pre=None, confirm=True, sample=True, spec=None,
+           max_mb=None, **kw):
+    """Main entry. engine: auto | bdd | anf | sample | exact2.  auto: for a bilinear reference first exact2
+    (qoptct.verify.exact2: exact for circuits of GF(2) degree <= 2, any size) and anf; then bdd; anf if still open
+    and <= 4000 qubits; then sample.
+    max_mb: memory budget of this call in MB, counted as the GROWTH of the process RSS over its value at the start of
+    the call (default: $KPROVE_MAX_MB, else 900).  Over budget, the BDD engine stops with UNKNOWN (never a wrong
+    verdict) and the counterexample search stops early.  result['mem'] = dict(max_mb, base_mb, peak_growth_mb)."""
+    mem = MemGuard(max_mb)
+    kw['mem'] = mem
     qasm = os.path.abspath(qasm)
     qc = os.path.abspath(qc) if isinstance(qc, str) else qc
     if spec is not None:
@@ -1032,6 +1142,13 @@ def kprove(qasm, qc=None, clean=False, budget_sec=600, engine='auto', pre=None, 
     t0 = time.time()
     tried = []
     res = None
+    if engine == 'exact2' or (engine == 'auto' and isinstance(qc, str) and pre is None and is_bilinear_ref(qc)):
+        from .exact2 import prove_degree2
+        r0 = prove_degree2(qasm, qc, clean=clean)
+        tried.append('exact2 (degree <= 2): %s %s' % (r0['status'], r0.get('detail', '')[:120]))
+        if r0['status'] in ('PROVED', 'REFUTED') or engine == 'exact2':
+            res = r0
+            engine = 'done2'
     if engine == 'auto' and isinstance(qc, str) and pre is None and is_bilinear_ref(qc) and cnt['qubits'] <= 4000:
         r0 = run_anf(qasm, qc, clean, budget_sec / 2)
         tried.append('anf (bilinear reference): %s %s' % (r0['status'], r0.get('detail', '')[:120]))
@@ -1040,11 +1157,13 @@ def kprove(qasm, qc=None, clean=False, budget_sec=600, engine='auto', pre=None, 
             engine = 'done'
     if engine in ('auto', 'bdd'):
         res = _in_thread(run_bdd, qasm, qc, clean=clean, pre=pre, budget_sec=budget_sec, **kw)
+        mem.growth()
+        mem.nodes_fn = None          # release the BDD of this run (the counterexample search runs without it)
         tried.append('bdd: %s %s' % (res['status'], res.get('detail', '')[:120]))
         if res['status'] == 'UNKNOWN' and (qc or res.get('expected_fn')):
             cex, err = cex_search(qasm, qc, clean, seconds=min(120, budget_sec / 4), pre_fn=pre_s,
                                   expected_fn=None if qc else res.get('expected_fn'), n=kw.get('n'),
-                                  clean_wires=kw.get('clean_wires', ()))
+                                  clean_wires=kw.get('clean_wires', ()), mem=mem)
             tried.append('counterexample search: %s' % ('found' if cex else (err or 'none')))
             if cex:
                 res = dict(status='REFUTED', method='counterexample',
@@ -1052,7 +1171,7 @@ def kprove(qasm, qc=None, clean=False, budget_sec=600, engine='auto', pre=None, 
                            counterexample=cex)
     nonclassical = res is not None and res['status'] == 'ERROR' and 'not classical' in str(res.get('detail'))
     if engine == 'anf' or (engine == 'auto' and (res['status'] in ('UNKNOWN',) or nonclassical) and cnt['qubits'] <= 4000
-                           and pre is None and not tried[0].startswith('anf')):
+                           and pre is None and not any(t.startswith('anf') for t in tried)):
         left = max(30.0, budget_sec - (time.time() - t0))
         r2 = run_anf(qasm, qc, clean, left)
         tried.append('anf: %s %s' % (r2['status'], r2.get('detail', '')[:120]))
@@ -1067,7 +1186,8 @@ def kprove(qasm, qc=None, clean=False, budget_sec=600, engine='auto', pre=None, 
     if (res['status'] == 'REFUTED' and confirm and not res.get('witness') and not res.get('counterexample')
             and res.get('method') == 'bdd' and (qc or res.get('expected_fn'))):
         cex, err = cex_search(qasm, qc, clean, seconds=min(120, budget_sec / 4), pre_fn=pre_s,
-                              expected_fn=None if qc else res.get('expected_fn'), n=kw.get('n'), clean_wires=kw.get('clean_wires', ()))
+                              expected_fn=None if qc else res.get('expected_fn'), n=kw.get('n'), clean_wires=kw.get('clean_wires', ()),
+                              mem=mem)
         res['counterexample'] = cex or ('not found (%s)' % (err or 'random search'))
     if res['status'] == 'REFUTED' and res.get('witness') and confirm:
         res['witness_confirm_dev'] = (confirm_witness(qasm, qc, res['witness']) if qc
@@ -1076,6 +1196,9 @@ def kprove(qasm, qc=None, clean=False, budget_sec=600, engine='auto', pre=None, 
     res['counts'] = cnt
     res['tried'] = tried
     res['total_time'] = round(time.time() - t0, 2)
+    mem.growth()
+    res['mem'] = dict(max_mb=mem.max_mb, base_mb=round(mem.base, 1), peak_growth_mb=round(mem.peak_growth, 1),
+                      measure='peak RSS' if mem.use_peak else 'current RSS')
     return res
 
 
@@ -1083,13 +1206,16 @@ def main(argv=None):
     import argparse
     ap = argparse.ArgumentParser(prog='qoptct kprove', description=__doc__.split('\n')[0],
                                  epilog='Exit code: 0 PROVED, 1 REFUTED, 2 SAMPLED/UNKNOWN (not proved), '
-                                        '3 usage or input error. Memory guard: $KPROVE_MAX_MB (default 900).')
+                                        '3 usage or input error. Memory guard: --max-mb, else $KPROVE_MAX_MB, else '
+                                        '900 (MB of RSS growth during the proof).')
     ap.add_argument('qasm')
     ap.add_argument('qc')
     ap.add_argument('--clean', action='store_true')
     ap.add_argument('--budget', type=float, default=600)
-    ap.add_argument('--engine', default='auto', choices=['auto', 'bdd', 'anf', 'sample'])
+    ap.add_argument('--engine', default='auto', choices=['auto', 'bdd', 'anf', 'sample', 'exact2'])
     ap.add_argument('--pre', default=None, help="input promise, e.g. 'lt:a:0xFFFF,lt:b:0xFFFF' (register a<N, b<N)")
+    ap.add_argument('--max-mb', type=float, default=None,
+                    help='memory budget in MB (growth of the RSS during the proof; default $KPROVE_MAX_MB or 900)')
     ap.add_argument('--json', action='store_true')
     ap.add_argument('-v', action='store_true')
     try:
@@ -1101,7 +1227,10 @@ def main(argv=None):
             print('error: no such file: %s' % p, file=sys.stderr)
             return 3
     try:
-        r = kprove(a.qasm, a.qc, clean=a.clean, budget_sec=a.budget, engine=a.engine, pre=a.pre, verbose=a.v)
+        if a.max_mb is not None and a.max_mb <= 0:
+            raise ValueError('--max-mb must be positive')
+        r = kprove(a.qasm, a.qc, clean=a.clean, budget_sec=a.budget, engine=a.engine, pre=a.pre, verbose=a.v,
+                   max_mb=a.max_mb)
     except (ValueError, KeyError, OSError) as e:
         print('error: %s' % e, file=sys.stderr)
         return 3
