@@ -274,8 +274,13 @@ def spec_fold(n, p):
     return spec
 
 
-@pytest.mark.parametrize('n,c', [(6, 3), (8, 5), (11, 19)])
+SLOW = bool(os.environ.get('QOPT_SLOW'))
+
+
+@pytest.mark.parametrize('n,c', [(6, 3), (8, 5)] + ([(11, 19), (14, 19), (16, 19)] if SLOW else []))
 def test_kprove_fold(n, c, tmp_path):
+    """n = 11..16 (QOPT_SLOW=1): 1-1.4 M BDD nodes, ~1 GB; kprove's own guard (KPROVE_MAX_MB, default 900) counts
+    the peak RSS of the whole test process."""
     kprove = _kprove()
     p = (1 << n) - c
     R = F.reduce_special(p, n=n)
@@ -283,7 +288,7 @@ def test_kprove_fold(n, c, tmp_path):
     garb = range(2 * n, R.nref)
     r = kprove(str(path), spec=spec_fold(n, p), n=R.nref, clean_wires=garb, free_wires=garb, budget_sec=300)
     assert r['status'] == 'PROVED', r.get('detail')
-    if n == 8:
+    if n == 8 and SLOW:       # mutants: the counterexample search of kprove needs ~0.9 GB
         rng = random.Random(4)
         for kind, mtxt in _mutants(R.qasm(), rng):
             mp = tmp_path / ('mut_%s.qasm' % kind); mp.write_text(mtxt)
