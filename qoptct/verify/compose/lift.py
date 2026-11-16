@@ -175,6 +175,33 @@ def _lift(f):
     return Lifted(nq, ops, nmeas)
 
 
+def write_qasm(L, path, chunk=100000):
+    """the inverse of lift: the OpenQASM text of a lifted program (byte-identical to the text it was lifted from
+    when that text was written by qoptct.crypto.kaliski). Used to write mutated circuits (canaries)."""
+    ops = L.ops
+    nmeas = sum(1 for i in range(0, len(ops), 5) if ops[i] == K_ERASE)
+    with open(path, 'w') as f:
+        f.write('OPENQASM 3;\ninclude "stdgates.inc";\nqubit[%d] q;\nbit[%d] c;\n' % (L.nq, max(nmeas, 1)))
+        buf = []
+        k = 0
+        for i in range(0, len(ops), 5):
+            kd, a, b, t, l = ops[i:i + 5]
+            if kd == K_CX:
+                buf.append('cx q[%d], q[%d];' % (a, b))
+            elif kd == K_X:
+                buf.append('x q[%d];' % a)
+            elif kd == K_AND:
+                buf += and_template(a, b, t)
+            else:
+                buf += erase_template(a, b, t, (l,) if l >= 0 else (), k)
+                k += 1
+            if len(buf) >= chunk:
+                f.write('\n'.join(buf) + '\n')
+                buf = []
+        if buf:
+            f.write('\n'.join(buf) + '\n')
+
+
 # ------------------------------------------------------------------ exact gadget lemmas, arithmetic in Q(zeta_8)
 def _mul(x, y):
     out = [Fraction(0)] * 4

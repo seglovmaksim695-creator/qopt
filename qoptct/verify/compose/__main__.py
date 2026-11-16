@@ -5,7 +5,7 @@
     verify --prime P --reduction R [--clean] FILE.qasm [--hints FILE.json] [--json]
     pstd   --prime P --reduction R [--count N | --all]   execute P_std on inputs: test of the lemmas M1..M6
 
-P: a decimal / 0x number or one of: secp256k1, p256.  Exit code of verify: 0 PROVED, 1 REFUTED, 2 NOT_PROVED.
+P: a decimal / 0x number or one of: secp256k1, p256, curve25519, p384, p521, rand256.  Exit code of verify: 0 PROVED, 1 REFUTED, 2 UNKNOWN.
 """
 import argparse
 import json
@@ -13,12 +13,12 @@ import os
 import sys
 import time
 
-from . import PRIMES, verify_kaliski, pstd_test, kaliski_hints
+from . import PRIMES, named_prime, verify_kaliski, pstd_test
 
 
 def _prime(s):
-    if s in PRIMES:
-        return PRIMES[s], s
+    if s in PRIMES or s == 'rand256':
+        return named_prime(s), s
     p = int(s, 0)
     return p, 'p%d' % p if p < 10 ** 6 else 'p%dbit_%x' % (p.bit_length(), p & 0xffffffff)
 

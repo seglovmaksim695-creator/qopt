@@ -76,6 +76,9 @@ def test_lift_roundtrip_and_streamed_text(tmp_path):
     assert (tmp_path / 'c.qasm').read_text() == txt
     L = lift(str(tmp_path / 'c.qasm'))
     assert L.nq == C.nqubits and L.n == len(C.ops)
+    from qoptct.verify.compose.lift import write_qasm
+    write_qasm(L, tmp_path / 'back.qasm', chunk=1000)
+    assert (tmp_path / 'back.qasm').read_text() == txt
     for i, o in enumerate(C.ops):
         k, a, b, t, l = L.op(i)
         if o[0] == 'x':
@@ -105,7 +108,7 @@ def test_lift_is_strict():
         with pytest.raises(LiftError):
             lift('\n'.join(m))
         r = verify_kaliski('\n'.join(m), 13)
-        assert r['status'] == 'NOT_PROVED' and r['stage'] == 'lift'
+        assert r['status'] == 'UNKNOWN' and r['stage'] == 'lift'
 
 
 @pytest.mark.parametrize('p', [5, 7, 13, 31, 61, 127, 251])
@@ -211,7 +214,7 @@ def test_mutants_never_proved_wrongly(reduction, clean):
     rnd = random.Random(2026)
     C = kaliski_inverse(p, reduction=reduction, clean=clean)
     h = C.hints()
-    seen = {'PROVED': 0, 'REFUTED': 0, 'NOT_PROVED': 0}
+    seen = {'PROVED': 0, 'REFUTED': 0, 'UNKNOWN': 0}
     n = 0
     while n < 60:
         ops = _mutate(rnd, C.ops, C.nqubits)
@@ -250,9 +253,9 @@ def test_bad_certificate_cannot_prove():
             m[1] = 'swap' if m[1] != 'swap' else 'sub'
         r = verify_kaliski(q, p, hints=h, test_samples=0)
         # the circuit is correct, so REFUTED is impossible; a damaged certificate may only lose the proof
-        assert r['status'] in ('NOT_PROVED', 'PROVED'), r
+        assert r['status'] in ('UNKNOWN', 'PROVED'), r
         if what in ('drop', 'label'):
-            assert r['status'] == 'NOT_PROVED'
+            assert r['status'] == 'UNKNOWN'
 
 
 def test_wrong_parameters_not_proved():
@@ -262,7 +265,7 @@ def test_wrong_parameters_not_proved():
     assert verify_kaliski(q, 61, clean=False)['status'] != 'PROVED'
     assert verify_kaliski(q, 61, 'special', clean=True)['status'] != 'PROVED'
     assert verify_kaliski(kaliski_inverse(61, legacy=True).to_qasm(), 61)['status'] != 'PROVED'   # not supported
-    assert verify_kaliski('no such file.qasm', 61)['status'] == 'NOT_PROVED'
+    assert verify_kaliski('no such file.qasm', 61)['status'] == 'UNKNOWN'
 
 
 def test_cli(tmp_path, capsys):

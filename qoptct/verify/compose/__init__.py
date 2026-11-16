@@ -3,7 +3,7 @@
 (Gidney 2018) with measurement-based erasure; first client: the Kaliski modular inversion at full size (n = 256).
 
     r = verify_kaliski(qasm, p, reduction='generic', clean=False)      # qasm: path or text
-    r['status']   'PROVED' | 'REFUTED' | 'NOT_PROVED'
+    r['status']   'PROVED' | 'REFUTED' | 'UNKNOWN'
     python -m qoptct.verify.compose gen    --prime secp256k1 --reduction special --clean -o DIR
     python -m qoptct.verify.compose verify --prime secp256k1 --reduction special --clean DIR/....qasm
 
@@ -19,7 +19,7 @@ Machine-checked, for the given OpenQASM text, at full width, for all inputs at o
   L2  the bookkeeping of the chain (registers, wires known to be zero, facts carried between segments, the copy of
       the result, coverage of all ops) is checked by the walker.
 Proved on paper (PROOF.md) and TESTED by executing P_std (exhaustively for all primes p < 2^11 and all x; sampled
-at n = 256): the mathematical assumptions M1..M5 on Kaliski's algorithm (register bounds, parities) that appear as
+at n = 256): the mathematical assumptions M1..M6 on Kaliski's algorithm (register bounds, parities) that appear as
 preconditions, the fold lemma of the special reduction, and that P_std returns -x^{-1} 2^{2n} mod p with u = 1, v = 0.
 Together: for every x in [1, p) the circuit maps |x>|0...> to the specified state for every measurement outcome,
 with no residual phase.
@@ -31,12 +31,55 @@ from .kal import Chain, ProofFailure, simulate_flat
 from .lift import lift, Lifted, LiftError, check_gadget_lemmas
 
 __all__ = ['verify_kaliski', 'pstd_test', 'kaliski_hints', 'lift', 'LiftError', 'check_gadget_lemmas', 'Chain',
-           'ProofFailure', 'PRIMES']
+           'ProofFailure', 'PRIMES', 'named_prime']
 
 PRIMES = {
     'secp256k1': 2 ** 256 - 2 ** 32 - 977,
     'p256': 2 ** 256 - 2 ** 224 + 2 ** 192 + 2 ** 96 - 1,
+    'curve25519': 2 ** 255 - 19,
+    'p384': 2 ** 384 - 2 ** 128 - 2 ** 96 + 2 ** 32 - 1,
+    'p521': 2 ** 521 - 1,
 }
+
+
+def _is_probable_prime(m, rounds=64, seed=12345):
+    if m < 2 or m % 2 == 0:
+        return m == 2
+    d, s = m - 1, 0
+    while d % 2 == 0:
+        d //= 2
+        s += 1
+    rnd = random.Random(seed)
+    for _ in range(rounds):
+        a = rnd.randrange(2, m - 1)
+        x = pow(a, d, m)
+        if x in (1, m - 1):
+            continue
+        for _ in range(s - 1):
+            x = x * x % m
+            if x == m - 1:
+                break
+        else:
+            return False
+    return True
+
+
+def named_prime(name):
+    """a prime by name: secp256k1, p256, curve25519, p384, p521, or rand256 = a 256-bit prime without special form
+    (the first probable prime, Miller-Rabin with 64 bases, after floor(2^254 * pi); it shows that nothing depends on
+    the shape of p)."""
+    if name == 'rand256':
+        if 'rand256' not in _CACHE:
+            pi80 = 31415926535897932384626433832795028841971693993751058209749445923078164062862089
+            m = ((1 << 254) * pi80 // 10 ** 79) | 1
+            while not _is_probable_prime(m):
+                m += 2
+            _CACHE['rand256'] = m
+        return _CACHE['rand256']
+    return PRIMES[name]
+
+
+_CACHE = {}
 
 
 def kaliski_hints(p, reduction='generic', clean=False):
@@ -55,6 +98,20 @@ def _expected(p, n, x):
 def _sample_xs(p, count, seed=1):
     rnd = random.Random(seed)
     xs = [1, 2, 3, p - 1, p - 2, (p - 1) // 2, (p + 1) // 2, 1 << (p.bit_length() - 1), (1 << (p.bit_length() - 1)) - 1]
+    if p <= count:
+        return list(range(1, p))
+    if count >= 1024 and pow(2, p - 1, p) == 1:
+        # structured inputs, where the bounds M1, M3, M4 are tight: powers of two and their neighbours, their
+        # negatives and modular inverses, small numbers and their inverses
+        n = p.bit_length()
+        try:
+            for k in range(n):
+                t = 1 << k
+                xs += [t, t - 1, t + 1, p - t, p - t - 1, p - t + 1, pow(t, -1, p), p - pow(t, -1, p), (t * 3) % p]
+            for c in range(2, 40):
+                xs += [c, p - c, pow(c, -1, p), p - pow(c, -1, p)]
+        except ValueError:                               # p is not prime
+            pass
     xs = [x for x in dict.fromkeys(xs) if 1 <= x < p]
     while len(xs) < count:
         xs.append(rnd.randrange(1, p))
@@ -127,12 +184,12 @@ def verify_kaliski(qasm, p, reduction='generic', clean=False, hints=None, lifted
                    garbage), every AND target was |0>, every measurement-based erasure is exact (no phase);
       clean=True:  |x>|0> -> |x>|-x^{-1} 2^{2n} mod p> on wires 0..n-1, n..2n-1, every other wire back to |0>.
     hints: the certificate (KaliskiCircuit.hints(), untrusted); default: regenerated from the library.
-    -> dict: status ('PROVED' | 'REFUTED' | 'NOT_PROVED'), stage, detail, counterexample, assumptions (name ->
+    -> dict: status ('PROVED' | 'REFUTED' | 'UNKNOWN'), stage, detail, counterexample, assumptions (name ->
        number of segments where the mathematical assumption is used), segments, time, ...
     See the module docstring for the exact meaning of PROVED."""
     t0 = time.time()
     n = p.bit_length()
-    res = dict(status='NOT_PROVED', p=p, n=n, reduction=reduction, clean=bool(clean), stage='gadgets')
+    res = dict(status='UNKNOWN', p=p, n=n, reduction=reduction, clean=bool(clean), stage='gadgets')
 
     def done(**kw):
         res.update(kw)
@@ -178,4 +235,6 @@ def verify_kaliski(qasm, p, reduction='generic', clean=False, hints=None, lifted
         if not t['ok']:
             return done(detail='a mathematical assumption of P_std is violated on a concrete input: %r'
                         % (t['violations'][:1],))
-    return done(status='PROVED', stage='done', detail='machine-checked modulo the lemmas M1..M5 of compose/PROOF.md')
+    return done(status='PROVED', stage='done', proved_modulo='paper lemmas M1..M6 on the integer algorithm (and the fold '
+                'lemma for reduction=special), compose/PROOF.md sections 4-5; tested by pstd_test',
+                detail='every segment of the circuit is machine-proved against its contract at full width')

@@ -4,11 +4,13 @@
 One class, Chain, walks the algorithm P_std (Kaliski's almost-inverse in the "frame of w", exact integer semantics)
 segment by segment. Every segment has a CONTRACT written once over a boolean algebra (compose.bv):
 
-    spec(al, val) -> (posts, asserts, prefacts, postfacts)
+    spec(al, val) -> (posts, asserts, prefacts, postfacts, proved)
         val(wire)   value of a wire at the entry of the segment
         posts       {wire: value at the exit}; every other wire keeps its value
+        proved      [(name, bit)]: properties of the entry state that are PROVED under the precondition (they make
+                    the literal contract an exact integer statement, e.g. "no borrow")
         asserts     [(name, bit)]: MATHEMATICAL ASSUMPTIONS on the entry state (properties of the algorithm that are
-                    proved on paper, compose/PROOF.md: M1..M5), used as the precondition
+                    proved on paper, compose/PROOF.md: M1..M6), used as the precondition
         prefacts    facts (see fact_bit) that must have been ESTABLISHED by earlier segments (machine-proved
                     postconditions carried over wires that were not touched in between), used as the precondition
         postfacts   facts proved at the exit of this segment
@@ -24,6 +26,7 @@ Two modes of the same walk:
   * run (inputs xs given): P_std itself is executed bit-sliced on the inputs; all asserts, facts and the final
     result are checked. This is the TEST of the mathematical assumptions (exhaustive for small p, sampled at n=256).
 """
+import random
 import time
 
 from ..bdd import BDD, ONE, ZERO
@@ -94,6 +97,30 @@ def fact_bit(al, val, key):
     raise ValueError(t)
 
 
+def _models(B, f, rnd, count):
+    """`count` random total assignments {level: bit} satisfying f (f != ZERO)."""
+    var, hi, lo = B.var, B.hi, B.lo
+    out = []
+    nv = B.nvars
+    for _ in range(count):
+        bits = rnd.getrandbits(nv + 1)
+        asg = {lv: (bits >> lv) & 1 for lv in range(nv)}
+        e = f
+        while e != ONE:
+            n, c = e >> 1, e & 1
+            h, l = hi[n] ^ c, lo[n] ^ c
+            if h == ZERO:
+                b = 0
+            elif l == ZERO:
+                b = 1
+            else:
+                b = asg[var[n]]
+            asg[var[n]] = b
+            e = h if b else l
+        out.append(asg)
+    return out
+
+
 class Chain:
     def __init__(self, p, reduction, hints, lifted=None, xs=None, clean=False, progress=None):
         self.p = p
@@ -113,6 +140,7 @@ class Chain:
         self.nseg = 0
         self.nodes = 0
         self.maxnodes = 0
+        self.rnd = random.Random(20261116)
         if self.prove:
             self.ops, self.nops, self.nq = lifted.ops, lifted.n, lifted.nq
             self.pos = 0
@@ -229,15 +257,24 @@ class Chain:
         return self.store.get(w, 0)
 
     # ------------------------------------------------------------------ one segment
-    def seg(self, label, k, pos, order, spec):
+    def seg(self, label, k, pos, order, spec, subst=()):
+        """one segment. subst: preconditions given as PARAMETRISATIONS: tuples (wire, expr, name, key, pred) meaning
+        "the precondition pred (a mathematical assumption `name`, or the established fact `key`) holds, and under it
+        the entry value of `wire` equals expr(al, val)". In prove mode the wire's entry value is replaced by expr
+        (after checking that this parametrises exactly the states satisfying the preconditions), which makes the
+        circuit and the contract equal as ROBDDs instead of equal under a side condition."""
         self.nseg += 1
         if self.prove:
-            self._seg_prove(label, k, pos, order, spec)
+            self._seg_prove(label, k, pos, order, spec, subst)
             self.pos = pos
         else:
             al, st = self.al, self.store
-            posts, asserts, prefacts, postfacts = spec(al, self._val_run)
-            for name, bit in asserts:
+            for w, expr, name, key, pred in subst:
+                bit = pred(al, self._val_run)
+                if bit != al.T:
+                    self._violation(label, k, name or ('prefact ' + key[0]), bit ^ al.T)
+            posts, asserts, prefacts, postfacts, proved = spec(al, self._val_run)
+            for name, bit in asserts + proved:
                 if bit != al.T:
                     self._violation(label, k, name, bit ^ al.T)
             for key in prefacts:
@@ -318,7 +355,7 @@ class Chain:
                     v[t] = ZERO
         return None
 
-    def _seg_prove(self, label, k, hi, order, spec):
+    def _seg_prove(self, label, k, hi, order, spec, subst=()):
         lo = self.pos
         Z = self.Z
         B = BDD()
@@ -328,12 +365,14 @@ class Chain:
             raise ProofFailure('segment touches the output register', segment=label, k=k)
         var = {}
         lev = {}
+        lev_of_lit = set()
         oset = set(order)
 
         def newvar(w):
             lv, e = B.new_var()
             var[w] = e
             lev[lv] = w
+            lev_of_lit.add(e >> 1)
         for w in sorted(sup):
             if w not in Z and w not in oset:
                 newvar(w)
@@ -341,7 +380,7 @@ class Chain:
             if isinstance(w, int) and w not in Z and w not in var:
                 newvar(w)
 
-        def val(w):
+        def raw(w):
             if w is None:
                 return ZERO
             if w == 'ONE':
@@ -352,6 +391,39 @@ class Chain:
                     return ZERO
                 raise ProofFailure('internal: contract of %r reads undeclared wire %r' % (label, w))
             return e
+        val = raw
+        AND, XOR = B.AND, B.XOR
+        if subst:
+            # entry values under the parametrised preconditions; checked: (1) every parametrised precondition holds
+            # identically on the substituted values, (2) every raw state that satisfies all of them is a fixed point
+            # of the substitution. Hence "for all variables, on the substituted values" = "for all entry states
+            # satisfying these preconditions".
+            sub = {}
+            for w, expr, name, key, pred in subst:
+                if w in sub or not isinstance(w, int):
+                    raise ProofFailure('internal: bad substitution in %r' % label)
+                if w not in Z:
+                    sub[w] = expr(al, raw)
+
+            def val(w):
+                e = sub.get(w)
+                return raw(w) if e is None else e
+            phi = ONE
+            used = set()
+            for w, expr, name, key, pred in subst:
+                if key is not None and key not in self.facts:
+                    raise ProofFailure('segment %s (k=%s): fact %s was not established' % (label, k, key[0]),
+                                       segment=label, k=k)
+                if pred(al, val) != ONE:
+                    raise ProofFailure('internal: substitution of %r does not imply its precondition' % label)
+                pr = pred(al, raw)
+                if name is not None and pr != ONE and name not in used:
+                    used.add(name)
+                    self.assumed[name] = self.assumed.get(name, 0) + 1
+                phi = AND(phi, pr)
+            for w, e in sub.items():
+                if AND(phi, XOR(e, raw(w))) != ZERO:
+                    raise ProofFailure('internal: substitution of %r is not a parametrisation' % label)
 
         def fail(msg, f=None, **kw):
             cex = None
@@ -360,8 +432,7 @@ class Chain:
                 cex = {lev[lv]: bit for lv, bit in asg.items()}
             raise ProofFailure('segment %s (k=%s, ops %d..%d): %s' % (label, k, lo, hi, msg),
                                segment=label, k=k, lo=lo, hi=hi, entry_counterexample=cex, **kw)
-        posts, asserts, prefacts, postfacts = spec(al, val)
-        AND, XOR = B.AND, B.XOR
+        posts, asserts, prefacts, postfacts, proved = spec(al, val)
         pre = ONE
         for name, bit in asserts:
             if bit != ONE:
@@ -373,6 +444,9 @@ class Chain:
             pre = AND(pre, fact_bit(al, val, key))
         if pre == ZERO:
             fail('the precondition is unsatisfiable (vacuous contract)')
+        for name, bit in proved:
+            if bit != ONE and AND(pre, bit ^ 1) != ZERO:
+                fail('the contract property "%s" does not hold' % name, AND(pre, bit ^ 1))
         v = {}
         r = self._sim(B, pre, v, val, lo, hi)
         if r is not None:
@@ -386,7 +460,21 @@ class Chain:
             if got != exp and AND(pre, XOR(got, exp)) != ZERO:
                 fail('wire %d does not end with the value of the contract' % w, AND(pre, XOR(got, exp)), wire=w)
             exit_[w] = exp
-        newz = [w for w in touched if exit_[w] == ZERO or AND(pre, exit_[w]) == ZERO]
+        # wires that are 0 at the exit under the precondition. Cheap pre-test: if the exit value is 1 on one of a few
+        # random models of pre the wire is not zero; only otherwise the (exact) conjunction is built
+        models = _models(B, pre, self.rnd, 6) if pre != ONE else None
+        ev = B.eval
+        newz = []
+        for w in touched:
+            f = exit_[w]
+            if f == ZERO:
+                newz.append(w)
+            elif f == ONE or f >> 1 in lev_of_lit:
+                continue
+            elif models is None:
+                continue
+            elif not any(ev(f, m) for m in models) and AND(pre, f) == ZERO:
+                newz.append(w)
         if self.facts:
             self.facts = {key for key in self.facts if touched.isdisjoint(fact_wires(key))}
         if postfacts:
@@ -410,9 +498,8 @@ class Chain:
             zafter = set(newz)
 
             def base2(w):
-                e = var.get(w)
-                if e is not None:
-                    return e
+                if w in var:
+                    return val(w)
                 if (w in Z and w not in touched) or w in zafter:
                     return ZERO
                 raise ProofFailure('segment %s (k=%s): the mirror ops %d..%d touch a foreign wire %d'
@@ -422,7 +509,7 @@ class Chain:
             if r is not None:
                 fail('mirror op %d: %s' % (r[0], r[1]), r[2], op=r[0])
             for w in touched | sup2:
-                ent = var.get(w, ZERO)
+                ent = val(w) if (w in var or w in Z) else ZERO
                 got = v2.get(w)
                 if got is None:
                     got = base2(w)
@@ -449,7 +536,7 @@ class Chain:
         def spec(al, val):
             posts = {U[i]: (al.T if (p >> i) & 1 else al.F) for i in range(n)}
             posts[S[0]] = al.T
-            return posts, [], [], []
+            return posts, [], [], [], []
         self.seg('init', None, pos, U + [S[0]], spec)                  # u = p, v = x, r = 0, s = 1
         A, B, wprev = U, X, None
         for k in range(2 * n):
@@ -466,7 +553,7 @@ class Chain:
 
                 def spec(al, val, A=A, B=B, wprev=wprev):
                     wv = wspec(al, [val(x) for x in A], [val(x) for x in B], val(wprev))
-                    return {}, [('M5-last-w', wv)], [], []
+                    return {}, [('M5-last-w', wv)], [], [], []
                 self.seg('last', k, pos, [wprev] + A + B, spec)
                 A = A[1:] + A[:1]
                 S = self._double(S, info.get('snew'))
@@ -480,7 +567,7 @@ class Chain:
 
                 def spec(al, val, A=A, B=B, wprev=wprev, w=w, wkey=wkey):
                     wv = wspec(al, [val(x) for x in A], [val(x) for x in B], val(wprev))
-                    return {w: wv}, [], [], [wkey]
+                    return {w: wv}, [], [], [wkey], []
                 self.seg('cmp', k, pos, [wprev] + _inter(A[:wa], B[:wa]) + [w], spec)
             pos, info = self.mark('swap')
 
@@ -509,21 +596,28 @@ class Chain:
                     posts[R[i]] = al.ite(d, s[i], r[i])
                     posts[S[i]] = al.ite(d, r[i], s[i])
                 return posts, asserts, prefacts, [('imp', (A[0], B[0])), ('geodd', tuple(A), tuple(B)),
-                                                  ('nand', (R[0], S[0]))]
+                                                  ('nand', (R[0], S[0]))], []
             self.seg('swap', k, pos, [wprev, w] + _inter(A, B, R, S[:n]) + S[n:], spec)
             pos, info = self.mark('sub')
             e = self.fresh(info.get('e'))
 
-            def spec(al, val, A=A, B=B, e=e, wb=wb):
-                a = [val(x) for x in A]
-                b = [val(x) for x in B]
+            def spec(al, val, A=A, B=B, e=e, wa=wa):
+                # A and B are < 2^wa here (M1): the subtraction is written on wa bits, and "no borrow" (proved
+                # from the fact geodd: e -> B <= A) makes it the exact integer subtraction
+                a = [val(x) for x in A[:wa]]
+                b = [val(x) for x in B[:wa]]
                 ev = a[0]
-                asserts = [('M3-vshort', al.or_(al.not_(ev), bv.allzero(al, b[wb:])))]
-                diff, _ = bv.sub(al, a, [al.and_(ev, x) for x in b])
-                posts = {A[i]: diff[i] for i in range(n)}
+                diff, bor = bv.sub(al, a, [al.and_(ev, x) for x in b])
+                posts = {A[i]: diff[i] for i in range(wa)}
                 posts[e] = ev
-                return posts, asserts, [('imp', (A[0], B[0])), ('geodd', tuple(A), tuple(B))], []
-            self.seg('sub', k, pos, _inter(A, B) + [e], spec)          # e = u_0; u -= e*v (exact: u >= v if e)
+                return posts, [], [('geodd', tuple(A), tuple(B))], [], [('no borrow in u - e*v', al.not_(bor))]
+            # parametrised preconditions: fact imp (e -> B_0: P2) and M3 (e -> B < 2^wb)
+            sb = [(B[0], lambda al, val, A=A, B=B: al.or_(val(B[0]), val(A[0])), None, ('imp', (A[0], B[0])),
+                   lambda al, val, A=A, B=B: fact_bit(al, val, ('imp', (A[0], B[0]))))]
+            for i in range(wb, wa):
+                sb.append((B[i], lambda al, val, A=A, B=B, i=i: al.and_(val(B[i]), al.not_(val(A[0]))), 'M3-vshort',
+                           None, lambda al, val, A=A, B=B, i=i: al.or_(al.not_(val(A[0])), al.not_(val(B[i])))))
+            self.seg('sub', k, pos, _inter(A, B) + [e], spec, sb)      # e = u_0; u -= e*v (exact: u >= v if e)
             self.require_zero(A[0], 'u is even after the subtraction')
             A = A[1:] + A[:1]                                          # u /= 2
             pos, info = self.mark('add')
@@ -535,8 +629,11 @@ class Chain:
                 asserts = [('M4-sfit', al.or_(al.not_(ev), bv.allzero(al, s[n:])))]
                 sm, c = bv.add(al, r, [al.and_(ev, x) for x in s[:n]])
                 asserts.append(('M4-rfit', al.not_(c)))
-                return {R[i]: sm[i] for i in range(n)}, asserts, [('nand', (R[0], S[0]))], []
-            self.seg('add', k, pos, [e] + _inter(R, S[:n]) + S[n:], spec)   # r += e*s (exact, fits n bits)
+                return {R[i]: sm[i] for i in range(n)}, asserts, [], [], []
+            # parametrised precondition: fact nand (not (R_0 and S_0): P1)
+            sb = [(S[0], lambda al, val, R=R, S=S: al.and_(val(S[0]), al.not_(val(R[0]))), None, ('nand', (R[0], S[0])),
+                   lambda al, val, R=R, S=S: fact_bit(al, val, ('nand', (R[0], S[0]))))]
+            self.seg('add', k, pos, [e] + _inter(R, S[:n]) + S[n:], spec, sb)   # r += e*s (exact, fits n bits)
             S = self._double(S, info.get('snew'))                      # s *= 2
             wprev = w if w is not None else 'ONE'
         need(len(S) == 2 * n, 'internal: s register length')
@@ -588,10 +685,14 @@ class Chain:
             def spec(al, val, win=win, f=f):
                 wv = [val(x) for x in win]
                 d, bor = bv.sub(al, wv, bv.const(al, p, n + 1))
-                posts = {win[i]: al.ite(bor, wv[i], d[i]) for i in range(n)}
+                # literally: f = bit n of (W - p) mod 2^(n+1); rem = (W - p) + f*p on n bits = (f ? W : W - p).
+                # Proved under W < 2p: f = [W < p], i.e. rem = W mod p; and (postfact) rem < p
+                fl = d[n]
+                posts = {win[i]: al.ite(fl, wv[i], d[i]) for i in range(n)}
                 posts[win[n]] = al.F
-                posts[f] = bor
-                return posts, [], [('lt', tuple(win[1:]), p)], [('lt', tuple(win[:n]), p)]
+                posts[f] = fl
+                return (posts, [], [('lt', tuple(win[1:]), p)], [('lt', tuple(win[:n]), p)],
+                        [('f = [W < p]', al.not_(al.xor(fl, bor)))])
             self.seg('div', j, pos, win + [f], spec)
         return R2[:n]
 
@@ -614,7 +715,7 @@ class Chain:
             Lw, Hw = cur[:m], cur[m:][:Hmax.bit_length()]
 
             def spec(al, val, Aw=Aw, K=K):
-                return {Aw[i]: (al.T if (K >> i) & 1 else al.F) for i in range(len(Aw))}, [], [], []
+                return {Aw[i]: (al.T if (K >> i) & 1 else al.F) for i in range(len(Aw))}, [], [], [], []
             self.seg('sp_const', None, pos, Aw, spec)
             pos, info = self.mark('sp_addL')
 
@@ -622,7 +723,7 @@ class Chain:
                 a = [val(x) for x in Aw]
                 l = [val(x) for x in Lw] + [al.F] * (len(Aw) - len(Lw))
                 sm, _ = bv.add(al, a, l)
-                return {Aw[i]: sm[i] for i in range(len(Aw))}, [], [], []
+                return {Aw[i]: sm[i] for i in range(len(Aw))}, [], [], [], []
             self.seg('sp_addL', None, pos, _inter(Aw, Lw), spec)
             terms = []
             while self.peek() == 'sp_term':
@@ -635,7 +736,7 @@ class Chain:
                     a = [val(x) for x in sub_]
                     hv = [val(x) for x in h] + [al.F] * (len(sub_) - len(h))
                     res = bv.add(al, a, hv)[0] if s_ > 0 else bv.sub(al, a, hv)[0]
-                    return {sub_[i]: res[i] for i in range(len(sub_))}, [], [], []
+                    return {sub_[i]: res[i] for i in range(len(sub_))}, [], [], [], []
                 self.seg('sp_term', e_, pos, _inter(sub_, h), spec)
                 terms.append((s_, e_))
             neg = sum(Hmax << e_ for s_, e_ in terms if s_ < 0)
@@ -659,7 +760,7 @@ class Chain:
                 d, _ = bv.sub(al, a, bv.const(al, Kq, len(a)))
                 posts = {cur[i]: al.ite(ge, d[i], a[i]) for i in range(len(a))}
                 posts[f] = ge
-                return posts, [], [('lt', tuple(cur), Bd)], [('lt', tuple(cur), Bn)]
+                return posts, [], [('lt', tuple(cur), Bd)], [('lt', tuple(cur), Bn)], []
             self.seg('sp_q', None, pos, cur + [f], spec)
             Bd = Bn
         need(Bd <= p, 'special reduction: the final bound %d bits is not <= p' % Bd.bit_length())
