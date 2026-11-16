@@ -183,13 +183,13 @@ def _samples(m, n, seed):
     return xs, ys
 
 
-def _itoh_run(kind, m, f, chain, p, use_p, gates, samples, seed, algorithm, count_cz):
+def _itoh_run(kind, m, f, chain, p, use_p, gates, samples, seed, algorithm, count_cz, erase="terms"):
     f = _modulus(m, f)
     dec, info = gf2m_bilinear(m, f, algorithm)
     ch = _itoh.Chain(m, chain, p, use_p)
     xs, ys = _samples(m, samples, seed)
     regs = dict(x=xs, y=ys) if kind == "divide" else dict(x=xs)
-    P = _itoh.Program(m, f, dec, regs, gates=gates, count_cz=count_cz)
+    P = _itoh.Program(m, f, dec, regs, gates=gates, count_cz=count_cz, erase_mode=erase)
     P.alloc("t")
     if kind == "divide":
         _itoh.divide_program(P, ch, "t", "x", "y")
@@ -204,8 +204,8 @@ def _itoh_run(kind, m, f, chain, p, use_p, gates, samples, seed, algorithm, coun
     P.finish()
     cost = dict(mult=P.n_mul, AND=P.and_count, T=4 * P.and_count, rank=len(dec), chain_length=ch.L, p=ch.p,
                 register_erasures=P.n_erase, peak_registers=P.peak_regs, qubits_registers=P.peak_regs * m,
-                peak_wires=P.peak_wires, formula_AND=P.n_mul * len(dec))
-    if count_cz or gates:
+                peak_wires=P.peak_wires, formula_AND=P.n_mul * len(dec), erase=erase)
+    if count_cz or gates or erase == "terms":
         cost["CZ_register_erasures"] = P.cz_count
     if gates == "stream":
         S = P.C
@@ -216,7 +216,8 @@ def _itoh_run(kind, m, f, chain, p, use_p, gates, samples, seed, algorithm, coun
         if any(v for w, v in S.st.items() if w not in regw):
             raise AssertionError("gate-level stream: ancilla not clean")
         cost["gates"] = S.counts()
-        cost["gate_check"] = "%d inputs at gate level (every AND / erasure precondition, lazy register erasures)" % len(xs)
+        cost["gate_check"] = ("%d inputs at gate level (every AND / erasure precondition, register erasures "
+                              "checked lazily)" % len(xs))
         return cost
     if not gates:
         return cost
@@ -227,40 +228,51 @@ def _itoh_run(kind, m, f, chain, p, use_p, gates, samples, seed, algorithm, coun
     return C
 
 
-def gf2m_inverse(m, f=None, chain="it", p=None, use_p=None, samples=16, seed=1, algorithm="auto"):
+_ITOH_DOC = """
+    chain: 'it' (Itoh-Tsujii), 'short' (shortest star chain) or an explicit chain [(e, i, j), ...];
+    p: chain registers (default L = chain length -> minimal multiplications; fewer -> recomputation);
+    erase: 'terms' (default; register erasure = X measurements + one classically controlled CZ per (bilinear term,
+    output bit): O(rank * m) CZ and the parity CX of the terms) or 'monomials' (per-bit quadratic forms, O(m^3) CZ;
+    the k6 lab form).  The register program is checked on `samples` random field elements (every erasure
+    condition) before lowering."""
+
+
+def gf2m_inverse(m, f=None, chain="it", p=None, use_p=None, samples=16, seed=1, algorithm="auto", erase="terms"):
     """out-of-place inversion circuit t ^= x^-1 (x = 0 -> 0); wires x = 0..m-1, t = m..2m-1, then the chain
-    registers and temporaries.  chain: 'it' (Itoh-Tsujii), 'short' (shortest star chain) or an explicit chain
-    [(e, i, j), ...]; p: chain registers (default L = chain length -> L multiplications; fewer -> more).  The
-    register program is checked on `samples` random field elements (every erasure condition) before lowering.
-    The register erasures carry O(m^3) CZ (0 T): gates are meant for m <= ~64; use gf2m_inverse_count beyond."""
-    return _itoh_run("inverse", m, f, chain, p, use_p, True, samples, seed, algorithm, False)
+    registers and temporaries; L multiplications with p = L chain registers."""
+    return _itoh_run("inverse", m, f, chain, p, use_p, True, samples, seed, algorithm, False, erase)
 
 
-def gf2m_divide(m, f=None, chain="it", p=None, use_p=None, samples=16, seed=1, algorithm="auto"):
+def gf2m_divide(m, f=None, chain="it", p=None, use_p=None, samples=16, seed=1, algorithm="auto", erase="terms"):
     """division circuit t ^= y / x (x = 0 -> t ^= 0); wires x = 0..m-1, y = m..2m-1, t = 2m..3m-1, then chain
-    registers / temporaries.  (L + 1) multiplications with p = L chain registers.  See gf2m_inverse."""
-    return _itoh_run("divide", m, f, chain, p, use_p, True, samples, seed, algorithm, False)
+    registers / temporaries; (L + 1) multiplications with p = L chain registers."""
+    return _itoh_run("divide", m, f, chain, p, use_p, True, samples, seed, algorithm, False, erase)
+
+
+gf2m_inverse.__doc__ += _ITOH_DOC
+gf2m_divide.__doc__ += _ITOH_DOC
 
 
 def gf2m_inverse_count(m, f=None, chain="it", p=None, use_p=None, samples=8, seed=1, algorithm="auto",
-                       count_cz=False):
-    """costs of gf2m_inverse without gates: exact AND count (= nonzero bilinear terms of every product), the
-    register program checked on samples; count_cz=True also counts the Z/CZ of the register erasures (O(m^2)
-    field products per erasure type)."""
-    return _itoh_run("inverse", m, f, chain, p, use_p, False, samples, seed, algorithm, count_cz)
+                       erase="terms", count_cz=False):
+    """costs of gf2m_inverse without gates: exact AND count (= nonzero bilinear terms of every product), CZ of the
+    register erasures (erase='terms'; for 'monomials' only with count_cz=True: O(m^2) field products per erasure
+    type); the register program is checked on samples."""
+    return _itoh_run("inverse", m, f, chain, p, use_p, False, samples, seed, algorithm, count_cz, erase)
 
 
 def gf2m_divide_count(m, f=None, chain="it", p=None, use_p=None, samples=8, seed=1, algorithm="auto",
-                      count_cz=False):
+                      erase="terms", count_cz=False):
     """costs of gf2m_divide without gates (see gf2m_inverse_count)."""
-    return _itoh_run("divide", m, f, chain, p, use_p, False, samples, seed, algorithm, count_cz)
+    return _itoh_run("divide", m, f, chain, p, use_p, False, samples, seed, algorithm, count_cz, erase)
 
 
 def gf2m_itoh_gate_check(kind, m, f=None, chain="it", p=None, use_p=None, lanes=32, seed=1, algorithm="auto"):
-    """gate-level check for large m without storing the circuit: kind 'divide' / 'inverse'; every gate of the
-    products is executed bitsliced on `lanes` random inputs (plus 0, 1, all-ones) with every AND / erasure
-    precondition enforced; the register erasures are checked lazily (their Z/CZ bodies are not built).
-    -> cost dict with 'gates' (gate counts) and 'gate_check'; raises on any failure."""
+    """gate-level check for large m without storing the circuit: kind 'divide' / 'inverse'.  Every gate of the
+    products (and the parity CX of the 'terms' register erasures) is executed bitsliced on `lanes` random inputs
+    (plus 0, 1, all-ones) with every AND / erasure precondition enforced; register erasures are checked lazily.
+    -> cost dict with 'gates' (gate counts: CX = cx + 3 per AND + 1 CZ per AND erasure; the conditional CZ of
+    the register erasures are 'CZ_register_erasures') and 'gate_check'; raises on any failure."""
     if kind not in ("divide", "inverse"):
         raise ValueError("kind must be 'divide' or 'inverse'")
-    return _itoh_run(kind, m, f, chain, p, use_p, "stream", lanes, seed, algorithm, False)
+    return _itoh_run(kind, m, f, chain, p, use_p, "stream", lanes, seed, algorithm, False, "terms")

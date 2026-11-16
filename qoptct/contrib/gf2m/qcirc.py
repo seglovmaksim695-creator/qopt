@@ -10,6 +10,12 @@ Operations (ops list):
                       H, measure, if 1: (-1)^Q as Z / CZ gates, X(a)                                 0 T
                       poly = tuple of monomials (w,) or (u, v); a constant monomial () is a global phase of
                       that branch and is dropped (the branch is still U up to a phase).
+    ('k', wt, wa, wb, ands, lins)   assertion, no gate: the wires wt hold the bilinear form
+                      sum (alpha.wa)(beta.wb) gamma + sum (u.wa) g  (checked by `simulate`; uncompute in
+                      `reference_qc`)
+    ('m', a, id)      H, measure q[a] into a new classical bit, if 1: X(a)                           0 T
+    ('p', id, ws)     if the outcome of measurement id is 1: Z(ws[0]) or CZ(ws[0], ws[1])
+                      ('k' + 'm' * |wt| + 'p' ... = erasure of a product register, qoptct.contrib.gf2m.itoh)
 The OpenQASM 3 text uses exactly the constructs of qoptct.contrib.gf2m.check (and, for 'r', a longer
 ``if (c[k]) {...}`` body), which qoptct.verify.prove reads.
 
@@ -17,7 +23,9 @@ On basis states every construct acts classically and without phase provided its 
 erased wire equal to the product / polynomial).  `simulate` runs the circuit bitsliced (one Python int per wire, one
 bit per input lane) and enforces every precondition, so a passing simulation is an exact statement about the
 simulated inputs (all measurement outcomes included).  `degree2_exact` turns it into a proof for all inputs when
-every wire stays of degree <= 2 (see its docstring).
+every wire stays of degree <= 2 (see its docstring).  For the 'k'/'m'/'p' register erasure the simulation checks
+the classical precondition ('k'); that the conditional phases equal (-1)^(s.t) follows from their construction
+from the same terms (itoh.Program._lower_erase_terms) and is proved by qoptct.verify.prove at small m (tests).
 """
 import re
 
@@ -57,6 +65,21 @@ class GF2Circuit:
         const = sum(1 for mm in poly if not len(mm)) & 1
         self.ops.append(('r', a, tuple(tuple(mm) for mm in poly if len(mm)), const))
 
+    # register erasure by bilinear terms (qoptct.contrib.gf2m.itoh)
+    def check_product(self, wt, wa, wb, ands, lins):
+        """assertion (emits no gate): wires wt hold sum_k (alpha_k.wa)(beta_k.wb) gamma_k + sum (u.wa) g."""
+        self.ops.append(('k', tuple(wt), tuple(wa), tuple(wb), tuple(ands), tuple(lins)))
+
+    def measure_reset(self, a):
+        """H, measure into a fresh classical bit, conditional X (wire back to |0>); -> measurement id."""
+        self._mid = getattr(self, "_mid", 0) + 1
+        self.ops.append(('m', a, self._mid))
+        return self._mid
+
+    def cphase(self, mid, wires):
+        """if outcome `mid` is 1: Z (one wire) or CZ (two wires)."""
+        self.ops.append(('p', mid, tuple(wires)))
+
     # -- costs
     def counts(self):
         """AND (= Toffoli-equivalents), T, CX_lin (plain cx), CZ (in erasures), CX = all cx + cz in the text
@@ -78,16 +101,37 @@ class GF2Circuit:
                         ncz += 1
                     else:
                         nz += 1
+            elif k == 'm':
+                ne += 1
+            elif k == 'p':
+                if len(o[2]) == 2:
+                    ncz += 1
+                else:
+                    nz += 1
         return dict(AND=nA, T=4 * nA, CX=ncx + 3 * nA + ncz, CX_lin=ncx, CZ=ncz, Z=nz, measurements=ne,
                     qubits=self.nq)
 
     # -- output
     def qasm(self):
-        nb = sum(1 for o in self.ops if o[0] in 'er')
+        nb = sum(1 for o in self.ops if o[0] in 'erm')
         L = ["OPENQASM 3;", 'include "stdgates.inc";', "qubit[%d] q;" % self.nq, "bit[%d] c;" % max(1, nb)]
         k = 0
+        bit_of = {}
         for o in self.ops:
             t = o[0]
+            if t == 'k':
+                continue
+            if t == 'm':
+                a = o[1]
+                bit_of[o[2]] = k
+                L += ["h q[%d];" % a, "c[%d] = measure q[%d];" % (k, a), "if (c[%d]) {x q[%d];}" % (k, a)]
+                k += 1
+                continue
+            if t == 'p':
+                ws = o[2]
+                g = "z q[%d];" % ws[0] if len(ws) == 1 else "cz q[%d], q[%d];" % ws
+                L.append("if (c[%d]) {%s}" % (bit_of[o[1]], g))
+                continue
             if t == 'c':
                 L.append("cx q[%d], q[%d];" % (o[1], o[2]))
             elif t == 'x':
@@ -125,6 +169,27 @@ class GF2Circuit:
                 L.append("tof %s %s" % (nm[o[1]], nm[o[2]]))
             elif k in 'ae':
                 L.append("tof %s %s %s" % (nm[o[1]], nm[o[2]], nm[o[3]]))
+            elif k == 'k':                       # uncompute the product register by its monomials
+                wt, wa, wb, ands, lins = o[1:]
+                for u, g in lins:
+                    for j in range(len(wa)):
+                        if u >> j & 1:
+                            for i in range(len(wt)):
+                                if g >> i & 1:
+                                    L.append("tof %s %s" % (nm[wa[j]], nm[wt[i]]))
+                for al, be, ga in ands:
+                    for j in range(len(wa)):
+                        if not al >> j & 1:
+                            continue
+                        for jj in range(len(wb)):
+                            if not be >> jj & 1:
+                                continue
+                            ctl = (nm[wa[j]],) if wa[j] == wb[jj] else (nm[wa[j]], nm[wb[jj]])
+                            for i in range(len(wt)):
+                                if ga >> i & 1:
+                                    L.append("tof " + " ".join(ctl) + " " + nm[wt[i]])
+            elif k in 'mp':
+                continue
             else:
                 a, poly, const = o[1:]
                 for mm in poly:
@@ -154,6 +219,35 @@ class GF2Circuit:
                 if st[a] != st[p] & st[q]:
                     raise PreconditionError("op %d: erasure precondition violated" % i)
                 st[a] = 0
+            elif k == 'k':
+                wt, wa, wb, ands, lins = o[1:]
+                want = [0] * len(wt)
+
+                def par(ws, mask):
+                    v = 0
+                    j = 0
+                    while mask:
+                        if mask & 1:
+                            v ^= st[ws[j]]
+                        mask >>= 1
+                        j += 1
+                    return v
+                for u, g in lins:
+                    v = par(wa, u)
+                    for t in range(len(wt)):
+                        if g >> t & 1:
+                            want[t] ^= v
+                for al, be, ga in ands:
+                    v = par(wa, al) & par(wb, be)
+                    for t in range(len(wt)):
+                        if ga >> t & 1:
+                            want[t] ^= v
+                if [st[w] for w in wt] != want:
+                    raise PreconditionError("op %d: register-erasure precondition violated" % i)
+            elif k == 'm':
+                st[o[1]] = 0                     # measured and reset (the outcome only steers phases)
+            elif k == 'p':
+                pass                             # conditional phase: no action on basis states
             else:
                 a, poly, const = o[1:]
                 v = full if const else 0
@@ -308,6 +402,8 @@ def degree2_exact(circ, in_wires, ref):
                 return False, "op %d: erasure precondition" % i
             st[a] = 0
             deg[a] = 0
+        elif k in 'kmp':
+            return False, "op %d: register-erasure ops are not covered by the degree-2 argument" % i
         else:
             a, poly, const = o[1:]
             v = full if const else 0

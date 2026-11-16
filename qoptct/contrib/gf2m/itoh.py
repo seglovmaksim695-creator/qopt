@@ -22,10 +22,14 @@ GF2MulMBUC).  New here (lab k6) is its application to the Itoh-Tsujii chain (peb
 binary-curve point addition; against Taguchi-Takagi (ePrint 2023/553, Table 4: 19 * M) the cost model is the same.
 
 Gate level.  Every product is lowered term by term: parities of the pulled-back masks on fresh wires (CX), one
-logical AND into a fresh ancilla, fan-out into the target bits, measurement erasure, parities undone.  A register
-erasure is one H / measure / ``if (c) {Z.., CZ..; X}`` per bit, its body the monomials of the bit's quadratic form:
-O(m^3) CZ per register in total -- 0 T, but large; for m >~ 64 use the register-level program (counts, sampled
-field-level checks of every erasure condition) instead of emitting gates.
+logical AND into a fresh ancilla, fan-out into the target bits, measurement erasure, parities undone (simple, CX
+heavy: ~3.7M CX for the m = 163 division; the in-place CRT compiler of mult.py is not used here).
+Register erasure, erase_mode='terms' (default): all bits of t are measured in the X basis (outcomes s), then
+(-1)^(s.t) = prod over terms k and bits i of gamma_k of (-1)^(s_i (alpha_k.A)(beta_k.B)) is applied as one
+classically controlled CZ between the two parity wires per (k, i): O(rank * m) CZ plus the parity CX of one
+product.  erase_mode='monomials' (the k6 lab form): one H / measure / ``if (c) {Z.., CZ..; X}`` per bit with the
+monomials of the bit's quadratic form, O(m^3) CZ.  Both 0 T.  For large m the register-level program gives exact
+AND counts and a gate-level stream check (gf2m_itoh_gate_check) without storing the circuit.
 """
 import heapq
 
@@ -313,7 +317,7 @@ class StreamCircuit:
     def counts(self):
         n = self.n
         return dict(AND=n['a'], T=4 * n['a'], CX_lin=n['c'], measurements=n['e'] + n['r'],
-                    CX_without_register_erasures=n['c'] + 3 * n['a'] + n['e'])
+                    CX=n['c'] + 3 * n['a'] + n['e'])     # + the conditional CZ of the register erasures
 
 
 class Program:
@@ -321,10 +325,13 @@ class Program:
     condition is checked on them; with `gates=True` every operation is also lowered to a GF2Circuit.
     dec: bilinear algorithm (alpha, beta, gamma) of c = a*b mod f."""
 
-    def __init__(self, m, f, dec, samples, gates=False, count_cz=False):
+    def __init__(self, m, f, dec, samples, gates=False, count_cz=False, erase_mode="terms"):
         self.F = Field(m, f)
         self.m, self.dec = m, dec
         self.count_cz = count_cz
+        if erase_mode not in ("terms", "monomials"):
+            raise ValueError("erase_mode must be 'terms' or 'monomials'")
+        self.erase_mode = erase_mode
         self.S = len(samples[next(iter(samples))]) if samples else 0
         self.val = {}
         self.stream = gates == "stream"
@@ -436,10 +443,17 @@ class Program:
             raise CheckError("erasure of %s: value != product" % T)
         self.val[T] = [0] * self.S
         self.n_erase += 1
-        if self.count_cz and (self.stream or not self.gates):
+        ands, lins = self._terms(ka, kb, A == B)
+        if self.erase_mode == "terms":
+            self.cz_count += sum(bin(g).count("1") for _, _, g in ands) + sum(bin(g).count("1") for _, g in lins)
+        elif self.count_cz and (self.stream or not self.gates):
             self.cz_count += self._quad_count(ka, kb, A == B)
         if self.stream:
+            if self.erase_mode == "terms":          # the parity CX of the correction, executed for the counts
+                self._lower_erase_terms(T, A, B, ands, lins, dry=True)
             self.C.lazy_erase(self.wires[T], self.wires[A], ka, self.wires[B], kb, self.F)
+        elif self.gates and self.erase_mode == "terms":
+            self._lower_erase_terms(T, A, B, ands, lins)
         elif self.gates:
             polys = self._quad_forms(A, ka, B, kb)
             self.cz_count += sum(len(pl) for pl in polys)
@@ -454,6 +468,35 @@ class Program:
                 self.C.rerase(wt[i], mons)
         if free:
             self.free(T)
+
+    def _lower_erase_terms(self, T, A, B, ands, lins, dry=False):
+        """register erasure by the bilinear terms: measure every bit t_i in the X basis (outcome s_i, wire reset by
+        a conditional X), then apply (-1)^(s.T) = prod_k (-1)^((s.gamma_k)(alpha_k.A)(beta_k.B)) as one
+        classically controlled CZ between the two parity wires per (term k, bit i of gamma_k)  (Z for a linear
+        term).  O(rank * m) CZ instead of the O(m^3) monomials of the per-bit quadratic forms.
+        dry=True (stream mode): only the parity CX are executed (for the counts); the conditional phases do not
+        act on basis states."""
+        C = self.C
+        wa, wb, wt = self.wires[A], self.wires[B], self.wires[T]
+        if not dry:
+            C.check_product(wt, wa, wb, ands, lins)
+            mids = [C.measure_reset(w) for w in wt]
+        for u, g in lins:
+            pa, ia = self._par(wa, u)
+            if not dry:
+                for i in range(self.m):
+                    if g >> i & 1:
+                        C.cphase(mids[i], (pa,))
+            self._unpar(pa, ia, wa)
+        for al, be, ga in ands:
+            pa, ia = self._par(wa, al)
+            pb, ib = self._par(wb, be)
+            if not dry:
+                for i in range(self.m):
+                    if ga >> i & 1:
+                        C.cphase(mids[i], (pa, pb))
+            self._unpar(pb, ib, wb)
+            self._unpar(pa, ia, wa)
 
     def _quad_count(self, ka, kb, same):
         """number of Z/CZ gates of a register erasure (without building the monomials)."""

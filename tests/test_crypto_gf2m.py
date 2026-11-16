@@ -313,20 +313,41 @@ def test_itoh_canaries():
     # below catches it
 
 
-def test_itoh_prove_small():
+def _drop_phase(C):
+    """canary: remove one gate of the first register-erasure phase correction."""
+    ops = list(C.ops)
+    i = next(i for i, o in enumerate(ops) if o[0] == 'p' or (o[0] == 'r' and o[2]))
+    if ops[i][0] == 'p':
+        del ops[i]
+    else:
+        a, poly, const = ops[i][1:]
+        ops[i] = ('r', a, poly[1:], const)
+    return GF2Circuit(C.nq, ops, C.regs, C.meta)
+
+
+@pytest.mark.parametrize("erase", ["terms", "monomials"])
+def test_itoh_prove_small(erase):
+    """exact prover: the measurement-based circuit (all outcomes, phases) equals its Toffoli-level reference;
+    the reference's classical map is the field division / inversion (checked on all inputs above)."""
     from qoptct.verify import prove
     for m, kind in ((3, "divide"), (3, "inverse"), (4, "inverse")):
-        C = G.gf2m_divide(m) if kind == "divide" else G.gf2m_inverse(m)
+        C = (G.gf2m_divide(m, erase=erase) if kind == "divide" else G.gf2m_inverse(m, erase=erase))
         qc = write_tmp(C.reference_qc(), ".qc")
         r = prove(C.qasm(), qc, clean=True, budget_sec=150)
         assert r["status"] == "PROVED", (m, kind, r)
-        # canary: drop one monomial of the first register-erasure phase polynomial
-        ops = list(C.ops)
-        i = next(i for i, o in enumerate(ops) if o[0] == 'r' and o[2])
-        a, poly, const = ops[i][1:]
-        ops[i] = ('r', a, poly[1:], const)
-        D = GF2Circuit(C.nq, ops, C.regs, C.meta)
-        assert prove(D.qasm(), qc, clean=True, budget_sec=150)["status"] != "PROVED"
+        assert prove(_drop_phase(C).qasm(), qc, clean=True, budget_sec=150)["status"] != "PROVED"
+
+
+def test_itoh_erase_modes_agree():
+    for m in (5, 7):
+        a = G.gf2m_divide(m, erase="terms")
+        b = G.gf2m_divide(m, erase="monomials")
+        assert a.counts()["AND"] == b.counts()["AND"]
+        X = list(range(1 << m)) * 4
+        Y = [(7 * i + 3) % (1 << m) for i in range(len(X))]
+        oa = a.simulate(dict(x=X, y=Y, t=[0] * len(X)), len(X))
+        ob = b.simulate(dict(x=X, y=Y, t=[0] * len(X)), len(X))
+        assert oa == ob
 
 
 @pytest.mark.parametrize("m,chain,mult,and_", [(163, "it", 10, 9080), (233, "it", 11, 14773),
