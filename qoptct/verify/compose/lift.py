@@ -3,6 +3,7 @@
 
 The text must be a concatenation of exactly these line groups (the dialect of qoptct.crypto.kaliski.to_qasm):
 
+    (the AND gadget is also accepted in the 13-line form of qoptct.crypto.andcirc: and_template2)
     x q[a];                                                   ('x', a)
     cx q[a], q[b];                                            ('cx', a, b)
     h q[t]; t q[t]; cx q[b], q[t]; tdg q[t]; cx q[a], q[t];
@@ -42,10 +43,11 @@ class LiftError(Exception):
 
 class Lifted:
     """nq: number of qubits; ops: array('i'), 5 ints per operation; n: number of operations."""
-    __slots__ = ('nq', 'ops', 'n', 'nmeas')
+    __slots__ = ('nq', 'ops', 'n', 'nmeas', 'style')
 
     def __init__(self, nq, ops, nmeas):
         self.nq, self.ops, self.n, self.nmeas = nq, ops, len(ops) // 5, nmeas
+        self.style = 1                    # AND template of the text: 1 (kaliski, 10 lines) or 2 (andcirc, 13 lines)
 
     def op(self, i):
         return tuple(self.ops[5 * i:5 * i + 5])
@@ -55,6 +57,13 @@ def and_template(a, b, t):
     q = 'q[%d];' % t
     cb, ca = 'cx q[%d], q[%d];' % (b, t), 'cx q[%d], q[%d];' % (a, t)
     return ['h ' + q, 't ' + q, cb, 'tdg ' + q, ca, 't ' + q, cb, 'tdg ' + q, 'h ' + q, 'sdg ' + q]
+
+
+def and_template2(a, b, t):
+    """the AND gadget as written by qoptct.crypto.andcirc (Gidney 2018, fig. 3): 13 lines."""
+    g = lambda name, *q: '%s %s;' % (name, ', '.join('q[%d]' % x for x in q))
+    return [g('h', t), g('t', t), g('cx', a, t), g('cx', b, t), g('cx', t, a), g('cx', t, b), g('tdg', a),
+            g('tdg', b), g('t', t), g('cx', t, a), g('cx', t, b), g('h', t), g('s', t)]
 
 
 def erase_template(a, b, t, lin=(), k=0):
@@ -103,6 +112,7 @@ def _lift(f):
     app = ops.extend
     nmeas = 0
     nline = 4
+    styles = [0, 0]
     while True:
         ln = f.readline()
         if not ln:
@@ -135,19 +145,31 @@ def _lift(f):
                     b = int(cb[5:-3].split('], q[')[0])
                     if cb != 'cx q[%d], q[%d];\n' % (b, t):
                         bad('AND gadget: bad line 3')
-                    if nxt() != 'tdg ' + q:
-                        bad('AND gadget: bad line 4')
-                    ca = nxt()
-                    a = int(ca[5:-3].split('], q[')[0])
-                    if ca != 'cx q[%d], q[%d];\n' % (a, t):
-                        bad('AND gadget: bad line 5')
-                    for j, exp in enumerate(('t ' + q, cb, 'tdg ' + q, 'h ' + q, 'sdg ' + q)):
-                        if nxt() != exp:
-                            bad('AND gadget: bad line %d' % (6 + j))
+                    l4 = nxt()
+                    if l4 == 'tdg ' + q:                               # template 1 (qoptct.crypto.kaliski)
+                        ca = nxt()
+                        a = int(ca[5:-3].split('], q[')[0])
+                        if ca != 'cx q[%d], q[%d];\n' % (a, t):
+                            bad('AND gadget: bad line 5')
+                        for j, exp in enumerate(('t ' + q, cb, 'tdg ' + q, 'h ' + q, 'sdg ' + q)):
+                            if nxt() != exp:
+                                bad('AND gadget: bad line %d' % (6 + j))
+                        nline += 9
+                        styles[0] += 1
+                    else:                                              # template 2 (qoptct.crypto.andcirc)
+                        a = b
+                        b = int(l4[5:-3].split('], q[')[0])
+                        if a >= nq or b >= nq:
+                            bad('AND gadget: bad wires')
+                        for j, exp in enumerate(and_template2(a, b, t)[3:]):
+                            got = l4 if j == 0 else nxt()
+                            if got != exp + '\n':
+                                bad('AND gadget (13 lines): bad line %d' % (4 + j))
+                        nline += 12
+                        styles[1] += 1
                     if len({a, b, t}) != 3 or a >= nq or b >= nq:
                         bad('AND gadget: wires not distinct')
                     app((K_AND, a, b, t, -1))
-                    nline += 9
                 elif l2.startswith('c['):
                     k = int(l2[2:l2.index(']')])
                     if l2 != 'c[%d] = measure q[%d];\n' % (k, t):
@@ -172,7 +194,9 @@ def _lift(f):
         except (ValueError, IndexError):
             lineno[0] = max(lineno[0], nline)
             raise LiftError('line %d: not a recognised line' % lineno[0])
-    return Lifted(nq, ops, nmeas)
+    L = Lifted(nq, ops, nmeas)
+    L.style = 2 if (styles[1] and not styles[0]) else 1
+    return L
 
 
 def write_qasm(L, path, chunk=100000):
@@ -191,7 +215,7 @@ def write_qasm(L, path, chunk=100000):
             elif kd == K_X:
                 buf.append('x q[%d];' % a)
             elif kd == K_AND:
-                buf += and_template(a, b, t)
+                buf += and_template(a, b, t) if L.style == 1 else and_template2(a, b, t)
             else:
                 buf += erase_template(a, b, t, (l,) if l >= 0 else (), k)
                 k += 1
@@ -267,8 +291,9 @@ def check_gadget_lemmas():
     """exact check of the two gadget lemmas of the module docstring. -> True, or raises AssertionError."""
     for a in (0, 1):
         for b in (0, 1):
-            st = _run_unitary({(a, b, 0): _ONE}, and_template(0, 1, 2))
-            assert st == {(a, b, a & b): _ONE}, ('AND lemma', a, b, st)
+            for tpl in (and_template, and_template2):
+                st = _run_unitary({(a, b, 0): _ONE}, tpl(0, 1, 2))
+                assert st == {(a, b, a & b): _ONE}, ('AND lemma', tpl.__name__, a, b, st)
     for nl in (0, 1):
         lin = (2,) if nl else ()
         t = 2 + nl

@@ -27,11 +27,12 @@ with no residual phase.
 import random
 import time
 
-from .kal import Chain, ProofFailure, simulate_flat
+from .kal import Chain
+from .walker import Walker, ProofFailure, simulate_flat, register_fact
 from .lift import lift, Lifted, LiftError, check_gadget_lemmas
 
 __all__ = ['verify_kaliski', 'pstd_test', 'kaliski_hints', 'lift', 'LiftError', 'check_gadget_lemmas', 'Chain',
-           'ProofFailure', 'PRIMES', 'named_prime']
+           'ProofFailure', 'PRIMES', 'named_prime', 'Walker', 'register_fact']
 
 PRIMES = {
     'secp256k1': 2 ** 256 - 2 ** 32 - 977,
@@ -122,9 +123,12 @@ def _value(store, wires, j):
     return sum(((store.get(w, 0) >> j) & 1) << i for i, w in enumerate(wires))
 
 
-def pstd_test(p, reduction='generic', xs=None, hints=None, count=256):
+def pstd_test(p, reduction='generic', xs=None, hints=None, count=256, lifted=None, clean=False):
     """execute P_std (the contract chain itself) on the inputs xs and check every mathematical assumption, every
-    carried fact and the final result (out = -x^{-1} 2^{2n} mod p, u = 1, v = 0). -> dict(ok, inputs, violations)."""
+    carried fact and the final result (out = -x^{-1} 2^{2n} mod p, u = 1, v = 0). -> dict(ok, inputs, violations).
+    With `lifted` (the lifted circuit the hints belong to): also run the circuit itself classically on the same
+    inputs and compare EVERY wire with the state of P_std (forward circuit), resp. with |x>|K>|0> (clean circuit):
+    an end-to-end consistency check of the chain against the real circuit (key 'circuit_agrees')."""
     if hints is None:
         hints = kaliski_hints(p, reduction)
     if xs is None:
@@ -137,7 +141,23 @@ def pstd_test(p, reduction='generic', xs=None, hints=None, count=256):
         got = (_value(ch.store, ch.out, j), _value(ch.store, ch.u, j), _value(ch.store, ch.v, j))
         if got != (_expected(p, n, x), 1, 0) and len(viol) < 20:
             viol.append(dict(segment='final', what='result (out, u, v) = %r' % (got,), x=x))
-    return dict(ok=not viol, inputs=len(xs), violations=viol[:20])
+    res = dict(ok=not viol, inputs=len(xs), violations=viol[:20])
+    if lifted is not None:
+        S = len(xs)
+        init = {i: sum(((x >> i) & 1) << j for j, x in enumerate(xs)) for i in range(n)}
+        v, bad = simulate_flat(lifted, init, S)
+        agree = bad is None
+        if agree:
+            if clean:
+                want = dict(init)
+                for i in range(n):
+                    want[n + i] = sum(((_expected(p, n, x) or 0) >> i & 1) << j for j, x in enumerate(xs))
+            else:
+                want = ch.store
+            agree = all(v[w] == want.get(w, 0) for w in range(lifted.nq))
+        res['circuit_agrees'] = agree
+        res['ok'] = res['ok'] and agree
+    return res
 
 
 def _refute(L, p, n, clean, out, count, seed=7):
@@ -229,11 +249,11 @@ def verify_kaliski(qasm, p, reduction='generic', clean=False, hints=None, lifted
                out=list(range(n, 2 * n)) if clean else list(ch.out), u=list(ch.u), v=list(ch.v))
     if test_samples:
         res['stage'] = 'pstd_test'
-        fh = hints if not clean else dict(hints, marks=hints['marks'])
-        t = pstd_test(p, reduction, hints=fh, count=test_samples)
+        t = pstd_test(p, reduction, hints=hints, count=test_samples, lifted=L, clean=clean)
         res['pstd_test'] = t
         if not t['ok']:
-            return done(detail='a mathematical assumption of P_std is violated on a concrete input: %r'
+            return done(detail='P_std disagrees with the circuit on a concrete input' if not t.get('circuit_agrees', 1)
+                        else 'a mathematical assumption of P_std is violated on a concrete input: %r'
                         % (t['violations'][:1],))
     return done(status='PROVED', stage='done', proved_modulo='paper lemmas M1..M6 on the integer algorithm (and the fold '
                 'lemma for reduction=special), compose/PROOF.md sections 4-5; tested by pstd_test',

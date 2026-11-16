@@ -282,3 +282,29 @@ def test_cli(tmp_path, capsys):
     assert json.loads(capsys.readouterr().out)['status'] == 'REFUTED'
     assert cli(['pstd', '--prime', '31', '--all']) == 0
     assert kaliski_hints(31)['marks'][0][1] == 'init'
+
+
+def test_lift_andcirc_dialect(tmp_path):
+    """the 13-line AND gadget of qoptct.crypto.andcirc is lifted too (gadget lemma checked for both templates)."""
+    from qoptct.crypto.andcirc import Circ
+    from qoptct.verify.compose.lift import write_qasm
+    from qoptct.verify.compose.walker import simulate_flat
+    c = Circ()
+    a, b = c.new(5), c.new(5)
+    co = c.new()[0]
+    c.add(b, a, cout=co)
+    txt = c.qasm()
+    L = lift(txt)
+    assert L.style == 2 and sum(1 for i in range(L.n) if L.op(i)[0] == 2) == c.nand
+    write_qasm(L, tmp_path / 'back.qasm')
+    assert (tmp_path / 'back.qasm').read_text().split('\n', 1)[1] == txt.split('\n', 1)[1]
+    xs = [(x, y) for x in range(32) for y in range(32)]
+    init = {}
+    for i in range(5):
+        init[a[i]] = sum(((x >> i) & 1) << j for j, (x, y) in enumerate(xs))
+        init[b[i]] = sum(((y >> i) & 1) << j for j, (x, y) in enumerate(xs))
+    v, bad = simulate_flat(L, init, len(xs))
+    assert bad is None
+    for j, (x, y) in enumerate(xs):
+        got = sum(((v[w] >> j) & 1) << i for i, w in enumerate(b + [co]))
+        assert got == x + y
