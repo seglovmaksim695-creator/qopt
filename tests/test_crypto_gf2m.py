@@ -366,6 +366,197 @@ def test_itoh_prove_small(erase, lowering, alg):
         assert prove(_drop_phase(C).qasm(), qc, clean=True, budget_sec=150)["status"] != "PROVED"
 
 
+# ------------------------------------------------- register erasure by terms: exact proofs at larger m (0.5.0)
+
+def table_ref_qc(C, kind, m, f):
+    """INDEPENDENT reference from the field definition: t ^= x^-1 (inverse) or t ^= y * x^-1 (divide), one
+    multi-controlled X per (value v of x, output bit) with x^-1 = x^(2^m - 2) by square-and-multiply; wire names
+    q<i> of the circuit, inputs = the registers x, (y,) t."""
+    F = itoh.Field(m, f)
+    nm = ["q%d" % i for i in range(C.nq)]
+    X, T, Y = C.regs["x"], C.regs["t"], C.regs.get("y")
+    ins = sorted(w for ws in C.regs.values() for w in ws)
+    L = [".v " + " ".join(nm), ".i " + " ".join(nm[i] for i in ins), "BEGIN"]
+    ctl = " ".join(nm[w] for w in X)
+    for v in range(1, 1 << m):
+        zero = [X[i] for i in range(m) if not v >> i & 1]
+        L += ["tof %s" % nm[w] for w in zero]
+        iv = F.inv(v)
+        for j in range(m if kind == "divide" else 1):
+            col = F.mul(iv, 1 << j) if kind == "divide" else iv
+            for k in range(m):
+                if col >> k & 1:
+                    L.append("tof %s %s%s" % (ctl, (nm[Y[j]] + " ") if kind == "divide" else "", nm[T[k]]))
+        L += ["tof %s" % nm[w] for w in zero]
+    L.append("END")
+    return "\n".join(L) + "\n"
+
+
+def _drop_cphase(C, k):
+    ops = list(C.ops)
+    idx = [i for i, o in enumerate(ops) if o[0] == 'p']
+    del ops[idx[k % len(idx)]]
+    return GF2Circuit(C.nq, ops, C.regs, C.meta)
+
+
+def _kprove_itoh(kind, m, tmp_path, max_mb=1400, canary=True):
+    """kprove (BDD engine, all inputs and all measurement outcomes) of the default circuit (erase='terms', CRT
+    lowering) against the independent table reference; canaries: one conditional phase removed -> REFUTED."""
+    from qoptct.verify.kprove import kprove
+    f = G.default_modulus(m)
+    C = G.gf2m_divide(m, algorithm="crt") if kind == "divide" else G.gf2m_inverse(m, algorithm="crt")
+    assert C.counts()["CZ"] + C.counts()["Z"] > 0
+    q, r = tmp_path / "c.qasm", tmp_path / "r.qc"
+    q.write_text(C.qasm())
+    r.write_text(table_ref_qc(C, kind, m, f))
+    order = list(C.regs["t"]) + list(C.regs.get("y", [])) + list(C.regs["x"])      # x on top of the BDD order
+    kw = dict(clean=True, engine="bdd", sample=False, budget_sec=600, max_mb=max_mb, order=order)
+    res = kprove(str(q), str(r), **kw)
+    assert res["status"] == "PROVED", (kind, m, res.get("detail"), res.get("mem"))
+    if canary:
+        for k in (0, 7):
+            d = tmp_path / "d.qasm"
+            d.write_text(_drop_cphase(C, k).qasm())
+            assert kprove(str(d), str(r), **kw)["status"] == "REFUTED", (kind, m, k)
+    return res
+
+
+@pytest.mark.parametrize("kind,m", [("inverse", 3), ("inverse", 4), ("inverse", 5), ("inverse", 6), ("inverse", 7),
+                                    ("inverse", 8), ("divide", 3), ("divide", 4), ("divide", 5), ("divide", 6)])
+def test_itoh_kprove_table_reference(kind, m, tmp_path):
+    _kprove_itoh(kind, m, tmp_path)
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize("kind,m", [("inverse", 10), ("inverse", 12), ("divide", 7), ("divide", 8), ("divide", 9),
+                                    ("divide", 10)])
+def test_itoh_kprove_table_reference_big(kind, m, tmp_path):
+    """0.1-0.6 GB of BDD (growth budget 1.4 GB); larger proofs (inverse m = 14, divide m = 11, 12: ~1.4 / 0.75 /
+    0.95 GB) are in the 0.5.0 lab report; inverse m = 15, 16 do not fit into 1.7 GB."""
+    _kprove_itoh(kind, m, tmp_path)
+
+
+def _phase_checked(C, vals, lanes):
+    from qoptct.contrib.gf2m.qcirc import ErasurePhaseChecker
+    ch = ErasurePhaseChecker()
+    for o in C.ops:
+        ch.feed(o)
+    ok, why = ch.result()
+    out = C.simulate(vals, lanes, zero_at=ch.assumed_zero)      # the checker's |0> assumptions hold
+    return ok, why, out, ch
+
+
+@pytest.mark.parametrize("lowering", ["crt", "parity"])
+def test_erasure_phase_check_any_m(lowering):
+    """symbolic exact check of every register-erasure phase correction (qcirc.ErasurePhaseChecker); canaries."""
+    from qoptct.contrib.gf2m.qcirc import erasure_phase_check
+    for m in (3, 4, 5, 6, 8, 11, 16, 23):
+        f = G.default_modulus(m)
+        F = itoh.Field(m, f)
+        for kind in ("inverse", "divide"):
+            fn = G.gf2m_divide if kind == "divide" else G.gf2m_inverse
+            C = fn(m, lowering=lowering, algorithm="crt" if lowering == "crt" else "auto")
+            rng = random.Random(m)
+            X = list(range(1 << m)) if m <= 8 else [0, 1] + [rng.getrandbits(m) for _ in range(30)]
+            vals = dict(x=X, t=[rng.getrandbits(m) for _ in X])
+            if kind == "divide":
+                vals["y"] = [rng.getrandbits(m) for _ in X]
+            ok, why, out, ch = _phase_checked(C, vals, len(X))
+            assert ok and ch.n_groups == C.meta["cost"]["register_erasures"], (m, kind, why)
+            want = [t ^ (F.mul(vals["y"][k] if kind == "divide" else 1, F.inv(x)) if x else 0)
+                    for k, (x, t) in enumerate(zip(X, vals["t"]))]
+            assert out["t"] == want
+            ps = [i for i, o in enumerate(C.ops) if o[0] == 'p']
+            for j in (0, len(ps) // 2, len(ps) - 1):              # one conditional phase removed
+                ops = list(C.ops)
+                del ops[ps[j]]
+                assert not erasure_phase_check(ops)[0], (m, kind, j)
+            ops = list(C.ops)                                      # one CZ moved to another wire
+            i2 = next(i for i in ps if len(ops[i][2]) == 2)
+            mid, ws = ops[i2][1:]
+            other = next(w for w in C.regs["x"] + C.regs["t"] if w not in ws)
+            ops[i2] = ('p', mid, (ws[0], other))
+            assert not erasure_phase_check(ops)[0], (m, kind)
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize("kind", ["divide", "inverse"])
+def test_erasure_phase_check_163(kind):
+    """the full gate-level circuit at m = 163 (~1.8M ops, ~0.25 GB): every one of the 668 520 (divide) conditional
+    phases of the register erasures is checked symbolically; classical part on 16 inputs."""
+    m = 163
+    f = G.default_modulus(m)
+    F = itoh.Field(m, f)
+    C = G.gf2m_divide(m) if kind == "divide" else G.gf2m_inverse(m)
+    rng = random.Random(3)
+    X = [0, 1, (1 << m) - 1] + [rng.getrandbits(m) for _ in range(13)]
+    vals = dict(x=X, t=[rng.getrandbits(m) for _ in X])
+    if kind == "divide":
+        vals["y"] = [rng.getrandbits(m) for _ in X]
+    ok, why, out, ch = _phase_checked(C, vals, len(X))
+    assert ok and ch.n_groups == 9 and ch.n_phase == C.meta["cost"]["CZ_register_erasures"], why
+    want = [t ^ (F.mul(vals["y"][k] if kind == "divide" else 1, F.inv(x)) if x else 0)
+            for k, (x, t) in enumerate(zip(X, vals["t"]))]
+    assert out["t"] == want
+
+
+# ------------------------------------------------- exact2 as a prover in qoptct.verify (0.5.0)
+
+def test_exact2_prover_multiplier(tmp_path):
+    from qoptct.verify.exact2 import prove_degree2, gadget_check
+    from qoptct.verify.kprove import kprove
+    assert gadget_check() < 1e-12
+    for m in (3, 5, 8):
+        f = G.default_modulus(m)
+        for mode in ("strict", "clean"):
+            C = G.gf2m_multiply(m, mode=mode, algorithm="crt")
+            qc = tmp_path / ("s%d%s.qc" % (m, mode))
+            txt = schoolbook_qc(m, f)
+            if mode == "strict":          # c is an input as well
+                txt = txt.replace(".i " + " ".join(["a%d" % i for i in range(m)] + ["b%d" % i for i in range(m)]),
+                                  ".i " + " ".join(["a%d" % i for i in range(m)] + ["b%d" % i for i in range(m)]
+                                                   + ["c%d" % i for i in range(m)]))
+            qc.write_text(txt)
+            q = tmp_path / "m.qasm"
+            q.write_text(C.qasm())
+            r = prove_degree2(str(q), str(qc), clean=(mode == "clean"))
+            assert r["status"] == "PROVED", (m, mode, r)
+            assert kprove(str(q), str(qc), clean=(mode == "clean"))["status"] == "PROVED"
+            for kind, k in (("drop_cx", 0), ("drop_cx", 9), ("swap_cx", 3)):
+                q.write_text(mutate(C, kind, k).qasm())
+                assert prove_degree2(str(q), str(qc), clean=(mode == "clean"))["status"] != "PROVED", (m, mode, kind)
+    # not applicable: the division (degree > 2) -> no verdict
+    D = G.gf2m_divide(3)
+    q = tmp_path / "d.qasm"
+    q.write_text(D.qasm())
+    qc = tmp_path / "d.qc"
+    qc.write_text(D.reference_qc())
+    assert prove_degree2(str(q), str(qc), clean=True)["status"] in ("ERROR", "UNKNOWN")
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize("mode", ["strict", "clean"])
+def test_exact2_prover_163(mode, tmp_path):
+    from qoptct.verify.exact2 import prove_degree2
+    m = 163
+    f = G.default_modulus(m)
+    C = G.gf2m_multiply(m, mode=mode)
+    names = ["a%d" % i for i in range(m)] + ["b%d" % i for i in range(m)] + ["c%d" % i for i in range(m)]
+    txt = schoolbook_qc(m, f)
+    if mode == "strict":
+        txt = txt.replace(".i " + " ".join(names[:2 * m]), ".i " + " ".join(names))
+    qc = tmp_path / "s.qc"
+    qc.write_text(txt)
+    q = tmp_path / "m.qasm"
+    q.write_text(C.qasm())
+    r = prove_degree2(str(q), str(qc), clean=(mode == "clean"))
+    assert r["status"] == "PROVED", r
+    n = 3 * m if mode == "strict" else 2 * m           # free input bits
+    assert r["lanes"] == 1 + n * (n + 1) // 2
+    q.write_text(mutate(C, "drop_cx", 1234).qasm())
+    assert prove_degree2(str(q), str(qc), clean=(mode == "clean"))["status"] != "PROVED"
+
+
 def test_itoh_erase_modes_agree():
     for m in (5, 7):
         a = G.gf2m_divide(m, erase="terms")

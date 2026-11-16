@@ -24,7 +24,7 @@ Install: pip install qoptct  (neural mode --net: pip install "qoptct[net]"). Pyt
   qoptct prove CIRCUIT REF.qc [--clean] [--budget S]
       Exact equivalence proof of an optimized circuit (OpenQASM 3 or .qc) against its input; prints JSON, exit code
       0 PROVED, 1 REFUTED, 2 UNKNOWN, 3 usage or input error (missing file, malformed circuit).
-  qoptct kprove CIRCUIT.qasm REF.qc [--clean] [--budget S] [--engine ...] [--json]
+  qoptct kprove CIRCUIT.qasm REF.qc [--clean] [--budget S] [--engine ...] [--max-mb MB] [--json]
       BDD-based exact proof against a classical reference (qoptct.verify.kprove); see `qoptct kprove --help`.
   qoptct estimate --toffoli T --qubits Q [--model all|ge2019|gidney2025|litinski2023] [--json] | --check
       Physical (surface-code) cost from logical counts, formula models calibrated on published papers

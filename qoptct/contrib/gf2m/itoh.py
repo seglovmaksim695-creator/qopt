@@ -30,6 +30,30 @@ classically controlled CZ between the two parity wires per (k, i): O(rank * m) C
 product.  erase_mode='monomials' (the k6 lab form): one H / measure / ``if (c) {Z.., CZ..; X}`` per bit with the
 monomials of the bit's quadratic form, O(m^3) CZ.  Both 0 T.  For large m the register-level program gives exact
 AND counts and a gate-level stream check (gf2m_itoh_gate_check) without storing the circuit.
+
+Why erase='terms' is correct for every m (qoptct 0.5.0).  Let t = F_a(A) * F_b(B) be the register to erase, A, B
+live registers, F_a, F_b linear (Frobenius powers).  A bilinear algorithm (alpha_k, beta_k, gamma_k) of the field
+product, applied to A' = F_a(A), B' = F_b(B), gives  t = sum_k gamma_k (alpha_k.A')(beta_k.B')  and
+alpha.A' = pull(alpha).A (pull_mask), so  t = sum_k gamma_k (a_k.A)(b_k.B)  with pulled-back masks a_k, b_k.
+  1. Measuring every bit of t in the X basis (H, measure, outcome s_i, conditional X back to |0>) maps a basis
+     state |A, B, t> to 2^(-m/2) (-1)^(s.t) |A, B, 0> in branch s = (s_1..s_m).
+  2. s.t = sum_i s_i t_i = sum_k sum_{i in gamma_k} s_i (a_k.A)(b_k.B)  (mod 2), and (-1)^x depends on x mod 2
+     only, so (-1)^(s.t) = prod over (k, i in gamma_k, s_i = 1) of (-1)^((a_k.A)(b_k.B)).
+  3. Each factor is one CZ between two wires that hold a_k.A and b_k.B at that moment (parity wires: CX of the bits
+     into a |0> wire, undone afterwards; CRT lowering: in-place invertible CX transforms of A and B, restored
+     exactly), classically controlled by s_i; a term with A = B and a_k = b_k is (a_k.A)^2 = a_k.A -> one Z.
+     (The CRT lowering takes its terms from the CRT bilinear algorithm of mult.py, the parity lowering from `dec`:
+     any correct bilinear algorithm of the same product gives the same s.t, so the argument is the same.)
+  4. Hence after the corrections every branch is 2^(-m/2) |A, B, 0>: the same isometry for every basis input, i.e.
+     the erasure equals the coherent uncomputation of t on all inputs (and superpositions), for every m, provided
+     the classical precondition (t = the asserted bilinear form, the CX bookkeeping returns A, B and the work wires)
+     holds -- which the register program checks on samples, `GF2Circuit.simulate` on given inputs and the
+     exhaustive tests on all inputs for small m.
+Machine checks of the emitted gates: qcirc.ErasurePhaseChecker recomputes, symbolically and for any m, the phase
+polynomial sum_i s_i Q_i(A, B) actually applied by the conditional Z / CZ of every erasure and compares it with the
+asserted form (exact for all inputs and outcomes; m = 163 division: all 668 520 conditional phases); kprove proves
+whole circuits against an independent truth-table reference (inverse m <= 14, division m <= 12 within
+1.4 / 1.7 GB; tests/test_crypto_gf2m.py up to 12 / 10), and a removed conditional phase is REFUTED.
 """
 import heapq
 

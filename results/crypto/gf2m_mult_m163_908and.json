@@ -1,0 +1,19 @@
+{
+ "name": "gf2m_mult_m163_908and",
+ "model": "strict",
+ "AND": 908,
+ "T": 3632,
+ "CX": 75823,
+ "cx": 74915,
+ "cz": 908,
+ "qubits": 490,
+ "measurements": 908,
+ "verdict": "PROVED",
+ "method": "exact2",
+ "detail": "degree <= 2 (circuit and reference); all 119806 inputs of weight <= 2 agree with every AND / erasure precondition (74007 ops) => all inputs, all measurement outcomes",
+ "prove_time_s": 0.5,
+ "reference": "gf2m_mult_m163_908and.qc",
+ "reference_how": "generated from the definition (schoolbook a_i b_j x^(i+j) reduced mod the NIST polynomial x^163+x^7+x^6+x^3+1), independent of the circuit; checked on 300 random inputs against polynomial multiplication + long division",
+ "wires": "a = q[0..162], b = q[163..325], c = q[326..488] (bit i = coefficient of x^i), q[489] clean ancilla",
+ "note": "c ^= a*b in GF(2^163) (NIST B-163/K-163 field), CRT bilinear algorithm of rank 908 (qoptct.crypto.gf2m_multiply(163), seed 0).  Proved by qoptct.verify.exact2 (all wires of GF(2) degree <= 2: the 119806 inputs of weight <= 2 decide all inputs; all measurement outcomes); the BDD engine of kprove runs out of memory here (2 GB machine).  Not a record of bilinear complexity: 906 in arXiv:1303.7082."
+}

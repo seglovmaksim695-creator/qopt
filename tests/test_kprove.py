@@ -86,6 +86,55 @@ def test_memory_guard_unknown(tmp_path, monkeypatch):
     assert r["status"] == "UNKNOWN" and "memory" in r["detail"], r
 
 
+def test_memory_budget_is_growth(tmp_path, monkeypatch):
+    """max_mb counts the growth of the RSS during the call, not the earlier peak of the process."""
+    from qoptct.verify.kprove import MemGuard, current_rss_mb
+    monkeypatch.delenv("KPROVE_MAX_MB", raising=False)
+    ballast = bytearray(150 * 1000 * 1000)            # the process is now >= 150 MB above its start
+    ballast[::4096] = b"\1" * len(ballast[::4096])
+    q, c = _adder_files(tmp_path, 64)
+    r = kprove(q, c, clean=True, engine="bdd", sample=False, max_mb=100)
+    assert r["status"] == "PROVED", r
+    assert r["mem"]["max_mb"] == 100 and r["mem"]["peak_growth_mb"] < 100
+    if current_rss_mb() is not None:
+        assert r["mem"]["base_mb"] >= 150 and r["mem"]["measure"] == "current RSS"
+    del ballast
+    if current_rss_mb() is not None:
+        g = MemGuard(5)
+        big = bytearray(60 * 1000 * 1000)
+        big[::4096] = b"\1" * len(big[::4096])
+        with pytest.raises(Exception, match="memory"):
+            g.check()
+        del big
+    assert MemGuard().max_mb == 900
+    monkeypatch.setenv("KPROVE_MAX_MB", "1234")
+    assert MemGuard().max_mb == 1234 and MemGuard(77).max_mb == 77
+
+
+def test_memory_guard_param_unknown(tmp_path):
+    q, c = _adder_files(tmp_path, 64)
+    r = kprove(q, c, clean=True, engine="bdd", sample=False, max_mb=1)
+    assert r["status"] == "UNKNOWN" and "memory" in r["detail"], r
+
+
+def test_exact2_engine(tmp_path):
+    """engine 'exact2' (degree <= 2) on a tiny bilinear circuit: c ^= a & b via one logical AND + erasure."""
+    and_body = ["h q[2];", "t q[2];", "cx q[1], q[2];", "tdg q[2];", "cx q[0], q[2];", "t q[2];", "cx q[1], q[2];",
+                "tdg q[2];", "h q[2];", "sdg q[2];"]
+    qasm = ["OPENQASM 3;", 'include "stdgates.inc";', "qubit[4] q;", "bit[1] c;"] + and_body + [
+        "cx q[2], q[3];", "h q[2];", "c[0] = measure q[2];", "if (c[0]) {cz q[0], q[1]; x q[2];}"]
+    q = tmp_path / "and.qasm"
+    q.write_text("\n".join(qasm) + "\n")
+    ref = tmp_path / "and.qc"
+    ref.write_text(".v a b w c\n.i a b c\nBEGIN\ntof a b c\nEND\n")
+    assert kprove(str(q), str(ref), clean=True, engine="exact2")["status"] == "PROVED"
+    r = kprove(str(q), str(ref), clean=True)                   # auto: bilinear reference -> exact2 first
+    assert r["status"] == "PROVED" and r["method"] == "exact2", r
+    q.write_text("\n".join(qasm[:-4] + qasm[-3:]) + "\n")      # the fan-out CX removed
+    assert kprove(str(q), str(ref), clean=True, engine="exact2")["status"] == "REFUTED"
+    assert kprove_main([str(q), str(ref), "--clean", "--engine", "exact2", "--max-mb", "500"]) == 1
+
+
 def test_cli_exit_codes(tmp_path, capsys):
     q, c = _adder_files(tmp_path, 4)
     m, _ = _adder_files(tmp_path, 4, mutate=True)
