@@ -18,10 +18,18 @@ narrow_lookup(table, c, w)      BILINEAR split of the address into hi (h bits) a
     ANDs = base + R  >=  base + dim V.   c=6, w=32: 8 + 32 = 40 (ANF/Davio and Gidney 2025's count 2^c-c-1 = 57);
     c=6, w=21: 33 with h=2 (12 + 21); c=5, w=16: 21 instead of 26.  Splits h = 1..min(3, c//2) are tried, the
     cheapest wins; if no split beats Davio (2^c-c-1), the Davio lookup is returned (method 'davio').
-    Measured on random tables (k1, Random(10000+t)): c=6 w=32 h=3: 40 ANDs in 38/40 tables, 41 in 2/40;
-    c=6 w=21 h=2: 33 in 15/20, 34..37 in 5/20.  The classical search (pure Python) takes ~0.05-2 s per table for
-    c=6 and ~9 s for c=7: fine for a few tables, a C implementation is needed for ~10^7 tables.  Ancillas: base
-    monomial wires + 1 product wire (c=6, h=3: 9 extra qubits; Davio: c-1).
+    Measured with the defaults on random tables (Random(10000+t), lab script, qoptct 0.5):
+        c=6 w=32: 40 ANDs (= 8 + w) in 38/40 tables, 41 in 2/40 (h=3)          Davio 57
+        c=6 w=21: 33 (= 12 + w) in 15/20, 34 in 4/20, 35 in 1/20 (h=2)         Davio 57
+        c=6 w=16: 29..31 in 19/20, 34 in 1/20 (lower bound 28)                  Davio 57
+        c=5 w=16: 21 in 37/40, 20 in 2/40, 22 in 1/40;  c=5 w=8: 13..15         Davio 26
+        c=4 w=4: 6 in 35/40, 7 in 5/40;  c=4 w=8: 8..10, Davio (11) in 1/40      Davio 11
+        c=7 w=32: 64..65 (5 tables)                                              Davio 120
+    "Success" (R = dim V, i.e. base + w for w <= rank) is thus ~95 % at c=6 w=32; otherwise 1-2 ANDs more; the
+    Davio fallback never triggered for c >= 5 in these samples.  The classical search is pure Python: c=6 w=32
+    0.25 s per table (max 0.4 s), c=6 w=16..21 ~2-3 s, c=7 w=32 ~25 s, c <= 5 < 0.01 s: fine for a few tables;
+    for the ~10^7 tables of a full RSA run a C implementation would be needed (not provided).  Ancillas: base
+    monomial wires + 1 product wire (c=6: h=3 9 extra qubits, h=2 13; Davio: c-1 = 5).
 davio_lookup(table, c, w)       ANF subset tree: one AND per needed monomial of degree >= 2 (<= 2^c-c-1 ANDs).
 qroam1_lookup(table, c, w)      QROAM with one select bit (lambda = 2): ANF lookup of [T[2h] | T[2h]^T[2h+1]] over the
     c-1 high bits into [z | R], then z_i ^= a0 R_i (w ANDs), then R is cleared by measurement-based unlookup:
@@ -29,7 +37,7 @@ qroam1_lookup(table, c, w)      QROAM with one select bit (lambda = 2): ANF look
 unlookup_meas / lookup_pair     measurement-based uncomputation (X-measure z, phase fix-up (-1)^{m.T[a]} by products
     of hi x lo monomials): U(c) = (2^ceil(c/2)-ceil(c/2)-1) + (2^floor(c/2)-floor(c/2)-1) ANDs (c=6: 8).
     lookup_pair(table, c, w, mode): y ^= T[a] through a temporary z: lookup, CX, unlookup ('qroam1' clears [z | R]
-    with ONE unlookup of the combined table: c=6, w=21: 26+21+8 = 55 instead of 57+8 = 65).
+    with ONE unlookup of the combined table: c=6, w=21: 26+21+8 = 55 instead of 57+8 = 65; 'narrow': 33+8 = 41).
 lookup_add(table, c, w)         acc(w) += T[a] mod 2^w: narrow lookup + Gidney adder (w-1 ANDs) + unlookup
     (c=6, w=32: 40 + 31 + 8 = 79; one step of loop1 in Gidney 2025).
 
@@ -506,10 +514,13 @@ def _check_table(table, c, w):
     return T
 
 
-def plan_narrow(table, c, w, seed=0, splits=None, tries=3):
-    """Classical search for the bilinear plan (pure Python; c=6: ~0.05-2 s per table, c=7: ~9 s).
+def plan_narrow(table, c, w, seed=0, splits=None, tries=None):
+    """Classical search for the bilinear plan (pure Python, single thread).
     splits: candidate h (hi bits); default 1..min(3, c//2) (h > l is the transposed problem, h > 3 is too slow).
-    Returns the cheapest Plan over the splits, or None (c < 2 or no decomposition found)."""
+    tries: randomised searches per split, best kept, early stop at R = dim V; default 3 for h <= 2 (fast) and 1 for
+    h = 3 (each try ~0.3-2 s at c=6).  A split whose lower bound base + dim V cannot beat the best plan is skipped.
+    Measured search time per table (1 core): c <= 5: < 0.01 s; c=6: w=32 0.3 s (max 1.4 s), w=16..21 ~2-3 s (the
+    h=3 split is tried and loses); c=7, w=32: ~25 s.  Returns the cheapest Plan, or None (c < 2 / nothing found)."""
     T = _check_table(table, c, w)
     if c < 2:
         return None
@@ -532,7 +543,8 @@ def plan_narrow(table, c, w, seed=0, splits=None, tries=3):
             p = Plan(c, w, h, l, [], 0, seed, time.time() - t0)
         else:
             sel = None
-            for t in range(tries):          # best of `tries` randomised searches; R = dim V is optimal: stop
+            nt = tries if tries is not None else (3 if h <= 2 else 1)
+            for t in range(nt):             # best of nt randomised searches; R = dim V is optimal: stop
                 s = _decompose(cores, h, l, random.Random(seed * 1000 + t))
                 if s is not None and (sel is None or len(s) < len(sel)):
                     sel = s
@@ -960,7 +972,7 @@ def davio_lookup(table, c, w, z_samples=4, outcome_patterns=3, seed=0):
                      outcome_patterns, seed)
 
 
-def narrow_lookup(table, c, w, seed=0, splits=None, tries=3, z_samples=4, outcome_patterns=3):
+def narrow_lookup(table, c, w, seed=0, splits=None, tries=None, z_samples=4, outcome_patterns=3):
     """z ^= T[a] with the bilinear split (see the module docstring); falls back to Davio when that is not cheaper.
     Returns a LookupCircuit (method 'bilinear' or 'davio'; plan, plan_seconds = classical search time)."""
     T = _check_table(table, c, w)
