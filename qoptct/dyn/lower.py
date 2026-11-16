@@ -120,7 +120,7 @@ def reference(C):
     return qc
 
 
-def check_quantum(block, erase='meas', via_target=True, trials=3, shots=8, seed=0):
+def check_quantum(block, erase='meas', via_target=True, trials=3, shots=8, seed=0, body=None):
     """exact gate-level check of a lowered variant on random product input states (noise-free Aer, random
     measurement outcomes): prepare random single-qubit states on the superposable data wires, run the variant, run
     the inverse of the ideal reference, undo the preparation; the all-zero state must come back with probability 1
@@ -129,7 +129,7 @@ def check_quantum(block, erase='meas', via_target=True, trials=3, shots=8, seed=
     from qiskit_aer import AerSimulator
     C = block.C; rng = np.random.default_rng(seed); worst = 1.0
     sim = AerSimulator(method='statevector', max_parallel_threads=1)
-    body = to_qiskit(C, erase, via_target); ref_inv = reference(C).inverse()
+    body = body if body is not None else to_qiskit(C, erase, via_target); ref_inv = reference(C).inverse()
     for _ in range(trials):
         qc = QuantumCircuit(*body.qregs, *body.cregs)
         ang = {w: rng.uniform(0, 2 * np.pi, 3) for w in block.xfree}

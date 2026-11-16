@@ -1,0 +1,218 @@
+# SPDX-License-Identifier: Apache-2.0
+"""dyn.choose: pick between measurement-based erasure and reverse computation with the hardware model.
+
+    variants(family, size)                 the candidate lowerings of a block:
+        U   every erasure by reverse computation (static circuit)
+        M   every erasure by measurement + feed-forward (dynamic circuit); the cz fix-up through the measured wire
+        Md  the same with the direct cz(a, b) fix-up
+        H   hybrid: single ANDs by reverse computation, multi-term erasures (lookup outputs) by measurement
+        T   Toffoli baseline without logical ANDs (Cuccaro adder)
+    choose(family, size, model)            compile all, estimate, (optionally simulate), return the best + the table
+    site_rule(model, n_live)               the analytic per-site rule (no compilation)
+    DynErasePass / choose_circuit          the same decision for a Qiskit circuit that already contains
+                                           `h t; measure t -> c; if (c) {cz a, b; x t}` erasures
+"""
+import math
+
+from qiskit import QuantumCircuit
+from qiskit.converters import circuit_to_dag, dag_to_circuit
+from qiskit.transpiler.basepasses import TransformationPass
+
+from . import gen, hw, lower
+
+
+def resolve_backend(name):
+    """'FakeBoston' (qiskit_ibm_runtime.fake_provider) or a backend object."""
+    if not isinstance(name, str):
+        return name
+    import qiskit_ibm_runtime.fake_provider as fp
+    if not hasattr(fp, name):
+        raise ValueError('unknown fake backend %r' % name)
+    return getattr(fp, name)()
+
+
+def _is_and_site(op):
+    return len(op) == 3 and len(op[2]) == 1 and op[2][0][0] == 'cz'
+
+
+def variants(family, size, **kw):
+    """-> list of (label, block, erase, via_target)."""
+    out = []
+    for B in gen.build(family, size, **kw):
+        ns = lower.n_sites(B.C)
+        if B.variant == 'toffoli':
+            out.append(('T', B, 'unitary', True)); continue
+        if ns == 0:
+            out.append(('U', B, 'unitary', True)); continue
+        if B.variant == 'out-meas':
+            out.append(('M', B, 'meas', True)); out.append(('Md', B, 'meas', False))
+            out.append(('H', B, lambda i, op: 'unitary' if _is_and_site(op) else 'meas', True))
+        elif B.variant == 'out-unitary':
+            out.append(('U', B, 'unitary', True))
+        else:
+            out.append(('U', B, 'unitary', True)); out.append(('M', B, 'meas', True))
+            out.append(('Md', B, 'meas', False))
+    return out
+
+
+def evaluate(block, erase, via_target, model, seeds=(0, 1, 2, 3), layouts=()):
+    qc = lower.to_qiskit(block.C, erase, via_target)
+    comp = hw.compile_circuit(qc, model, seeds=seeds, live_virtual=block.data, initial_layouts=layouts)
+    comp['logical'] = qc
+    return comp
+
+
+def choose(family, size, model, seeds=(0, 1, 2, 3), simulate=False, shots=300, n_inputs=8, sim_max_qubits=24,
+           check=True, **kw):
+    """-> dict(best=label, rows=[...], comps={label: comp}, blocks={label: block}). Each row: label, qubits, 2q
+    counts, duration, estimate (+ simulated pZ / pX)."""
+    from . import sim
+    rows = []; comps = {}; blocks = {}; layout_u = None
+    for label, B, erase, vt in variants(family, size, **kw):
+        if check:
+            ok, why, nin, exh = B.check(4096)
+            if not ok:
+                raise RuntimeError('%s %s: classical check failed: %s' % (B.name, label, why))
+        comp = evaluate(B, erase, vt, model, seeds, [layout_u] if layout_u is not None else [])
+        if label == 'U':
+            layout_u = comp['layout_init']
+        S = comp['sched']; st = S.stats()
+        row = dict(circuit=B.name, variant=label, logical_qubits=B.n, sites=lower.n_sites(B.C),
+                   depth=comp['tqc'].depth(), **st)
+        if simulate and len(S.qubits) <= sim_max_qubits:
+            r = sim.run_tests(B, comp, model, shots=shots, n_inputs=n_inputs)
+            row.update({k: r[k] for k in ('pZ', 'pZ_err', 'pX', 'pX_err', 'method') if k in r})
+        rows.append(row); comps[label] = comp; blocks[label] = B
+    best = max(rows, key=lambda r: r['f_est'])['variant']
+    return dict(best=best, rows=rows, comps=comps, blocks=blocks, model=model.summary())
+
+
+def rescore(result, model):
+    """re-estimate the compiled variants of a choose() result under another model (same compiled circuits).
+    -> {label: f_est}."""
+    out = {}
+    for label, comp in result['comps'].items():
+        B = result['blocks'][label]
+        S = hw.schedule(comp['tqc'], model, live=[comp['layout_init'][w] for w in B.data],
+                        final=[comp['layout_final'][w] for w in B.data])
+        out[label] = S.fid
+    return out
+
+
+def site_rule(model, n_live, corr_2q=3, unit_2q=3, qubits=None):
+    """analytic cost (infidelity) of erasing one AND, without compilation:
+        measurement: e_ro + n_live * rate * (t_meas + t_ff) + p_branch * (corr_2q * e_2q + n_live * rate * corr_2q * t_2q)
+        reverse    : unit_2q * e_2q + n_live * rate * unit_2q * t_2q
+    rate = 1/(6 T1) + 1/(3 T2) per idle qubit; n_live = qubits that wait for the erasure (in a ripple circuit: all
+    live qubits). -> dict(meas, unitary, better)."""
+    s = model.summary(qubits)
+    rate = 1 / (6 * s['t1_us'] * 1e-6) + 1 / (3 * s['t2_us'] * 1e-6)
+    tm = s['meas_ns'] * 1e-9 + model.ff_latency; t2 = s['t2q_ns'] * 1e-9; e2 = s['e2q']
+    cm = s['ro'] + n_live * rate * tm + model.p_branch * (corr_2q * e2 + n_live * rate * corr_2q * t2)
+    cu = unit_2q * e2 + n_live * rate * unit_2q * t2
+    return dict(meas=cm, unitary=cu, better='meas' if cm < cu else 'unitary')
+
+
+# ------------------------------------------------------------------ Qiskit circuits
+def _match_sites(qc):
+    """find `h t; measure t -> c; if (c == 1) {z / cz / ccz fix-ups not touching t; x t}`.
+    -> list of (index_h, index_measure, index_if, t, terms)."""
+    data = qc.data; last = {}; sites = []; pending = {}
+    for i, inst in enumerate(data):
+        name = inst.operation.name
+        if name == 'measure':
+            t = inst.qubits[0]; j = last.get(t)
+            if j is not None and data[j].operation.name == 'h':
+                pending[inst.clbits[0]] = (j, i, t)
+        elif name == 'if_else':
+            cond = inst.operation.condition
+            if isinstance(cond, tuple) and cond[0] in pending and cond[1] == 1 and inst.operation.params[1] is None:
+                j, m, t = pending.pop(cond[0]); body = inst.operation.params[0]
+                bq = {b: inst.qubits[k] for k, b in enumerate(body.qubits)}
+                terms = []; okb = last.get(t) == m; nx = 0
+                for bi in body.data:
+                    qs = [bq[b] for b in bi.qubits]; bn = bi.operation.name
+                    if bn == 'x' and qs == [t]:
+                        nx += 1
+                    elif bn in ('z', 'cz', 'ccz') and t not in qs:
+                        terms.append(tuple(qs))
+                    else:
+                        okb = False
+                if okb and nx == 1:
+                    sites.append((j, m, i, t, terms))
+        for q in inst.qubits:
+            last[q] = i
+        if name != 'if_else':
+            for c in inst.clbits:
+                if name != 'measure':
+                    pending.pop(c, None)
+    return sites
+
+
+def to_unitary_erasure(qc):
+    """replace every matched measurement-based erasure by reverse computation. Precondition (the same one that
+    makes the measurement-based erasure itself correct): the erased qubit holds exactly the XOR of the fix-up
+    monomials (t = a AND b for a single cz(a, b)). -> (new circuit, number of sites replaced)."""
+    sites = _match_sites(qc)
+    if not sites:
+        return qc, 0
+    drop = {}; at = {}
+    for j, m, i, t, terms in sites:
+        drop[j] = drop[m] = True; at[i] = (t, terms)
+    out = qc.copy_empty_like()
+    for i, inst in enumerate(qc.data):
+        if i in at:
+            t, terms = at[i]
+            if len(terms) == 1 and len(terms[0]) == 2:
+                lower._and_inv(out, terms[0][0], terms[0][1], t)
+            else:
+                for ws in terms:
+                    lower._mono_x(out, ('m',) + tuple(ws), t)
+        elif i not in drop:
+            out.append(inst)
+    return out, len(sites)
+
+
+def choose_circuit(qc, model, seeds=(0, 1, 2, 3), mode='auto'):
+    """qc: a logical circuit with measurement-based erasures. mode: 'auto' (compile both forms, keep the one with
+    the higher estimated fidelity), 'rule' (analytic site rule, no compilation), 'unitary', 'keep'.
+    -> (circuit, report)."""
+    alt, n = to_unitary_erasure(qc)
+    rep = dict(sites=n, mode=mode)
+    if n == 0 or mode == 'keep':
+        rep['chosen'] = 'keep'; return qc, rep
+    if mode == 'unitary':
+        rep['chosen'] = 'unitary'; return alt, rep
+    if mode == 'rule':
+        r = site_rule(model, qc.num_qubits); rep.update(rule=r)
+        rep['chosen'] = 'keep' if r['better'] == 'meas' else 'unitary'
+        return (qc if r['better'] == 'meas' else alt), rep
+    live = list(range(qc.num_qubits))
+    a = hw.compile_circuit(qc, model, seeds=seeds, live_virtual=live)
+    b = hw.compile_circuit(alt, model, seeds=seeds, live_virtual=live, initial_layouts=[])
+    rep.update(f_est_meas=a['sched'].fid, f_est_unitary=b['sched'].fid, stats_meas=a['sched'].stats(),
+               stats_unitary=b['sched'].stats())
+    if a['sched'].fid >= b['sched'].fid:
+        rep['chosen'] = 'keep'; return qc, rep
+    rep['chosen'] = 'unitary'; return alt, rep
+
+
+class DynErasePass(TransformationPass):
+    """Hardware-aware choice between measurement-based erasure and reverse computation.
+
+    Run it on the logical circuit (before layout). ``backend`` (or ``model``: a dyn.hw.HwModel) supplies the
+    calibration. mode='auto' compiles both forms and keeps the better estimate; 'rule' uses the analytic site rule;
+    'unitary' always converts. ``self.last`` holds the report."""
+
+    def __init__(self, backend=None, model=None, mode='auto', seeds=(0, 1, 2, 3), ff_latency=600e-9):
+        super().__init__()
+        if model is None and backend is not None:
+            model = hw.HwModel.from_backend(backend, ff_latency=ff_latency)
+        if model is None and mode in ('auto', 'rule'):
+            raise ValueError('mode=%r needs a backend or a model' % mode)
+        self.model = model; self.mode = mode; self.seeds = tuple(seeds); self.last = None
+
+    def run(self, dag):
+        qc = dag_to_circuit(dag)
+        out, self.last = choose_circuit(qc, self.model, self.seeds, self.mode)
+        return dag if out is qc else circuit_to_dag(out)

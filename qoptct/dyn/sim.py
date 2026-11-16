@@ -117,7 +117,7 @@ def _ih(qc, q):
     qc.append(HGate(label='ideal'), [q])
 
 
-def run_tests(block, comp, model, shots=400, n_inputs=8, seed=0, method=None, tests=('Z', 'X')):
+def run_tests(block, comp, model, shots=400, n_inputs=8, seed=0, method=None, tests=('Z', 'X'), x_repeat=None):
     """comp: result of hw.compile_circuit for a lowering of `block`. -> dict(pZ, pZ_err, pX, pX_err, n_active,
     method, per_input)."""
     from qiskit import QuantumCircuit
@@ -126,7 +126,7 @@ def run_tests(block, comp, model, shots=400, n_inputs=8, seed=0, method=None, te
     body, cm, nm = noisy_body(S, model, tqc.num_clbits)
     n = len(cm); init = comp['layout_init']; fin = comp['layout_final']
     if method is None:
-        method = 'statevector' if n <= 22 else 'matrix_product_state'
+        method = 'statevector' if n <= 16 else 'matrix_product_state'
     for w in block.data:                                    # a data wire the compiler never touched
         for L in (init, fin):
             if L[w] not in cm:
@@ -140,12 +140,12 @@ def run_tests(block, comp, model, shots=400, n_inputs=8, seed=0, method=None, te
                     if (d[k] >> j) & 1:
                         _ix(qc, cm[init[w]])
             qc.compose(body, inplace=True)
-            e = block.fn(d); idx = 0
-            for k, ws in block.regs.items():
+            e = block.fn(d)
+            for k, ws in block.regs.items():                # map the expected answer to |0...0> (noise-free X)
                 for j, w in enumerate(ws):
                     if (e[k] >> j) & 1:
-                        idx |= 1 << cm[fin[w]]
-            qc.save_amplitudes_squared([idx], label='p')
+                        _ix(qc, cm[fin[w]])
+            qc.save_amplitudes_squared([0], label='p')
             circs.append(qc); kinds.append('Z')
     if 'X' in tests:
         ref_inv = _ideal(reference(block.C).inverse())
@@ -174,7 +174,8 @@ def run_tests(block, comp, model, shots=400, n_inputs=8, seed=0, method=None, te
             for w in xf:
                 _ih(qc, pos[w])
             qc.save_amplitudes_squared([0], label='p')
-            circs.append(qc); kinds.append('X')
+            for _ in range(x_repeat or max(1, n_inputs // 4)):   # more trajectories for the single X input
+                circs.append(qc.copy()); kinds.append('X')
     sim = AerSimulator(method=method, noise_model=nm, max_parallel_threads=1,
                        max_parallel_experiments=1, max_parallel_shots=1)
     res = sim.run(circs, shots=shots, seed_simulator=seed).result()
