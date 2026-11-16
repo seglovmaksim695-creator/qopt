@@ -20,10 +20,15 @@
 * `qoptct.verify.branchsim.run_branch_scaled`: branch simulation that returns the state with its scale as log2.
 * **`qoptct.crypto`** — circuit generators for cryptographic arithmetic on logical ANDs (pure functions, OpenQASM 3
   output, bit-sliced checkers, exact proofs of small instances in the tests; one shared `CheckError`):
-  * `kaliski_inverse(p, n=None, reduction='generic'|'special', clean=False)` — Kaliski modular inversion: 12n²+n ANDs
-    forward for any odd prime (Litinski 2023, arXiv:2306.08585: 26n²+2n in the same model); the count was checked for
-    every n tried (up to 256), not proved for all n. Special-prime reduction (P-256: 667 273, secp256k1: 659 810 ANDs);
-    clean compute-copy-uncompute mode; exact proof of the emitted circuit at n ≤ 7 in the tests.
+  * `kaliski_inverse(p, n=None, reduction='generic'|'special', clean=False, legacy=False)` — Kaliski modular
+    inversion: 12n²−8n−3 ANDs forward for any odd prime, 11n−2 qubits (Litinski 2023, arXiv:2306.08585: 26n²+2n in
+    the same model); the count was checked for every n tried (up to 256), not proved for all n. Special-prime
+    reduction (P-256: 664 966, secp256k1: 657 503 ANDs); clean compute-copy-uncompute mode; exact proof of the emitted
+    circuit at n ≤ 7 in the tests (qoptct.verify.prove and kprove). The default omits 9n+3 AND/erase pairs whose
+    product is identically constant (or which only feed a constant) for every odd prime — five classes, each proved in
+    the module docstring, found by an exhaustive run over all inputs at n ≤ 8; −0.3 % ANDs, −0.3 % CX at n = 256.
+    `legacy=True` keeps the previous circuit (12n²+n ANDs, 11n qubits, byte-identical OpenQASM; P-256 667 273,
+    secp256k1 659 810).
   * `multiply` / `square` (`qoptct.crypto.mulsq`): out-of-place integer multiplication (x, y, 0) -> (x, y, xy) and
     squaring (x, 0) -> (x, x²) on conditionally inverted additions (the idea is Häner et al., arXiv:2609.05625):
     base n²+4n and (n²+7n−6)/2 ANDs, optional Karatsuba levels with garbage (n = 256, L = 3: 37 880 and 22 332 ANDs;

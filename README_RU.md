@@ -205,7 +205,7 @@ assert Operator(ours).equiv(Operator(qc))                              # тот 
 
 | функция | что | счёт | сравнение |
 |---|---|---|---|
-| `kaliski_inverse(p, n=None, reduction='generic'\|'special', clean=False)` | обращение Калиски, результат −x⁻¹·2^{2n} mod p | 12n²+n И в прямой схеме (generic); P-256 special 667 273, secp256k1 659 810 | Litinski 2023 (arXiv:2306.08585): 26n²+2n в той же модели. 12n²+n проверено подсчётом для всех испытанных n до n = 256, для всех n не доказано. Схемы точно доказаны при n ≤ 7 |
+| `kaliski_inverse(p, n=None, reduction='generic'\|'special', clean=False, legacy=False)` | обращение Калиски, результат −x⁻¹·2^{2n} mod p | 12n²−8n−3 И в прямой схеме (generic; `legacy=True`: 12n²+n); P-256 special 664 966, secp256k1 657 503 | Litinski 2023 (arXiv:2306.08585): 26n²+2n в той же модели. Число И проверено подсчётом для всех испытанных n до n = 256, для всех n не доказано. Схемы точно доказаны при n ≤ 7 |
 | `multiply(n, karatsuba_levels=0)`, `square(n, ...)` | целые x·y и x² (без редукции) на условно-инвертируемых сложениях | база n²+4n и (n²+7n−6)/2; n = 256, 3 уровня Карацубы: 37 880 / 22 332 | квадрат с Карацубой — около −33 % И к Häner и др. (arXiv:2609.05625) ценой кубитов (3 029 против 1 279 при L = 0) и мусора; идея условно-инвертируемых сложений — их. Базовое умножение не лучше их |
 | `fold.reduce_special(p, method='auto')` | редукция 2n-битного произведения по p = 2^n − c, NIST P-256 (Солинас), Мерсенн P-521 | 2^255−19: 1 304, secp256k1: 2 175, P-256: 2 744 | не рекорд: арифметика специальных простых уже есть в arXiv:2606.02235 и 2609.05625. Честное сравнение — умножение по модулю целиком, ≈ −11 % только для специальных p |
 | `lookup.narrow_lookup(table, c, w)`, `lookup.lookup_add`, `lookup.qroam1_lookup` | табличная выборка z ⊕= T[a] с билинейным разбиением адреса; QROAM s = 1; снятие измерением | 6→32: 40 И (2^c−c−1 = 57) | узкая выборка внутри lookup-add в каркасе Gidney–Ekerå — приоритет Luongo и др. 2025 (arXiv:2502.17325); QROAM — Berry и др. 2019 / Low и др. 2018. Экономия — на одну выборку, а не сквозная |
@@ -216,7 +216,7 @@ from qoptct.crypto import kaliski_inverse, multiply, square, gf2m_mult_count, de
 from qoptct.crypto import fold, lookup
 import random
 
-kaliski_inverse(13).counts()['AND']                    # 196 = 12·4² + 4
+kaliski_inverse(13).counts()['AND']                    # 157 = 12·4² − 8·4 − 3 (legacy=True: 196)
 multiply(256, karatsuba_levels=3).counts()['AND']      # 37880 (+ мусор, снимается после использования)
 fold.reduce_special(fold.P25519).n_and                 # 1304
 table = [random.getrandbits(32) for _ in range(64)]
