@@ -14,8 +14,10 @@ Modules:
              addend), exact bit-sliced simulation, OpenQASM 3 output (qoptct dialect)
     lookup   lookup.narrow_lookup(table, c, w, ...) -- narrow table lookups z ^= T[a] (bilinear split, QROAM s=1,
              ANF/Davio), measurement-based unlookup, lookup-accumulate acc += T[a]
+    gf2m     gf2m_multiply / gf2m_square / gf2m_inverse / gf2m_divide -- GF(2^m) arithmetic (binary fields of the
+             NIST/SEC curves): CRT bilinear multiplier, in-place squaring, Itoh-Tsujii inversion and division
 
-The names exported here come from kaliski and mulsq; fold and lookup are used as modules
+The names exported here come from kaliski, mulsq and gf2m; fold and lookup are used as modules
 (``from qoptct.crypto import fold, lookup``), since lookup has its own ``reference_qc``.
 
     from qoptct.crypto import multiply, square
@@ -27,7 +29,11 @@ See each module's docstring for the constructions, wire layouts and the comparis
 from ._errors import CheckError
 from .kaliski import kaliski_inverse, kaliski_and_count, KaliskiCircuit
 from .mulsq import multiply, square, MulSqCircuit, reference_qc, prove
+from .gf2m import (default_modulus, gf2m_bilinear, gf2m_multiply, gf2m_mult_count, gf2m_square, gf2m_inverse,
+                   gf2m_divide, gf2m_inverse_count, gf2m_divide_count, gf2m_itoh_gate_check, verify_multiplier)
 
 __all__ = ['CheckError',
            'kaliski_inverse', 'kaliski_and_count', 'KaliskiCircuit',
-           'multiply', 'square', 'MulSqCircuit', 'reference_qc', 'prove']
+           'multiply', 'square', 'MulSqCircuit', 'reference_qc', 'prove',
+           'default_modulus', 'gf2m_bilinear', 'gf2m_multiply', 'gf2m_mult_count', 'gf2m_square', 'gf2m_inverse',
+           'gf2m_divide', 'gf2m_inverse_count', 'gf2m_divide_count', 'gf2m_itoh_gate_check', 'verify_multiplier']
