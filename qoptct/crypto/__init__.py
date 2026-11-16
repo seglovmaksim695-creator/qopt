@@ -22,7 +22,7 @@ The names exported here come from kaliski, mulsq and gf2m; fold and lookup are u
 
     from qoptct.crypto import multiply, square
     c = multiply(256, karatsuba_levels=3)      # (x, y, 0) -> (x, y, x*y) + garbage
-    c.counts()['AND']                          # 37 880 Toffoli (= logical AND, 4 T each)
+    c.counts()['AND']                          # 37 826 Toffoli (= logical AND, 4 T each); legacy=True: 37 880
 
 See each module's docstring for the constructions, wire layouts and the comparison with published circuits.
 """

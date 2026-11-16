@@ -26,9 +26,10 @@
     clean compute-copy-uncompute mode; exact proof of the emitted circuit at n ≤ 7 in the tests.
   * `multiply` / `square` (`qoptct.crypto.mulsq`): out-of-place integer multiplication (x, y, 0) -> (x, y, xy) and
     squaring (x, 0) -> (x, x²) on conditionally inverted additions (the idea is Häner et al., arXiv:2609.05625):
-    base n²+4n and (n²+7n−6)/2 ANDs, optional Karatsuba levels with garbage (n = 256, L = 3: 37 880 and 22 332 ANDs;
-    the squaring is about −33 % ANDs against Häner et al. at the cost of qubits), Bennett version `clean=True`,
-    independent schoolbook reference `.qc`, `prove(engine='prove'|'kprove')`.
+    base n²+4n−2 and (n²+7n−16)/2 ANDs (identically-0 ANDs removed; `legacy=True` keeps the published n²+4n,
+    (n²+7n−6)/2 circuits), optional Karatsuba levels with garbage (n = 256, L = 3: 37 826 and 22 145 ANDs, legacy
+    37 880 and 22 332; the squaring is about −33 % ANDs against Häner et al. at the cost of qubits), Bennett
+    version `clean=True`, independent schoolbook reference `.qc`, `prove(engine='prove'|'kprove')`.
   * `qoptct.crypto.fold`: `reduce_special` (fold for p = 2^n − c, Solinas P-256, Mersenne P-521; 2^255−19: 1 304,
     secp256k1: 2 175, P-256: 2 744 ANDs), `add_const` / `controlled_add_const`; small engine `qoptct.crypto.andcirc`.
     Not a record: special-prime arithmetic is published (arXiv:2606.02235, 2609.05625); the fair comparison is the
