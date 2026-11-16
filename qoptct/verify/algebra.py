@@ -800,15 +800,13 @@ class Engine:
             return False
         self.stats['sem_zero'] += 1
         for deep in (False, True):
-            ch = False
             for a in D:
                 J = self.var_adder(a)
                 if J is not None:
-                    ch |= self.ensure_facts(J, deep)
-            if ch:
-                D2 = self.apply_facts(D)
-                if D2 != D:
-                    return self.is_zero(D2)
+                    self.ensure_facts(J, deep)
+            D2 = self.apply_facts(D)
+            if D2 != D:
+                return self.is_zero(D2)
         return self.tt_zero(D)
 
     # ------------------------------------------------------------------ integer values
@@ -964,7 +962,7 @@ class Engine:
                 b = self.signedlike(top.Y, cells[-2].Y if m > 1 else None)
                 J.cands = (a, b, E - (xt * a + yt * b) * (1 << m))
                 J.alt = [(a2, b2, E - (xt * a2 + yt * b2) * (1 << m)) for a2, b2 in ((0, 0), (1, 0), (0, 1), (1, 1))
-                         if (a2, b2) != (a, b) and (a2 == a or xt.d) and (b2 == b or yt.d)]
+                         if (a2, b2) != (a, b) and (a2 == a or any(xt.d)) and (b2 == b or any(yt.d))]
                 J.V = None
             for i, (w, S) in enumerate(J.bits):
                 if len(S) == 1:
@@ -990,13 +988,6 @@ class Engine:
             iv = self.bound_runs(V)
             ok = fits(iv)
             if not ok:
-                for a2, b2, V2 in J.alt:            # other readings: only if plainly in range
-                    iv2 = self.bound_runs(V2)
-                    if fits(iv2):
-                        ok, a, b, V, iv = True, a2, b2, V2, iv2
-                        break
-            J.alt = None
-            if not ok:
                 st = 1
                 self.stats['stageB'] += 1
                 Vr = self.reduce(V)
@@ -1009,9 +1000,16 @@ class Engine:
                         if fits(iv2):
                             ok, V, iv, st = True, Vd, iv2, 3
                 if not ok:
+                    for a2, b2, V2 in J.alt:        # other readings: only if plainly in range
+                        iv2 = self.bound_runs(V2)
+                        if fits(iv2):
+                            ok, a, b, V, iv, st = True, a2, b2, V2, iv2, 0
+                            break
+                if not ok:
                     st = 2
                     iv = _meet(iv, self.bound(V, 2))
                     ok = fits(iv)
+            J.alt = None
             if ok:
                 J.V, J.rng = V, iv
                 J.kindtxt = ('s' if J.signed else 'u') + '%d%d/%d' % (a, b, st)
@@ -1043,6 +1041,7 @@ class Engine:
                 self.stats['virt'] += 1
         self.cls[J.kindtxt] = self.cls.get(J.kindtxt, 0) + 1
         self.check_identity(J)
+        self.derive_facts(J)
 
     def signedlike(self, S, below):
         """structural guess: the top operand bit S is a sign bit (a copy of the bit below it, or the top bit of a
@@ -1093,7 +1092,7 @@ class Engine:
         if c is not None and c[0] == self.fver:
             return c[1], c[2]
         lhs = {}
-        rhs = J.V.copy()
+        rhs = self.pfacts(J.V).copy()
         for w, S in J.bits:
             S2 = self.apply_facts(S)
             if len(S2) == 1:
@@ -1106,6 +1105,36 @@ class Engine:
         lhs = {a: w for a, w in lhs.items() if w}
         J.lhs_cache = (self.fver, lhs, rhs)
         return lhs, rhs
+
+    def pfacts(self, P):
+        """P with every atom that has a fact replaced by the value of its fact."""
+        f = self.facts
+        hit = [v for v in P.vars() if v in f]
+        if not hit:
+            return P
+        hs = set(hit)
+        out = Poly({}, P.e)
+        d = out.d
+        vals = {v: self.val(f[v]) for v in hit}
+        for m, c in P.d.items():
+            if hs.isdisjoint(m):
+                v = d.get(m, 0) + c
+                if v:
+                    d[m] = v
+                elif m in d:
+                    del d[m]
+                continue
+            t = Poly({tuple(v for v in m if v not in hs): c})
+            for v in m:
+                if v in hs:
+                    t = t * vals[v]
+            for m2, c2 in t.d.items():
+                v = d.get(m2, 0) + c2
+                if v:
+                    d[m2] = v
+                elif m2 in d:
+                    del d[m2]
+        return self.pfacts(out)
 
     def add_fact(self, S, R):
         """the bit S (a single atom) is identically the XOR-set R."""
@@ -1199,6 +1228,9 @@ class Engine:
 
     def bound_runs(self, P):
         """stage A: words (and parts of words) of adders become interval variables; then interval evaluation."""
+        if self.facts:
+            P = self.pfacts(P)
+        fv = self.fver
         D = dict(P.d)
         e = P.e
         ranges = dict(self.vrange)
@@ -1212,6 +1244,8 @@ class Engine:
             for J in sorted(todo, key=lambda j: -j.order):
                 done.add(J)
                 self.classify(J)
+                if self.fver != fv:
+                    return self.bound_runs(P)       # new facts: start again
                 lhs, _ = self.adder_lhs(J)
                 if J.virt is not None:
                     lhs = {a: w for a, w in lhs.items() if a != J.virt}
@@ -1330,6 +1364,7 @@ class Engine:
             if not lhs:
                 return None
         flip = False
+        extra = None
         for m in monos:
             js = [v for v in m if v in lhs]
             n = len(js)
@@ -1378,11 +1413,14 @@ class Engine:
             for a in order[:k]:
                 la = Poly(dict(lin.get(a, {})), Q.e)
                 la.iadd(A, -lhs[a] * lhs[a])
-                Ba = _frac(la.d, lhs[a], la.e)
                 if B is None:
-                    B = Ba
-                elif (B - Ba).d:
-                    return None
+                    B = _frac(la.d, lhs[a], la.e)
+                else:
+                    la.iadd(B, -lhs[a])             # terms of this bit outside the pattern stay as they are
+                    if la.d:
+                        if extra is None:
+                            extra = Poly()
+                        extra.iadd(la * Poly.var(a))
         else:
             top = order[0]
             ct = lin.get(top)
@@ -1409,11 +1447,12 @@ class Engine:
             for a in lhs:
                 if a not in R and a in ph:
                     return None
-        return R, A, B, kill, flip
+        return R, A, B, kill, flip, extra
 
     def reduce(self, P, assume=None):
         """rewrite P with the adder identities, newest adder first (exact; P keeps its value on every input)."""
-        Q = P.copy()
+        Q = self.pfacts(P).copy() if self.facts else P.copy()
+        fv = self.fver
         by = {}
         heap = []
         va = self.var_adder
@@ -1437,6 +1476,19 @@ class Engine:
             if not monos:
                 continue
             self.classify(J)
+            if self.fver != fv:                     # new facts: rewrite the polynomial with them
+                fv = self.fver
+                Q2 = self.pfacts(Q)
+                if Q2 is not Q:
+                    Q = Q2
+                    for sset in by.values():
+                        sset.clear()
+                    for m in Q.d:
+                        reg(m)
+                    D = Q.d
+                    monos = [m for m in by[J] if m in D]
+                    if not monos:
+                        continue
             lhs, rhs = self.adder_lhs(J)
             if assume:
                 hit = [a for a in lhs if a in assume]
@@ -1451,7 +1503,7 @@ class Engine:
             pat = self.top_pattern(Q, monos, lhs, J)
             if pat is None:
                 continue
-            R, A, B, kill, flip = pat
+            R, A, B, kill, flip, extra = pat
             S = rhs.copy()
             for a, w in lhs.items():
                 if a not in R:
@@ -1464,6 +1516,8 @@ class Engine:
             add = B * S
             if A is not None:
                 add.iadd(A * (S * S))
+            if extra is not None:
+                add.iadd(extra)
             if add.e and add.d:
                 tz = min((c & -c).bit_length() - 1 for c in add.d.values())
                 k = min(tz, add.e)
@@ -1487,7 +1541,7 @@ class Engine:
             self.stats['reduce_steps'] += 1
             if dl is not None and time.time() > dl:
                 raise Unknown('time budget exceeded during rewriting')
-        return Q
+        return self.pfacts(Q) if self.facts else Q
 
     # ------------------------------------------------------------------ exhaustive evaluation over a small cut
     def children(self, a):
