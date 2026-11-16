@@ -3,8 +3,8 @@
 """qoptct.crypto.mulsq -- out-of-place integer multiplication and squaring on conditionally inverted additions,
 with optional Karatsuba levels (garbage allowed).  Pure generators: no optimisation, no search.
 
-    multiply(n, karatsuba_levels=0, base=4, clean=False) -> MulSqCircuit    (x, y, 0) -> (x, y, x*y)
-    square(n, karatsuba_levels=0, base=4, clean=False)   -> MulSqCircuit    (x, 0)    -> (x, x^2)
+    multiply(n, karatsuba_levels=0, base=4, clean=False, legacy=False) -> MulSqCircuit    (x, y, 0) -> (x, y, x*y)
+    square(n, karatsuba_levels=0, base=4, clean=False, legacy=False)   -> MulSqCircuit    (x, 0)    -> (x, x^2)
 
 Cost model (Gidney 2018, arXiv:1709.06648): a logical AND into a |0> wire costs one Toffoli = 4 T; its erasure by an
 X-basis measurement and a Clifford correction (CZ, Z) costs 0 T.  "AND" below = Toffoli count.
@@ -16,12 +16,32 @@ Multiplication (base, karatsuba_levels=0).  With signed digits s_i = 2 y_i - 1 =
 Row i adds +x or -x (two's complement: x XOR mask, carry-in = mask, mask = NOT y_i made by CX) into a window of
 n+2 bits of a growing accumulator; the sign is extended by one CX per row.  No partial products are formed: a row
 is a single "conditionally inverted" ripple addition with about n ANDs.  Then + 2^n x - x and the zero low bit is
-dropped.  AND = n^2 + 4n exactly (n >= 1);  n = 256: 66 560.  No garbage: all ancillas return to |0>.
+dropped.  AND = n^2 + 4n - 2 exactly (n >= 2; n = 1: 2);  n = 256: 66 558.  No garbage: all ancillas return to |0>.
 
 Squaring (base).  With L_i = x mod 2^i,
     x^2 = sum_{i>=1} s_i 2^i L_i - sum_i x_i 4^i + 2^n x,        s_i = 2 x_i - 1,
-row i is a conditionally inverted addition of L_i (i bits) controlled by x_i.  AND = (n^2 + 7n - 6)/2 exactly
-(n >= 1);  n = 256: 33 661.  No garbage.
+row i is a conditionally inverted addition of L_i (i bits) controlled by x_i.  AND = (n^2 + 7n - 16)/2 exactly
+(n >= 3; n = 1: 0, n = 2: 3);  n = 256: 33 656.  No garbage.
+
+Removed constant ANDs (default; legacy=True keeps the published circuits).  An exhaustive scan of all inputs
+(lab script dead2.py) found ANDs whose value is identically 0; each removal below has a proof for every n:
+  * row window: the accumulator value is bounded (interval arithmetic over the rows done so far); when the window
+    value before and after a row fits in k < len(src) + 2 bits, the row adds on k bits and keeps the top window
+    bits as the sign extension of bit k-1 by CX.  This removes the top carry of the first row (multiply row 0,
+    square rows 1 and 2), which is added into the (nearly) zero accumulator: -1 AND per such row;
+  * multiply, final "- x": A[0] = x_0, so A - x = 2 (A[1:] - x[1:]): CX + subtraction one bit shorter (-1 AND);
+  * square, final "- sum x_i 4^i": A = 4 A' + 2 x_0, so bits 0, 1 of x^2 are (x_0, 0) by two CX (-2 AND); the
+    borrow out of the next two bits is always 0 (A' = u^2 + x_0 u + x_1 >= x_1 mod 4, x = 2u + x_0), so that
+    subtraction is split in two (-1 AND);
+  * square Karatsuba node: bits 0, 1 of the squares are (lsb, 0), so the low two bits of T - z0 - z2 take one
+    AND (p q) instead of four carries (-3 AND per square node);
+  * Karatsuba nodes: T = x0 y1 + x1 y0 < 2^(m+1), so the top bit(s) of T (and T[0] for squares) are 0 after the
+    subtractions: they are released (ancillas again, not garbage) and enter the final addition as constants; the
+    proven ranges of the half sums (x0 + x1 <= 2^h - 1 + 2^(m-h) - 1, etc.) are passed down, which shortens
+    half sums, subtractions and rows where the range allows (small widths; at n = 256 a few ANDs).
+Multiply: -2 AND per leaf, square: -5 AND per leaf and -3 per node, plus some qubits.  The default base circuits have
+no constant AND left (test_no_constant_ands).  Constant ANDs that remain inside Karatsuba nodes come from correlations
+of the half-sum inputs (e.g. x_3 = 1 forces small low bits when x <= 14) and are not removed.
 
 Karatsuba with garbage (karatsuba_levels = L >= 1).  x = x0 + 2^h x1 (h = m // 2), z0 = x0 y0, z2 = x1 y1 written
 directly into the low/high halves of the output, T = (x0 + x1)(y0 + y1) - z0 - z2 (= x0 y1 + x1 y0) added into the
@@ -33,25 +53,28 @@ the inverse costs one AND per measurement-based erasure of the forward circuit. 
 forward circuit, CX copy of the product into a fresh register, inverse (Bennett); then AND = AND + ERASE of the
 forward circuit and the garbage is gone.
 
-    n = 256, base = 4                 AND        AND / n^2   qubits (incl. inputs, output, garbage)   garbage
-    multiply  L=0                     66 560     1.02        1 537                                     0
-    multiply  L=2                     42 727     0.65        2 707                                     1 300
-    multiply  L=3                     37 880     0.58        3 911                                     2 504
-    square    L=0                     33 661     0.51        1 279                                     0
-    square    L=2                     23 333     0.36        2 126                                     975
-    square    L=3                     22 332     0.34        3 029                                     1 878
-(counted by building the circuit, no simulation; tests/test_crypto_mulsq.py.)  The base circuits contain a few
-ANDs that are identically 0 (2 for multiply, 4 for square, from the first row added into the zero accumulator);
-they are kept so that the counts match the published lab numbers.
+    n = 256, base = 4     AND (default)  AND / n^2   qubits   garbage  |  legacy=True: AND     qubits   garbage
+    multiply  L=0         66 558         1.02        1 536    0        |              66 560   1 537    0
+    multiply  L=1         52 096         0.79        1 923    515      |              52 102   1 923    516
+    multiply  L=2         42 709         0.65        2 703    1 295    |              42 727   2 707    1 300
+    multiply  L=3         37 826         0.58        3 895    2 487    |              37 880   3 911    2 504
+    multiply  L=4         37 523         0.57        5 750    4 342    |              37 688   5 803    4 396
+    square    L=0         33 656         0.51        1 275    0        |              33 661   1 279    0
+    square    L=1         27 049         0.41        1 537    385      |              27 068   1 538    387
+    square    L=2         23 272         0.36        2 118    966      |              23 333   2 126    975
+    square    L=3         22 145         0.34        3 000    1 848    |              22 332   3 029    1 878
+    square    L=4         23 786         0.36        4 355    3 203    |              24 353   4 448    3 297
+(counted by building the circuit, no simulation; tests/test_crypto_mulsq.py.)  qubits include inputs, output and
+garbage.  legacy=True reproduces the published lab numbers (K_CLAIMS) exactly.
 
 Honest comparison with published circuits
 -----------------------------------------
 * Haner et al., arXiv:2609.05625 (2026), Sec. VII.A: integer squaring with conditionally inverted adders in
   n(n+3)/2 - 1 AND (n = 256: 33 151).  The idea of conditionally inverted additions for squaring is theirs.  Our
-  base square (n^2+7n-6)/2 is 2n - 2 AND WORSE (33 661).  With Karatsuba (L=3) 22 332 AND, i.e. -33 %, but only at
+  base square (n^2+7n-16)/2 is 2n - 7 AND WORSE (33 656).  With Karatsuba (L=3) 22 145 AND, i.e. -33 %, but only at
   the price of many more qubits (garbage registers) and of an inverse pass to clear them; compare at equal qubits
   before claiming an improvement.  The same paper notes about n^2 for multiplication with this technique; our base
-  multiplier n^2 + 4n is not better than that; Karatsuba L=3 gives 0.58 n^2 (37 880), again for qubits.
+  multiplier n^2 + 4n - 2 is not better than that; Karatsuba L=3 gives 0.58 n^2 (37 826), again for qubits.
 * Litinski 2023, arXiv:2306.08585, Fig. 8: MODULAR Montgomery multiplication 2.25 n^2 + 9 n (n = 256: 149 760),
   any modulus, garbage-free.  The circuits here compute the plain integer product (2n bits, no reduction mod p);
   the reduction must be added before comparing like with like.
@@ -246,54 +269,96 @@ def _add(C, Y, b, cin=ZERO):
                 C.cx(c[i][1], b[i])
 
 
-def _sub(C, Y, b):
-    """b -= Y (mod 2^len(b)) = NOT(NOT b + Y)."""
+def _sub(C, Y, b, cin=ZERO):
+    """b -= Y + cin (mod 2^len(b)) = NOT(NOT b + Y + cin)."""
     for w in b:
         C.x(w)
-    _add(C, Y, b)
+    _add(C, Y, b, cin)
     for w in b:
         C.x(w)
 
 
-def _signed_row(C, A, off, src, ctrl):
-    """A[off : off+len(src)+2] += (ctrl ? +src : -src): conditionally inverted addition with a 2-bit sign window."""
+def _sbits(lo, hi):
+    """smallest k >= 1 such that every integer in [lo, hi] fits in k-bit two's complement."""
+    k = 1
+    while lo < -(1 << (k - 1)) or hi > (1 << (k - 1)) - 1:
+        k += 1
+    return k
+
+
+def _signed_row(C, A, off, src, ctrl, bounds=None):
+    """A[off : off+len(src)+2] += (ctrl ? +src : -src): conditionally inverted addition with a 2-bit sign window.
+    A holds a two's complement value sign-extended to its top, and the window is the top of A.
+    bounds = (lo, hi, lo2, hi2): proven ranges of the whole accumulator value before / after this row (None: legacy,
+    full window).  If both window values (floor(value / 2^off)) fit in k < window bits, only k bits are added and
+    the top window bits are kept as the sign extension of bit k-1 by CX (no AND): this removes the carries that are
+    identically 0 (e.g. the top carry of the first row, which is added into the zero accumulator)."""
+    wl = len(src) + 2
+    k = wl
+    if bounds is not None:
+        lo, hi, lo2, hi2 = bounds
+        k = min(wl, max(_sbits(lo >> off, hi >> off), _sbits(lo2 >> off, hi2 >> off)))
+    win = A[off:off + wl]
+    high = win[k:]
+    if high and (lo, hi) != (0, 0):
+        for w in high:                                     # high bits = old sign (old bit k-1): clear them
+            C.cx(win[k - 1], w)
     C.x(ctrl)                                              # mask = NOT ctrl: subtract when ctrl = 0
     for w in src:
         C.cx(ctrl, w)
     Y = [_W(w) for w in src] + [_W(ctrl), _W(ctrl)]
-    _add(C, Y, A[off:off + len(src) + 2], cin=_W(ctrl))
+    _add(C, Y[:k], win[:k], cin=_W(ctrl))
     for w in src:
         C.cx(ctrl, w)
     C.x(ctrl)
+    for w in high:                                         # sign-extend the new value
+        C.cx(win[k - 1], w)
 
 
-def _sd_mul(C, x, y):
-    """-> 2n wires holding x*y; x, y disjoint registers of n wires (restored)."""
+def _sd_mul(C, x, y, legacy=False, xmax=None):
+    """-> 2n wires holding x*y; x, y disjoint registers of n wires (restored).  xmax: proven bound x <= xmax."""
     n = len(x)
+    if xmax is None:
+        xmax = (1 << n) - 1
     assert len(y) == n and not (set(x) & set(y))
     A = [C.alloc() for _ in range(n + 1)]
+    lo = hi = 0
     for i in range(n):
         top = C.alloc()
         C.cx(A[-1], top)                                   # sign extension: A now has n+i+2 bits
         A.append(top)
-        _signed_row(C, A, i, x, y[i])
+        d = xmax << i                                      # |s_i 2^i x| <= d
+        _signed_row(C, A, i, x, y[i], None if legacy else (lo, hi, lo - d, hi + d))
+        lo, hi = lo - d, hi + d
     # A (2n+1 bits) = sum s_i 2^i x;  + 2^n x - x = 2xy >= 0
     _add(C, [_W(w) for w in x], A[n:2 * n + 1])
-    _sub(C, [_W(w) for w in x], A[:2 * n + 1])
+    if legacy:
+        _sub(C, [_W(w) for w in x], A[:2 * n + 1])
+    else:
+        # A[0] = x_0 (row 0 writes bit 0 of +-x, no later row touches it), so A - x = 2 (A[1:] - x[1:]):
+        # clear A[0] by CX and subtract x >> 1 from A >> 1 (saves the AND of bit 0, identically 0).
+        C.cx(x[0], A[0])
+        if n > 1:
+            _sub(C, [_W(w) for w in x[1:]], A[1:2 * n + 1])
     C.release(A[0])                                        # 2xy is even: the low bit is 0
     return A[1:2 * n + 1]
 
 
-def _sd_sq(C, x):
-    """-> 2n wires holding x^2."""
+def _sd_sq(C, x, legacy=False, xmax=None):
+    """-> 2n wires holding x^2.  xmax: proven bound x <= xmax."""
     n = len(x)
+    if xmax is None:
+        xmax = (1 << n) - 1
     A = [C.alloc() for _ in range(2)]
+    lo = hi = 0
     for i in range(1, n):
         while len(A) < 2 * i + 2:
             t = C.alloc()
             C.cx(A[-1], t)
             A.append(t)
-        _signed_row(C, A, i, x[:i], x[i])
+        d = min((1 << i) - 1, xmax) << i                   # |s_i 2^i L_i| <= 2^i min(2^i - 1, xmax)
+        _signed_row(C, A, i, x[:i], x[i], None if legacy else (lo, hi, lo - d, hi + d))
+        lo, hi = lo - d, hi + d
     while len(A) < 2 * n:
         t = C.alloc()
         C.cx(A[-1], t)
@@ -302,40 +367,95 @@ def _sd_sq(C, x):
     D = []
     for i in range(n):
         D += [_W(x[i]), ZERO]
-    _sub(C, D[:len(A)], A[:2 * n])
+    if legacy:
+        _sub(C, D[:len(A)], A[:2 * n])
+    else:
+        # A = sum_{i>=1} s_i 2^i L_i + 2^n x = 4 A' + 2 x_0 (A[0] = 0 untouched, A[1] = x_0) and D = 4 D' + x_0,
+        # so x^2 = A - D = 4 (A' - D') + x_0: bits 0, 1 become (x_0, 0) by two CX, and D' is subtracted from A[2:].
+        # The borrow out of the two low bits of A' - D' is always 0: D' = x_1 (mod 4) and, writing x = 2u + x_0,
+        # A' = (x^2 - x_0)/4 + D' = u^2 + x_0 u + x_1 (mod 4) is >= x_1 (x_1 = 1: x_0 = 0 gives u odd, A' = 2;
+        # x_0 = 1 gives A' odd).  So the subtraction splits at bit 4 (saves the AND of the dead carry into bit 4).
+        C.cx(x[0], A[0])
+        C.cx(x[0], A[1])
+        if n > 1:
+            _sub(C, D[2:4], A[2:4])
+        if n > 2:
+            _sub(C, D[4:2 * n], A[4:2 * n])
     return A[:2 * n]
 
 
-def _half_sum(C, x0, x1):
+def _half_sum(C, x0, x1, smax=None):
+    """-> new register holding x0 + x1; smax: proven bound x0 + x1 <= smax (then only bit_length(smax) bits; the
+    bits of x0, x1 at and above it are 0)."""
     L = max(len(x0), len(x1)) + 1
+    if smax is not None:
+        L = min(L, max(1, smax.bit_length()))
     s = [C.alloc() for _ in range(L)]
     lo, hi = (x0, x1) if len(x0) >= len(x1) else (x1, x0)
-    for w, t in zip(lo, s):
+    for w, t in zip(lo[:L], s):
         C.cx(w, t)
-    _add(C, [_W(w) for w in hi], s)
+    _add(C, [_W(w) for w in hi[:L]], s)
     return s
 
 
-def _kara(C, a, b, L, base, sq, gar):
+def _kara(C, a, b, L, base, sq, gar, legacy=False, amax=None, bmax=None):
+    """-> 2m wires holding a*b (a^2 for sq).  amax, bmax: proven bounds a <= amax, b <= bmax (None: 2^m - 1); in
+    a Karatsuba node the operands of the middle product are half sums, whose range is smaller than their width."""
     m = len(a)
+    if legacy:
+        amax = bmax = None
+    full = (1 << m) - 1
+    amax = full if amax is None else amax
+    bmax = amax if sq else (full if bmax is None else bmax)
     if L == 0 or m <= base:
-        return _sd_sq(C, a) if sq else _sd_mul(C, a, b)
+        return _sd_sq(C, a, legacy, amax) if sq else _sd_mul(C, a, b, legacy, amax)
     h = m // 2
-    z0 = _kara(C, a[:h], None if sq else b[:h], L - 1, base, sq, gar)
-    z2 = _kara(C, a[h:], None if sq else b[h:], L - 1, base, sq, gar)
+    a0m, a1m = min((1 << h) - 1, amax), min((1 << (m - h)) - 1, amax >> h)
+    b0m, b1m = (a0m, a1m) if sq else (min((1 << h) - 1, bmax), min((1 << (m - h)) - 1, bmax >> h))
+    z0 = _kara(C, a[:h], None if sq else b[:h], L - 1, base, sq, gar, legacy, a0m, b0m)
+    z2 = _kara(C, a[h:], None if sq else b[h:], L - 1, base, sq, gar, legacy, a1m, b1m)
     out = list(z0) + list(z2)
-    sa = _half_sum(C, a[:h], a[h:])
+    sa = _half_sum(C, a[:h], a[h:], None if legacy else a0m + a1m)
     if sq:
-        T = _kara(C, sa, None, L - 1, base, True, gar)
+        T = _kara(C, sa, None, L - 1, base, True, gar, legacy, a0m + a1m)
         gar += sa
     else:
-        sb = _half_sum(C, b[:h], b[h:])
-        T = _kara(C, sa, sb, L - 1, base, False, gar)
+        sb = _half_sum(C, b[:h], b[h:], None if legacy else b0m + b1m)
+        T = _kara(C, sa, sb, L - 1, base, False, gar, legacy, a0m + a1m, b0m + b1m)
         gar += sa + sb
-    _sub(C, [_W(w) for w in z0], T)
-    _sub(C, [_W(w) for w in z2], T)
-    _add(C, [_W(w) for w in T[:m + 1]], out[h:2 * m])     # T = a0 b1 + a1 b0 < 2^(m+1)
-    gar += list(T)
+    if legacy:
+        _sub(C, [_W(w) for w in z0], T)
+        _sub(C, [_W(w) for w in z2], T)
+        _add(C, [_W(w) for w in T[:m + 1]], out[h:2 * m])     # T = a0 b1 + a1 b0 < 2^(m+1)
+        gar += list(T)
+        return out
+    # 0 <= T - z0 - z2 <= T - z0 <= T = sa * sb <= (a0m + a1m)(b0m + b1m): the bits of T from kT up are 0 throughout
+    # (and so are those of z0, z2 <= T), so both subtractions run on kT bits only.
+    kT = min(len(T), ((a0m + a1m) * (b0m + b1m)).bit_length())
+    if sq and kT >= 2:
+        # Low two bits of the squares: T = sa^2 = (p ^ q, 0, ...), z0 = (p, 0, ...), z2 = (q, 0, ...) with
+        # p = a_0, q = a_h.  T - z0 = (p ^ q) - p on the low bits: low bits (q, p q) and borrow p q into bit 2;
+        # then T - z2 on the low bits is 2 p q - 0: no borrow.  1 AND instead of 4 carries (3 are identically 0).
+        p, q = a[0], a[h]
+        C.cx(p, T[0])                                      # T[0] = q
+        C.AND(p, q, T[1])                                  # T[1] = p q (T[1] = 0 before: bit 1 of a square)
+        _sub(C, [_W(w) for w in z0[2:kT]], T[2:kT], cin=_W(T[1]))
+        C.cx(q, T[0])                                      # T[0] = 0
+        _sub(C, [_W(w) for w in z2[2:kT]], T[2:kT])
+    else:
+        _sub(C, [_W(w) for w in z0[:kT]], T[:kT])
+        _sub(C, [_W(w) for w in z2[:kT]], T[:kT])
+    # now T = a0 b1 + a1 b0 <= tmax < 2^(m+1)  (square: T = 2 a0 a1, so also T[0] = 0): the other bits of T are 0
+    tmax = a0m * b1m + a1m * b0m
+    kt = min(kT, max(1, tmax.bit_length()))
+    zero = list(T[kt:]) + ([T[0]] if sq else [])     # wires of T that are 0 here: back to the pool, not garbage
+    # out = z0 + 2^(2h) z2 <= a b <= amax bmax before and after the addition: its bits from ko up stay 0
+    ko = min(2 * m, max(h + 1, (amax * bmax).bit_length()))
+    Y = [ZERO if w in zero else _W(w) for w in T[:min(kt, ko - h)]]
+    _add(C, Y, out[h:ko])
+    for w in zero:
+        C.release(w)
+    gar += [w for w in T if w not in zero]
     return out
 
 
@@ -343,7 +463,7 @@ def _kara(C, a, b, L, base, sq, gar):
 
 class MulSqCircuit:
     """A generated circuit.  Attributes:
-        kind 'mul' | 'sq', n, karatsuba_levels, base, clean (Bennett version)
+        kind 'mul' | 'sq', n, karatsuba_levels, base, clean (Bennett version), legacy (published construction)
         ops        list of ('x', q) ('cx', c, t) ('and', a, b, t) ('erase', t, a, b, lin)
         num_qubits
         x, y, out  wire lists (y == [] for squaring), little endian
@@ -351,8 +471,9 @@ class MulSqCircuit:
         ancillas   all other wires: start and end at |0>
     """
 
-    def __init__(self, kind, n, levels, base, clean, ops, nq, x, y, out, garbage):
+    def __init__(self, kind, n, levels, base, clean, ops, nq, x, y, out, garbage, legacy=False):
         self.kind, self.n, self.karatsuba_levels, self.base, self.clean = kind, n, levels, base, clean
+        self.legacy = legacy
         self.ops, self.num_qubits = ops, nq
         self.x, self.y, self.out, self.garbage = list(x), list(y), list(out), list(garbage)
         used = set(self.x) | set(self.y) | set(self.out) | set(self.garbage)
@@ -360,8 +481,9 @@ class MulSqCircuit:
 
     def __repr__(self):
         k = self.counts()
-        return 'MulSqCircuit(%s, n=%d, L=%d, base=%d, clean=%s: AND=%d, qubits=%d, garbage=%d)' % (
-            self.kind, self.n, self.karatsuba_levels, self.base, self.clean, k['AND'], k['qubits'], k['garbage'])
+        return 'MulSqCircuit(%s, n=%d, L=%d, base=%d, clean=%s%s: AND=%d, qubits=%d, garbage=%d)' % (
+            self.kind, self.n, self.karatsuba_levels, self.base, self.clean, ', legacy' if self.legacy else '',
+            k['AND'], k['qubits'], k['garbage'])
 
     def counts(self):
         """Gate counts of the logical circuit (no simulation).  AND = Toffoli count; T = 4 AND; CX counts the
@@ -463,7 +585,7 @@ class MulSqCircuit:
 
 # ----------------------------------------------------------------------------------------- generators
 
-def _finish(kind, n, levels, base, clean, C, x, y, out, gar):
+def _finish(kind, n, levels, base, clean, C, x, y, out, gar, legacy=False):
     gar = [w for w in dict.fromkeys(gar) if w not in set(out)]
     ops = C.ops
     if clean:
@@ -487,7 +609,7 @@ def _finish(kind, n, levels, base, clean, C, x, y, out, gar):
         else:
             new.append(('erase', mp[o[1]], mp[o[2]], mp[o[3]], tuple(mp[w] for w in o[4])))
     f = lambda ws: [mp[w] for w in ws]
-    return MulSqCircuit(kind, n, levels, base, clean, new, C.nw, f(x), f(y), f(out), f(gar))
+    return MulSqCircuit(kind, n, levels, base, clean, new, C.nw, f(x), f(y), f(out), f(gar), legacy)
 
 
 def _check_args(n, levels, base):
@@ -499,29 +621,30 @@ def _check_args(n, levels, base):
         raise ValueError('base must be >= 1')
 
 
-def multiply(n, karatsuba_levels=0, base=4, clean=False):
+def multiply(n, karatsuba_levels=0, base=4, clean=False, legacy=False):
     """Out-of-place multiplier (x, y, 0) -> (x, y, x*y) for n-bit x, y (2n-bit product).
-    karatsuba_levels: Karatsuba recursion depth L (0 = base construction, n^2 + 4n AND, no garbage); the recursion
-    stops early at width <= base.  clean=True: Bennett version without garbage (about twice the AND count of the
-    forward circuit for L >= 1).  -> MulSqCircuit."""
+    karatsuba_levels: Karatsuba recursion depth L (0 = base construction, n^2 + 4n - 2 AND, no garbage); the
+    recursion stops early at width <= base.  clean=True: Bennett version without garbage (about twice the AND count
+    of the forward circuit for L >= 1).  legacy=True: the published construction (n^2 + 4n, K_CLAIMS numbers), with
+    its identically-0 ANDs.  -> MulSqCircuit."""
     _check_args(n, karatsuba_levels, base)
     C = _Circ()
     x = C.reg(n)
     y = C.reg(n)
     gar = []
-    out = _kara(C, x, y, karatsuba_levels, base, False, gar)
-    return _finish('mul', n, karatsuba_levels, base, clean, C, x, y, out, gar)
+    out = _kara(C, x, y, karatsuba_levels, base, False, gar, legacy)
+    return _finish('mul', n, karatsuba_levels, base, clean, C, x, y, out, gar, legacy)
 
 
-def square(n, karatsuba_levels=0, base=4, clean=False):
-    """Out-of-place square (x, 0) -> (x, x^2) for n-bit x (2n-bit result).  Base: (n^2 + 7n - 6)/2 AND, no garbage.
-    Parameters as in multiply().  -> MulSqCircuit."""
+def square(n, karatsuba_levels=0, base=4, clean=False, legacy=False):
+    """Out-of-place square (x, 0) -> (x, x^2) for n-bit x (2n-bit result).  Base: (n^2 + 7n - 16)/2 AND (n >= 3),
+    no garbage; legacy=True: (n^2 + 7n - 6)/2.  Parameters as in multiply().  -> MulSqCircuit."""
     _check_args(n, karatsuba_levels, base)
     C = _Circ()
     x = C.reg(n)
     gar = []
-    out = _kara(C, x, None, karatsuba_levels, base, True, gar)
-    return _finish('sq', n, karatsuba_levels, base, clean, C, x, [], out, gar)
+    out = _kara(C, x, None, karatsuba_levels, base, True, gar, legacy)
+    return _finish('sq', n, karatsuba_levels, base, clean, C, x, [], out, gar, legacy)
 
 
 # ------------------------------------------------------------------------- independent reference + proof

@@ -3,7 +3,9 @@
 
 Exhaustive classical checks (every AND / erase precondition, inputs restored, ancillas |0>) on all inputs up to
 6 bits, AND counts against the closed formulas and the published n = 256 numbers (counting only, no simulation),
-exact proofs (qoptct.verify.prove, clean model) against an independent schoolbook Toffoli reference, mutants."""
+exact proofs (qoptct.verify.prove, clean model) against an independent schoolbook Toffoli reference, mutants.
+The default circuits have no identically constant ANDs left in the base construction (checked on all inputs);
+legacy=True reproduces the published (K_CLAIMS) circuits and numbers exactly."""
 import itertools
 import random
 import re
@@ -26,23 +28,41 @@ def run_all(c):
 
 # ------------------------------------------------------------------------------------- AND counts
 
+def mul_ands(n):
+    return n * n + 4 * n - 2 if n >= 2 else 2
+
+
+def sq_ands(n):
+    return (n * n + 7 * n - 16) // 2 if n >= 3 else [0, 0, 3][n]
+
+
 @pytest.mark.parametrize('n', range(1, 17))
 def test_base_formulas(n):
     c = multiply(n)
     k = c.counts()
-    assert k['AND'] == n * n + 4 * n
+    assert k['AND'] == mul_ands(n)
     assert k['ERASE'] == k['AND'] and k['garbage'] == 0 and c.garbage == []
     s = square(n)
     k = s.counts()
-    assert 2 * k['AND'] == n * n + 7 * n - 6
+    assert k['AND'] == sq_ands(n)
+    if n >= 3:
+        assert 2 * k['AND'] == n * n + 7 * n - 16
     assert k['ERASE'] == k['AND'] and s.garbage == []
+    # legacy (published) construction
+    assert multiply(n, legacy=True).counts()['AND'] == n * n + 4 * n
+    assert 2 * square(n, legacy=True).counts()['AND'] == n * n + 7 * n - 6
 
 
 # small widths, base = 1 (recursion down to 1 bit): (m, L) -> AND
-KARA_MUL = {(2, 1): 32, (3, 1): 56, (4, 1): 64, (5, 1): 92, (6, 1): 102,
-            (2, 2): 52, (3, 2): 111, (4, 2): 139, (5, 2): 179, (6, 2): 204}
-KARA_SQ = {(2, 1): 17, (3, 1): 35, (4, 1): 41, (5, 1): 61, (6, 1): 68,
-           (2, 2): 28, (3, 2): 69, (4, 2): 86, (5, 2): 117, (6, 2): 136}
+KARA_MUL = {(2, 1): 21, (3, 1): 45, (4, 1): 58, (5, 1): 83, (6, 1): 96,
+            (2, 2): 32, (3, 2): 71, (4, 2): 106, (5, 2): 144, (6, 2): 176}
+KARA_SQ = {(2, 1): 6, (3, 1): 20, (4, 1): 26, (5, 1): 42, (6, 1): 49,
+           (2, 2): 8, (3, 2): 28, (4, 2): 45, (5, 2): 67, (6, 2): 87}
+# legacy=True (published construction)
+KARA_MUL_LEGACY = {(2, 1): 32, (3, 1): 56, (4, 1): 64, (5, 1): 92, (6, 1): 102,
+                   (2, 2): 52, (3, 2): 111, (4, 2): 139, (5, 2): 179, (6, 2): 204}
+KARA_SQ_LEGACY = {(2, 1): 17, (3, 1): 35, (4, 1): 41, (5, 1): 61, (6, 1): 68,
+                  (2, 2): 28, (3, 2): 69, (4, 2): 86, (5, 2): 117, (6, 2): 136}
 
 
 @pytest.mark.parametrize('m,L', sorted(KARA_MUL))
@@ -50,11 +70,18 @@ def test_karatsuba_table_small(m, L):
     assert multiply(m, L, base=1).counts()['AND'] == KARA_MUL[m, L]
     assert square(m, L, base=1).counts()['AND'] == KARA_SQ[m, L]
     assert multiply(m, L, base=1, clean=True).counts()['AND'] == 2 * KARA_MUL[m, L]
+    assert multiply(m, L, base=1, legacy=True).counts()['AND'] == KARA_MUL_LEGACY[m, L]
+    assert square(m, L, base=1, legacy=True).counts()['AND'] == KARA_SQ_LEGACY[m, L]
 
 
-# n = 256, base = 4: K_CLAIMS (k4) and the x5 audit (qubits of multiply L2 / L3)
-N256 = [('mul', 0, 66560, 1537, 0), ('mul', 2, 42727, 2707, 1300), ('mul', 3, 37880, 3911, 2504),
-        ('sq', 0, 33661, 1279, 0), ('sq', 2, 23333, 2126, 975), ('sq', 3, 22332, 3029, 1878)]
+# n = 256, base = 4.  Default (optimised) construction:
+N256 = [('mul', 0, 66558, 1536, 0), ('mul', 1, 52096, 1923, 515), ('mul', 2, 42709, 2703, 1295),
+        ('mul', 3, 37826, 3895, 2487), ('mul', 4, 37523, 5750, 4342),
+        ('sq', 0, 33656, 1275, 0), ('sq', 1, 27049, 1537, 385), ('sq', 2, 23272, 2118, 966),
+        ('sq', 3, 22145, 3000, 1848), ('sq', 4, 23786, 4355, 3203)]
+# legacy=True: K_CLAIMS (k4) and the x5 audit (qubits of multiply L2 / L3)
+N256_LEGACY = [('mul', 0, 66560, 1537, 0), ('mul', 2, 42727, 2707, 1300), ('mul', 3, 37880, 3911, 2504),
+               ('sq', 0, 33661, 1279, 0), ('sq', 2, 23333, 2126, 975), ('sq', 3, 22332, 3029, 1878)]
 
 
 @pytest.mark.parametrize('kind,L,AND,qubits,garbage', N256)
@@ -65,6 +92,14 @@ def test_counts_n256(kind, L, AND, qubits, garbage):
     assert k['T'] == 4 * AND
 
 
+@pytest.mark.parametrize('kind,L,AND,qubits,garbage', N256_LEGACY)
+def test_counts_n256_legacy(kind, L, AND, qubits, garbage):
+    c = (multiply if kind == 'mul' else square)(256, karatsuba_levels=L, legacy=True)
+    k = c.counts()
+    assert (k['AND'], k['qubits'], k['garbage']) == (AND, qubits, garbage)
+    assert c.legacy and 'legacy' in repr(c)
+
+
 def test_karatsuba_saves_at_256():
     assert square(256, 3).counts()['AND'] < 0.68 * (256 * 259 // 2 - 1)     # -33 % vs n(n+3)/2 - 1 (2609.05625)
     assert multiply(256, 3).counts()['AND'] < 0.58 * 256 ** 2
@@ -73,18 +108,59 @@ def test_karatsuba_saves_at_256():
 # ------------------------------------------------------------------------------- function (classical)
 
 @pytest.mark.parametrize('kind', ['mul', 'sq'])
-@pytest.mark.parametrize('m', range(1, 7))
+@pytest.mark.parametrize('m', range(1, 8))
 @pytest.mark.parametrize('L', [0, 1, 2])
 def test_all_inputs(kind, m, L):
     f = multiply if kind == 'mul' else square
-    c = f(m, L, base=1)
-    assert run_all(c) == 0
-    if L == 0:
-        assert c.garbage == []
-    elif m >= 2:
-        assert c.garbage
-    cc = f(m, L, base=1, clean=True)
-    assert cc.garbage == [] and run_all(cc) == 0
+    for base in (1, 2):
+        c = f(m, L, base=base)
+        assert run_all(c) == 0
+        if L == 0:
+            assert c.garbage == []
+        elif m > base:
+            assert c.garbage
+        cc = f(m, L, base=base, clean=True)
+        assert cc.garbage == [] and run_all(cc) == 0
+    if m <= 6:
+        assert run_all(f(m, L, base=1, legacy=True)) == 0
+        assert run_all(f(m, L, base=1, clean=True, legacy=True)) == 0
+
+
+def constant_ands(c):
+    """indices of the ANDs whose value is the same on ALL inputs (bit-sliced exhaustive run)."""
+    m = c.n
+    P = list(itertools.product(range(1 << m), repeat=2)) if c.kind == 'mul' else [(a, a) for a in range(1 << m)]
+    full = (1 << len(P)) - 1
+    v = [0] * c.num_qubits
+    for i, w in enumerate(c.x):
+        v[w] = sum(1 << s for s, (a, _) in enumerate(P) if a >> i & 1)
+    for i, w in enumerate(c.y):
+        v[w] = sum(1 << s for s, (_, b) in enumerate(P) if b >> i & 1)
+    const = []
+    for j, o in enumerate(c.ops):
+        if o[0] == 'x':
+            v[o[1]] ^= full
+        elif o[0] == 'cx':
+            v[o[2]] ^= v[o[1]]
+        elif o[0] == 'and':
+            v[o[3]] = v[o[1]] & v[o[2]]
+            if v[o[3]] in (0, full):
+                const.append(j)
+        else:
+            v[o[1]] = 0
+    return const
+
+
+# (multiply n = 2 keeps one constant AND: the top carry of its 4-bit final subtraction; a width-2 artifact)
+@pytest.mark.parametrize('kind,n,L,base', [('mul', 3, 0, 4), ('mul', 4, 0, 4), ('mul', 6, 0, 4), ('sq', 3, 0, 4),
+                                           ('sq', 6, 0, 4), ('sq', 9, 0, 4), ('mul', 6, 1, 1), ('mul', 8, 1, 4),
+                                           ('sq', 8, 1, 4), ('sq', 12, 1, 4)])
+def test_no_constant_ands(kind, n, L, base):
+    f = multiply if kind == 'mul' else square
+    assert constant_ands(f(n, L, base=base)) == []
+    if L == 0 and n >= 3:
+        # the published construction has 2 (multiply) / 4 (square) ANDs that are identically 0
+        assert len(constant_ands(f(n, L, base=base, legacy=True))) == (2 if kind == 'mul' else 4)
 
 
 @pytest.mark.parametrize('kind,n,L', [('mul', 16, 2), ('mul', 64, 3), ('sq', 64, 3), ('mul', 128, 2),
@@ -99,6 +175,7 @@ def test_random_and_edge_inputs(kind, n, L):
         assert got == [a * b for a, b in zip(xs, ys)]
     else:
         assert square(n, L).simulate(xs) == [a * a for a in xs]
+    assert square(n, L, legacy=True).simulate(xs) == [a * a for a in xs]
 
 
 def test_layout_and_qasm():
@@ -208,7 +285,7 @@ def test_prove_against_schoolbook(kind, n, L, clean):
     assert r['status'] == 'PROVED', r
 
 
-KPROVE = [('mul', 6, 0, False), ('sq', 6, 0, False), ('mul', 5, 1, True), ('sq', 6, 1, True),
+KPROVE = [('mul', 6, 0, False), ('sq', 6, 0, False), ('sq', 8, 0, False), ('mul', 5, 1, True), ('sq', 6, 1, True),
           ('mul', 6, 2, True), ('sq', 6, 2, True)]
 
 
@@ -218,6 +295,13 @@ def test_kprove_against_schoolbook(kind, n, L, clean):
     c = (multiply if kind == 'mul' else square)(n, L, base=2, clean=clean)
     r = M.prove(c, budget_sec=600, engine='kprove')
     assert r['status'] == 'PROVED', r
+
+
+@pytest.mark.parametrize('kind,n,L,clean', [('mul', 6, 0, False), ('sq', 6, 1, True)])
+def test_kprove_legacy(kind, n, L, clean):
+    pytest.importorskip('qoptct.verify.kprove')
+    c = (multiply if kind == 'mul' else square)(n, L, base=2, clean=clean, legacy=True)
+    assert M.prove(c, budget_sec=600, engine='kprove')['status'] == 'PROVED'
 
 
 def _prove_text(c, txt):
