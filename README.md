@@ -131,9 +131,12 @@ to every optimized run (a post-pass result is used only if it is proven equal ag
 `qoptct kprove CIRCUIT.qasm REF.qc [--clean] [--budget S] [--json]` (new in 0.5) is an exact prover for large
 circuits with a *classical* reference (arithmetic, table lookups, S-boxes): the same sum-over-paths with symbolic
 measurement outcomes, but wire functions are BDDs, so adders of thousands of bits are proved in seconds. Exit codes
-as above (2 also for SAMPLED, a sampled check that is not a proof). It stops with UNKNOWN when its peak memory
-exceeds `$KPROVE_MAX_MB` (default 900 MB); multiplications and reductions modulo general primes usually do.
-From Python: `from qoptct.verify.kprove import kprove; kprove("c.qasm", "ref.qc", clean=True)`.
+as above (2 also for SAMPLED, a sampled check that is not a proof). It stops with UNKNOWN when the memory it uses
+during the call (growth of the resident set) exceeds `--max-mb` / `kprove(max_mb=...)` / `$KPROVE_MAX_MB` (default
+900 MB); multiplications and reductions modulo general primes usually do. For circuits whose wires stay of GF(2)
+degree ≤ 2 (GF(2^m) multipliers) the engine `exact2` decides exactly at any size from the inputs of Hamming weight
+≤ 2; `auto` tries it first when the reference is bilinear.
+From Python: `from qoptct.verify.kprove import kprove; kprove("c.qasm", "ref.qc", clean=True, max_mb=1500)`.
 
 ## Qiskit plugin
 
@@ -257,6 +260,7 @@ independently of the circuit. Model: logical AND = 4 T + 3 CX, uncomputation by 
 | `aes_mixcolumns_90cx` | one MixColumns column in place | 0 | 90 | 32 | published in-place CNOT circuits: 92 (Xiang et al. 2020), 91. Depth 34 is worse than theirs (28–30), and the output bits end on permuted wires (`out_wires` in the .json); circuits that may use new wires (g-XOR metric) reach fewer XORs |
 | `lookup_c6_w32_40and`, `lookup_c6_w21_33and` | table lookup z ⊕= T[a], 6-bit address, 32 / 21-bit word | 40 / 33 | 1477 / 991 | 47 / 40 | 2^c − c − 1 = 57 AND for the standard lookup. The idea of a narrow lookup combined with an adder in the Gidney–Ekerå framework is due to Luongo et al. 2025 (arXiv:2502.17325); with lookups shared between several primes (Sharma–Lau 2026) this construction gives no gain |
 | `gf2m_mult_m8_clean` | c = a·b in GF(2^8) | 26 (104) | 347 | 25 | small analogue of the m = 163…571 multipliers |
+| `gf2m_mult_m163_908and` | c ⊕= a·b in GF(2^163) (NIST polynomial), any c | 908 (3632) | 75 823 | 490 | same model as Kim et al. 2022 (992 Toffoli) and Garn–Kan (999); smaller bilinear complexity published (906, arXiv:1303.7082). Proved by the `exact2` engine (degree ≤ 2) |
 | `gf2m_square_m{163,233,283,409,571}_*` | in place a ← a² mod f (NIST polynomials) | 0 | 875 / 825 / 1534 / 1418 / 3239 | m | compared with the generic in-place bound m² − m used in the literature, not with a published circuit |
 
 What is **not** claimed: no record for whole attacks (RSA, ECDLP); this release contains proved building blocks, not

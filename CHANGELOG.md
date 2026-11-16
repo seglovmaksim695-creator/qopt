@@ -4,7 +4,7 @@
 
 ### Added
 * **`qoptct.verify.kprove`** and the subcommand **`qoptct kprove CIRCUIT.qasm REF.qc [--clean] [--budget S]
-  [--engine auto|bdd|anf|sample] [--pre lt:REG:N] [--json]`**: exact verification of large Clifford+T circuits with
+  [--engine auto|bdd|anf|sample|exact2] [--pre lt:REG:N] [--max-mb MB] [--json]`**: exact verification of large Clifford+T circuits with
   mid-circuit measurements and classically controlled corrections against a *classical* (reversible, possibly with
   diagonal phases) reference. Sum-over-paths with symbolic measurement outcomes, wire functions as reduced ordered
   BDDs with complement edges (`qoptct.verify.bdd`), so ripple carries stay linear in size; e.g. a 256-bit Gidney adder
@@ -12,11 +12,23 @@
   REFUTED comes with a witness confirmed by the independent sparse simulator; SAMPLED / UNKNOWN are never a proof.
   Word-level specifications (`qoptct.verify.ksym`), input promises (`--pre`), garbage wires, phase checked on the
   promised domain only. Exit codes: 0 PROVED, 1 REFUTED, 2 not proved, 3 usage or input error.
-  Memory guard: the run stops with UNKNOWN when the peak RSS exceeds `$KPROVE_MAX_MB` (default 900 MB).
+  Memory budget per call: `kprove(..., max_mb=MB)` / `--max-mb MB` / `$KPROVE_MAX_MB` (default 900), counted as the
+  growth of the resident set during the call (plus a floor of 200 bytes per live BDD node, for memory reused from
+  earlier work), not as the peak of the whole process — a test process that already used 1 GB is not charged for it;
+  over budget the run stops with UNKNOWN and reports the share of circuit ops processed (`result['mem']` gives the
+  budget, the base and the peak growth).
+  Engine **`exact2`** (`qoptct.verify.exact2.prove_degree2`, tried first by `auto` for a bilinear reference):
+  circuits of cx / x / logical AND / AND erasure whose wires stay of GF(2) degree ≤ 2 are decided exactly by the
+  1 + n + n(n−1)/2 inputs of Hamming weight ≤ 2 (a polynomial of degree ≤ 2 vanishing there vanishes everywhere; the
+  phases of the AND gadget and of the erasure are checked separately), at any size: the GF(2^163) multiplier
+  (489 input bits, 119 806 inputs) in 0.4 s. A mismatch with all preconditions held is a genuine counterexample.
   Limits: references must be classical; multiplications (x·y, x·c mod N, high-degree GF(2^m)) and reductions modulo
-  primes with a large c usually exceed the memory guard (UNKNOWN), no induction over the width.
+  primes with a large c usually exceed the memory budget (UNKNOWN), no induction over the width. The BDD engine on the
+  GF(2^163) multiplier reaches 20–27 % of the circuit within 1.7 GB.
 * **`results/crypto/`**: circuits of cryptographic building blocks with their references, each one proved by
-  `qoptct kprove` (only PROVED entries are kept; see `results/crypto/index.json` and the README section).
+  `qoptct kprove` (only PROVED entries are kept; see `results/crypto/index.json` and the README section), including
+  the GF(2^163) multiplier `gf2m_mult_m163_908and` (strict, 908 ANDs, proved by the exact2 engine against a
+  schoolbook reference built from the NIST polynomial).
 * `qoptct.verify.branchsim.run_branch_scaled`: branch simulation that returns the state with its scale as log2.
 * **`qoptct.crypto`** — circuit generators for cryptographic arithmetic on logical ANDs (pure functions, OpenQASM 3
   output, bit-sliced checkers, exact proofs of small instances in the tests; one shared `CheckError`):
@@ -42,7 +54,14 @@
     arXiv:1303.7082), `gf2m_square` (in place, CNOT only), `gf2m_inverse` / `gf2m_divide` (Itoh–Tsujii with
     measurement-based erasure of product registers, (L+1)·M ANDs; prior art for that erasure: Khattar et al. 2025,
     arXiv:2510.10967), exact counts without building, gate-level stream check (`gf2m_itoh_gate_check`). New package
-    data `qoptct/contrib/gf2m/data/crt_ranks.json`.
+    data `qoptct/contrib/gf2m/data/crt_ranks.json`. Default register erasure `erase='terms'` (X measurement + one
+    classically controlled CZ per (bilinear term, output bit): 0.67 M CZ instead of 5.4 M for the m = 163 division;
+    `erase='monomials'` keeps the per-bit quadratic forms): its phases are checked exactly for any m by
+    `qoptct.contrib.gf2m.qcirc.ErasurePhaseChecker` (symbolic phase polynomial of the emitted gates; all 668 520
+    conditional phases of the m = 163 division), and whole circuits are proved by kprove against an independent
+    truth-table reference for inversion m ≤ 14 and division m ≤ 11 (the tests go to 12 and 10; a removed
+    conditional phase is REFUTED);
+    the argument for every m is in the docstring of `qoptct.contrib.gf2m.itoh`.
 * **`qoptct.estimate`** and the subcommand **`qoptct estimate --toffoli T --qubits Q [--depth D] [--shots S]
   [--model all|ge2019|gidney2025|litinski2023] [--json]`** / **`qoptct estimate --check`**: physical cost of a
   surface-code run (physical qubits, runtime, expected runtime with retries, failure probability, code distance,

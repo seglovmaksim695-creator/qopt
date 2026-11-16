@@ -24,8 +24,10 @@ erased wire equal to the product / polynomial).  `simulate` runs the circuit bit
 bit per input lane) and enforces every precondition, so a passing simulation is an exact statement about the
 simulated inputs (all measurement outcomes included).  `degree2_exact` turns it into a proof for all inputs when
 every wire stays of degree <= 2 (see its docstring).  For the 'k'/'m'/'p' register erasure the simulation checks
-the classical precondition ('k'); that the conditional phases equal (-1)^(s.t) follows from their construction
-from the same terms (itoh.Program._lower_erase_terms) and is proved by qoptct.verify.prove at small m (tests).
+the classical precondition ('k'); that the conditional phases equal (-1)^(s.t) is checked exactly and for any m by
+`ErasurePhaseChecker` / `erasure_phase_check` (symbolic phase polynomial of the emitted gates; its |0> assumptions on
+work wires are checked by `simulate(..., zero_at=checker.assumed_zero)`), and whole circuits are proved by
+qoptct.verify.kprove at small m (tests).  The argument for every m is in the docstring of itoh.
 """
 import re
 
@@ -200,11 +202,18 @@ class GF2Circuit:
         return "\n".join(L) + "\n"
 
     # -- simulation
-    def run_lanes(self, state, full):
-        """bitsliced run on `state` (list of nq ints, modified in place); full = all-lanes mask."""
+    def run_lanes(self, state, full, zero_at=None):
+        """bitsliced run on `state` (list of nq ints, modified in place); full = all-lanes mask.
+        zero_at: {op index: wires} -- wires that must be 0 (all lanes) just before that op (the assumptions of
+        ErasurePhaseChecker)."""
         st = state
         for i, o in enumerate(self.ops):
             k = o[0]
+            if zero_at and i in zero_at:
+                for w in zero_at[i]:
+                    if st[w]:
+                        raise PreconditionError("op %d: wire q[%d] assumed |0> by the erasure phase check is not 0"
+                                                % (i, w))
             if k == 'c':
                 st[o[2]] ^= st[o[1]]
             elif k == 'x':
@@ -258,7 +267,7 @@ class GF2Circuit:
                 st[a] = 0
         return st
 
-    def simulate(self, values, lanes):
+    def simulate(self, values, lanes, zero_at=None):
         """values: {register name: list of `lanes` ints}; other wires start at 0.  Returns {name: list of ints} at
         the end; raises PreconditionError on a violated precondition or a dirty non-register wire at the end."""
         full = (1 << lanes) - 1
@@ -271,7 +280,7 @@ class GF2Circuit:
                     if v >> i & 1:
                         x |= 1 << ln
                 st[w] = x
-        self.run_lanes(st, full)
+        self.run_lanes(st, full, zero_at)
         regw = set(w for ws in self.regs.values() for w in ws)
         for w in range(self.nq):
             if w not in regw and st[w]:
@@ -344,6 +353,210 @@ def parse_qasm(text):
         ops.append(('a', p, q, a))
         i += 10
     return N, ops
+
+
+# ---------------------------------------------------------------------------------------------- erasure phases
+
+class ErasurePhaseChecker:
+    """EXACT symbolic check of the phase corrections of every product-register erasure, for any m.
+
+    A register erasure is the op group  ('k', wt, wa, wb, ands, lins), then the X measurements ('m') of all wires of
+    wt, and CX / conditional Z, CZ ('c', 'x', 'p') until the next op of another kind.  The assertion 'k' says that
+    before the group the wires wt hold  K(A, B) = sum_k gamma_k (alpha_k.A)(beta_k.B) + sum g (u.A)  (A, B = the
+    values on wa, wb; this classical precondition is checked by `simulate` / the stream check, not here).
+    The X measurement of t = K(A, B) leaves the factor (-1)^(s.t) in branch s; the group is a correct erasure iff the
+    conditional phases it applies equal exactly (-1)^(s.K(A, B)) for all s, A, B (then every branch is the identity
+    on A, B times a data-independent amplitude).
+
+    The check: inside the group only CX / X act (enforced), so every wire holds an affine GF(2) form of the
+    variables A, B at the start of the group (wires outside wa, wb start at 0: fresh / released wires, which the
+    classical checks guarantee); a 'p' op with outcome s_i on wires holding L1 (L2) contributes s_i*L1 (s_i*L1*L2).
+    The collected polynomial  sum_i s_i Q_i(A, B)  is compared with  sum_i s_i K_i(A, B)  coefficient by coefficient
+    in the canonical multilinear form (x^2 = x; constants = data-independent branch phases, ignored).  This is a proof
+    for all inputs and all outcomes of the phase part; the wires measured must not be read inside the group before
+    their measurement.  -> feed(op) per op, result() -> (ok, reason)."""
+
+    def __init__(self):
+        self.seg = None
+        self.n_groups = 0
+        self.n_phase = 0
+        self.err = None
+        self.i = -1
+        self.assumed_zero = {}       # op index of the 'k' op -> wires assumed |0> at the start of that erasure
+
+    def _fail(self, why):
+        if self.err is None:
+            self.err = "op %d: %s" % (self.i, why)
+
+    def feed(self, o):
+        self.i += 1
+        if self.err is not None:
+            return
+        k = o[0]
+        if k == 'k':
+            self._close()
+            self._open(o)
+            return
+        if self.seg is None:
+            if k == 'p':
+                self._fail("conditional phase outside a register erasure")
+            return
+        S = self.seg
+        if k == 'm':
+            a = o[1]
+            if a not in S['opaque'] or a in S['measured']:
+                self._fail("measurement of a wire that is not an unmeasured bit of the erased register")
+                return
+            S['mids'][o[2]] = S['wt_index'][a]
+            S['measured'].add(a)
+            S['opaque'].discard(a)
+            S['form'][a] = (0, 0)                # H, measure, conditional X: back to |0>
+        elif k == 'c':
+            c, t = o[1], o[2]
+            if c in S['opaque'] or t in S['opaque']:
+                self._fail("CX on an unmeasured wire of the erased register")
+                return
+            fc = self._get(S, c)
+            ft = self._get(S, t)
+            S['form'][t] = (ft[0] ^ fc[0], ft[1] ^ fc[1])
+        elif k == 'x':
+            t = o[1]
+            if t in S['opaque']:
+                self._fail("X on an unmeasured wire of the erased register")
+                return
+            ft = self._get(S, t)
+            S['form'][t] = (ft[0], ft[1] ^ 1)
+        elif k == 'p':
+            mid, ws = o[1], o[2]
+            if mid not in S['mids']:
+                self._fail("phase conditioned on a measurement outside this erasure")
+                return
+            if any(w in S['opaque'] for w in ws):
+                self._fail("phase on an unmeasured wire of the erased register")
+                return
+            i = S['mids'][mid]
+            self.n_phase += 1
+            Q = S['Q'][i]
+            if len(ws) == 1:
+                m1, c1 = self._get(S, ws[0])
+                Q['lin'] ^= m1
+            else:
+                m1, c1 = self._get(S, ws[0])
+                m2, c2 = self._get(S, ws[1])
+                if c1:
+                    Q['lin'] ^= m2
+                if c2:
+                    Q['lin'] ^= m1
+                rows = Q['rows']
+                x = m1
+                while x:
+                    u = (x & -x).bit_length() - 1
+                    x &= x - 1
+                    rows[u] = rows.get(u, 0) ^ m2
+        else:
+            self._close()
+
+    def _get(self, S, w):
+        f = S['form'].get(w)
+        if f is None:                            # first touch of a wire outside wa, wb, wt: assumed |0>
+            S['zero'].add(w)
+            f = S['form'][w] = (0, 0)
+        return f
+
+    def _open(self, o):
+        wt, wa, wb, ands, lins = o[1:]
+        var = {}
+        for w in list(wa) + list(wb):
+            if w not in var:
+                var[w] = len(var)
+        if set(wt) & set(var):
+            self._fail("erased register overlaps its operands")
+            return
+        form = {w: (1 << v, 0) for w, v in var.items()}
+        m = len(wt)
+        tgt = [dict(rows={}, lin=0) for _ in range(m)]
+
+        def vmask(ws, mask):
+            r = 0
+            j = 0
+            while mask:
+                if mask & 1:
+                    r |= 1 << var[ws[j]]
+                mask >>= 1
+                j += 1
+            return r
+        for u, g in lins:
+            um = vmask(wa, u)
+            for i in range(m):
+                if g >> i & 1:
+                    tgt[i]['lin'] ^= um
+        for al, be, ga in ands:
+            am, bm = vmask(wa, al), vmask(wb, be)
+            for i in range(m):
+                if ga >> i & 1:
+                    rows = tgt[i]['rows']
+                    x = am
+                    while x:
+                        u = (x & -x).bit_length() - 1
+                        x &= x - 1
+                        rows[u] = rows.get(u, 0) ^ bm
+        self.seg = dict(form=form, opaque=set(wt), measured=set(), mids={}, wt=list(wt),
+                        wt_index={w: i for i, w in enumerate(wt)}, Q=[dict(rows={}, lin=0) for _ in range(m)],
+                        tgt=tgt, start=self.i, zero=set())
+        self.assumed_zero[self.i] = self.seg['zero']
+
+    @staticmethod
+    def _canon_zero(rows, lin):
+        """is the multilinear form sum_u x_u * (rows[u] . x) + lin . x zero (x^2 = x)?"""
+        upper = {}
+        for u, r in rows.items():
+            if r >> u & 1:
+                lin ^= 1 << u
+                r ^= 1 << u
+            hi = r >> (u + 1) << (u + 1)
+            if hi:
+                upper[u] = upper.get(u, 0) ^ hi
+            lo = r ^ hi
+            while lo:
+                v = (lo & -lo).bit_length() - 1
+                lo &= lo - 1
+                upper[v] = upper.get(v, 0) ^ (1 << u)
+        return lin == 0 and not any(upper.values())
+
+    def _close(self):
+        S = self.seg
+        if S is None:
+            return
+        self.seg = None
+        if len(S['measured']) != len(S['wt']):
+            self._fail("register erasure from op %d: not every bit measured" % S['start'])
+            return
+        for i in range(len(S['wt'])):
+            Q, T = S['Q'][i], S['tgt'][i]
+            rows = dict(Q['rows'])
+            for u, r in T['rows'].items():
+                rows[u] = rows.get(u, 0) ^ r
+            if not self._canon_zero(rows, Q['lin'] ^ T['lin']):
+                self._fail("register erasure from op %d: phase polynomial of bit %d != asserted product"
+                           % (S['start'], i))
+                return
+        self.n_groups += 1
+
+    def result(self):
+        self._close()
+        if self.err is not None:
+            return False, self.err
+        return True, "exact: %d register erasures, %d conditional phases (all inputs, all outcomes)" % (
+            self.n_groups, self.n_phase)
+
+
+def erasure_phase_check(circ_or_ops):
+    """ErasurePhaseChecker over a GF2Circuit (or an ops list) -> (ok, reason)."""
+    ops = circ_or_ops.ops if hasattr(circ_or_ops, 'ops') else circ_or_ops
+    ch = ErasurePhaseChecker()
+    for o in ops:
+        ch.feed(o)
+    return ch.result()
 
 
 # ---------------------------------------------------------------------------------------------- exact check
