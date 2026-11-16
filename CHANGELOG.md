@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased (0.5)
+
+### Added
+* `qoptct.crypto.mulsq` (`from qoptct.crypto import multiply, square`): generators of out-of-place integer
+  multiplication (x, y, 0) -> (x, y, xy) and squaring (x, 0) -> (x, x²) on conditionally inverted additions in the
+  logical-AND model: base n²+4n and (n²+7n−6)/2 AND, optional Karatsuba levels with garbage (n = 256, L = 3:
+  37 880 and 22 332 AND), Bennett version `clean=True`, OpenQASM 3 output, bit-sliced checker, independent
+  schoolbook reference `.qc` and `prove()` via `qoptct.verify`.
+
 ## 0.4.0 — 2026-11-15
 
 ### Added

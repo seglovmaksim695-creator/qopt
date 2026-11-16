@@ -577,13 +577,22 @@ def reference_qc(kind, n, num_qubits=0):
     return '\n'.join(L) + '\n'
 
 
-def prove(circ, budget_sec=600.0, max_width=22):
-    """Exact proof (qoptct.verify.prove, clean model: all inputs, all measurement outcomes) of circ against the
-    independent reference_qc().  Only garbage-free circuits can be proved (karatsuba_levels = 0 or clean=True).
-    -> the dict of qoptct.verify.prove ('status' PROVED / REFUTED / UNKNOWN, ...)."""
-    from qoptct import verify
+def prove(circ, budget_sec=600.0, max_width=22, engine='prove'):
+    """Exact proof (clean model: all inputs, all measurement outcomes) of circ against the independent
+    reference_qc().  Only garbage-free circuits can be proved (karatsuba_levels = 0 or clean=True).
+    engine='prove': qoptct.verify.prove (path-sum normal form / trace miter; in practice multiply n <= 5,
+    square n <= 6 within minutes); engine='kprove': the BDD prover qoptct.verify.kprove when the installed qoptct
+    has it (ImportError otherwise; proves multiply n = 6..8 in seconds).
+    -> dict with 'status' PROVED / REFUTED / UNKNOWN (and the prover's details)."""
     if circ.garbage:
         raise ValueError('circuit has garbage wires: use karatsuba_levels=0 or clean=True')
+    if engine == 'kprove':
+        from qoptct.verify.kprove import kprove as _kp
+        verify = None
+    elif engine == 'prove':
+        from qoptct import verify
+    else:
+        raise ValueError('engine must be "prove" or "kprove"')
     N = circ.reference_width()
     d = tempfile.mkdtemp(prefix='qopt_mulsq_')
     qa, qc = os.path.join(d, 'c.qasm'), os.path.join(d, 'ref.qc')
@@ -592,6 +601,8 @@ def prove(circ, budget_sec=600.0, max_width=22):
             fh.write(circ.to_qasm(num_qubits=N))
         with open(qc, 'w') as fh:
             fh.write(circ.reference_qc())
+        if verify is None:
+            return _kp(qa, qc, clean=True, budget_sec=budget_sec, engine='bdd', sample=False)
         return verify.prove(qa, qc, clean=True, budget_sec=budget_sec, max_width=max_width)
     finally:
         for p in (qa, qc):
