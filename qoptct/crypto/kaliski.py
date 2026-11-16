@@ -1,12 +1,12 @@
 # SPDX-License-Identifier: Apache-2.0
-"""qoptct.crypto.kaliski -- reversible Kaliski modular inversion on logical ANDs, 12n^2 + n ANDs (generic odd prime p).
+"""qoptct.crypto.kaliski -- reversible Kaliski modular inversion on logical ANDs, 12n^2 - 8n - 3 ANDs (generic odd prime p).
 
-    C = kaliski_inverse(p, n=None, reduction='generic', clean=False)
+    C = kaliski_inverse(p, n=None, reduction='generic', clean=False, legacy=False)
     C.to_qasm()            OpenQASM 3 in the qoptct subset (logical AND = 4 T, erase = X measurement + Clifford fix)
     C.counts()             {'AND': ..., 'ERASE': ..., 'qubits': ...}
     C.evaluate(xs)         exact bit-sliced classical run on many inputs (checks every AND target and erase condition)
     C.expected(x)          the function: -x^{-1} * 2^{2n} mod p
-    kaliski_and_count(n)   12n^2 + n (generic reduction, clean=False)
+    kaliski_and_count(n)   12n^2 - 8n - 3 (generic reduction, clean=False; legacy=True: 12n^2 + n)
 
 FUNCTION. Input x in [1, p) on the wires C.x (little-endian), p an odd prime, n = p.bit_length(). The result
 K = -x^{-1} * 2^{2n} mod p (Kaliski's "almost inverse" with the 2^{2n} factor and the sign that Litinski 2023
@@ -14,10 +14,11 @@ removes with a final negation) appears on the wires C.out.
   * clean=False (default): forward computation only, as in the resource counts of the literature. The input wires
     are consumed; the registers end as u = 1, v = 0 (C.regs['u'], C.regs['v']), the rest (C.garbage: the
     per-step bits w_k, e_k, the quotient bits of the final reduction, the s register) is garbage that a surrounding
-    compute-copy-uncompute removes. ANDs: exactly 12n^2 + n for reduction='generic'; qubits 11n.
+    compute-copy-uncompute removes. ANDs: exactly 12n^2 - 8n - 3 for reduction='generic'; qubits 11n - 2
+    (legacy=True: 12n^2 + n ANDs, 11n qubits).
   * clean=True: forward, copy of K to n fresh wires, inverse of the forward part:  |x>|0> -> |x>|K>, every other
     wire returns to |0>. ANDs = forward ANDs + forward erases (the inverse turns erases into ANDs and vice versa);
-    qubits 12n. The wires 0..n-1 are x, n..2n-1 the result.
+    qubits 12n - 2 (legacy: 12n). The wires 0..n-1 are x, n..2n-1 the result.
 x = 0 and x >= p are outside the specified domain. (Observed, and proved at n = 3..7 by the tests: the clean circuit
 then gives K(x mod p), and 0 for x = 0 mod p, with all ancillas clean. Not guaranteed in general.)
 
@@ -34,14 +35,42 @@ CONSTRUCTION (2n Kaliski steps on (u, v, r, s), u = p, v = x, r = 0, s = 1):
      a short signed-binary 2^m mod p such as pseudo-Mersenne primes, P-256, secp256k1);
   4. (new here) when e = 1 the step has just swapped so that u >= v, hence bitlen(v) <= floor((2n-k)/2): the high
      partial products e*v_i of "u -= e*v" are identically 0 and are omitted (-0.5 n^2 ANDs).
+  5. (default, legacy=False) AND/erase pairs whose product is identically constant on [1, p) are not emitted.
+     They were found automatically (bit-sliced run over all x in [1, p) for every prime with n = 3..8, every AND
+     whose product is constant); only the classes below are removed, each with a proof for every odd prime p and
+     every n (a constant on the tested primes alone is not enough). Facts used: gcd(u, v) = 1 throughout (p prime,
+     1 <= x < p); in step k the operated register is the even one if one is even, else the larger odd one (v on a
+     tie), i.e. w_k = 1 iff the step operates on v; the registers are kept so that A is the operated one.
+     P1 (r += e*s, carry out of bit 0): after every step one of r, s is the freshly doubled register, whose bit 0 is
+        a fresh |0> wire (and r = 0 before step 0); the swap exchanges r_0 and s_0 together, so r_0 * s_0 = 0 and
+        e*s_0*r_0 = 0: one AND + erase per step (2n - 1).
+     P2 (u -= e*v, borrow out of bit 0): e is a copy of u_0, the low bit of e*v is e (v is odd after the swap),
+        so bit 0 becomes u_0 ^ e = 0 and the borrow (1 ^ u_0)*e is 0; the borrow chain starts at bit 1 (2n - 2).
+     P3 (swap of (u, v), bit 0, steps k >= 1): the register B not operated on in step k-1 is odd (the even one is
+        always the operated one, and both even is excluded by gcd = 1; v = 0 forces u = 1). If A is even it is
+        operated again, d = 0; so d = 1 implies A odd, A_0 = B_0 = 1 and the bit-0 swap is the identity (2n - 2).
+     P4 (step 2n-1 is empty): every step at least halves u or v (u/2, v/2, (u-v)/2 < u/2, (v-u)/2 < v/2); u stays
+        >= 1 and v stays >= 1 until the single step (1, 1) -> (1, 0) (v becomes 0 only from u = v, i.e. u = v = 1).
+        So u is halved at most floor(log2 p) = n-1 times and v at most floor(log2 x) <= n-1 times before that step:
+        v = 0 after at most 2n-1 steps. Hence at step 2n-1 always (u, v) = (1, 0): w_{2n-1} = 1, e = 0, and step
+        2n-2 is either (1, 0) or the step (1, 1) -> (1, 0): w_{2n-2} = 1, so d_{2n-1} = 0. Step 2n-1 reduces to the
+        relabellings u /= 2, s *= 2 (3n + 4 ANDs fewer before P1-P3; its w and e wires vanish: -2 qubits).
+     P5 (comparison of step 2n-2): w_{2n-2} = 1 (P4), so it is not computed; d = not w_{2n-3} (4 ANDs: g and w
+        have a constant product, w_{k-1}(u_0 ^ v_0) and the comparison carry do not but only feed w).
+     Total -(9n + 3) ANDs. Found but NOT removed (no proof for all p, or p-dependent; O(1) or a few per n): the
+     long-division bits j = 0, 1 (r_ext = 0 mod 4 would allow it, 2 ANDs), single partial products and carries at
+     specific steps near k = n, 2n - 4 (bounds sharper than u*v < 2^(2n-k)), the high borrows of u -= e*v at the
+     truncation boundary, and the p-dependent constants of the special reduction and of the constant additions.
+     legacy=True keeps the old circuit (12n^2 + n, byte-identical OpenQASM to the lab circuits k4).
 The construction and the count were developed in the qopt lab (agent k4, on an earlier version a9 with 12.5n^2+0.5n)
 and audited independently (lab audits k10, x5) by separate bit-sliced simulators.
 
-VERIFIED (tests/test_crypto_kaliski.py): all x in [1, p) for several primes at n = 3..8, the AND count formula,
-an exact proof with qoptct.verify.prove of the clean circuit at the smallest size, rejected mutants. At larger n
+VERIFIED (tests/test_crypto_kaliski.py): all x in [1, p) for several primes at n = 3..8 (both legacy and default),
+the AND count formulas, exact proofs with qoptct.verify.prove of the clean circuits at p = 5, 7, 13, 31 (slow: 61,
+127), rejected mutants. At larger n
 (lab runs up to n = 32 on 305 inputs per prime; n = 256 for special primes on a few hundred inputs) the statement is
-tested, not proved. The count 12n^2 + n is exact for every n and p checked; it is a property of the construction,
-not a theorem proved here for all n.
+tested, not proved. The counts 12n^2 + n (legacy) and 12n^2 - 8n - 3 are exact for every n and p checked; they are
+properties of the construction, not theorems proved here for all n (the removal P1-P5 itself is proved above).
 """
 __all__ = ['kaliski_inverse', 'kaliski_and_count', 'KaliskiCircuit', 'CheckError', 'REDUCTIONS']
 
@@ -51,9 +80,9 @@ REDUCTIONS = ('generic', 'special')
 from ._errors import CheckError  # noqa: E402  (shared with qoptct.crypto.mulsq)
 
 
-def kaliski_and_count(n):
-    """ANDs of the forward circuit with reduction='generic': 12n^2 + n."""
-    return 12 * n * n + n
+def kaliski_and_count(n, legacy=False):
+    """ANDs of the forward circuit with reduction='generic': 12n^2 - 8n - 3 (legacy=True: 12n^2 + n)."""
+    return 12 * n * n + n if legacy else 12 * n * n - 8 * n - 3
 
 
 # ================================================================== builder (logical AND + measurement-based erase)
@@ -266,12 +295,16 @@ def _uncompute(C, r, t=None, release=True):
         C.cx(c, x)
 
 
-def _add(C, a, b, cout=None):
-    """b += a (mod 2^n); cout (a zero wire) receives the carry out. ANDs: n-1 (n with cout)."""
+def _add(C, a, b, cout=None, lsb_nocarry=False):
+    """b += a (mod 2^n); cout (a zero wire) receives the carry out. ANDs: n-1 (n with cout).
+    lsb_nocarry: the caller guarantees a[0]*b[0] = 0 on every input, so the carry out of bit 0 is 0 and is not
+    computed (one AND and its erase fewer; with n = 1 and cout, cout simply stays 0)."""
     n = len(a)
     c = [None] * (n + 1)
     last = n if cout is not None else n - 1
     for i in range(last):
+        if i == 0 and lsb_nocarry:
+            continue
         t = cout if i == n - 1 else C.alloc()
         if c[i] is None:
             C.AND(a[i], b[i], t)
@@ -280,7 +313,7 @@ def _add(C, a, b, cout=None):
         c[i + 1] = t
     for i in reversed(range(n)):
         if i < last:
-            if i + 1 < n:
+            if i + 1 < n and c[i + 1] is not None:
                 C.erase(c[i + 1], a[i], b[i], lin=(() if c[i] is None else (c[i],)))
             if c[i] is not None:
                 C.cx(c[i], a[i])
@@ -434,9 +467,12 @@ def _red_special(C, V, p, Vbound):
 
 
 # ------------------------------------------------------------------ the Kaliski forward circuit
-def _kaliski_forward(C, V, p, reduction):
-    """V: n input wires (x in [1, p)). -> (u, v, out, s, garbage) wires; out = -x^{-1} 2^{2n} mod p."""
+def _kaliski_forward(C, V, p, reduction, legacy=False):
+    """V: n input wires (x in [1, p)). -> (u, v, out, s, garbage) wires; out = -x^{-1} 2^{2n} mod p.
+    legacy=True: the 0.5.0rc construction (12n^2 + n ANDs). legacy=False: the same circuit without the AND/erase
+    pairs whose product is identically constant on [1, p) for every p (proofs in the module docstring, items P1-P5)."""
     n = len(V)
+    new = not legacy
     U = [C.alloc() for _ in range(n)]
     R = [C.alloc() for _ in range(n)]
     S = [C.alloc() for _ in range(n)]
@@ -448,73 +484,63 @@ def _kaliski_forward(C, V, p, reduction):
     wprev = None
     garbage = []
     for k in range(2 * n):
+        if new and k == 2 * n - 1:
+            # P4: at step 2n-1 always v = 0, u = 1 and w_{2n-2} = w_{2n-1} = 1, so d = 0 (no swap) and e = 0
+            # (nothing is subtracted or added): the step is the two relabellings u /= 2 and s *= 2 only
+            A = A[1:] + A[:1]
+            Ss = [C.alloc()] + Ss
+            if len(Ss) > 2 * n:
+                C.release(Ss.pop())
+            continue
         # widths: u*v < 2^(2n-k) => u, v < 2^(2n-1-k) (v >= 1, otherwise u = 1);  max(r, s) <= 2^k
         wa = min(n, max(1, 2 * n - 1 - k))
         wr = min(n, k + 1)
         wr2 = min(n, k + 2)
-        # (a) w_k = [v even] or ([u odd] and [u > v]) in the standard frame; the registers are in the frame of w_{k-1}
-        U0 = C.alloc(); V0 = C.alloc()
-        C.cx(A[0], U0); C.cx(B[0], V0)
-        if wprev is not None:
-            C.cx(A[0], B[0]); t = C.AND(wprev, B[0]); C.cx(A[0], B[0])     # t = w (A0 ^ B0)
-            C.cx(t, U0); C.cx(t, V0)                                       # U0, V0: low bits of u, v
-            for a, b in zip(A[:wa], B[:wa]):
-                C.cx(wprev, a); C.cx(wprev, b)
-        for a in A[:wa]:
-            C.x(a)
-        X_, Y_ = [_W(a) for a in A[:wa]], [_W(b) for b in B[:wa]]
-        ch, RR = _carry_chain(C, X_, Y_, _ONE)
-        rf = _plan(X_[wa - 1], Y_[wa - 1], ch[wa - 1])
-        cmp = _compute(C, rf, t=C.alloc())[1]                              # [u <= v]
-        C.x(cmp); g = C.AND(V0, cmp); C.x(cmp)                             # g = V0 & ~cmp
-        C.x(g); w = C.AND(U0, g); C.x(g)                                   # w = U0 & ~g
-        C.x(cmp); C.erase(g, V0, cmp); C.x(cmp)
-        _uncompute(C, rf, t=cmp)
-        _chain_undo(C, RR)
-        for a in A[:wa]:
-            C.x(a)
-        if wprev is not None:
-            for a, b in zip(A[:wa], B[:wa]):
-                C.cx(wprev, a); C.cx(wprev, b)
-            C.cx(t, U0); C.cx(t, V0)
-            C.cx(A[0], B[0]); C.erase(t, wprev, B[0]); C.cx(A[0], B[0])
-        C.cx(A[0], U0); C.cx(B[0], V0); C.release(V0); C.release(U0)
-        # (b) merged conditional swap on d = w_{k-1} ^ w_k
-        if wprev is None:
-            d = w
+        if new and k == 2 * n - 2:
+            # P5: w_{2n-2} = 1 for every x in [1, p): no comparison; d = w_{2n-3} ^ 1 is the wire w_{2n-3} under X
+            d = wprev
+            C.x(d)
+            _cswap(C, d, A[1:wa], B[1:wa])                                 # P3: bit 0 of (u, v) needs no swap
+            _cswap(C, d, Rr[:wr], Ss[:wr])
+            C.x(d)
+            w = None
         else:
-            d = C.alloc(); C.cx(wprev, d); C.cx(w, d)
-        _cswap(C, d, A[:wa], B[:wa])
-        _cswap(C, d, Rr[:wr], Ss[:wr])
-        if wprev is not None:
-            C.cx(wprev, d); C.cx(w, d); C.release(d)
+            w = _compare_and_swap(C, k, n, A, B, Rr, Ss, wa, wr, wprev, new)
         # (c) e = u'_0
         e = C.alloc(); C.cx(A[0], e)
         # (d) u -= e*v; bit 0 of e*v is e. If e = 1 the step swapped to u >= v, so bitlen(v) <= (2n-k)//2:
         #     the higher partial products are 0 and omitted
         wb = min(wa, max(1, (2 * n - k) // 2))
         m = [e] + [C.AND(e, B[i]) for i in range(1, wb)]
-        _sub_gen(C, [_W(t_) for t_ in m], A[:wa])
+        if new:
+            # P2: e is a copy of u_0, so bit 0 is u_0 - e = 0 with no borrow ((1 ^ u_0) * e = 0): the borrow chain
+            # starts at bit 1
+            C.cx(e, A[0])
+            if wa > 1:
+                _sub_gen(C, [_W(t_) for t_ in m[1:]], A[1:wa])
+        else:
+            _sub_gen(C, [_W(t_) for t_ in m], A[:wa])
         for i in reversed(range(1, wb)):
             C.erase(m[i], e, B[i])
         # (e) u /= 2: relabelling
         A = A[1:] + A[:1]
-        # (f) r += e*s  (r, s <= 2^k -> the sum is < 2^(k+2))
+        # (f) r += e*s  (r, s <= 2^k -> the sum is < 2^(k+2)); P1: r_0 * s_0 = 0, no carry out of bit 0
         m = [C.AND(e, s_) for s_ in Ss[:wr]]
         if wr2 > wr:
-            _add(C, m, Rr[:wr], cout=Rr[wr])
+            _add(C, m, Rr[:wr], cout=Rr[wr], lsb_nocarry=new)
         else:
-            _add(C, m, Rr[:wr])
+            _add(C, m, Rr[:wr], lsb_nocarry=new)
         for i in reversed(range(wr)):
             C.erase(m[i], e, Ss[i])
         # (g) s *= 2: relabelling, the register grows to 2n bits (r_ext < 2^(2n): the top bit is provably 0)
         Ss = [C.alloc()] + Ss
         if len(Ss) > 2 * n:
             C.release(Ss.pop())
-        garbage += [w, e]
+        garbage += [e] if w is None else [w, e]
         wprev = w
-    # w_{2n} = 1 for every x in [1, p): the last swap is a relabelling
-    C.x(wprev); C.release(wprev); garbage.remove(wprev)
+    if legacy:
+        # w_{2n-1} = 1 for every x in [1, p): the last swap is a relabelling
+        C.x(wprev); C.release(wprev); garbage.remove(wprev)
     A, B, Rr, Ss = B, A, Ss, Rr
     if reduction == 'special':
         out, g2 = _red_special(C, Rr, p, 1 << (2 * n))
@@ -530,6 +556,49 @@ def _kaliski_forward(C, V, p, reduction):
     for w_ in R[n:]:
         C.release(w_)
     return A, B, R[:n], Ss, garbage
+
+
+def _compare_and_swap(C, k, n, A, B, Rr, Ss, wa, wr, wprev, new):
+    """steps (a) and (b) of Kaliski step k: w_k into a fresh wire, then the swap of (A, B) and (Rr, Ss) on
+    d = w_{k-1} ^ w_k (in place on the wire lists). -> the w_k wire."""
+    # (a) w_k = [v even] or ([u odd] and [u > v]) in the standard frame; the registers are in the frame of w_{k-1}
+    U0 = C.alloc(); V0 = C.alloc()
+    C.cx(A[0], U0); C.cx(B[0], V0)
+    if wprev is not None:
+        C.cx(A[0], B[0]); t = C.AND(wprev, B[0]); C.cx(A[0], B[0])     # t = w (A0 ^ B0)
+        C.cx(t, U0); C.cx(t, V0)                                       # U0, V0: low bits of u, v
+        for a, b in zip(A[:wa], B[:wa]):
+            C.cx(wprev, a); C.cx(wprev, b)
+    for a in A[:wa]:
+        C.x(a)
+    X_, Y_ = [_W(a) for a in A[:wa]], [_W(b) for b in B[:wa]]
+    ch, RR = _carry_chain(C, X_, Y_, _ONE)
+    rf = _plan(X_[wa - 1], Y_[wa - 1], ch[wa - 1])
+    cmp = _compute(C, rf, t=C.alloc())[1]                              # [u <= v]
+    C.x(cmp); g = C.AND(V0, cmp); C.x(cmp)                             # g = V0 & ~cmp
+    C.x(g); w = C.AND(U0, g); C.x(g)                                   # w = U0 & ~g
+    C.x(cmp); C.erase(g, V0, cmp); C.x(cmp)
+    _uncompute(C, rf, t=cmp)
+    _chain_undo(C, RR)
+    for a in A[:wa]:
+        C.x(a)
+    if wprev is not None:
+        for a, b in zip(A[:wa], B[:wa]):
+            C.cx(wprev, a); C.cx(wprev, b)
+        C.cx(t, U0); C.cx(t, V0)
+        C.cx(A[0], B[0]); C.erase(t, wprev, B[0]); C.cx(A[0], B[0])
+    C.cx(A[0], U0); C.cx(B[0], V0); C.release(V0); C.release(U0)
+    # (b) merged conditional swap on d = w_{k-1} ^ w_k
+    if wprev is None:
+        d = w
+    else:
+        d = C.alloc(); C.cx(wprev, d); C.cx(w, d)
+    _cswap(C, d, A[1:wa] if (new and wprev is not None) else A[:wa],     # P3: bit 0 needs no swap
+           B[1:wa] if (new and wprev is not None) else B[:wa])
+    _cswap(C, d, Rr[:wr], Ss[:wr])
+    if wprev is not None:
+        C.cx(wprev, d); C.cx(w, d); C.release(d)
+    return w
 
 
 # ------------------------------------------------------------------ output formats
@@ -646,15 +715,18 @@ class KaliskiCircuit:
         return txt
 
 
-def kaliski_inverse(p, n=None, reduction='generic', clean=False):
+def kaliski_inverse(p, n=None, reduction='generic', clean=False, legacy=False):
     """Build the Kaliski inversion circuit for an odd prime p (see the module docstring).
 
     p: odd prime >= 3 (primality is not checked; only primes are tested).
     n: register width; must be p.bit_length() (the default; accepted for explicitness).
-    reduction: 'generic' (long division, exactly 12n^2 + n ANDs forward) or 'special' (O(n) folding; cheaper for
-    primes with a short signed-binary 2^n mod p, e.g. pseudo-Mersenne 2^n - c, P-256, secp256k1).
+    reduction: 'generic' (long division, exactly 12n^2 - 8n - 3 ANDs forward; legacy: 12n^2 + n) or 'special' (O(n)
+    folding; cheaper for primes with a short signed-binary 2^n mod p, e.g. pseudo-Mersenne 2^n - c, P-256, secp256k1).
     clean: False -> forward circuit with garbage (the literature's count); True -> |x>|0> -> |x>|K> with all other
-    wires restored to |0>.  K = -x^{-1} * 2^{2n} mod p for x in [1, p).  -> KaliskiCircuit."""
+    wires restored to |0>.  K = -x^{-1} * 2^{2n} mod p for x in [1, p).
+    legacy: True -> the 0.5.0rc circuit (12n^2 + n ANDs, byte-identical OpenQASM to the lab k4 circuits); False
+    (default) -> without the AND/erase pairs of identically constant product (P1-P5 in the module docstring).
+    -> KaliskiCircuit."""
     if not isinstance(p, int) or p < 3 or p % 2 == 0:
         raise ValueError('p must be an odd integer >= 3')
     if reduction not in REDUCTIONS:
@@ -669,12 +741,15 @@ def kaliski_inverse(p, n=None, reduction='generic', clean=False):
     X = C.reg(n)
     O = C.reg(n) if clean else None
     s = len(C.ops)
-    u, v, out, sreg, gar = _kaliski_forward(C, X, p, reduction)
+    u, v, out, sreg, gar = _kaliski_forward(C, X, p, reduction, legacy=bool(legacy))
     if not clean:
-        return KaliskiCircuit(p, n, reduction, False, C.ops, C.nw, X, list(out),
-                              dict(u=list(u), v=list(v), s=list(sreg)), list(gar))
-    e = len(C.ops)
-    for a, b in zip(out, O):
-        C.cx(a, b)
-    C.ops += _inverse_ops(C.ops[s:e])
-    return KaliskiCircuit(p, n, reduction, True, C.ops, C.nw, X, O, {}, [])
+        K = KaliskiCircuit(p, n, reduction, False, C.ops, C.nw, X, list(out),
+                           dict(u=list(u), v=list(v), s=list(sreg)), list(gar))
+    else:
+        e = len(C.ops)
+        for a, b in zip(out, O):
+            C.cx(a, b)
+        C.ops += _inverse_ops(C.ops[s:e])
+        K = KaliskiCircuit(p, n, reduction, True, C.ops, C.nw, X, O, {}, [])
+    K.legacy = bool(legacy)
+    return K
