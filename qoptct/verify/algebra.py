@@ -437,7 +437,7 @@ class Cell:
 
 class Adder:
     __slots__ = ('cells', 'order', 'E', 'bits', 'pos', 'V', 'rng', 'signed', 'stage', 'virt', 'lhs_cache', 'kindtxt',
-                 'cands', 'deep')
+                 'cands', 'deep', 'alt')
 
     def __init__(self, cells):
         self.cells = cells
@@ -488,6 +488,8 @@ class Engine:
         self.aad = {}
         self.aprod = {}
         self.phantom = set()
+        self.vint = {}             # virtual carry symbol -> its integer value on every simulation lane
+        self.vrange = {}
         self.stats = dict(ands=0, erases=0, cells=0, adders=0, facts=0, stageB=0, stageC=0, splits=0, sem_zero=0,
                           virt=0, reduce_steps=0)
         self.cls = {}              # classification histogram
@@ -654,8 +656,10 @@ class Engine:
                 return
         self.fresh.pop(t, None)
         new = D ^ S
-        if len(D) == 1 and k == KS and S <= self.adef[a] and S != ONE:
-            new = self.adef[a] ^ S          # undo a sum bit: (X xor Y xor C) xor Y = X xor C in its original form
+        if len(D) == 1 and k == KS and S != ONE:
+            cl = self.sig_cell[a]
+            if S == cl.C or S == cl.Y or S == cl.X:
+                new = self.adef[a] ^ S      # undo a sum bit: (X xor Y xor C) xor C = X xor Y in its original form
         lc = self.last_carry
         p = self.pend
         if lc is not None and self.last_gate <= lc[1] and len(S) == 1 and lc[0] in S:
@@ -848,13 +852,16 @@ class Engine:
     def peval(self, P, lane):
         """value of P on one simulation lane -> (numerator, e)."""
         sim = self.sim
+        vint = self.vint
         s = 0
         for m, c in P.d.items():
             for v in m:
-                if not (sim[v] >> lane) & 1:
+                if v in vint:
+                    c *= vint[v][lane]
+                elif not (sim[v] >> lane) & 1:
+                    c = 0
                     break
-            else:
-                s += c
+            s += c
         return s
 
     # ------------------------------------------------------------------ adders
@@ -953,14 +960,11 @@ class Engine:
                 J.rng = _meet(self.bound(E, 0), (0, (2 << m) - 1))
             else:
                 xt, yt = self.val(top.X), self.val(top.Y)
-                cands = [(0, 0)]
-                if xt.d:
-                    cands.append((1, 0))
-                if yt.d:
-                    cands.append((0, 1))
-                if xt.d and yt.d:
-                    cands.append((1, 1))
-                J.cands = [(ab, E - (xt * ab[0] + yt * ab[1]) * (1 << m)) for ab in cands]
+                a = self.signedlike(top.X, cells[-2].X if m > 1 else None)
+                b = self.signedlike(top.Y, cells[-2].Y if m > 1 else None)
+                J.cands = (a, b, E - (xt * a + yt * b) * (1 << m))
+                J.alt = [(a2, b2, E - (xt * a2 + yt * b2) * (1 << m)) for a2, b2 in ((0, 0), (1, 0), (0, 1), (1, 1))
+                         if (a2, b2) != (a, b) and (a2 == a or xt.d) and (b2 == b or yt.d)]
                 J.V = None
             for i, (w, S) in enumerate(J.bits):
                 if len(S) == 1:
@@ -971,44 +975,110 @@ class Engine:
             J.stage = 0
         if J.V is None:
             m = len(J.cells)
-            done = False
-            for st in (0, 1, 2):
-                for ab, V in J.cands:
-                    lo, hi = self.bound(V, st)
-                    if lo >= 0 and hi < (1 << m):
-                        J.signed = False
-                    elif lo >= -(1 << (m - 1)) and hi < (1 << (m - 1)):
-                        J.signed = True
-                    else:
-                        continue
-                    J.V, J.rng = V, (lo, hi)
-                    J.kindtxt = ('s' if J.signed else 'u') + '%d%d/%d' % (ab[0], ab[1], st)
-                    done = True
-                    break
-                if done:
-                    break
-            if done:
+            a, b, V = J.cands
+
+            def fits(iv):
+                lo, hi = iv
+                if lo >= 0 and hi < (1 << m):
+                    J.signed = False
+                    return True
+                if lo >= -(1 << (m - 1)) and hi < (1 << (m - 1)):
+                    J.signed = True
+                    return True
+                return False
+            st = 0
+            iv = self.bound_runs(V)
+            ok = fits(iv)
+            if not ok:
+                for a2, b2, V2 in J.alt:            # other readings: only if plainly in range
+                    iv2 = self.bound_runs(V2)
+                    if fits(iv2):
+                        ok, a, b, V, iv = True, a2, b2, V2, iv2
+                        break
+            J.alt = None
+            if not ok:
+                st = 1
+                self.stats['stageB'] += 1
+                Vr = self.reduce(V)
+                iv = _meet(iv, self.bound_runs(Vr))
+                ok = fits(iv)
+                if not ok:
+                    Vd = self.drop_mod(Vr, m)
+                    if Vd is not None:
+                        iv2 = self.bound_runs(Vd)
+                        if fits(iv2):
+                            ok, V, iv, st = True, Vd, iv2, 3
+                if not ok:
+                    st = 2
+                    iv = _meet(iv, self.bound(V, 2))
+                    ok = fits(iv)
+            if ok:
+                J.V, J.rng = V, iv
+                J.kindtxt = ('s' if J.signed else 'u') + '%d%d/%d' % (a, b, st)
                 J.bits[m - 1][0] = -(1 << (m - 1)) if J.signed else (1 << (m - 1))
-                J.lhs_cache = None
             else:
-                top = J.cells[-1]
-                sx, sy, sc = self.simset(top.X), self.simset(top.Y), self.simset(top.C)
-                kv = self.new_atom(KV, top, (sx & sy) | (sc & (sx ^ sy)))
+                # the dropped top carry is not resolved: W = V - 2^m K with an unknown integer K (kept as a symbol)
+                kv = self.new_atom(KV, None, 0)
+                vals = []
+                for lane in range(self.L):
+                    sv = 0
+                    for w, S in J.bits:
+                        if (self.simset(S) >> lane) & 1:
+                            sv += w
+                    num = self.peval(V, lane) - (sv << V.e)
+                    if num % (1 << (m + V.e)):
+                        raise Internal('adder congruence fails on a simulated input')
+                    vals.append(num >> (m + V.e))
+                self.vint[kv] = vals
+                self.vrange[kv] = (-2, 1)
                 self.virt_adder[kv] = J
                 self.aad[kv] = J
                 J.virt = kv
+                J.signed = False
                 J.bits.append([1 << m, self.fs(kv)])
                 J.pos[kv] = m
-                J.V = J.E
-                J.kindtxt = 'virtual'
-                J.rng = _meet(self.bound(J.E, 0), (0, (2 << m) - 1))
+                J.V = V
+                J.kindtxt = 'virtual%d%d' % (a, b)
+                J.rng = (0, (1 << m) - 1)
                 self.stats['virt'] += 1
         self.cls[J.kindtxt] = self.cls.get(J.kindtxt, 0) + 1
         self.check_identity(J)
 
+    def signedlike(self, S, below):
+        """structural guess: the top operand bit S is a sign bit (a copy of the bit below it, or the top bit of a
+        two's complement word).  Only selects which reading of the adder is tried; every reading is checked."""
+        if not S or S == ONE:
+            return 0
+        if below is not None and S == below:
+            return 1
+        T = S - ONE
+        if len(T) == 1:
+            (a,) = T
+            J = self.var_adder(a)
+            if J is not None:
+                self.classify(J)
+                if J.signed and J.bits[-1][1] == self.fs(a):
+                    return 1
+        return 0
+
+    def drop_mod(self, P, m):
+        """P without its monomials that contain a non-input atom and whose coefficient is a multiple of 2^m
+        (a multiple of 2^m as a function): congruent to P modulo 2^m.  None if nothing is dropped."""
+        mod = (1 << (m + P.e)) - 1
+        kind = self.kind
+        d = {}
+        for mo, c in P.d.items():
+            if not (c & mod) and any(kind[v] != KI for v in mo):
+                continue
+            d[mo] = c
+        if len(d) == len(P.d):
+            return None
+        return Poly(d, P.e)
+
     def check_identity(self, J):
         """numerical self-check of the word identity on a few simulation lanes."""
-        sim = self.sim
+        if J.virt is not None:
+            return
         for lane in (0, 1, 2, 3, 4, 5):
             s = 0
             for w, S in J.bits:
@@ -1055,6 +1125,8 @@ class Engine:
         return True
 
     def derive_facts(self, J):
+        if J.virt is not None:
+            return False
         lo, hi = J.rng
         bits = J.bits
         ch = False
@@ -1129,7 +1201,7 @@ class Engine:
         """stage A: words (and parts of words) of adders become interval variables; then interval evaluation."""
         D = dict(P.d)
         e = P.e
-        ranges = {}
+        ranges = dict(self.vrange)
         done = set()
         while True:
             by = self.group(D)
@@ -1141,6 +1213,8 @@ class Engine:
                 done.add(J)
                 self.classify(J)
                 lhs, _ = self.adder_lhs(J)
+                if J.virt is not None:
+                    lhs = {a: w for a, w in lhs.items() if a != J.virt}
                 lin = {}
                 ok = True
                 for m in by[J]:
@@ -1210,7 +1284,7 @@ class Engine:
                     if J is None:
                         continue
                     lhs, _ = self.adder_lhs(J)
-                    if a in lhs and J.pos[a] == max(J.pos[b] for b in lhs):
+                    if a in lhs and self.kind[a] != KV and J.pos[a] == max(J.pos[b] for b in lhs):
                         tops.append(a)
                 tops = tops[-2:]
                 if tops:
@@ -1251,6 +1325,11 @@ class Engine:
         lin = {}
         quad = {}
         kill = []
+        if J.virt is not None:
+            lhs = {a: w for a, w in lhs.items() if a != J.virt}
+            if not lhs:
+                return None
+        flip = False
         for m in monos:
             js = [v for v in m if v in lhs]
             n = len(js)
@@ -1310,8 +1389,13 @@ class Engine:
             if ct is None:
                 return None
             wt = lhs[top]
-            R = set()
-            for a in order:
+            if len(order) > 1:
+                cn = lin.get(order[1])
+                if cn is not None and not _same(cn, lhs[order[1]], ct, wt) and _same(cn, lhs[order[1]], ct, -wt):
+                    flip = True             # the word is used with the other sign reading of its top bit
+                    wt = -wt
+            R = {top}
+            for a in order[1:]:
                 ca = lin.get(a)
                 if ca is None or not _same(ca, lhs[a], ct, wt):
                     break
@@ -1325,7 +1409,7 @@ class Engine:
             for a in lhs:
                 if a not in R and a in ph:
                     return None
-        return R, A, B, kill
+        return R, A, B, kill, flip
 
     def reduce(self, P, assume=None):
         """rewrite P with the adder identities, newest adder first (exact; P keeps its value on every input)."""
@@ -1367,11 +1451,14 @@ class Engine:
             pat = self.top_pattern(Q, monos, lhs, J)
             if pat is None:
                 continue
-            R, A, B, kill = pat
+            R, A, B, kill, flip = pat
             S = rhs.copy()
             for a, w in lhs.items():
                 if a not in R:
                     S.iadd(Poly.var(a), -w)
+            if flip:
+                top = max(R, key=J.pos.__getitem__)
+                S.iadd(Poly.var(top), -2 * lhs[top])
             for m in kill:
                 del D[m]
             add = B * S
@@ -1459,7 +1546,7 @@ class Engine:
 
     def tt_bound(self, P, maxf=10):
         vs = P.vars()
-        if len(vs) > maxf or len(P.d) > 64 or any(v.__class__ is not int for v in vs):
+        if len(vs) > maxf or len(P.d) > 64 or any(v.__class__ is not int or self.kind[v] == KV for v in vs):
             return None
         F = set(vs) - ONE
         best = None
