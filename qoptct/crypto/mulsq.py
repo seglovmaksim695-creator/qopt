@@ -33,13 +33,16 @@ the inverse costs one AND per measurement-based erasure of the forward circuit. 
 forward circuit, CX copy of the product into a fresh register, inverse (Bennett); then AND = AND + ERASE of the
 forward circuit and the garbage is gone.
 
-    n = 256, base = 4                 AND        AND / n^2   qubits (incl. inputs and output)
-    multiply  L=0                     66 560     1.02        see MulSqCircuit.counts()
-    multiply  L=2                     42 727     0.65
-    multiply  L=3                     37 880     0.58
-    square    L=0                     33 661     0.51
-    square    L=2                     23 333     0.36
-    square    L=3                     22 332     0.34
+    n = 256, base = 4                 AND        AND / n^2   qubits (incl. inputs, output, garbage)   garbage
+    multiply  L=0                     66 560     1.02        1 537                                     0
+    multiply  L=2                     42 727     0.65        2 707                                     1 300
+    multiply  L=3                     37 880     0.58        3 911                                     2 504
+    square    L=0                     33 661     0.51        1 279                                     0
+    square    L=2                     23 333     0.36        2 126                                     975
+    square    L=3                     22 332     0.34        3 029                                     1 878
+(counted by building the circuit, no simulation; tests/test_crypto_mulsq.py.)  The base circuits contain a few
+ANDs that are identically 0 (2 for multiply, 4 for square, from the first row added into the zero accumulator);
+they are kept so that the counts match the published lab numbers.
 
 Honest comparison with published circuits
 -----------------------------------------
