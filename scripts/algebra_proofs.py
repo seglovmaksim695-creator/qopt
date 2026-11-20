@@ -65,9 +65,27 @@ def mutate(N, ops, spec, mut):
         del ops[pick(lambda o: o[0] == 'erase')]
     elif kind == 'claim':
         spec = dict(spec, claims=[c.replace('==', '== 1 +', 1) if '==' in c else c for c in spec['claims']])
+    elif kind == 'rare':
+        # an error on a 2^-40 fraction of the inputs (first input word: 20 low bits 1, the next 20 bits 0): random
+        # simulation does not see it; the output bit 0 is flipped there.  New clean wires hold the AND chain.
+        ins = list(spec['inputs'].values())[0]
+        out = list(spec['outputs'].values())[0]
+        ones, zeros = ins[:20], ins[20:40]
+        ch = [('x', w) for w in zeros]
+        lits = ones + zeros
+        prev = lits[0]
+        anc = []
+        for j, w in enumerate(lits[1:]):
+            t = N + j
+            anc.append((prev, w, t))
+            ch.append(('and', prev, w, t))
+            prev = t
+        ops += ch + [('cx', prev, out[0])]
+        ops += [('erase', t, (('cz', a, b),)) for a, b, t in reversed(anc)] + [('x', w) for w in zeros]
+        N += len(anc)
     else:
         raise ValueError(kind)
-    return ops, spec
+    return N, ops, spec
 
 
 def run_job(job):
@@ -75,7 +93,7 @@ def run_job(job):
     t0 = time.time()
     N, ops, spec = build(job)
     if job.get('mut'):
-        ops, spec = mutate(N, ops, spec, job['mut'])
+        N, ops, spec = mutate(N, ops, spec, job['mut'])
     tb = time.time() - t0
     if job.get('engine') == 'kprove':
         import os
@@ -152,6 +170,7 @@ def main(argv):
                 for at in (0.03, 0.5, 0.97):
                     jobs.append(dict(b, mut=dict(type=t, at=at)))
             jobs.append(dict(b, mut=dict(type='claim', at=0)))
+            jobs.append(dict(b, mut=dict(type='rare', at=0)))
     elif mode == 'compare':
         for n in (4, 6, 8, 10, 12):
             jobs.append(dict(kind='mul', n=n))
@@ -169,7 +188,10 @@ def main(argv):
             json.dump(res, open(out, 'w'), indent=1, default=str)
     if mode == 'canaries':
         bad = [r for r in res if r['status'] == 'PROVED']
-        print('canaries: %d, PROVED (must be 0): %d' % (len(res), len(bad)))
+        cnt = {}
+        for r in res:
+            cnt[r['status']] = cnt.get(r['status'], 0) + 1
+        print('canaries: %d, by status: %s, PROVED (must be 0): %d' % (len(res), cnt, len(bad)))
         return 1 if bad else 0
     return 0
 

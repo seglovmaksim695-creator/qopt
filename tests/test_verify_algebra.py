@@ -226,6 +226,29 @@ def test_phase_canary():
         assert A.prove_ops(N, new, spec)['status'] in ('REFUTED', 'UNKNOWN')
 
 
+def test_rare_input_canary():
+    """an error on one input out of 2^10 (found by the exhaustive check, usually missed by random simulation): the
+    output differs from x*y only there.  Never PROVED."""
+    N, ops, spec = _mul(5)
+    ins = spec['inputs']['x'] + spec['inputs']['y']
+    out = spec['outputs']['out']
+    ones, zeros = ins[:6], ins[6:]
+    ch = [('x', w) for w in zeros]
+    prev, anc = ins[0], []
+    for j, w in enumerate(ins[1:]):
+        anc.append((prev, w, N + j))
+        ch.append(('and', prev, w, N + j))
+        prev = N + j
+    new = ops + ch + [('cx', prev, out[3])] + [('erase', t, (('cz', a, b),)) for a, b, t in reversed(anc)] + \
+        [('x', w) for w in zeros]
+    assert not exhaustive_ok(N + len(anc), new, spec)
+    r = A.prove_ops(N + len(anc), new, spec)
+    assert r['status'] in ('UNKNOWN', 'REFUTED'), r
+    harmless = ops + ch + [('erase', t, (('cz', a, b),)) for a, b, t in reversed(anc)] + [('x', w) for w in zeros]
+    assert exhaustive_ok(N + len(anc), harmless, spec)
+    assert A.prove_ops(N + len(anc), harmless, spec)['status'] == 'PROVED'
+
+
 def test_wrong_claims():
     N, ops, spec = _mul(8, 1)
     for claim in ('out == x*y + 1', 'out == x*x', 'out <= 65000', 'out + x == x*y'):
