@@ -32,7 +32,7 @@ Costs (n = 256; ANDs = Toffoli-equivalents, worst case, not average; CX = explic
     secp256k1    0                  3 286 052   50.1       4 560
     P-256        3                  3 041 421   46.4       6 742   (T = 12.17 M, CX = 27.5 M)
     P-256        2 / 0              3 082 199 / 3 293 519         5 538 / 4 368
-    multiplier='school' (partial-product ANDs) instead of 'sd': P-256 L3 3 261 829 (49.8 n^2)
+    multiplier='school' (partial-product ANDs) instead of 'sd': P-256 L3 3 257 745 (49.7 n^2; the older lab row 3 261 829 is an earlier build)
     window (table lookup of Q, w = 4, field-lookups of 9 values + 4 flags) adds about 18 n ANDs and 9n qubits;
     the lookup itself (2 * (2^w - 2) ANDs by minterms) is counted in the circuit.
 
