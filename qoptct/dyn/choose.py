@@ -100,6 +100,40 @@ def rescore(result, model):
     return out
 
 
+def _best_split(result, M2):
+    sc = rescore(result, M2)
+    st = max(v for k, v in sc.items() if k in ('U', 'T'))
+    dy = max([v for k, v in sc.items() if k not in ('U', 'T')] or [0.0])
+    return st, dy
+
+
+def breakeven(result, model, coh=1.0, g2=1.0, ro=1.0, hi_ns=None):
+    """measurement chain (measurement length + feed-forward latency, ns) at which the best dynamic variant of a
+    choose() result gets as good as the best static one, with T1/T2 x coh, two-qubit error x g2, readout error x ro.
+    The chain is scaled as a whole (length and latency by the same factor). Bisection (the dynamic estimate grows
+    monotonically when the chain gets shorter). -> ns, or 0.0 if even a zero-length chain does not win, or None if
+    the dynamic variant already wins at the current chain length."""
+    s = model.summary(); chain = s['meas_ns'] + s['ff_ns']
+
+    def gap(t):
+        f = t / chain
+        M2 = model.scaled(ro=ro, coh=coh, g2=g2, meas_dur=f, ff_latency=model.ff_latency * f)
+        st, dy = _best_split(result, M2)
+        return dy - st
+    if gap(chain) >= 0:
+        return None
+    if gap(1e-3) < 0:
+        return 0.0
+    lo, hi = 1e-3, chain
+    for _ in range(40):
+        mid = (lo + hi) / 2
+        if gap(mid) >= 0:
+            lo = mid
+        else:
+            hi = mid
+    return lo
+
+
 def site_rule(model, n_live, corr_2q=3, unit_2q=3, qubits=None):
     """analytic cost (infidelity) of erasing one AND, without compilation:
         measurement: e_ro + n_live * rate * (t_meas + t_ff) + p_branch * (corr_2q * e_2q + n_live * rate * corr_2q * t_2q)

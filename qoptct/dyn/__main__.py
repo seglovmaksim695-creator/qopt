@@ -10,6 +10,7 @@ import argparse
 import json
 import sys
 import time
+import os
 import warnings
 
 
@@ -54,8 +55,13 @@ def cmd_bench(a):
     from . import choose, gen
     M = _model(a); rows = []; t0 = time.time()
     fams = a.families.split(',')
+    done = set()
+    if a.resume and a.out and os.path.exists(a.out):            # continue an interrupted run
+        rows = json.load(open(a.out))['rows']; done = {(r['family'], r['size']) for r in rows}
     for fam in fams:
         for size in gen.FAMILIES[fam]:
+            if (fam, size) in done:
+                continue
             if max(B.n for B in gen.build(fam, size)) > a.max_qubits:
                 continue
             t = time.time()
@@ -91,6 +97,31 @@ def cmd_threshold(a):
     print('(static/dynamic; * = the dynamic variant wins)')
 
 
+def cmd_sensitivity(a):
+    """break-even measurement chain (ns) per block: where the dynamic variant starts to win."""
+    from . import choose
+    M = _model(a); s = M.summary(); out = []
+    print('model:', json.dumps(s))
+    print('break-even measurement+feed-forward time (ns); current chain = %.0f ns; "-" = dynamic wins already, '
+          '"never" = loses even at 0 ns' % (s['meas_ns'] + s['ff_ns']))
+    grid = [(c, g) for g in a.g2 for c in a.coh]
+    print('%-14s %-6s' % ('block', 'ro x'), ''.join('%16s' % ('T x%g, 2q x%g' % (c, g)) for c, g in grid))
+    for item in a.blocks:
+        fam, size = item.split(':'); size = int(size)
+        r = choose.choose(fam, size, M, seeds=tuple(range(a.seeds)), router=_router(a))
+        for ro in a.ro:
+            line = '%-14s %-6g' % (r['rows'][0]['circuit'], ro); cells = []
+            for c, g in grid:
+                t = choose.breakeven(r, M, coh=c, g2=g, ro=ro)
+                cells.append(t); line += '%16s' % ('-' if t is None else 'never' if t == 0 else '%.0f' % t)
+            print(line, flush=True)
+            out.append(dict(block=r['rows'][0]['circuit'], family=fam, size=size, ro=ro, grid=grid, breakeven_ns=cells,
+                            best_now=r['best'], backend=M.name))
+    if a.out:
+        with open(a.out, 'w') as f:
+            json.dump(dict(model=s, rows=out), f, indent=1)
+
+
 def cmd_convert(a):
     from qiskit import qasm3
     from . import choose
@@ -121,11 +152,15 @@ def main(argv=None):
     s.add_argument('--max-qubits', type=int, default=25); s.add_argument('--sim', action='store_true')
     s.add_argument('--sim-max-qubits', type=int, default=22)
     s.add_argument('--shots', type=int, default=300); s.add_argument('--inputs', type=int, default=8)
-    s.add_argument('--out'); s.set_defaults(fn=cmd_bench)
+    s.add_argument('--out'); s.add_argument('--resume', action='store_true'); s.set_defaults(fn=cmd_bench)
     s = sub.add_parser('threshold'); s.add_argument('family'); s.add_argument('size', type=int); common(s)
     s.add_argument('--times', type=float, nargs='+', default=[2800, 1000, 300, 100, 30])
     s.add_argument('--ro', type=float, nargs='+', default=[5e-3, 2e-3, 1e-3, 3e-4, 1e-4])
     s.set_defaults(fn=cmd_threshold)
+    s = sub.add_parser('sensitivity'); common(s)
+    s.add_argument('--blocks', nargs='+', default=['adder:4', 'adder:8', 'cmp:4', 'modadd:3', 'lookup:3', 'lookadd:3', 'mult:2'])
+    s.add_argument('--coh', type=float, nargs='+', default=[0.5, 1, 2, 5]); s.add_argument('--g2', type=float, nargs='+', default=[1, 3])
+    s.add_argument('--ro', type=float, nargs='+', default=[1.0, 0.1]); s.add_argument('--out'); s.set_defaults(fn=cmd_sensitivity)
     s = sub.add_parser('convert'); s.add_argument('inp'); s.add_argument('out'); common(s)
     s.add_argument('--mode', default='auto', choices=['auto', 'rule', 'unitary', 'keep']); s.set_defaults(fn=cmd_convert)
     a = p.parse_args(argv)

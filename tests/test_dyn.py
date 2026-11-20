@@ -135,3 +135,25 @@ def test_cli_choose_smoke(capsys):
     main(['choose', 'cmp', '1', '--backend', 'FakeBoston', '--seeds', '1'])
     out = capsys.readouterr().out
     assert 'best by estimate:' in out and 'cmp1' in out
+
+
+def test_breakeven_monotone_in_coherence():
+    pytest.importorskip('qiskit_ibm_runtime')
+    M = hw.HwModel.from_backend(choose.resolve_backend('FakeBoston'))
+    r = choose.choose('cmp', 3, M, seeds=(0,))
+    chain = M.summary()['meas_ns'] + M.summary()['ff_ns']
+    t1 = choose.breakeven(r, M, coh=1.0, ro=0.1)
+    t5 = choose.breakeven(r, M, coh=5.0, ro=0.1)
+    assert t1 is None or 0 <= t1 < chain             # today the dynamic variant does not win at the current chain
+    assert t5 is None or t5 >= (t1 or 0)             # better coherence moves the break-even to longer chains
+    # with a much worse two-qubit gate the dynamic variant (fewer gates) wins earlier
+    t_g = choose.breakeven(r, M, g2=5.0, ro=0.1)
+    assert t_g is None or t_g > (t1 or 0)
+
+
+def test_cli_sensitivity_smoke(capsys):
+    pytest.importorskip('qiskit_ibm_runtime')
+    from qoptct.dyn.__main__ import main
+    main(['sensitivity', '--backend', 'FakeBoston', '--seeds', '1', '--blocks', 'cmp:2', '--coh', '1', '--g2', '1',
+          '--ro', '0.1'])
+    assert 'break-even' in capsys.readouterr().out
