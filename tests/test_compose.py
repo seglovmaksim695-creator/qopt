@@ -14,7 +14,7 @@ from qoptct.verify.compose.__main__ import main as cli
 
 
 def _primes(lo, hi):
-    return [p for p in range(max(lo, 3), hi, 2) if all(p % q for q in range(3, int(p ** 0.5) + 1, 2))]
+    return [p for p in range(max(lo, 3) | 1, hi, 2) if all(p % q for q in range(3, int(p ** 0.5) + 1, 2))]
 
 
 def test_gadget_lemmas_exact():
