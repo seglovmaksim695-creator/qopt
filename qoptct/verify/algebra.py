@@ -1657,6 +1657,30 @@ class Engine:
                     if not monos:
                         continue
             lhs, rhs = self.adder_lhs(J)
+            if lhs and not J.deep and J.virt is None and not self.refining:
+                # the top bits of the word are missing in the polynomial: maybe they are constants by a sharper range
+                pres = set(v for m in monos for v in m if v in lhs)
+                pat0 = self.top_pattern(Q, monos, lhs, J) if len(pres) >= 2 else 0
+                if pat0 is None or (pat0 and len(pat0[0]) < len(pres)):
+                    self.refining = True
+                    try:
+                        self.ensure_facts(J, True, 1)
+                    finally:
+                        self.refining = False
+                    if self.fver != fv:
+                        fv = self.fver
+                        Q2 = self.pfacts(Q)
+                        if Q2 is not Q:
+                            Q = Q2
+                            for sset in by.values():
+                                sset.clear()
+                            for m in Q.d:
+                                reg(m)
+                        D = Q.d
+                        monos = [m for m in by[J] if m in D]
+                        if not monos:
+                            continue
+                        lhs, rhs = self.adder_lhs(J)
             if J.vanish:
                 keep = []
                 for m in monos:
@@ -1681,31 +1705,6 @@ class Engine:
             if not lhs:
                 continue
             pat = self.top_pattern(Q, monos, lhs, J)
-            if pat is None and not J.deep and J.virt is None and not assume and not self.refining:
-                # the top bits of the word are missing in the polynomial: maybe they are constants by a sharper range
-                core = [a for a in lhs]
-                top = max(core, key=J.pos.__getitem__)
-                pres = set(v for m in monos for v in m if v in lhs)
-                if len(pres) >= 2 and top not in pres:
-                    self.refining = True
-                    try:
-                        self.ensure_facts(J, True, 1)
-                    finally:
-                        self.refining = False
-                    if self.fver != fv:
-                        fv = self.fver
-                        Q2 = self.pfacts(Q)
-                        if Q2 is not Q:
-                            Q = Q2
-                            for sset in by.values():
-                                sset.clear()
-                            for m in Q.d:
-                                reg(m)
-                        D = Q.d
-                        monos = [m for m in by[J] if m in D]
-                        lhs, rhs = self.adder_lhs(J)
-                        if monos and lhs:
-                            pat = self.top_pattern(Q, monos, lhs, J)
             if pat is None:
                 continue
             R, A, B, kill, flip, extra = pat
