@@ -408,6 +408,7 @@ class ErasurePhaseChecker:
                 self._fail("measurement of a wire that is not an unmeasured bit of the erased register")
                 return
             S['mids'][o[2]] = S['wt_index'][a]
+            S['last_rel'] = self.i
             S['measured'].add(a)
             S['opaque'].discard(a)
             S['form'][a] = (0, 0)                # H, measure, conditional X: back to |0>
@@ -435,6 +436,7 @@ class ErasurePhaseChecker:
                 self._fail("phase on an unmeasured wire of the erased register")
                 return
             i = S['mids'][mid]
+            S['last_rel'] = self.i
             self.n_phase += 1
             Q = S['Q'][i]
             if len(ws) == 1:
@@ -460,6 +462,7 @@ class ErasurePhaseChecker:
         f = S['form'].get(w)
         if f is None:                            # first touch of a wire outside wa, wb, wt: assumed |0>
             S['zero'].add(w)
+            S['ztouch'][w] = self.i
             f = S['form'][w] = (0, 0)
         return f
 
@@ -502,7 +505,7 @@ class ErasurePhaseChecker:
                         rows[u] = rows.get(u, 0) ^ bm
         self.seg = dict(form=form, opaque=set(wt), measured=set(), mids={}, wt=list(wt),
                         wt_index={w: i for i, w in enumerate(wt)}, Q=[dict(rows={}, lin=0) for _ in range(m)],
-                        tgt=tgt, start=self.i, zero=set())
+                        tgt=tgt, start=self.i, zero=set(), ztouch={}, last_rel=self.i)
         self.assumed_zero[self.i] = self.seg['zero']
 
     @staticmethod
@@ -528,6 +531,9 @@ class ErasurePhaseChecker:
         if S is None:
             return
         self.seg = None
+        # CX / X after the last measurement or phase of the group belong to the following computation (the group
+        # is only closed by an op of another kind): wires first touched there are no assumption of this check
+        S['zero'].difference_update([w for w, t in S['ztouch'].items() if t > S['last_rel']])
         if len(S['measured']) != len(S['wt']):
             self._fail("register erasure from op %d: not every bit measured" % S['start'])
             return

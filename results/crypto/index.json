@@ -112,6 +112,17 @@
    "method": "anf:pathsum-normal-form"
   },
   {
+   "name": "gf2m_square_m163_798cx",
+   "model": "unitary",
+   "AND": 0,
+   "T": 0,
+   "CX": 798,
+   "qubits": 163,
+   "measurements": 0,
+   "verdict": "PROVED",
+   "method": "bdd"
+  },
+  {
    "name": "gf2m_square_m163_875cx",
    "model": "unitary",
    "AND": 0,
@@ -129,6 +140,17 @@
    "T": 0,
    "CX": 825,
    "qubits": 233,
+   "measurements": 0,
+   "verdict": "PROVED",
+   "method": "bdd"
+  },
+  {
+   "name": "gf2m_square_m283_1386cx",
+   "model": "unitary",
+   "AND": 0,
+   "T": 0,
+   "CX": 1386,
+   "qubits": 283,
    "measurements": 0,
    "verdict": "PROVED",
    "method": "bdd"

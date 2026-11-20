@@ -35,10 +35,14 @@ Numbers (NIST moduli; reproduced by tests/test_crypto_gf2m.py by counting, witho
     gf2m_square(m) builds now; with free wire relabelling 408 / 153 / 713 / 204 / 1538 (the earlier lab claims
     404 / 709 were not reproduced; the published bound used for comparison in the lab, n^2 - n from LUP
     decomposition, is an upper bound, not a built circuit).
-    The proved squarers in results/crypto (gf2m_square_m163_875cx ... m571_3239cx, CX 875 / 825 / 1534 / 1418 /
-    3239) are the earlier lab k5 files, added to the registry before this generator; they are kept unchanged
-    because they are proved and their files are referenced by name.  For m = 163 and 283 the generator gives fewer
-    CX (798 vs 875, 1386 vs 1534); for m = 233, 409, 571 both coincide.  The exact-order synthesis uses a greedy
+    The proved squarers in results/crypto: gf2m_square_m163_875cx ... m571_3239cx (CX 875 / 825 / 1534 / 1418 /
+    3239) are the earlier lab k5 files and are kept unchanged (referenced by name); for m = 163 and 283 the
+    generator gives fewer CX, so its circuits were added next to them and proved the same way:
+    gf2m_square_m163_798cx and gf2m_square_m283_1386cx (reference: the same independent .qc).  For m = 233, 409,
+    571 the generator coincides with the old files.  Free-relabelling counts of gf2m_square(m, relabel=True),
+    reproduced twice with numpy: 408 / 153 / 713 / 204 / 1538 (m = 409: relabel_ops takes the shorter of the
+    structured construction, 247, and linsynth.to_perm, 204; the lab figures 204 and 247 were two different
+    candidates).  The exact-order synthesis uses a greedy
     candidate that needs numpy (a required dependency); without numpy that candidate is skipped and the counts
     are 888 / 825 / 1653 / 1418 / 3827 (still correct circuits, checked exactly).
     multiplier CX (cx + cz of the text, seed 0): 163 strict 75823, clean 68371.

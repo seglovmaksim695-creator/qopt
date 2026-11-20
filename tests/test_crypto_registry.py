@@ -48,3 +48,29 @@ def test_entry(rec):
 def test_index_lists_all():
     idx = json.load(open(os.path.join(ROOT, "index.json")))
     assert sorted(i["name"] for i in idx["circuits"]) == sorted(json.load(open(e))["name"] for e in ENTRIES)
+
+
+def _square_entries(m):
+    out = []
+    for e in ENTRIES:
+        rec = json.load(open(e))
+        if re.fullmatch(r"gf2m_square_m%d_\d+cx" % m, rec["name"]):
+            out.append(rec)
+    return out
+
+
+@pytest.mark.parametrize("m", [163, 233, 283, pytest.param(409, marks=pytest.mark.slow),
+                               pytest.param(571, marks=pytest.mark.slow)])
+def test_square_registry_has_the_generator_circuit(m):
+    """the best proved squarer of the registry has the CX count of gf2m_square(m) (m = 163, 283: it IS that circuit,
+    same text; m = 233, 409, 571: the earlier lab file has the same count); the earlier lab files (m = 163: 875,
+    m = 283: 1534 CX) stay next to the new ones."""
+    from qoptct.crypto import gf2m_square
+    recs = _square_entries(m)
+    assert recs
+    C = gf2m_square(m)
+    best = min(recs, key=lambda r: r["CX"])
+    assert best["CX"] == C.counts()["CX"]
+    if m in (163, 283):
+        assert open(os.path.join(ROOT, best["name"] + ".qasm")).read() == C.qasm()
+    assert {r["CX"] for r in recs} >= {163: {798, 875}, 233: {825}, 283: {1386, 1534}, 409: {1418}, 571: {3239}}[m]
