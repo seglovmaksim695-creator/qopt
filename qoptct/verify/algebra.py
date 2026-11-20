@@ -1359,15 +1359,15 @@ class Engine:
         D = dict(P.d)
         e = P.e
         ranges = dict(self.vrange)
-        done = set()
+        done = {}
         while True:
             by = self.group(D)
-            todo = [J for J in by if J not in done]
+            todo = [J for J in by if done.get(J, 0) < 4]
             if not todo:
                 break
             changed = False
             for J in sorted(todo, key=lambda j: -j.order):
-                done.add(J)
+                done[J] = done.get(J, 0) + 1
                 self.classify(J)
                 if self.fver != fv:
                     return self.bound_runs(P)       # new facts: start again
@@ -1375,19 +1375,19 @@ class Engine:
                 if J.virt is not None:
                     lhs = {a: w for a, w in lhs.items() if a != J.virt}
                 lin = {}
-                ok = True
+                seenm = set()
                 for m in by[J]:
-                    js = [v for v in m if v in lhs]
-                    if len(js) == 1:
-                        a = js[0]
-                        d1 = lin.get(a)
-                        if d1 is None:
-                            lin[a] = d1 = {}
-                        d1[tuple(v for v in m if v != a)] = D[m]
-                    elif len(js) > 1:
-                        ok = False
-                        break
-                if not ok or len(lin) < 2:
+                    if m in seenm:
+                        continue
+                    seenm.add(m)
+                    for a in m:
+                        if a in lhs:
+                            d1 = lin.get(a)
+                            if d1 is None:
+                                lin[a] = d1 = {}
+                            d1[tuple(v for v in m if v != a)] = D[m]
+                if len(lin) < 2:
+                    done[J] = 4
                     continue
                 pos = J.pos
                 atoms = sorted(lin, key=pos.__getitem__)
@@ -1404,8 +1404,13 @@ class Engine:
                     i = j
                     if len(run) < 2 or w0 <= 0:
                         continue
+                    rs = set(run)
+                    if any(not rs.isdisjoint(rest) for rest in c0):
+                        continue                    # a square of the run: not a product with an outside factor
                     rr = self.run_range(J, run, lhs)
                     om = max(run) + 0.5
+                    while om in ranges:
+                        om += 0.001
                     ranges[om] = rr
                     for a in run:
                         for rest in lin[a]:
@@ -1414,8 +1419,10 @@ class Engine:
                         key = tuple(sorted(rest + (om,)))
                         D[key] = D.get(key, 0) + c
                     changed = True
+                    break
                 if changed:
                     break
+                done[J] = 4
         l1, h1 = _ib(D, ranges, False)
         l2, h2 = _ib(D, ranges, True)
         lo = max(l1, l2)
@@ -1560,7 +1567,7 @@ class Engine:
                         if extra is None:
                             extra = Poly()
                         extra.iadd(dq * Poly({mmul((a,), (b,)): 1}))
-            if 2 * good < k * (k - 1) // 2:
+            if good < k * (k - 1) // 2 - 2 or 2 * good < k * (k - 1) // 2:
                 return None
             A = _frac(c0, den0, Q.e)
             B = None
