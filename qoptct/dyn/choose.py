@@ -84,7 +84,7 @@ def choose(family, size, model, seeds=(0, 1, 2, 3), simulate=False, shots=300, n
             r = sim.run_tests(B, comp, model, shots=shots, n_inputs=n_inputs)
             row.update({k: r[k] for k in ('pZ', 'pZ_err', 'pX', 'pX_err', 'methodZ', 'methodX') if k in r})
         rows.append(row); comps[label] = comp; blocks[label] = B
-    best = max(rows, key=lambda r: r['f_est'])['variant']
+    best = max(rows, key=lambda r: (round(r['f_est'], 9), r['variant'] in ('U', 'T')))['variant']   # ties: static
     return dict(best=best, rows=rows, comps=comps, blocks=blocks, model=model.summary())
 
 
@@ -234,7 +234,9 @@ def choose_circuit(qc, model, seeds=(0, 1, 2, 3), mode='auto'):
     if 0 < nh < n:
         c = hw.compile_circuit(hyb, model, seeds=seeds, live_virtual=live, initial_layouts=[])
         rep['f_est_hybrid'] = c['sched'].fid; cands['hybrid'] = (c['sched'].fid, hyb)
-    best = max(cands, key=lambda k: cands[k][0])             # ties: keep, then unitary, then hybrid (dict order)
+    # the ordinary (static) uncomputation is the default: another form is taken only when its estimate is strictly better
+    order = ('unitary', 'hybrid', 'keep')
+    best = max((k for k in order if k in cands), key=lambda k: (round(cands[k][0], 9), -order.index(k)))
     rep['chosen'] = best
     return cands[best][1], rep
 
@@ -243,14 +245,17 @@ class DynErasePass(TransformationPass):
     """Hardware-aware choice between measurement-based erasure and reverse computation.
 
     Run it on the logical circuit (before layout). ``backend`` (or ``model``: a dyn.hw.HwModel) supplies the
-    calibration. mode='auto' compiles both forms and keeps the better estimate; 'rule' uses the analytic site rule;
+    calibration. Without a backend the default is the ordinary (static) uncomputation. mode='auto' compiles the forms
+    (static, hybrid, measurement-based) and takes another form than the static one only when its estimate is better; 'rule' uses the analytic site rule;
     'unitary' always converts. ``self.last`` holds the report."""
 
     def __init__(self, backend=None, model=None, mode='auto', seeds=(0, 1, 2, 3), ff_latency=600e-9):
         super().__init__()
         if model is None and backend is not None:
             model = hw.HwModel.from_backend(backend, ff_latency=ff_latency)
-        if model is None and mode in ('auto', 'rule'):
+        if model is None and mode == 'auto':
+            mode = 'unitary'                                 # no calibration: the ordinary (static) uncomputation
+        if model is None and mode == 'rule':
             raise ValueError('mode=%r needs a backend or a model' % mode)
         self.model = model; self.mode = mode; self.seeds = tuple(seeds); self.last = None
 

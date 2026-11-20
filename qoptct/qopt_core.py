@@ -29,12 +29,16 @@ Install: pip install qoptct  (neural mode --net: pip install "qoptct[net]"). Pyt
   qoptct aprove CIRCUIT.qasm SPEC.json [--budget S] [--json]
       word-level algebraic exact proof of integer arithmetic (multipliers, squarers, modular reduction) against a
       JSON specification such as "out == x*y" (qoptct.verify.algebra); also `qoptct kprove C.qasm SPEC.json --engine algebra`.
+  qoptct compose gen|verify|pstd --prime P ...
+      compositional exact proof of the Kaliski inversion at full width (qoptct.verify.compose); `qoptct compose --help`.
   qoptct estimate --toffoli T --qubits Q [--model all|ge2019|gidney2025|litinski2023] [--json] | --check
       Physical (surface-code) cost from logical counts, formula models calibrated on published papers
       (qoptct.estimate); see `qoptct estimate --help`.
   qoptct hw --backend fake_torino IN.qasm [-o OUT.qasm] [--report R.json]
       Compile for a noisy IBM-like device (heavy-hex, CZ/ECR): routing, two-qubit-gate and depth reduction with
       calibration data, verified against the input (qoptct.hw; needs qiskit-ibm-runtime); see `qoptct hw --help`.
+  qoptct dyn choose|bench|threshold|convert|... [--backend FakeBoston]
+      measurement-based erasure versus reverse computation on noisy hardware (qoptct.dyn; extra qoptct[dyn]).
   qoptct version
 """
 import re
@@ -1378,7 +1382,17 @@ def _main():
                   "(module qoptct.estimate; `qoptct estimate --help`)")
     sp.add_parser("hw", add_help=False, help="compile for a noisy IBM-like device: routing + two-qubit / depth "
                   "reduction with calibration data (module qoptct.hw; `qoptct hw --help`)")
+    sp.add_parser("compose", add_help=False, help="compositional exact proof of the Kaliski inversion "
+                  "(module qoptct.verify.compose; `qoptct compose --help`)")
+    sp.add_parser("dyn", add_help=False, help="measurement-based erasure vs reverse computation on noisy hardware "
+                  "(module qoptct.dyn; `qoptct dyn --help`)")
     sp.add_parser("version")
+    if sys.argv[1:2] == ["compose"]:
+        from .verify.compose.__main__ import main as compose_main
+        sys.exit(compose_main(sys.argv[2:]))
+    if sys.argv[1:2] == ["dyn"]:
+        from .dyn.__main__ import main as dyn_main
+        sys.exit(dyn_main(sys.argv[2:]))
     if sys.argv[1:2] == ["hw"]:
         from .hw.cli import main_hw
         sys.exit(main_hw(sys.argv[2:]))

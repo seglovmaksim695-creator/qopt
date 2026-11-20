@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 # Project name: qopt. Distribution and import package: qoptct (the PyPI name "qopt" belongs to an unrelated project).
 name = "qoptct"
-version = "0.5.0"
+version = "0.6.0"
 description = "qopt: verified Clifford+T circuit optimizer (T and CNOT counts) with a Qiskit transpiler plugin"
 readme = "README.md"
 license = "Apache-2.0"
@@ -42,6 +42,8 @@ DOI = "https://doi.org/10.5281/zenodo.24182059"
 net = ["torch>=2.4"]
 qcec = ["mqt.qcec>=3.0"]
 hw = ["qiskit-ibm-runtime>=0.40", "qiskit-aer>=0.17"]
+dyn = ["qiskit-ibm-runtime>=0.40", "qiskit-aer>=0.17"]
+z3 = ["z3-solver>=4.12"]
 test = ["pytest>=8", "qiskit-qasm3-import>=0.5"]
 
 [project.scripts]
@@ -57,7 +59,7 @@ qoptct = "qoptct.qiskit_qopt:QoptInitPlugin"
 include = ["qoptct*"]
 
 [tool.setuptools.package-data]
-qoptct = ["models/*.pt", "contrib/c1/best_clean/*.qasm", "contrib/c1/best_clean/*.json", "contrib/eng1/ours/*.json", "contrib/gf2m/data/*.json"]
+qoptct = ["models/*.pt", "contrib/c1/best_clean/*.qasm", "contrib/c1/best_clean/*.json", "contrib/eng1/ours/*.json", "contrib/gf2m/data/*.json", "verify/compose/PROOF.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

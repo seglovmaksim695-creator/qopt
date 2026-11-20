@@ -8,5 +8,8 @@
     sim      noisy trajectory simulation (qiskit-aer) of a scheduled circuit
     choose   choose(block, backend): compile the variants, estimate, pick the best; DynErasePass for Qiskit circuits
 
-CLI: python -m qoptct.dyn --help
+Default: ordinary (static) uncomputation; measurement-based erasure is chosen only where the estimate says it wins
+(hybrid for "lookup + add"). On today's chips it usually does not.
+
+CLI: qoptct dyn --help  (or python -m qoptct.dyn --help)
 """

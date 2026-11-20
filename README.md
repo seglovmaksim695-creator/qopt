@@ -142,7 +142,7 @@ degree ≤ 2 (GF(2^m) multipliers) the engine `exact2` decides exactly at any si
 ≤ 2; `auto` tries it first when the reference is bilinear.
 From Python: `from qoptct.verify.kprove import kprove; kprove("c.qasm", "ref.qc", clean=True, max_mb=1500)`.
 
-`qoptct aprove CIRCUIT.qasm SPEC.json [--budget S] [--json]` (new in 0.5; the same engine is
+`qoptct aprove CIRCUIT.qasm SPEC.json [--budget S] [--json]` (new in 0.6; the same engine is
 `qoptct kprove CIRCUIT.qasm SPEC.json --engine algebra`) is a word-level algebraic prover for the integer arithmetic
 that BDDs cannot handle: multipliers, squarers, reductions modulo special primes, and their compositions, built from
 logical ANDs with measurement-based erasure. The specification is a JSON file with input words, output words and
@@ -156,8 +156,22 @@ levels 0..3 take 4-9 s and at most 0.8 GB; the fold reductions take under a seco
 Curve25519 / secp256k1 / P-256 takes 9-18 s (`python scripts/algebra_proofs.py proofs`). The prover is not a general
 equivalence checker: circuits that are not carry-chain arithmetic end in UNKNOWN (exit code 2) or, when they use
 gates outside its strict language, in an input error (exit code 3); a few correct Karatsuba circuits on very narrow
-or odd-width leaves are also left UNKNOWN. From Python:
+or odd-width leaves are also left UNKNOWN. At n = 256 the following is proved: multiplication and squaring (Karatsuba levels 0..3), the fold reductions for
+Curve25519, secp256k1, P-256, P-384, P-521 and whole modular multiplications for three of them. Left UNKNOWN: squaring
+with Karatsuba level >= 2 on odd or very narrow widths, `square(256, 3, legacy=True)`, and every circuit that is not
+carry-chain arithmetic (controlled swaps, general Boolean logic; e.g. the Kaliski inversion, see `qoptct compose`).
+From Python:
 `from qoptct.verify.algebra import aprove, spec_mulsq; c = multiply(256, 3); aprove(c.to_qasm(), spec_mulsq(c))`.
+
+`qoptct compose` (new in 0.6; `python -m qoptct.verify.compose`) proves the Kaliski inversion `kaliski_inverse` at
+n = 256 (secp256k1, P-256, a random 256-bit prime; generic and special reduction; forward and clean; Curve25519, P-384 and
+P-521 in the clean mode with special reduction) on the real OpenQASM text (250-520 MB), 40-250 s and about 0.5 GB per circuit: PROVED for every
+x in [1, p) and every combination of measurement outcomes. The proof has layers, and they are not equally strong:
+the 2 061-2 302 segments of the circuit are checked against their contracts on BDDs, and the gadget lemmas are exact
+arithmetic, all by machine; the lemmas about the integer algorithm (bounds, parity, the invariant u*s + v*r = p) are
+checked by Z3 for all n and p (`pip install "qoptct[z3]"`, needs the `z3` binary); the gluing of segments and of the Z3 formulation to the
+contracts is a written argument (`qoptct/verify/compose/PROOF.md`), not machine-checked. Only the default
+construction (`legacy=False`) is covered.
 
 ## Qiskit plugin
 
@@ -209,7 +223,7 @@ p = QoptPass(); out = PassManager([p]).run(qc); print(p.last)   # runs, replaced
 
 `QoptMeasPass(ancillas=[...])` is the measurement-based variant (logical AND, needs qubits known to start in |0>).
 
-## Compiling for noisy hardware: `qoptct hw` (new, experimental)
+## Compiling for noisy hardware: `qoptct hw` (new in 0.6, experimental)
 
 `qoptct hw` compiles a unitary circuit for an IBM-like device (heavy-hex coupling, native CZ or ECR + RZ, SX, X) and
 minimizes what matters on NISQ hardware: the number of two-qubit gates after routing, the depth, and the expected
@@ -238,8 +252,24 @@ Every returned circuit is checked against the input with the qubit maps taken in
 random product states, up to 26 used qubits). Nothing is ever submitted to IBM; `scripts/hw_real_run.py` prepares one
 short real run and refuses to submit without `--submit` and `QOPT_ALLOW_REAL=1`.
 
+The portfolio keeps the Qiskit candidate wherever the qoptct one is worse by the metric, so the result is never worse
+than Qiskit level 3 by that metric. All fidelity numbers are model estimates from the chip model and a calibration
+snapshot (fake backends); they were not measured on real hardware.
+
 Results on 76 algorithmic circuits (4-30 qubits), methods, the comparison with Qiskit level 3 and tket, the noisy
 simulation and the limitations are in [`docs/HW.md`](docs/HW.md).
+
+## Measurement-based erasure on hardware: `qoptct dyn` (new in 0.6, experimental)
+
+On IBM chips the default is the ordinary (static) uncomputation of a logical AND (reverse gadget, 3 CX); measurement-based
+erasure with a classical correction is not used unless a pass finds that it wins. `qoptct.dyn` compiles the variants of
+an arithmetic block (static, hybrid, measurement-based) for a backend calibration and keeps the one with the best
+expected fidelity; a hybrid (single ANDs reversed, multi-term erasures measured) is chosen for "lookup + add" blocks when
+it is better. In our models dynamic erasure does not pay on today's chips (a measurement with feed-forward idles every live qubit for
+about 2.8 µs). `qoptct dyn choose adder 4 --backend FakeBoston`; with `--route SEC` the static variant is compiled by
+`qoptct.hw`. Extra: `pip install "qoptct[dyn]"`. Numbers are from chip models and calibration snapshots, not measured
+on real hardware.
+
 
 ## Cost models — read this before comparing numbers
 
@@ -328,7 +358,7 @@ ANDs (= Toffoli, 4 T each).
 
 | function | what | count | compared with |
 |---|---|---|---|
-| `kaliski_inverse(p, n=None, reduction='generic'\|'special', clean=False, legacy=False)` | Kaliski modular inversion, result −x⁻¹·2^{2n} mod p | 12n²−8n−3 AND forward (generic; `legacy=True`: 12n²+n), 11n−2 qubits (generic); P-256 special 664 966 AND / 5 513 qubits, secp256k1 657 503 / 3 107 | Litinski 2023 (arXiv:2306.08585): 26n²+2n in the same model. The count was checked by counting for every n tried up to n = 256; it is not proved for all n. Circuits proved exactly for n ≤ 7 |
+| `kaliski_inverse(p, n=None, reduction='generic'\|'special', clean=False, legacy=False)` | Kaliski modular inversion, result −x⁻¹·2^{2n} mod p | 12n²−8n−3 AND forward (generic; `legacy=True`: 12n²+n), 11n−2 qubits (generic); P-256 special 664 966 AND / 5 513 qubits, secp256k1 657 503 / 3 107 | Litinski 2023 (arXiv:2306.08585): 26n²+2n in the same model. The count was checked by counting for every n tried up to n = 256; it is not proved for all n. Proved exactly at n = 256 by `qoptct compose` (segments and lemmas by machine, the gluing by a written argument, `qoptct/verify/compose/PROOF.md`) |
 | `multiply(n, karatsuba_levels=0, legacy=False)`, `square(n, ...)` | integer x·y and x² (no reduction) on conditionally inverted additions | base n²+4n−2 and (n²+7n−16)/2; n = 256, 3 Karatsuba levels: 37 826 / 22 145 (published construction `legacy=True`: 37 880 / 22 332) | squaring with 3 Karatsuba levels is −33.2 % ANDs against the base formula of Häner et al. (arXiv:2609.05625, Sec. VII.A: ½n(n+3)−1 = 33 151), at the cost of qubits (3 000 vs 1 275 at L = 0) and garbage (clearing it by the inverse pass: 44 277 ANDs in total). Häner et al. also give a one-level Karatsuba squaring (App. A, Algorithm 7) without a published count; our one level (L = 1, 27 049) is −18.4 % against 33 151. The conditionally inverted additions and the one-level Karatsuba squaring on them are their ideas; the multi-level recursion with garbage is ours. The base multiplier is not better than theirs |
 | `fold.reduce_special(p, method='auto')` | reduction of a 2n-bit product modulo p = 2^n − c, NIST P-256 (Solinas), Mersenne P-521 | 2^255−19: 1 304, secp256k1: 2 175, P-256: 2 744 | not a record: special-prime arithmetic is already in arXiv:2606.02235 and 2609.05625. The fair comparison is the whole modular multiplication, ≈ −11 % only for special primes |
 | `lookup.narrow_lookup(table, c, w)`, `lookup.lookup_add`, `lookup.qroam1_lookup` | table lookup z ⊕= T[a] with a bilinear address split; QROAM s = 1; measurement-based unlookup | 6→32: 40 AND (2^c−c−1 = 57) | the narrow lookup inside lookup-add in the Gidney–Ekerå framework is due to Luongo et al. 2025 (arXiv:2502.17325); QROAM is Berry et al. 2019 / Low et al. 2018. The saving is per lookup, not end-to-end |

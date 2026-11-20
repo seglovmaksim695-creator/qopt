@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.5.0 — unreleased (release candidate)
+## 0.6.0 — unreleased
 
 ### Added
 * **`qoptct.verify.algebra`** and the subcommand **`qoptct aprove CIRCUIT.qasm SPEC.json [--budget S] [--json]`**
@@ -25,6 +25,28 @@
   calibration; equivalence check with qubit maps (`qoptct.hw.check.verify_compiled`); benchmark driver
   `python -m qoptct.hw.bench`, tket comparison `scripts/hw_tket.py`, real-run preparation `scripts/hw_real_run.py`
   (never submits by itself). Results and limitations: `docs/HW.md`.
+* **`qoptct compose`** (`python -m qoptct.verify.compose`, `qoptct.verify.compose`): compositional exact proof of the
+  Kaliski inversion at n = 256 on the real circuit text (10 configurations: secp256k1, P-256, a random prime; generic /
+  special reduction; forward / clean; also Curve25519, P-384, P-521 clean + special), 40-250 s, about 0.5 GB. A generic
+  segment engine (`walker.py`, contracts on ROBDDs, untrusted labels from the generator) and Z3 verification conditions
+  for the lemmas about the integer algorithm (`lemmas_z3.py`, extra `qoptct[z3]`, needs the `z3` binary). Machine
+  checked: segments, gadget lemmas, the Z3 lemmas; written argument (`PROOF.md`): the gluing of segments and the link
+  between the Z3 statements and the contracts. `kaliski.py` only gained segment labels (the circuit text is unchanged)
+  and a streamed `write_qasm`.
+* **`qoptct dyn`** (`qoptct.dyn`, extra `qoptct[dyn]`, experimental): measurement-based erasure versus ordinary reverse
+  computation on noisy hardware. The default is the ordinary (static) uncomputation; another form is taken only when its
+  estimated fidelity is strictly better (hybrid for "lookup + add" blocks). With `--route SEC` the static variant is
+  compiled by `qoptct.hw`. On today's chips dynamic erasure does not pay in our models. Model estimates, not measured on
+  hardware.
+* Subcommands `qoptct compose` and `qoptct dyn`; `PROOF.md` is shipped in the package.
+
+### Changed
+* `qoptct hw`: all fidelity figures are model estimates from calibration snapshots; the portfolio keeps the Qiskit
+  candidate where the qoptct one is worse.
+
+## 0.5.0 — unreleased (release candidate)
+
+### Added
 * **`qoptct.verify.kprove`** and the subcommand **`qoptct kprove CIRCUIT.qasm REF.qc [--clean] [--budget S]
   [--engine auto|bdd|anf|sample|exact2] [--pre lt:REG:N] [--max-mb MB] [--json]`**: exact verification of large Clifford+T circuits with
   mid-circuit measurements and classically controlled corrections against a *classical* (reversible, possibly with
