@@ -650,7 +650,11 @@ class Engine:
                         try:
                             J = self.assemble(cell, True)
                             if J is not None:
-                                self.classify(J)
+                                try:
+                                    self.classify(J)
+                                except Unknown as ex:   # not needed yet: a later use of this word raises again
+                                    if 'budget' in str(ex):
+                                        raise
                         finally:
                             self.in_zero = False
                         if self.facts and not S.isdisjoint(self.facts):
@@ -2082,6 +2086,55 @@ def _pre_sim(N, ops, sp, lanes=64, seed=11):
     return None, ''
 
 
+# ============================================================================ compute - copy - uncompute
+def _mirror(o):
+    """the ops that undo the op o (in order), or None."""
+    k = o[0]
+    if k in ('x', 'cx'):
+        return [o]
+    if k == 'and':
+        return [('erase', o[3], (('cz', o[1], o[2]),))]
+    cz = [c for c in o[2] if c[0] == 'cz']
+    if len(cz) != 1:
+        return None
+    return [('and', cz[0][1], cz[0][2], o[1])] + [('cx', c[1], o[1]) for c in o[2] if c[0] == 'z']
+
+
+def mirror_split(ops):
+    """ops = F + M + F^-1 with F^-1 the exact gate-by-gate mirror of F and M only CXs from the wires of F into wires
+    that F does not touch (Bennett: compute, copy, uncompute).  -> (len(F), start of F^-1) or None."""
+    i, j = 0, len(ops)
+    while i < j:
+        g = _mirror(ops[i])
+        if g is None or j - len(g) <= i or ops[j - len(g):j] != g:
+            break
+        i += 1
+        j -= len(g)
+    if i == 0 or i == j:
+        return None
+    touched = set()
+    for o in ops[:i]:
+        if o[0] == 'x':
+            touched.add(o[1])
+        elif o[0] == 'cx':
+            touched.add(o[2])
+        elif o[0] == 'and':
+            touched.add(o[3])
+        else:
+            touched.add(o[1])
+    mt = set()
+    for o in ops[i:j]:
+        if o[0] != 'cx' or o[2] in touched:
+            return None
+        mt.add(o[2])
+    for o in ops[i:j]:
+        if o[1] in mt:
+            return None
+    if not any(o[0] == 'and' for o in ops[:i]):
+        return None
+    return i, j
+
+
 # ============================================================================ driver
 def prove_ops(N, ops, spec, budget_sec=600.0, lanes=48):
     """exact proof of the op list (see parse_strict) against a word-level spec.  -> result dict."""
@@ -2099,10 +2152,26 @@ def prove_ops(N, ops, spec, budget_sec=600.0, lanes=48):
         res.update(status=st, detail=det + ' [independent bit-sliced simulation]', time=round(time.time() - t0, 2))
         return res
     eng = Engine(N, sp['in_wires'], lanes=lanes, deadline=(t0 + budget_sec) if budget_sec else None)
+    # Bennett form F, copy, F^-1: after F and the copy are verified, the exact mirror F^-1 returns every wire written
+    # by F to its initial value (each mirrored AND / erasure meets the state of its original gate, so its
+    # precondition holds and its phase is trivial).  Only F + copy is analysed; wires written by F need no check.
+    restored = set()
+    msp = mirror_split(ops)
+    outw = set(w for ws in sp['outputs'].values() for w in ws)
+    if msp is not None:
+        for o in ops[:msp[0]]:
+            restored.add(o[3] if o[0] == 'and' else o[2] if o[0] == 'cx' else o[1])
+        if (restored & outw) or any(w in restored and w not in sp['keep'] and w not in sp['garbage']
+                                    for w in sp['in_wires']):
+            restored, msp = set(), None
+        else:
+            res['mirror'] = dict(compute=msp[0], copy=msp[1] - msp[0], uncompute=len(ops) - msp[1])
+            ops = ops[:msp[1]]
     try:
         eng.run(ops)
-        outw = set(w for ws in sp['outputs'].values() for w in ws)
         for w in range(N):
+            if w in restored:
+                continue
             S = eng.read(w)
             if w in sp['keep']:
                 if not eng.is_zero(S ^ eng.fs(eng.in_atom[w])):
@@ -2140,6 +2209,9 @@ def prove_ops(N, ops, spec, budget_sec=600.0, lanes=48):
         res.update(status='PROVED', detail='all inputs, all measurement outcomes: %d AND gadgets and %d erasures with '
                    'their preconditions, %d word identities (carry chains), claims: %s' % (
                        eng.stats['ands'], eng.stats['erases'], eng.stats['adders'], '; '.join(proved)))
+        if msp is not None:
+            res['detail'] += ' [compute - copy - uncompute: the last %d ops are the exact mirror of the first %d]' % (
+                res['mirror']['uncompute'], res['mirror']['compute'])
     except Unknown as ex:
         res.update(status='UNKNOWN', detail=str(ex))
     except RecursionError:

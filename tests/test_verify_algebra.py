@@ -146,6 +146,18 @@ def test_mul_legacy_and_text_roundtrip():
     assert A.parse_strict(A.ops_to_qasm(N, ops)) == (N, ops) == A.parse_strict(c.to_qasm())
 
 
+@pytest.mark.parametrize('kind,n,L', [('mul', 4, 0), ('mul', 8, 1), ('sq', 8, 1), ('mul', 16, 2), ('sq', 16, 2)])
+def test_clean_bennett_proved(kind, n, L):
+    N, ops, spec = _mul(n, L, kind, clean=True)
+    assert not spec['garbage']
+    r = A.prove_ops(N, ops, spec)
+    assert r['status'] == 'PROVED', r['detail']
+    assert r['mirror']['uncompute'] > 0
+    k = A.mirror_split(ops)[1]
+    broken = ops[:k + 3] + ops[k + 4:]                 # the mirror is no longer exact: no shortcut, no proof
+    assert A.prove_ops(N, broken, spec)['status'] != 'PROVED'
+
+
 @pytest.mark.parametrize('n,c', [(8, 3), (12, 5), (16, 19), (24, 977), (20, 1), (48, 5073)])
 def test_fold_proved(n, c):
     N, ops, spec = _fold(n, c)
@@ -176,10 +188,12 @@ def test_exhaustive_agrees_on_correct():
 # ----------------------------------------------------------------------------- soundness fuzz
 @pytest.mark.parametrize('case,count', [(('mul', 3, 0), 120), (('mul', 4, 1), 120), (('sq', 4, 0), 120),
                                         (('sq', 6, 1), 80), (('fold', 5, 3), 120), (('fold', 6, 5), 80),
-                                        (('modmul', 5, 3), 80)])
+                                        (('modmul', 5, 3), 80), (('clean', 3, 0), 150), (('clean', 4, 1), 150)])
 def test_mutants_never_proved_when_wrong(case, count):
     if case[0] in ('mul', 'sq'):
         N, ops, spec = _mul(case[1], case[2], case[0])
+    elif case[0] == 'clean':
+        N, ops, spec = _mul(case[1], case[2], 'mul', clean=True)
     elif case[0] == 'fold':
         N, ops, spec = _fold(case[1], case[2])
     else:
