@@ -184,7 +184,7 @@ def controls():
     g = dict((a, (b, c)) for a, b, c in goals)
     strong = [('M1 with wa - 1', '', '(and (< A (pow2 (- wa 1))) (< B (pow2 (- wa 1))))'),
               ('M3 with wb - 1', '', '(< B (pow2 (- wb 1)))'),
-              ('M4-sfit with n - 1', '', '(< S (pow2 (- n 1)))'),
+              ('M4-sfit with n - 2', '', '(< S (pow2 (- n 2)))'),
               ('r < 2^k instead of 2^(k+1)',) + (g['Inv(k+1): r < 2^(k+1), s <= 2^(k+1)'][0], '(< (+ R S) (pow2 k))'),
               ('wrong sign in the congruence',) + (g['Inv(k+1): x*R + sg*A*2^(k+1) = p*cR'][0],
                                                     '(= (- (* x (+ R S)) (* A2 (* 2 (pow2 k)))) (* p (+ cR cS)))')]
@@ -199,6 +199,51 @@ def controls():
     return out
 
 
+def kaliski_trace(p, x):
+    """the states (k, wp, A, B, R, S, a, b, cR, cS) of P_std before every step k = 0..2n, with the ghost values
+    of the invariant (a, b: exponents of the bounds, frozen once v = 0; cR, cS: quotients of the congruences)."""
+    n = p.bit_length()
+    k, wp, A, B, R, S, a, b, cR, cS = 0, 0, p, x, 0, 1, n, n, 1, 0
+    out = [(k, wp, A, B, R, S, a, b, cR, cS)]
+    for k in range(2 * n):
+        u, v = (B, A) if wp else (A, B)
+        w = int(u % 2 == 1 and (v % 2 == 0 or u <= v))
+        if wp ^ w:
+            A, B, R, S, a, b, cR, cS = B, A, S, R, b, a, cS, cR
+        e = A % 2
+        A, R, S, a, cR, cS = (A - e * B) // 2, R + e * S, 2 * S, a - 1, cR + e * cS, 2 * cS
+        wp = w
+        out.append((k + 1, wp, A, B, R, S, a, b, cR, cS))
+    return out
+
+
+def concrete_queries(primes):
+    """the invariant Inv of the SMT text evaluated by Z3 on real runs (all x in [1, p) for the given small
+    primes), with pow2 given as a table instead of the axioms: one ground query per prime, unsat iff Inv holds in
+    every state of every run. Ties the SMT text of Inv to the algorithm (and shows it is not contradictory)."""
+    out = []
+    for p in primes:
+        n = p.bit_length()
+        tab = '0'
+        for i in range(2 * n, -1, -1):
+            tab = '(ite (= i %d) %d %s)' % (i, 1 << i, tab)
+        pre = PRELUDE.replace('(declare-fun pow2 (Int) Int)', '(define-fun pow2 ((i Int)) Int %s)' % tab)
+        pre = '\n'.join(ln for ln in pre.split('\n') if 'forall' not in ln) + '\n'
+        # inv refers to the global x: make it a parameter by a local definition
+        body = pre.replace('(declare-const x Int)', '').replace('(assert (<= 1 x)) (assert (< x p))', '')
+        body = body.replace('(define-fun inv ((k Int)', '(define-fun invx ((x Int) (k Int)')
+        calls = []
+        for x in range(1, p):
+            for st in kaliski_trace(p, x):
+                vals = [('true' if t else 'false') if i == 1 else ('(- %d)' % -t if t < 0 else str(t))
+                        for i, t in enumerate(st)]
+                calls.append('(invx %d %s)' % (x, ' '.join(vals)))
+        out.append(('CONCRETE: Inv holds along all runs for p = %d' % p,
+                    body + '(assert (= n %d)) (assert (= p %d))\n(assert (not (and %s)))\n(check-sat)\n'
+                    % (n, p, '\n'.join(calls))))
+    return out
+
+
 def z3_available():
     return shutil.which('z3') is not None
 
@@ -206,7 +251,7 @@ def z3_available():
 def run(timeout=60, dump=None, verbose=False, only=None, control_timeout=10):
     """run every query with the z3 binary. -> dict(ok, total, proved, failed=[(name, answer)], controls_ok).
     ok: every implication is unsat AND no negative control is unsat."""
-    qs = queries()
+    qs = queries() + concrete_queries((5, 7, 11, 13, 17, 19, 23, 29, 31, 61))
     nq = len(qs)
     qs += controls()
     if only:

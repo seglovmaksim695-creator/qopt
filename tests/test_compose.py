@@ -308,3 +308,31 @@ def test_lift_andcirc_dialect(tmp_path):
     for j, (x, y) in enumerate(xs):
         got = sum(((v[w] >> j) & 1) << i for i, w in enumerate(b + [co]))
         assert got == x + y
+
+
+def _z3():
+    from qoptct.verify.compose import lemmas_z3
+    if not lemmas_z3.z3_available():
+        pytest.skip('z3 binary not installed')
+    return lemmas_z3
+
+
+def test_lemmas_z3_quick():
+    """a part of the Z3 proof of M1..M6: the arithmetic lemmas, INIT, FINAL, the invariant on real runs."""
+    L = _z3()
+    for only in ('LEMMA', 'INIT', 'FINAL', 'CONCRETE: Inv holds along all runs for p = 13', 'M5: k = 2n-1'):
+        r = L.run(timeout=60, only=only)
+        assert r['ok'] and r['total'] >= 1, (only, r)
+    # the trace used by the concrete queries is Kaliski's algorithm: it ends with u = 1, v = 0, r = K
+    for p in (13, 31, 251):
+        n = p.bit_length()
+        for x in range(1, p):
+            k, wp, A, B, R, S, a, b, cR, cS = L.kaliski_trace(p, x)[-1]
+            assert (k, wp, A, B) == (2 * n, 1, 0, 1) and S % p == (-pow(x, -1, p) * pow(2, 2 * n, p)) % p
+
+
+@pytest.mark.slow
+def test_lemmas_z3_all():
+    """M1..M6 for every n, every odd prime p, every x: all implications unsat, no negative control unsat."""
+    r = _z3().run(timeout=120)
+    assert r['ok'] and r['total'] >= 290 and not r['bad_controls'], r
