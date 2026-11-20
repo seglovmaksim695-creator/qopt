@@ -46,7 +46,28 @@ integer multipliers; all steps are exact, nothing is sampled):
  4. Claims.  An identity lhs == rhs is proved by rewriting lhs - rhs with the adder identities, newest adder first
     (backward substitution), down to the zero polynomial.  An inequality is proved by the intervals of step 3.
 
+    A word W with a proved range W <= hi also gives vanishing monomials (bit patterns above hi are impossible);
+    they are removed, which makes polynomials in the bits of such a word canonical.
+ 5. Compute - copy - uncompute (Bennett).  If the circuit is F, M, F^-1 with F^-1 the exact gate-by-gate mirror of F
+    (AND <-> erasure) and M only CXs out of the wires of F into wires F does not touch, only F, M is analysed: each
+    mirrored gate meets the state of its original, so its precondition holds, its phase is trivial, and every wire
+    written by F returns to its initial value (mirror_split).
+
 Polynomials are multilinear over Z[1/2] in the atoms (x^2 = x).  All arithmetic is exact (Python integers).
+
+RESULTS (scripts/algebra_proofs.py, one process per proof, a 10-core 16 GB Mac, pure Python, single thread):
+    multiply(256, L), L = 0..3            PROVED   6 - 8 s    0.5 - 0.8 GB      (66 558 ... 37 826 AND)
+    square(256, L),   L = 0..3            PROVED   4 - 8 s    0.3 - 0.4 GB      (33 656 ... 22 145 AND)
+    legacy=True: multiply L = 0, 3 and square L = 0 PROVED; square(256, 3, legacy=True) UNKNOWN
+    fold reduction: Curve25519, secp256k1, P-256, P-384, P-521            PROVED   0.1 - 0.4 s
+    multiplier + reduction (compose_modmul): x*y mod p and x^2 mod p for Curve25519, secp256k1, P-256
+                                          PROVED   4 - 18 s   0.3 - 0.8 GB
+    For comparison the BDD engine of kprove proves multiply(8) in 5 s / 0.36 GB, multiply(10) in 71 s / 1 GB and
+    gives up on multiply(12) at its memory limit.
+    Soundness checks: 110+ broken n = 256 circuits (dropped / redirected gates, missing phase corrections, wrong
+    claims, an error on 2^-40 of the inputs): none PROVED; 22 000 single-gate mutants of small circuits compared with
+    an exhaustive check: no wrong circuit PROVED, no correct circuit REFUTED (tests/test_verify_algebra.py runs a
+    part of this).
 
 SELF-CHECKS (never the reason for PROVED, only for stopping): the AND gadget texts are verified on the 8-dimensional
 state space at each call; an independent bit-sliced simulation runs first on random and corner inputs (a violated
@@ -55,7 +76,10 @@ identity and every fact used by the proof is re-evaluated on random inputs (a mi
 
 LIMITS (honest).  * Not a general equivalence checker: the circuit must be built from carry chains (ripple adders of
 the qoptct.crypto generators: mulsq, fold/andcirc); other structures usually end in UNKNOWN.  * UNKNOWN is not a
-refutation.  * Garbage wires are only shown to be classical functions of the input; their values are not specified
+refutation, and some CORRECT circuits get it: Karatsuba with levels >= 2 on small or odd widths (e.g. multiply(7, 2),
+multiply(12, 3), square(9, 2), square(16, 3), square(255, 3)), where the generator shortens registers by range
+arguments on very narrow leaves, and square(256, 3, legacy=True).  * REFUTED comes only from the independent
+simulation (a concrete input); a wrong circuit whose error the simulation misses ends in UNKNOWN.  * Garbage wires are only shown to be classical functions of the input; their values are not specified
 unless a claim names them.  * The inequality engine is interval arithmetic: a true bound that needs a finer argument
 is not found (UNKNOWN).  * Free input wires are the declared input words only; all other wires are assumed |0>.
 * Explicit z / cz outside erasure corrections, H other than in the two patterns, ccx etc. are not accepted.
