@@ -1066,7 +1066,7 @@ class Engine:
                 b = self.signedlike(top.Y, cells[-2].Y if m > 1 else None)
                 J.cands = (a, b, E - (xt * a + yt * b) * (1 << m))
                 J.alt = [(a2, b2, E - (xt * a2 + yt * b2) * (1 << m)) for a2, b2 in ((0, 0), (1, 0), (0, 1), (1, 1))
-                         if (a2, b2) != (a, b) and (a2 == a or any(xt.d)) and (b2 == b or any(yt.d))]
+                         if (a2, b2) != (a, b) and (a2 == a or xt.d) and (b2 == b or yt.d)]
                 J.V = None
             for i, (w, S) in enumerate(J.bits):
                 if len(S) == 1:
@@ -1119,6 +1119,7 @@ class Engine:
                         iv2 = self.bound_runs(V2)
                         if fits(iv2):
                             ok, a, b, V, iv, st = True, a2, b2, V2, iv2, 0
+                            J.cands = (a2, b2, V2)      # the reading in use (ensure_facts refines THIS one)
                             break
                 if not ok:
                     st = 2
@@ -1158,8 +1159,10 @@ class Engine:
     def signedlike(self, S, below):
         """structural guess: the top operand bit S is a sign bit (a copy of the bit below it, or the top bit of a
         two's complement word).  Only selects which reading of the adder is tried; every reading is checked."""
-        if not S or S == ONE:
+        if not S:
             return 0
+        if S == ONE:
+            return 1 if below == ONE else 0      # constant mask bits of a subtraction (x xor 1...1, carry-in 1)
         if below is not None and S == below:
             return 1
         T = S - ONE
