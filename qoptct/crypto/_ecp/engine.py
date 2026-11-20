@@ -9,7 +9,10 @@ def W(w): return ('w', w)
 
 class Circ:
     def __init__(self):
-        self.ops = []; self.nw = 0; self.names = []; self.free = []; self.data = []
+        self.ops = []; self.nw = 0; self.names = []; self.free = []; self.data = []; self.marks = []
+    def mark(self, label, **info):
+        """untrusted segment hint for qoptct.verify.compose: (ops so far, label, info). Does not change the ops."""
+        self.marks.append((len(self.ops), label, info))
     def reg(self, name, n):
         ws = [self._new(f"{name}{i}") for i in range(n)]; self.data += ws; return ws
     def _new(self, nm):

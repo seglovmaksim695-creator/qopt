@@ -571,6 +571,10 @@ def _kaliski_forward(C, V, p, reduction, legacy=False):
         # w_{2n-1} = 1 for every x in [1, p): the last swap is a relabelling
         C.x(wprev); C.release(wprev); garbage.remove(wprev)
     A, B, Rr, Ss = B, A, Ss, Rr
+    if reduction == 'none':
+        # internal (qoptct.crypto.ecpoint): no final reduction, the raw 2n-bit register r_ext < 2^(2n) with
+        # r_ext = -x^{-1} 2^(2n) (mod p) is returned; the caller reduces it (e.g. with qoptct.crypto.fold)
+        return A, B, Rr, Ss, garbage
     if reduction == 'special':
         out, g2 = _red_special(C, Rr, p, 1 << (2 * n))
         return A, B, out, Ss, garbage + g2

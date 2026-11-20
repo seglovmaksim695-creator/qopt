@@ -67,6 +67,7 @@ from ._errors import CheckError
 from ._ecp import engine as _E
 from ._ecp import ec as _ec
 from ._ecp import padd as _padd
+from ._ecp import padd2 as _padd2
 from ._ecp import full as _full
 from ._ecp import win as _win
 from ._ecp import emit as _emit
@@ -215,8 +216,9 @@ class ECPointAddCircuit:
     w index wires, window only), window (bool).
     """
 
-    def __init__(s, p, a, b, n, Q, table, w, D, L, multiplier, reduction):
+    def __init__(s, p, a, b, n, Q, table, w, D, L, multiplier, reduction, legacy=True):
         s.p, s.a, s.b, s.n, s.Q, s.table, s.w, s.D = p, a, b, n, Q, table, w, D
+        s.legacy = bool(legacy)
         s.karatsuba_levels, s.multiplier, s.reduction = L, multiplier, reduction
         s.window = table is not None
         cv = dict(p=p, a=a, b=b)
@@ -227,7 +229,7 @@ class ECPointAddCircuit:
                 _win.point_add_window(C, X, Y, K, table, cv, D, L)
                 s.K = K
             else:
-                generic = _padd.make(p, L)
+                generic = _padd.make(p, L) if legacy else _padd2.make(p, L)
                 info = _full.point_add_full(C, X, Y, Q, cv, lambda v: v % p, generic, D=D)
                 s.D = info['D']; s.K = []
         s.circ, s.X, s.Y = C, X, Y
@@ -292,6 +294,20 @@ class ECPointAddCircuit:
         Q2 = ec_add(Q, Q, s.p, s.a)
         return [None, Q, ec_neg(Q, s.p), Q2, ec_neg(Q2, s.p), s.D, ec_neg(s.D, s.p)]
 
+    # -- certificate / text
+    def hints(s):
+        """untrusted certificate for qoptct.verify.compose.verify_ecadd (segment marks: positions, wire names)."""
+        return dict(p=s.p, a=s.a, b=s.b, n=s.n, Q=list(s.Q), D=list(s.D), nqubits=s.circ.nw, X=list(s.X),
+                    Y=list(s.Y), karatsuba_levels=s.karatsuba_levels, legacy=s.legacy,
+                    marks=[[pos, label, info] for pos, label, info in s.circ.marks])
+
+    def write_qasm(s, path):
+        """the text of qasm(), streamed to `path` (n = 256: about 1 GB; never held in memory)."""
+        from . import kaliski as _kal
+        if s.circ.counts()['CCX']:
+            raise ValueError('ccx operations are not written by the streamed writer')
+        _kal._write_qasm(s.circ.ops, s.circ.nw, path)
+
     # -- text / phase
     def qasm(s):
         """OpenQASM 3 text of the circuit (AND gadget of Gidney 2018 fig. 3, X-basis measurement erase)."""
@@ -310,7 +326,7 @@ class ECPointAddCircuit:
         return _emit.sparse_check(txt, pos, fun, list(points), K=K, trials=trials, seed=seed)
 
 
-def ec_point_add(p, a, b, Q, n=None, karatsuba_levels=3, reduction='fold', multiplier='sd', D=None):
+def ec_point_add(p, a, b, Q, n=None, karatsuba_levels=3, reduction='fold', multiplier='sd', D=None, legacy=False):
     """Build the exact mixed addition P -> P + Q (Q classical, Q != O of order > 4) on y^2 = x^3 + a x + b over F_p.
 
     p odd prime (n = bit length), the curve of odd group order (no point with y = 0). karatsuba_levels L (0..6; the
@@ -319,6 +335,9 @@ def ec_point_add(p, a, b, Q, n=None, karatsuba_levels=3, reduction='fold', multi
     inverted additions, default) or 'school' (partial products). D: the safe replacement point (default 3Q).
     Returns an ECPointAddCircuit."""
     n = _check_args(p, a, b, n, karatsuba_levels, multiplier, reduction)
+    if not legacy and (multiplier != 'sd' or reduction != 'fold'):
+        raise ValueError("multiplier='school' and reduction='solinas' exist only in the legacy construction "
+                         "(pass legacy=True)")
     _check_point(Q, p, a, b, 'Q')
     if Q is None or Q[1] == 0:
         raise ValueError('Q must be a point other than O')
@@ -339,7 +358,7 @@ def ec_point_add(p, a, b, Q, n=None, karatsuba_levels=3, reduction='fold', multi
                     break
             else:
                 raise ValueError('no safe point D found; pass D explicitly')
-    return ECPointAddCircuit(p, a, b, n, Q, None, 0, D, karatsuba_levels, multiplier, reduction)
+    return ECPointAddCircuit(p, a, b, n, Q, None, 0, D, karatsuba_levels, multiplier, reduction, legacy=legacy)
 
 
 def ec_point_add_window(p, a, b, table, w, n=None, karatsuba_levels=3, reduction='fold', multiplier='sd', D=None,
