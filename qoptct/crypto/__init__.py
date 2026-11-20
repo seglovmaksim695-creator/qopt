@@ -18,7 +18,8 @@ Modules:
     gf2m     gf2m_multiply / gf2m_square / gf2m_inverse / gf2m_divide -- GF(2^m) arithmetic (binary fields of the
              NIST/SEC curves): CRT bilinear multiplier, in-place squaring, Itoh-Tsujii inversion and division
     ecpoint  ec_point_add / ec_point_add_window -- exact complete addition of a classical point to a quantum point on a
-             prime-field curve (core in the private subpackage _ecp); approximate schemes are cheaper
+             prime-field curve (core in the private subpackage _ecp; the default construction is proved at n = 256 by
+             qoptct.verify.compose.verify_ecadd); approximate schemes are cheaper
     residue  fold_accumulator(q, clen, nbits) -- accumulator compression modulo q (loop 2 of Gidney 2025),
              accumulator_bits
     modadd   mod_add / mod_sub / mod_double / compare_geq ... -- modular adders (4n - 2 ANDs)

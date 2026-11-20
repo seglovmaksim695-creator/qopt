@@ -41,8 +41,17 @@
 * Subcommands `qoptct compose` and `qoptct dyn`; `PROOF.md` is shipped in the package.
 * **`qoptct.crypto.ecpoint`** (`ec_point_add`, `ec_point_add_window`; core in `qoptct/crypto/_ecp/`): exact complete addition
   of a classical point to a quantum point on a prime-field curve (also P = O, P = Q, P = -Q, P = -2Q), windowed form.
-  P-256 / secp256k1 at n = 256: 3 041 421 / 3 033 954 ANDs. An exact scheme, not the cheapest known one: the approximate schemes of
-  2026 are cheaper. Checked on small curves exhaustively and on edge points at n = 256; no machine proof of the whole circuit.
+  P-256 / secp256k1 at n = 256: 3 031 380 / 3 023 913 ANDs in the default construction on the library blocks (Kaliski core
+  12n^2 - 8n - 3, `mulsq`, `fold`; segment marks, `hints()`, `write_qasm()`); `legacy=True`: the lab construction,
+  3 041 421 / 3 033 954 ANDs. An exact scheme, not the cheapest known one: the approximate schemes of 2026 are cheaper.
+  Checked on small curves exhaustively and on edge points at n = 256.
+* **`qoptct.verify.compose.ecadd`** (`verify_ecadd`, `wec_test`; `qoptct compose ecgen | ecverify | ecwec`; `compose.ecmath`):
+  compositional proof of the point addition with a classical Q at n = 256 (secp256k1, P-256: PROVED, about 2 minutes and
+  1.7 GB each): ROBDD segments, algebra sub-goals (products, fold reductions), mirror segments (uncompute halves),
+  the Kaliski sub-walk; the word-level layer (chord formula, exceptional cases, safe point) by a written elementary
+  argument with machine-checked polynomial identities and enumeration over all curves with p <= 31 (`PROOF.md`, part
+  II). Canaries: no wrong circuit proved (thousands of small mutants against exhaustive truth; full-size mutants).
+  Not proved: the windowed form, `legacy=True`.
 * **`qoptct.crypto.residue`** (accumulator compression modulo q, 106 / 138 / 148 ANDs against 682 by the formula of the
   paper; against the paper's exact circuit count 352-418 the gain is smaller; junction with the next step not checked on
   a whole circuit), **`qoptct.crypto.modadd`** (modular adders, 4n-2 ANDs), `lookup` option `fanout='gray'`

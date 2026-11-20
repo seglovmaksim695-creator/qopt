@@ -415,10 +415,17 @@ All counts are logical ANDs (= Toffoli) in the same model as above.
 
 * `ecpoint.ec_point_add(p, a, b, Q)`, `ec_point_add_window(...)`: **exact** complete addition of a classical point Q to a
   quantum point P on a prime-field curve (also for P = O, P = Q, P = -Q, P = -2Q); the windowed form takes Q from a table.
-  P-256 / secp256k1, n = 256: 3 041 421 / 3 033 954 ANDs (6 742 / 6 934 qubits). This is an exact scheme, not the cheapest known one:
-  the approximate schemes of 2026 (arXiv:2609.05625, arXiv:2606.02235) are cheaper and use fewer qubits (they have a
-  non-zero failure probability). Checked exhaustively on small curves, on edge points at n = 256, phases by sparse
-  simulation; no machine proof of the whole circuit.
+  P-256 / secp256k1, n = 256: 3 031 380 / 3 023 913 ANDs (6 724 / 6 916 qubits) in the default construction on the library
+  blocks (Kaliski core, `mulsq`, `fold`); `legacy=True` keeps the lab construction (3 041 421 / 3 033 954 ANDs,
+  6 742 / 6 934 qubits). This is an exact scheme, not the cheapest known one: the approximate schemes of 2026
+  (arXiv:2609.05625, arXiv:2606.02235) are cheaper and use fewer qubits (they have a non-zero failure probability).
+  Checked exhaustively on small curves, on edge points at n = 256, phases by sparse simulation. The default
+  construction with a classical Q is **proved at n = 256** for both curves by `qoptct compose ecverify` (about 2 minutes
+  and 1.7 GB per curve): every segment of the OpenQASM text by machine (ROBDD segments, algebra sub-goals for the
+  products and reductions, syntactic mirror segments for the uncompute halves), the Kaliski lemmas by Z3, and a written
+  elementary argument (`PROOF.md`, part II: curve algebra, enumerated on all curves with p <= 31) for the word-level
+  program; for every point of the curve and O, assuming p prime, odd group order, order of Q above 4. The windowed
+  form and `legacy=True` are not proved.
 * `residue.fold_accumulator(q, clen, nbits)`: compression of the accumulator modulo q (loop 2 of Gidney 2025):
   106 / 138 / 148 ANDs for q = 1 574 500 against 682 by the formula of the paper. Against the exact count of the
   paper's circuit (352-418) the gain is smaller; the junction with the next step (loop 3) was argued in words and not
