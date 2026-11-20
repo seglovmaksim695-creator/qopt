@@ -143,6 +143,7 @@ def point_add_window(C, X, Y, Kw, Tk, cv, D, L=1, generic=None):
     g, und = eq_reg_chain(C, X, R['x2q'], guard=fO)
     fm2Q = parity_lit(C, g, Y[0], R['ym2q'][0])
     und()
+    C.mark('w_flags', fO=fO, fQ=fQ, fmQ=fmQ, fm2Q=fm2Q)
     # --- подстановка D: P ^= f·(E ⊕ D)
     Dx, Dy = D
     xor_const(C, fO, X, Dx); xor_const(C, fO, Y, Dy)                     # E_O = (0,0)
@@ -151,7 +152,7 @@ def point_add_window(C, X, Y, Kw, Tk, cv, D, L=1, generic=None):
     and_xor(C, fQ, R['yq'], Y); and_xor(C, fmQ, R['ymq'], Y); xor_const(C, gq, Y, Dy)
     and_xor(C, fm2Q, R['x2q'], X); and_xor(C, fm2Q, R['ym2q'], Y)
     xor_const(C, fm2Q, X, Dx); xor_const(C, fm2Q, Y, Dy)
-    C.mark('w_pre', fO=fO, fQ=fQ, fmQ=fmQ, fm2Q=fm2Q, gq=gq)
+    C.mark('w_pre', gq=gq)
     # --- общее сложение: D -> D + Q_k
     if generic is None: generic_q(C, X, Y, R, p, L)
     else: generic(C, X, Y, R, p, L)
@@ -165,6 +166,7 @@ def point_add_window(C, X, Y, Kw, Tk, cv, D, L=1, generic=None):
     and_xor(C, fQ, R['x2q'], X); and_xor(C, fQ, R['y2q'], Y)
     C.cx(fO, h); C.cx(fm2Q, h); C.release(h)
     C.cx(fQ, gq); C.cx(fmQ, gq); C.release(gq)
+    C.mark('w_fix')
     # --- снятие флагов по результату (fmQ = [R==O] — охрана)
     g, und = eq_reg_chain(C, X, R['xq'], guard=fmQ)                      # R ∈ {Q, −Q}
     C.cx(g, fm2Q); C.cx(fO, fm2Q); C.release(fm2Q)

@@ -370,6 +370,7 @@ class Walker:
                 return raw(w) if e is None else e
             phi = ONE
             used = set()
+            prs = {}
             for w, expr, name, key, pred in subst:
                 if key is not None and key not in self.facts:
                     raise ProofFailure('segment %s (k=%s): fact %s was not established' % (label, k, key[0]),
@@ -380,9 +381,12 @@ class Walker:
                 if name is not None and pr != ONE and name not in used:
                     used.add(name)
                     self.assumed[name] = self.assumed.get(name, 0) + 1
+                prs[w] = pr
                 phi = AND(phi, pr)
             for w, e in sub.items():
-                if AND(phi, XOR(e, raw(w))) != ZERO:
+                # phi implies prs[w]: the cheap test with the wire's own precondition suffices when it succeeds
+                d = XOR(e, raw(w))
+                if AND(prs[w], d) != ZERO and AND(phi, d) != ZERO:
                     raise ProofFailure('internal: substitution of %r is not a parametrisation' % label)
 
         def fail(msg, f=None, **kw):

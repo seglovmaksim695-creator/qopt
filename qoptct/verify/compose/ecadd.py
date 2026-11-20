@@ -37,6 +37,7 @@ import threading
 from array import array
 
 from . import bv
+from .bv import BddAlg
 from .kal import Chain
 from .lift import Lifted, K_X, K_CX, K_AND, K_ERASE
 from .walker import Walker, ProofFailure, register_fact, inter as _inter
@@ -169,13 +170,73 @@ def _tab(al, val, key):
     return r
 
 
+def _krestrict(al, kb):
+    """ROBDD algebra only: restr(j, bits) = the functions `bits` with the index k fixed to j (Shannon cofactors).
+    Used as  [k = j] and P(x)  ==  [k = j] and P(x | k = j): the per-k predicates are then evaluated on functions
+    without k (16 times smaller). Requires the index bits to be the top variables of the order (checked).
+    Bit-sliced algebra: None (concrete values need no restriction)."""
+    if not isinstance(al, BddAlg):
+        return None
+    B = al.B
+    vs = []
+    for i, e in enumerate(kb):
+        if e == al.T or e == al.F:
+            continue
+        v = B.var[e >> 1]
+        if B.cof(e, v) != (al.T, al.F):
+            raise ProofFailure('internal: an index bit is not a variable')
+        vs.append((v, i))
+    vs.sort(reverse=True)
+    if [v for v, _ in vs] != list(range(B.nvars - 1, B.nvars - 1 - len(vs), -1)):
+        raise ProofFailure('internal: the index bits are not the top ROBDD variables')
+    cof = B.cof
+
+    def restr(j, bits):
+        out = []
+        for f in bits:
+            for v, i in vs:
+                f1, f0 = cof(f, v)
+                f = f1 if (j >> i) & 1 else f0
+            out.append(f)
+        return out
+    return restr
+
+
+def _fcode(al, val, key, iff):
+    """flags against k-dependent points: for every flag j,  f_j -> (x, y) = codes[j][k]   (iff: <->)."""
+    f = [val(w) for w in key[1]]
+    x = [val(w) for w in key[2]]
+    y = [val(w) for w in key[3]]
+    kb = [val(w) for w in key[4]]
+    eqk = [_eqc(al, kb, j) for j in range(1 << len(kb))]
+    restr = _krestrict(al, kb)
+    xy = {}
+    r = al.T
+    for j, row in enumerate(key[5]):
+        hit = al.F
+        for k, (cx_, cy_) in enumerate(row):
+            if eqk[k] == al.F:
+                continue
+            if k not in xy:
+                xy[k] = (restr(k, x), restr(k, y)) if restr else (x, y)
+            xr, yr = xy[k]
+            hit = al.or_(hit, al.and_(eqk[k], al.and_(_eqc(al, xr, cx_), _eqc(al, yr, cy_))))
+        r = al.and_(r, al.not_(al.xor(f[j], hit)) if iff else al.or_(al.not_(f[j]), hit))
+    return r
+
+
 def _ecdomw(al, val, key):
     x = [val(w) for w in key[1]]
     y = [val(w) for w in key[2]]
     kb = [val(w) for w in key[3]]
+    restr = _krestrict(al, kb)
     r = al.T
     for j, consts in enumerate(key[5]):
-        r = al.and_(r, al.or_(al.not_(_eqc(al, kb, j)), _ecdom_bit(al, x, y, key[4], consts)))
+        ej = _eqc(al, kb, j)
+        if ej == al.F:
+            continue
+        xr, yr = (restr(j, x), restr(j, y)) if restr else (x, y)
+        r = al.and_(r, al.or_(al.not_(ej), _ecdom_bit(al, xr, yr, key[4], consts)))
     return r
 
 
@@ -186,6 +247,9 @@ register_fact('ecdom', lambda key: key[1] + key[2], _ecdom)
 register_fact('onehot0', lambda key: key[1], _onehot0)
 register_fact('tab', lambda key: key[1] + key[2], _tab)
 register_fact('ecdomw', lambda key: key[1] + key[2] + key[3], _ecdomw)
+# ('fimp' / 'fiff', flags, X, Y, K, codes): flag j implies / is equivalent to (x, y) = codes[j][k]
+register_fact('fimp', lambda key: key[1] + key[2] + key[3] + key[4], lambda al, val, key: _fcode(al, val, key, False))
+register_fact('fiff', lambda key: key[1] + key[2] + key[3] + key[4], lambda al, val, key: _fcode(al, val, key, True))
 register_fact('xor3', lambda key: key[1],
               lambda al, val, key: al.not_(al.xor(val(key[1][0]), al.xor(val(key[1][1]), val(key[1][2])))))
 
@@ -872,59 +936,76 @@ class ECWinChain(ECChain):
         def mux(al, val):
             return _muxbits(al, tuple(val(k) for k in K), consts, NR)[0]
 
-        def spec(al, val):
-            m = mux(al, val)
-            return {Rall[i]: m[i] for i in range(NR)}, [], [], [tab], []
-        self.seg('lk', None, pos, K + Rall, spec)
-        # the looked-up registers as functions of k (parametrised precondition: fact tab)
-        sb = [(Rall[i], (lambda al, val, i=i: mux(al, val)[i]), None, tab,
-               (lambda al, val, i=i: al.not_(al.xor(val(Rall[i]), mux(al, val)[i])))) for i in range(NR)]
         ltR = [('lt', tuple(R[f]), p) for f in WFIELDS]
 
         def spec(al, val):
-            return {}, [], [tab], [tab] + ltR, []
-        self.seg('tab', None, self._here(), K + Rall, spec, sb)
+            m = mux(al, val)
+            return {Rall[i]: m[i] for i in range(NR)}, [], [], [tab] + ltR, []
+        self.seg('lk', None, pos, Rall + K, spec)
+        # the looked-up registers as functions of k (parametrised precondition: fact tab). ROBDD order of the
+        # wrapper segments: Rall (bottom), X / Y interleaved, flags, K (top); the list follows the wire order, so
+        # every new precondition sits above the conjunction of the earlier ones
+        idx = {x: i for i, x in enumerate(Rall)}
 
-        def kpred(al, val, x, y, what):
-            """OR over k of [k == j] and (x, y) == code(what(tabs[j]))."""
-            eqk = _muxbits(al, tuple(val(k) for k in K), consts, NR)[1]
-            r = al.F
-            for j in range(NK):
-                cx_, cy_ = code(what(tabs[j]))
-                r = al.or_(r, al.and_(eqk[j], al.and_(_eqc(al, x, cx_), _eqc(al, y, cy_))))
-            return r
+        def sbf(fields):
+            ws = [x for f in fields for x in R[f]]
+            return [(x, (lambda al, val, i=idx[x]: mux(al, val)[i]), None, tab,
+                     (lambda al, val, x=x, i=idx[x]: al.not_(al.xor(val(x), mux(al, val)[i]))))
+                    for x in sorted(ws, key=lambda x: idx[x])]
 
-        def kbits(al, val, what, i):
-            """(bit i of x, bit i of y) of code(what(tabs[k]))."""
-            eqk = _muxbits(al, tuple(val(k) for k in K), consts, NR)[1]
-            bx = by = al.F
-            for j in range(NK):
-                cx_, cy_ = code(what(tabs[j]))
-                if (cx_ >> i) & 1:
-                    bx = al.or_(bx, eqk[j])
-                if (cy_ >> i) & 1:
-                    by = al.or_(by, eqk[j])
-            return bx, by
-        # ---- wrapper, part 1
-        pos, info = self.mark('w_pre')
+        def reg(al, val, f):
+            """the n bits of the looked-up field f as functions of k."""
+            m = mux(al, val)
+            o = n * WFIELDS.index(f)
+            return m[o:o + n]
+        codes = lambda what: tuple(tuple(code(what(t, j)) for t in tabs) for j in range(4))
+        # ---- wrapper, part 1a: the flags f_j = [P == E_j(k)]
+        pos, info = self.mark('w_flags')
         F = [self.fresh(info.get(k)) for k in ('fO', 'fQ', 'fmQ', 'fm2Q')]
-        gq = self.fresh(info.get('gq'))
-        oh, gqf = ('onehot0', tuple(F)), ('xor3', (gq, F[1], F[2]))
+        oh = ('onehot0', tuple(F))
+        fimp = ('fimp', tuple(F), tuple(X), tuple(Y), tuple(K), codes(lambda t, j: t['E'][j]))
 
         def spec(al, val):
             x = [val(v) for v in X]
             y = [val(v) for v in Y]
-            ind = [kpred(al, val, x, y, (lambda t, j=j: t['E'][j])) for j in range(4)]
-            anyf = al.F
-            for f in ind:
-                anyf = al.or_(anyf, f)
-            posts = {F[j]: ind[j] for j in range(4)}
-            posts[gq] = al.xor(ind[1], ind[2])
+            eqk = _muxbits(al, tuple(val(k) for k in K), consts, NR)[1]
+            posts = {}
+            for j in range(4):
+                hit = al.F
+                for k in range(NK):
+                    cx_, cy_ = code(tabs[k]['E'][j])
+                    hit = al.or_(hit, al.and_(eqk[k], al.and_(_eqc(al, x, cx_), _eqc(al, y, cy_))))
+                posts[F[j]] = hit
+            return posts, [], [dom], [oh, fimp, ltX, ltY], []
+        self.seg('w_flags', None, pos, Rall + _inter(X, Y) + F + K, spec, sbf(('xq', 'yq', 'x2q', 'ym2q')))
+        # ---- wrapper, part 1b: substitution of the safe point D (literal contract; flags are free variables that
+        #      satisfy fimp and onehot0)
+        pos, info = self.mark('w_pre')
+        gq = self.fresh(info.get('gq'))
+        gqf = ('xor3', (gq, F[1], F[2]))
+
+        def spec(al, val):
+            x = [val(v) for v in X]
+            y = [val(v) for v in Y]
+            fO, fQ, fmQ, fm2Q = (val(v) for v in F)
+            g = al.xor(fQ, fmQ)
+            xq, yq, ymq, x2q, ym2q = (reg(al, val, f) for f in ('xq', 'yq', 'ymq', 'x2q', 'ym2q'))
+            A, XR = al.and_, al.xor
+            posts = {gq: XR(val(gq), g)}
             for i in range(n):
-                posts[X[i]] = al.ite(anyf, bit(al, D[0], i), x[i])
-                posts[Y[i]] = al.ite(anyf, bit(al, D[1], i), y[i])
-            return posts, [], [dom, tab], [ltX, ltY, oh, gqf], []
-        self.seg('w_pre', None, pos, K + Rall + _inter(X, Y) + F + [gq], spec, sb)
+                dx_, dy_ = bit(al, D[0], i), bit(al, D[1], i)
+                vx = XR(x[i], A(fO, dx_))
+                vx = XR(vx, A(g, XR(xq[i], dx_)))
+                vx = XR(vx, A(fm2Q, XR(x2q[i], dx_)))
+                vy = XR(y[i], A(fO, dy_))
+                vy = XR(vy, XR(A(fQ, yq[i]), A(fmQ, ymq[i])))
+                vy = XR(vy, A(g, dy_))
+                vy = XR(vy, A(fm2Q, XR(ym2q[i], dy_)))
+                posts[X[i]] = vx
+                posts[Y[i]] = vy
+            return posts, [], [ltX, ltY, oh, fimp], [ltX, ltY, oh, gqf], []
+        self.seg('w_pre', None, pos, Rall + _inter(X, Y) + F + [gq] + K, spec,
+                 sbf(('xq', 'yq', 'ymq', 'x2q', 'ym2q')))
         # ---- the generic addition with the looked-up Q
         self._msub(R['xq'], X)
         self._msub(R['yq'], Y)
@@ -942,48 +1023,65 @@ class ECWinChain(ECChain):
         self._madd(R['xq'], X, 'madd')
         self._madd(R['ymq'], Y, 'madd')
         self.disown(Lr)
-        # ---- wrapper, part 2
-        pos, _ = self.mark('w_post')
+        # ---- wrapper, part 2a: images of the flagged inputs (literal contract); G3, G4
+        pos, _ = self.mark('w_fix')
         cpk = dom[5]
+        fiff = ('fiff', tuple(F), tuple(X), tuple(Y), tuple(K), codes(lambda t, j: t['img'][j]))
 
         def spec(al, val):
             x = [val(v) for v in X]
             y = [val(v) for v in Y]
             f = [val(v) for v in F]
+            fO, fQ, fmQ, fm2Q = f
             eqk = _muxbits(al, tuple(val(k) for k in K), consts, NR)[1]
+            A, XR = al.and_, al.xor
             anyf = al.F
             for t in f:
                 anyf = al.or_(anyf, t)
-            a1 = al.or_(al.not_(anyf), kpred(al, val, x, y, lambda t: t['DQ']))
+            hitD = al.F
             good = al.T
             eqO = al.and_(_eqc(al, x, 0), _eqc(al, y, 0))
-            for j in range(NK):
-                t = tabs[j]
+            for k in range(NK):
+                t = tabs[k]
+                hitD = al.or_(hitD, al.and_(eqk[k], al.and_(_eqc(al, x, t['DQ'][0]), _eqc(al, y, t['DQ'][1]))))
                 bad = eqO
                 for P in (t['Q'], t['mQ'], t['Q2']):
                     bad = al.or_(bad, al.and_(_eqc(al, x, P[0]), _eqc(al, y, P[1])))
-                ok = al.and_(_ecdom_bit(al, x, y, p, cpk[j]), al.not_(bad))
-                good = al.and_(good, al.or_(al.not_(eqk[j]), ok))
+                ok = al.and_(_ecdom_bit(al, x, y, p, cpk[k]), al.not_(bad))
+                good = al.and_(good, al.or_(al.not_(eqk[k]), ok))
+            a1 = al.or_(al.not_(anyf), hitD)
             a2 = al.or_(anyf, good)
-            posts = {v: al.F for v in F}
-            posts[gq] = al.F
+            xdq, ydq, xq, yq, ymq, x2q, y2q = (reg(al, val, g) for g in ('xdq', 'ydq', 'xq', 'yq', 'ymq', 'x2q', 'y2q'))
+            fa = XR(val(gq), XR(fO, fm2Q))                   # the circuit's "any flag": gq xor fO xor fm2Q
+            h = XR(fO, fm2Q)
+            posts = {gq: al.F}
             for i in range(n):
-                vx, vy = x[i], y[i]
-                for j in range(4):
-                    bx, by = kbits(al, val, (lambda t, j=j: t['img'][j]), i)
-                    vx = al.ite(f[j], bx, vx)
-                    vy = al.ite(f[j], by, vy)
+                vx = XR(x[i], A(fa, xdq[i]))
+                vx = XR(vx, A(h, xq[i]))
+                vx = XR(vx, A(fQ, x2q[i]))
+                vy = XR(y[i], A(fa, ydq[i]))
+                vy = XR(vy, XR(A(fO, yq[i]), A(fm2Q, ymq[i])))
+                vy = XR(vy, A(fQ, y2q[i]))
                 posts[X[i]] = vx
                 posts[Y[i]] = vy
-            return posts, [('G3-flagged-result', a1), ('G4-generic-result', a2)], [oh, gqf, tab], [ltX, ltY, tab], []
-        self.seg('w_post', None, pos, K + Rall + F + [gq] + _inter(X, Y), spec, sb)
-        self.disown(F + [gq])
+            return (posts, [('G3-flagged-result', a1), ('G4-generic-result', a2)], [oh, gqf],
+                    [ltX, ltY, dom, fiff], [])
+        self.seg('w_fix', None, pos, Rall + _inter(X, Y) + F + [gq] + K, spec,
+                 sbf(('xq', 'yq', 'ymq', 'x2q', 'y2q', 'xdq', 'ydq')))
+        self.disown([gq])
+        # ---- wrapper, part 2b: the flags are erased from the result (f_j <-> R == img_j(k), fact fiff)
+        pos, _ = self.mark('w_post')
+
+        def spec(al, val):
+            return {v: al.F for v in F}, [], [dom, fiff], [ltX, ltY], []
+        self.seg('w_post', None, pos, Rall + _inter(X, Y) + F + K, spec, sbf(('xq', 'yq', 'x2q', 'y2q')))
+        self.disown(F)
         # ---- unlookup
         pos, _ = self.mark('unlk')
 
         def spec(al, val):
-            return {Rall[i]: al.F for i in range(NR)}, [], [tab], [], []
-        self.seg('unlk', None, pos, K + Rall, spec, sb)
+            return {Rall[i]: al.F for i in range(NR)}, [], [], [], []
+        self.seg('unlk', None, pos, Rall + K, spec, sbf(WFIELDS))
         self.disown(Rall)
         self.finish(())
         if self.prove:
