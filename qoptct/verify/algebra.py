@@ -438,7 +438,7 @@ class Cell:
 
 class Adder:
     __slots__ = ('cells', 'order', 'E', 'bits', 'pos', 'V', 'rng', 'signed', 'stage', 'virt', 'lhs_cache', 'kindtxt',
-                 'cands', 'deep', 'alt', 'vanish')
+                 'cands', 'deep', 'alt', 'vanish', 'busy')
 
     def __init__(self, cells):
         self.cells = cells
@@ -448,6 +448,7 @@ class Adder:
         self.virt = None
         self.lhs_cache = None
         self.deep = False
+        self.busy = False
         self.vanish = ()
 
 
@@ -998,6 +999,19 @@ class Engine:
         """exact word identity of the adder J: sum of weight * bit = V, plus the interval of V."""
         if J.stage >= 0:
             return
+        if J.busy:
+            raise Unknown('cyclic dependency between carry chains')
+        J.busy = True
+        try:
+            self._classify(J)
+            J.stage = 0
+        finally:
+            J.busy = False
+        self.cls[J.kindtxt] = self.cls.get(J.kindtxt, 0) + 1
+        self.check_identity(J)
+        self.derive_facts(J)
+
+    def _classify(self, J):
         first = True
         if first:
             cells = J.cells
@@ -1032,7 +1046,6 @@ class Engine:
                     J.pos.setdefault(a, i)
                     if self.kind[a] in (KA, KK):
                         self.aad[a] = J
-            J.stage = 0
         if J.V is None:
             m = len(J.cells)
             a, b, V = J.cands
@@ -1113,9 +1126,6 @@ class Engine:
                 J.kindtxt = 'virtual%d%d' % (a, b)
                 J.rng = (0, (1 << m) - 1)
                 self.stats['virt'] += 1
-        self.cls[J.kindtxt] = self.cls.get(J.kindtxt, 0) + 1
-        self.check_identity(J)
-        self.derive_facts(J)
 
     def signedlike(self, S, below):
         """structural guess: the top operand bit S is a sign bit (a copy of the bit below it, or the top bit of a
@@ -1129,6 +1139,8 @@ class Engine:
             (a,) = T
             J = self.var_adder(a)
             if J is not None:
+                if J.busy:
+                    return 0
                 self.classify(J)
                 if J.signed and J.bits[-1][1] == self.fs(a):
                     return 1
@@ -2130,6 +2142,8 @@ def prove_ops(N, ops, spec, budget_sec=600.0, lanes=48):
                        eng.stats['ands'], eng.stats['erases'], eng.stats['adders'], '; '.join(proved)))
     except Unknown as ex:
         res.update(status='UNKNOWN', detail=str(ex))
+    except RecursionError:
+        res.update(status='UNKNOWN', detail='recursion limit (use aprove(), which runs with a deep stack)')
     except Refuted as ex:
         res.update(status='REFUTED', detail=str(ex))
     except Internal as ex:
