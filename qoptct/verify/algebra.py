@@ -491,6 +491,7 @@ class Engine:
         self.phantom = set()
         self.in_zero = False
         self.atom_wire = {}
+        self.refining = False
         self.vint = {}             # virtual carry symbol -> its integer value on every simulation lane
         self.vrange = {}
         self.stats = dict(ands=0, erases=0, cells=0, adders=0, facts=0, stageB=0, stageC=0, splits=0, sem_zero=0,
@@ -652,7 +653,8 @@ class Engine:
                             self.in_zero = False
                         if self.facts and not S.isdisjoint(self.facts):
                             return self.read(w)
-            if (x == 0 or x == self.mask) and S != ONE and not self.in_zero:
+            if (x == 0 or x == self.mask) and S != ONE and not self.in_zero and \
+                    not any(kind[a] == KA or kind[a] == KK for a in S):     # (not a transient X xor carry)
                 # 0 (or 1) on every simulated input: try to prove it, so that a reused wire is a clean |0>
                 self.in_zero = True
                 try:
@@ -1267,13 +1269,39 @@ class Engine:
                 ch |= self.add_fact(bits[j][1], bits[k - 1][1])
         return ch
 
-    def ensure_facts(self, J, deep=False):
+    def ensure_facts(self, J, deep=False, stage=2):
         self.classify(J)
         ch = False
         if deep and not J.deep:
             J.deep = True
             if J.virt is None:
-                r = _meet(J.rng, self.bound(J.V, 2))
+                r = J.rng
+                m = len(J.cells)
+                if J.cands is None:
+                    r = _meet(r, self.bound(J.V, stage))
+                else:
+                    # W = J.V exactly; V0 = W (mod 2^m).  Every rewriting of V0, and every such rewriting without
+                    # its multiples of 2^m that lies in the range of the representation, bounds W.
+                    V0 = J.cands[2]
+                    exact = not J.kindtxt.endswith('/3')
+                    lo_r, hi_r = (-(1 << (m - 1)), (1 << (m - 1)) - 1) if J.signed else (0, (1 << m) - 1)
+                    box = [r]
+
+                    def hook(Q):
+                        if exact:
+                            box[0] = _meet(box[0], self.bound_runs(Q))
+                        Qd = self.drop_mod(Q, m)
+                        if Qd is not None:
+                            iv3 = self.bound_runs(Qd)
+                            if iv3[0] >= lo_r and iv3[1] <= hi_r:
+                                box[0] = _meet(box[0], iv3)
+                        return False
+                    hook(self.reduce(V0, hook=hook))
+                    r = box[0]
+                    if stage >= 2 and exact:
+                        r = _meet(r, self.bound(J.V, 2))
+                if r[0] > r[1]:
+                    raise Internal('empty range of an adder word')
                 if r != J.rng:
                     J.rng = r
         ch |= self.derive_facts(J)
@@ -1501,16 +1529,26 @@ class Engine:
             if set(order[:k]) != R:
                 return None
             # reference pair: the two highest bits; pairs that deviate from A * 2 w_a w_b stay as they are
-            key0 = (order[0], order[1]) if (order[0], order[1]) in quad else (order[1], order[0])
-            c0 = quad.get(key0)
+            Rl = order[:k]
+            van2 = set(v for v in J.vanish if len(v) == 2)
+            c0 = None
+            for ia in range(k):
+                for ib in range(ia + 1, k):
+                    c0 = quad.get((Rl[ia], Rl[ib])) or quad.get((Rl[ib], Rl[ia]))
+                    if c0 is not None:
+                        den0 = 2 * lhs[Rl[ia]] * lhs[Rl[ib]]
+                        break
+                if c0 is not None:
+                    break
             if c0 is None:
                 return None
-            den0 = 2 * lhs[key0[0]] * lhs[key0[1]]
             good = 0
-            Rl = order[:k]
             for ia in range(k):
                 for ib in range(ia + 1, k):
                     a, b = Rl[ia], Rl[ib]
+                    if van2 and frozenset((a, b)) in van2:
+                        good += 1
+                        continue
                     q = quad.get((a, b)) or quad.get((b, a)) or {}
                     w = 2 * lhs[a] * lhs[b]
                     if len(q) == len(c0) and all(c0.get(r) is not None and c * den0 == c0[r] * w for r, c in q.items()):
@@ -1631,6 +1669,31 @@ class Engine:
             if not lhs:
                 continue
             pat = self.top_pattern(Q, monos, lhs, J)
+            if pat is None and not J.deep and J.virt is None and not assume and not self.refining:
+                # the top bits of the word are missing in the polynomial: maybe they are constants by a sharper range
+                core = [a for a in lhs]
+                top = max(core, key=J.pos.__getitem__)
+                pres = set(v for m in monos for v in m if v in lhs)
+                if len(pres) >= 2 and top not in pres:
+                    self.refining = True
+                    try:
+                        self.ensure_facts(J, True, 1)
+                    finally:
+                        self.refining = False
+                    if self.fver != fv:
+                        fv = self.fver
+                        Q2 = self.pfacts(Q)
+                        if Q2 is not Q:
+                            Q = Q2
+                            for sset in by.values():
+                                sset.clear()
+                            for m in Q.d:
+                                reg(m)
+                        D = Q.d
+                        monos = [m for m in by[J] if m in D]
+                        lhs, rhs = self.adder_lhs(J)
+                        if monos and lhs:
+                            pat = self.top_pattern(Q, monos, lhs, J)
             if pat is None:
                 continue
             R, A, B, kill, flip, extra = pat
