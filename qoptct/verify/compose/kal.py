@@ -78,9 +78,22 @@ class Chain(Walker):
 
     # ------------------------------------------------------------------ the chain: P_std
     def run(self):
+        S = self.kaliski_core(list(range(self.n)))
+        if self.red == 'generic':
+            out = self._reduce_generic(S)
+        else:
+            out = self._reduce_special(S)
+        self.out = out
+        return self.finish(out)
+
+    def kaliski_core(self, X):
+        """the 2n steps of P_std on the input wires X (x in [1, p)); the marks init, cmp, swap, sub, add, last.
+        -> the 2n wires of r_ext (r_ext < 2^(2n), x * r_ext = -2^(2n) mod p); sets self.u (= 1), self.v (= 0),
+        self.sreg. Used by run() and by compose.ecadd (the inversion inside the point addition)."""
         n, p = self.n, self.p
         need = self.need
-        X = list(range(n))
+        X = list(X)
+        need(len(X) == n, 'internal: bad input register')
         pos, info = self.mark('init')
         U, R, S = self.fresh_list(info['U']), self.fresh_list(info['R']), self.fresh_list(info['S'])
         need(len(U) == n and len(R) == n and len(S) == n, 'certificate: bad register lengths')
@@ -191,12 +204,7 @@ class Chain(Walker):
         need(len(S) == 2 * n, 'internal: s register length')
         # frame of w_{2n-1} = 1: u = B, v = A, r = S, s = R
         self.u, self.v, self.sreg = B, A, R
-        if self.red == 'generic':
-            out = self._reduce_generic(S)
-        else:
-            out = self._reduce_special(S)
-        self.out = out
-        return self.finish(out)
+        return S
 
     def _double(self, S, snew):
         n = self.n
@@ -235,14 +243,19 @@ class Chain(Walker):
             self.seg('div', j, pos, win + [f], spec)
         return R2[:n]
 
-    def _reduce_special(self, S):
+    def _reduce_special(self, S, Bd=None):
         """folding rounds (literal modular additions; exactness by the fold lemma, PROOF.md, with its numeric side
-        conditions checked here), then the binary search of the quotient."""
+        conditions checked here), then the binary search of the quotient. Bd: a bound value(S) < Bd whose fact
+        ('lt', S, Bd) the caller has established (default: the trivial 2^(2n) for the 2n wires of r_ext)."""
         n, p = self.n, self.p
         need = self.need
         m = n
-        cur, Bd = S, 1 << (2 * n)
-        self.establish(('lt', tuple(cur), Bd))
+        if Bd is None:
+            cur, Bd = S, 1 << (2 * n)
+            self.establish(('lt', tuple(cur), Bd))
+        else:
+            cur = S
+            need(isinstance(Bd, int) and Bd >= 1 and ('lt', tuple(cur), Bd) in self.facts, 'internal: bound fact missing')
         while self.peek() == 'sp_const':
             pos, info = self.mark('sp_const')
             K = info.get('K')
@@ -303,6 +316,7 @@ class Chain(Walker):
             self.seg('sp_q', None, pos, cur + [f], spec)
             Bd = Bn
         need(Bd <= p, 'special reduction: the final bound %d bits is not <= p' % Bd.bit_length())
+        self._sp_last = (cur, Bd)
         return cur[:m]
 
 

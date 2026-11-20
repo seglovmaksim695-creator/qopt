@@ -315,3 +315,8 @@ def verify_kaliski(qasm, p, reduction='generic', clean=False, hints=None, lifted
     return done(status='PROVED', stage='done', proved_modulo='paper lemmas M1..M6 on the integer algorithm (and the fold '
                 'lemma for reduction=special), compose/PROOF.md sections 4-5; tested by pstd_test',
                 detail='every segment of the circuit is machine-proved against its contract at full width.' + note)
+
+
+from .ecadd import verify_ecadd, wec_test, ecadd_hints, ECChain, lift_circuit  # noqa: E402
+
+__all__ += ['verify_ecadd', 'wec_test', 'ecadd_hints', 'ECChain', 'lift_circuit']
