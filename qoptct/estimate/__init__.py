@@ -9,7 +9,9 @@ See qoptct.estimate.physical for the models, their formulas and the paper refere
 from .physical import (MODELS, PAPER, PhysicalEstimate, estimate, ge2019, ge2019_rsa_reference, gidney2025,
                        litinski2023)
 
-__all__ = ["MODELS", "PAPER", "PhysicalEstimate", "estimate", "ge2019", "ge2019_rsa_reference", "gidney2025",
+from . import logical
+
+__all__ = ["logical", "MODELS", "PAPER", "PhysicalEstimate", "estimate", "ge2019", "ge2019_rsa_reference", "gidney2025",
            "litinski2023", "main_estimate"]
 
 
