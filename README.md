@@ -15,7 +15,7 @@ measurement-based output is proven equal by the exact prover `qoptct.verify` or,
 re-checked by independent simulators over many sampled inputs and measurement outcomes before it is written
 (the JSON report says which).
 
-Repository: <https://github.com/seglovmaksim695-creator/qopt>  · Version 0.5.0 (release candidate) · License Apache-2.0 (benchmark files: see `bench_qc/SOURCES.md`) · Author: Maksym Shchehlov
+Repository: <https://github.com/seglovmaksim695-creator/qopt>  · Version 0.6.0 (unreleased) · License Apache-2.0 (benchmark files: see `bench_qc/SOURCES.md`) · Author: Maksym Shchehlov
 
 ## Installation
 

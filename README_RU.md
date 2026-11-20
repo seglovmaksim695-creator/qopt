@@ -14,7 +14,7 @@
 доказывается точным прувером `qoptct.verify` или, если доказательство не укладывается во время, перепроверяется
 независимыми симуляторами на многих случайных входах и исходах измерений (в отчёте JSON указано, как именно).
 
-Репозиторий: <https://github.com/seglovmaksim695-creator/qopt> · Версия 0.5.0 (кандидат) · Лицензия Apache-2.0 (файлы бенчмарков — см. `bench_qc/SOURCES.md`) · Автор: Maksym Shchehlov
+Репозиторий: <https://github.com/seglovmaksim695-creator/qopt> · Версия 0.6.0 (не опубликована) · Лицензия Apache-2.0 (файлы бенчмарков — см. `bench_qc/SOURCES.md`) · Автор: Maksym Shchehlov
 
 Основная документация — на английском (`README.md`, `docs/METHOD.md`, `docs/FINDINGS.md`). Здесь — краткое изложение.
 

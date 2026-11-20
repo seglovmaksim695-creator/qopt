@@ -24,6 +24,8 @@ def test_no_absolute_project_paths():
 
 def test_version():
     assert qoptct.__version__ == "0.6.0"
+    from qoptct import qopt_core
+    assert qopt_core.__version__ == qoptct.__version__
 
 
 @pytest.mark.skipif(not GOOD, reason="results/best not present")
