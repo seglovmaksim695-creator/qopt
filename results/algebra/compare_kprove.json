@@ -1,0 +1,282 @@
+[
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 30 AND gadgets and 30 erasures with their preconditions, 6 word identities (carry chains), claims: out == x*y",
+  "counts": {
+   "qubits": 24,
+   "ops": 306,
+   "AND": 30,
+   "erasures": 30
+  },
+  "stats": {
+   "ands": 30,
+   "erases": 30,
+   "cells": 63,
+   "adders": 6,
+   "facts": 0,
+   "stageB": 3,
+   "stageC": 0,
+   "splits": 0,
+   "sem_zero": 0,
+   "virt": 0,
+   "reduce_steps": 15,
+   "atoms": 101,
+   "classes": {
+    "s01/0": 1,
+    "s11/0": 3,
+    "u10/1": 1,
+    "u00/1": 1
+   }
+  },
+  "time": 0.01,
+  "total_time": 0.0,
+  "peak_mb": 36.4,
+  "build_time": 0.0,
+  "job": {
+   "kind": "mul",
+   "n": 4
+  }
+ },
+ {
+  "status": "PROVED",
+  "detail": "BDD path sum reached the normal form for all inputs and outcomes (30 measurements, 90 H, 60 HH, 0 omega; 6320 BDD nodes)",
+  "time": 0.04,
+  "counts": {
+   "AND": 30,
+   "qubits": 24
+  },
+  "build_time": 0.0,
+  "peak_mb": 41.7,
+  "job": {
+   "kind": "mul",
+   "n": 4,
+   "engine": "kprove",
+   "budget": 300
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 58 AND gadgets and 58 erasures with their preconditions, 8 word identities (carry chains), claims: out == x*y",
+  "counts": {
+   "qubits": 36,
+   "ops": 604,
+   "AND": 58,
+   "erasures": 58
+  },
+  "stats": {
+   "ands": 58,
+   "erases": 58,
+   "cells": 121,
+   "adders": 8,
+   "facts": 0,
+   "stageB": 3,
+   "stageC": 0,
+   "splits": 0,
+   "sem_zero": 0,
+   "virt": 0,
+   "reduce_steps": 21,
+   "atoms": 191,
+   "classes": {
+    "s01/0": 1,
+    "s11/0": 5,
+    "u10/1": 1,
+    "u00/1": 1
+   }
+  },
+  "time": 0.0,
+  "total_time": 0.0,
+  "peak_mb": 36.5,
+  "build_time": 0.0,
+  "job": {
+   "kind": "mul",
+   "n": 6
+  }
+ },
+ {
+  "status": "PROVED",
+  "detail": "BDD path sum reached the normal form for all inputs and outcomes (58 measurements, 174 H, 116 HH, 0 omega; 81987 BDD nodes)",
+  "time": 0.34,
+  "counts": {
+   "AND": 58,
+   "qubits": 36
+  },
+  "build_time": 0.0,
+  "peak_mb": 97.2,
+  "job": {
+   "kind": "mul",
+   "n": 6,
+   "engine": "kprove",
+   "budget": 300
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 94 AND gadgets and 94 erasures with their preconditions, 10 word identities (carry chains), claims: out == x*y",
+  "counts": {
+   "qubits": 48,
+   "ops": 990,
+   "AND": 94,
+   "erasures": 94
+  },
+  "stats": {
+   "ands": 94,
+   "erases": 94,
+   "cells": 195,
+   "adders": 10,
+   "facts": 0,
+   "stageB": 3,
+   "stageC": 0,
+   "splits": 0,
+   "sem_zero": 0,
+   "virt": 0,
+   "reduce_steps": 27,
+   "atoms": 305,
+   "classes": {
+    "s01/0": 1,
+    "s11/0": 7,
+    "u10/1": 1,
+    "u00/1": 1
+   }
+  },
+  "time": 0.01,
+  "total_time": 0.01,
+  "peak_mb": 36.9,
+  "build_time": 0.0,
+  "job": {
+   "kind": "mul",
+   "n": 8
+  }
+ },
+ {
+  "status": "PROVED",
+  "detail": "BDD path sum reached the normal form for all inputs and outcomes (94 measurements, 282 H, 188 HH, 0 omega; 1017637 BDD nodes)",
+  "time": 4.71,
+  "counts": {
+   "AND": 94,
+   "qubits": 48
+  },
+  "build_time": 0.01,
+  "peak_mb": 362.9,
+  "job": {
+   "kind": "mul",
+   "n": 8,
+   "engine": "kprove",
+   "budget": 300
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 138 AND gadgets and 138 erasures with their preconditions, 12 word identities (carry chains), claims: out == x*y",
+  "counts": {
+   "qubits": 60,
+   "ops": 1464,
+   "AND": 138,
+   "erasures": 138
+  },
+  "stats": {
+   "ands": 138,
+   "erases": 138,
+   "cells": 285,
+   "adders": 12,
+   "facts": 0,
+   "stageB": 3,
+   "stageC": 0,
+   "splits": 0,
+   "sem_zero": 0,
+   "virt": 0,
+   "reduce_steps": 33,
+   "atoms": 443,
+   "classes": {
+    "s01/0": 1,
+    "s11/0": 9,
+    "u10/1": 1,
+    "u00/1": 1
+   }
+  },
+  "time": 0.01,
+  "total_time": 0.01,
+  "peak_mb": 37.4,
+  "build_time": 0.01,
+  "job": {
+   "kind": "mul",
+   "n": 10
+  }
+ },
+ {
+  "status": "PROVED",
+  "detail": "BDD path sum reached the normal form for all inputs and outcomes (138 measurements, 414 H, 276 HH, 0 omega; 2096423 BDD nodes)",
+  "time": 70.92,
+  "counts": {
+   "AND": 138,
+   "qubits": 60
+  },
+  "build_time": 0.01,
+  "peak_mb": 986.6,
+  "job": {
+   "kind": "mul",
+   "n": 10,
+   "engine": "kprove",
+   "budget": 300
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 190 AND gadgets and 190 erasures with their preconditions, 14 word identities (carry chains), claims: out == x*y",
+  "counts": {
+   "qubits": 72,
+   "ops": 2026,
+   "AND": 190,
+   "erasures": 190
+  },
+  "stats": {
+   "ands": 190,
+   "erases": 190,
+   "cells": 391,
+   "adders": 14,
+   "facts": 0,
+   "stageB": 3,
+   "stageC": 0,
+   "splits": 0,
+   "sem_zero": 0,
+   "virt": 0,
+   "reduce_steps": 39,
+   "atoms": 605,
+   "classes": {
+    "s01/0": 1,
+    "s11/0": 11,
+    "u10/1": 1,
+    "u00/1": 1
+   }
+  },
+  "time": 0.02,
+  "total_time": 0.02,
+  "peak_mb": 37.9,
+  "build_time": 0.01,
+  "job": {
+   "kind": "mul",
+   "n": 12
+  }
+ },
+ {
+  "status": "UNKNOWN",
+  "detail": "BDD too large (1286499 nodes) [circuit ops processed: 3024/4686, 1286499 BDD nodes]",
+  "time": 49.06,
+  "counts": {
+   "AND": 190,
+   "qubits": 72
+  },
+  "build_time": 0.01,
+  "peak_mb": 1313.6,
+  "job": {
+   "kind": "mul",
+   "n": 12,
+   "engine": "kprove",
+   "budget": 300
+  }
+ }
+]

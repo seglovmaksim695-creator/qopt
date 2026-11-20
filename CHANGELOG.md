@@ -3,6 +3,20 @@
 ## 0.5.0 — unreleased (release candidate)
 
 ### Added
+* **`qoptct.verify.algebra`** and the subcommand **`qoptct aprove CIRCUIT.qasm SPEC.json [--budget S] [--json]`**
+  (also `qoptct kprove CIRCUIT.qasm SPEC.json --engine algebra`): a word-level algebraic exact prover for integer
+  arithmetic on logical ANDs with measurement-based erasure, the class the BDD engine cannot handle (integer
+  multipliers). The circuit is read by a strict parser, every carry chain gives an exact word identity over the
+  integers, dropped top carries are resolved by interval analysis, and the claims of a JSON specification
+  (`"out == x*y"`, `"r + p*(H + thi1 - 1 + g) == L + 2**n*H"`, `"r <= p-1"`) are proved by backward rewriting to the
+  zero polynomial. PROVED is a statement for every basis input and every combination of measurement outcomes
+  (classical function, |0> ancillas, no input-dependent phase). Proved at full size (`scripts/algebra_proofs.py`):
+  `multiply` and `square` at n = 256 with Karatsuba levels 0..3 (4-9 s, at most 0.8 GB), the fold reductions for
+  Curve25519, secp256k1, P-256, P-384, P-521 (under 1 s), and whole modular multiplications / squarings
+  (multiplier followed by the reduction, `algebra.compose_modmul`) for Curve25519, secp256k1, P-256 (4-18 s).
+  Limits: not a general equivalence checker (carry-chain arithmetic only; anything else ends in UNKNOWN or ERROR);
+  some correct circuits are not proved (Karatsuba on very narrow or odd-width leaves, `square(256, 3, legacy=True)`);
+  garbage registers are only shown to be classical functions of the input.
 * **`qoptct.verify.kprove`** and the subcommand **`qoptct kprove CIRCUIT.qasm REF.qc [--clean] [--budget S]
   [--engine auto|bdd|anf|sample|exact2] [--pre lt:REG:N] [--max-mb MB] [--json]`**: exact verification of large Clifford+T circuits with
   mid-circuit measurements and classically controlled corrections against a *classical* (reversible, possibly with

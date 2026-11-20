@@ -1,0 +1,1229 @@
+[
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 66558 AND gadgets and 66558 erasures with their preconditions, 258 word identities (carry chains), claims: out == x*y",
+  "counts": {
+   "qubits": 1536,
+   "ops": 730854,
+   "AND": 66558,
+   "erasures": 66558
+  },
+  "stats": {
+   "ands": 66558,
+   "erases": 66558,
+   "cells": 133371,
+   "adders": 258,
+   "facts": 0,
+   "stageB": 3,
+   "stageC": 0,
+   "splits": 0,
+   "sem_zero": 0,
+   "virt": 0,
+   "reduce_steps": 771,
+   "atoms": 200441,
+   "classes": {
+    "s01/0": 1,
+    "s11/0": 255,
+    "u10/1": 1,
+    "u00/1": 1
+   }
+  },
+  "time": 5.79,
+  "total_time": 5.77,
+  "peak_mb": 773.5,
+  "build_time": 0.33,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 0
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 52096 AND gadgets and 52096 erasures with their preconditions, 396 word identities (carry chains), claims: out == x*y",
+  "counts": {
+   "qubits": 1923,
+   "ops": 569308,
+   "AND": 52096,
+   "erasures": 52096
+  },
+  "stats": {
+   "ands": 52096,
+   "erases": 52096,
+   "cells": 104444,
+   "adders": 396,
+   "facts": 1,
+   "stageB": 12,
+   "stageC": 0,
+   "splits": 0,
+   "sem_zero": 0,
+   "virt": 0,
+   "reduce_steps": 1831,
+   "atoms": 157050,
+   "classes": {
+    "s01/0": 3,
+    "s11/0": 382,
+    "u10/1": 3,
+    "u00/1": 5,
+    "cout": 2,
+    "u00/0": 1
+   }
+  },
+  "time": 5.59,
+  "total_time": 5.58,
+  "peak_mb": 659.9,
+  "build_time": 0.24,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 1
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 42709 AND gadgets and 42709 erasures with their preconditions, 619 word identities (carry chains), claims: out == x*y",
+  "counts": {
+   "qubits": 2703,
+   "ops": 462266,
+   "AND": 42709,
+   "erasures": 42709
+  },
+  "stats": {
+   "ands": 42709,
+   "erases": 42709,
+   "cells": 85657,
+   "adders": 619,
+   "facts": 6,
+   "stageB": 41,
+   "stageC": 0,
+   "splits": 0,
+   "sem_zero": 0,
+   "virt": 0,
+   "reduce_steps": 4737,
+   "atoms": 128870,
+   "classes": {
+    "s01/0": 9,
+    "s11/0": 572,
+    "u10/1": 9,
+    "u00/1": 18,
+    "cout": 8,
+    "u00/0": 3
+   }
+  },
+  "time": 6.4,
+  "total_time": 6.39,
+  "peak_mb": 547.3,
+  "build_time": 0.23,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 2
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 37826 AND gadgets and 37826 erasures with their preconditions, 1001 word identities (carry chains), claims: out == x*y",
+  "counts": {
+   "qubits": 3895,
+   "ops": 402651,
+   "AND": 37826,
+   "erasures": 37826
+  },
+  "stats": {
+   "ands": 37826,
+   "erases": 37826,
+   "cells": 75852,
+   "adders": 1001,
+   "facts": 21,
+   "stageB": 128,
+   "stageC": 0,
+   "splits": 0,
+   "sem_zero": 0,
+   "virt": 0,
+   "reduce_steps": 10523,
+   "atoms": 114164,
+   "classes": {
+    "s01/0": 27,
+    "s11/0": 855,
+    "u10/1": 27,
+    "u00/1": 57,
+    "cout": 26,
+    "u00/0": 9
+   }
+  },
+  "time": 7.81,
+  "total_time": 7.8,
+  "peak_mb": 487.0,
+  "build_time": 0.28,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 3
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 66560 AND gadgets and 66560 erasures with their preconditions, 258 word identities (carry chains), claims: out == x*y",
+  "counts": {
+   "qubits": 1537,
+   "ops": 730872,
+   "AND": 66560,
+   "erasures": 66560
+  },
+  "stats": {
+   "ands": 66560,
+   "erases": 66560,
+   "cells": 133374,
+   "adders": 258,
+   "facts": 1,
+   "stageB": 2,
+   "stageC": 0,
+   "splits": 0,
+   "sem_zero": 0,
+   "virt": 0,
+   "reduce_steps": 771,
+   "atoms": 200445,
+   "classes": {
+    "s01/0": 1,
+    "s11/0": 255,
+    "u10/1": 1,
+    "u00/1": 1
+   }
+  },
+  "time": 6.19,
+  "total_time": 6.17,
+  "peak_mb": 770.0,
+  "build_time": 0.33,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 0,
+   "legacy": true
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 37880 AND gadgets and 37880 erasures with their preconditions, 1001 word identities (carry chains), claims: out == x*y",
+  "counts": {
+   "qubits": 3911,
+   "ops": 403137,
+   "AND": 37880,
+   "erasures": 37880
+  },
+  "stats": {
+   "ands": 37880,
+   "erases": 37880,
+   "cells": 75933,
+   "adders": 1001,
+   "facts": 48,
+   "stageB": 101,
+   "stageC": 0,
+   "splits": 0,
+   "sem_zero": 0,
+   "virt": 0,
+   "reduce_steps": 10504,
+   "atoms": 114272,
+   "classes": {
+    "s01/0": 27,
+    "s11/0": 855,
+    "u10/1": 27,
+    "u00/1": 57,
+    "cout": 26,
+    "u00/0": 9
+   }
+  },
+  "time": 7.66,
+  "total_time": 7.65,
+  "peak_mb": 490.9,
+  "build_time": 0.26,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 3,
+   "legacy": true
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 33656 AND gadgets and 33656 erasures with their preconditions, 258 word identities (carry chains), claims: out == x*x",
+  "counts": {
+   "qubits": 1275,
+   "ops": 369207,
+   "AND": 33656,
+   "erasures": 33656
+  },
+  "stats": {
+   "ands": 33656,
+   "erases": 33656,
+   "cells": 67314,
+   "adders": 258,
+   "facts": 0,
+   "stageB": 9,
+   "stageC": 1,
+   "splits": 1,
+   "sem_zero": 0,
+   "virt": 1,
+   "reduce_steps": 1533,
+   "atoms": 101227,
+   "classes": {
+    "s01/0": 1,
+    "s11/0": 254,
+    "u00/2": 1,
+    "virtual10": 1,
+    "u00/3": 1
+   }
+  },
+  "time": 3.45,
+  "total_time": 3.45,
+  "peak_mb": 410.7,
+  "build_time": 0.16,
+  "job": {
+   "kind": "sq",
+   "n": 256,
+   "L": 0
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 27049 AND gadgets and 27048 erasures with their preconditions, 395 word identities (carry chains), claims: out == x*x",
+  "counts": {
+   "qubits": 1537,
+   "ops": 294366,
+   "AND": 27049,
+   "erasures": 27048
+  },
+  "stats": {
+   "ands": 27049,
+   "erases": 27048,
+   "cells": 53975,
+   "adders": 395,
+   "facts": 1,
+   "stageB": 33,
+   "stageC": 3,
+   "splits": 3,
+   "sem_zero": 0,
+   "virt": 3,
+   "reduce_steps": 2715,
+   "atoms": 81280,
+   "classes": {
+    "s01/0": 3,
+    "s11/0": 379,
+    "u00/2": 3,
+    "virtual10": 3,
+    "u00/3": 3,
+    "cout": 1,
+    "u00/1": 3
+   }
+  },
+  "time": 4.01,
+  "total_time": 3.99,
+  "peak_mb": 353.9,
+  "build_time": 0.13,
+  "job": {
+   "kind": "sq",
+   "n": 256,
+   "L": 1
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 23272 AND gadgets and 23268 erasures with their preconditions, 615 word identities (carry chains), claims: out == x*x",
+  "counts": {
+   "qubits": 2118,
+   "ops": 249558,
+   "AND": 23272,
+   "erasures": 23268
+  },
+  "stats": {
+   "ands": 23272,
+   "erases": 23268,
+   "cells": 46234,
+   "adders": 615,
+   "facts": 6,
+   "stageB": 105,
+   "stageC": 9,
+   "splits": 9,
+   "sem_zero": 0,
+   "virt": 9,
+   "reduce_steps": 4354,
+   "atoms": 69759,
+   "classes": {
+    "s01/0": 9,
+    "s11/0": 563,
+    "u00/2": 9,
+    "virtual10": 9,
+    "u00/3": 9,
+    "cout": 4,
+    "u00/1": 12
+   }
+  },
+  "time": 6.11,
+  "total_time": 6.11,
+  "peak_mb": 319.2,
+  "build_time": 0.13,
+  "job": {
+   "kind": "sq",
+   "n": 256,
+   "L": 2
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 22145 AND gadgets and 22132 erasures with their preconditions, 988 word identities (carry chains), claims: out == x*x",
+  "counts": {
+   "qubits": 3000,
+   "ops": 232257,
+   "AND": 22145,
+   "erasures": 22132
+  },
+  "stats": {
+   "ands": 22145,
+   "erases": 22132,
+   "cells": 43706,
+   "adders": 988,
+   "facts": 21,
+   "stageB": 315,
+   "stageC": 27,
+   "splits": 26,
+   "sem_zero": 0,
+   "virt": 26,
+   "reduce_steps": 7231,
+   "atoms": 66094,
+   "classes": {
+    "s01/0": 27,
+    "s11/0": 828,
+    "u00/2": 27,
+    "virtual10": 26,
+    "u00/3": 26,
+    "cout": 13,
+    "u00/1": 39,
+    "u10/1": 1,
+    "u00/0": 1
+   }
+  },
+  "time": 7.82,
+  "total_time": 7.81,
+  "peak_mb": 308.2,
+  "build_time": 0.16,
+  "job": {
+   "kind": "sq",
+   "n": 256,
+   "L": 3
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 33661 AND gadgets and 33661 erasures with their preconditions, 257 word identities (carry chains), claims: out == x*x",
+  "counts": {
+   "qubits": 1279,
+   "ops": 369244,
+   "AND": 33661,
+   "erasures": 33661
+  },
+  "stats": {
+   "ands": 33661,
+   "erases": 33661,
+   "cells": 67320,
+   "adders": 257,
+   "facts": 1,
+   "stageB": 5,
+   "stageC": 0,
+   "splits": 1,
+   "sem_zero": 0,
+   "virt": 1,
+   "reduce_steps": 1531,
+   "atoms": 101236,
+   "classes": {
+    "s01/0": 1,
+    "s11/0": 254,
+    "virtual10": 1,
+    "u00/3": 1
+   }
+  },
+  "time": 3.58,
+  "total_time": 3.57,
+  "peak_mb": 410.8,
+  "build_time": 0.16,
+  "job": {
+   "kind": "sq",
+   "n": 256,
+   "L": 0,
+   "legacy": true
+  }
+ },
+ {
+  "status": "UNKNOWN",
+  "method": "algebra",
+  "detail": "claim \"out == x*x\": 25092 monomials left after rewriting",
+  "counts": {
+   "qubits": 3029,
+   "ops": 233828,
+   "AND": 22332,
+   "erasures": 22332
+  },
+  "stats": {
+   "ands": 22332,
+   "erases": 22332,
+   "cells": 43946,
+   "adders": 961,
+   "facts": 42,
+   "stageB": 241,
+   "stageC": 0,
+   "splits": 35,
+   "sem_zero": 0,
+   "virt": 38,
+   "reduce_steps": 7393,
+   "atoms": 66466,
+   "classes": {
+    "s01/0": 27,
+    "s11/0": 828,
+    "virtual10": 26,
+    "u00/3": 26,
+    "cout": 13,
+    "u00/1": 19,
+    "u00/0": 9,
+    "virtual00": 12,
+    "u10/1": 1
+   }
+  },
+  "time": 10.46,
+  "total_time": 10.45,
+  "peak_mb": 311.9,
+  "build_time": 0.14,
+  "job": {
+   "kind": "sq",
+   "n": 256,
+   "L": 3,
+   "legacy": true
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 1304 AND gadgets and 1303 erasures with their preconditions, 8 word identities (carry chains), claims: M == 19*thi1; r + 57896044618658097711785492504343953926634",
+  "counts": {
+   "qubits": 782,
+   "ops": 10952,
+   "AND": 1304,
+   "erasures": 1303
+  },
+  "stats": {
+   "ands": 1304,
+   "erases": 1303,
+   "cells": 3085,
+   "adders": 8,
+   "facts": 3,
+   "stageB": 8,
+   "stageC": 0,
+   "splits": 1,
+   "sem_zero": 0,
+   "virt": 0,
+   "reduce_steps": 47,
+   "atoms": 4887,
+   "classes": {
+    "cout": 7,
+    "u00/2": 1
+   }
+  },
+  "time": 0.14,
+  "total_time": 0.14,
+  "peak_mb": 46.8,
+  "build_time": 0.01,
+  "job": {
+   "kind": "fold",
+   "curve": "curve25519"
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 2175 AND gadgets and 2174 erasures with their preconditions, 12 word identities (carry chains), claims: M == 4294968273*thi1; r + 11579208923731619542357098500868",
+  "counts": {
+   "qubits": 869,
+   "ops": 19520,
+   "AND": 2175,
+   "erasures": 2174
+  },
+  "stats": {
+   "ands": 2175,
+   "erases": 2174,
+   "cells": 4736,
+   "adders": 12,
+   "facts": 5,
+   "stageB": 9,
+   "stageC": 0,
+   "splits": 1,
+   "sem_zero": 0,
+   "virt": 0,
+   "reduce_steps": 86,
+   "atoms": 7306,
+   "classes": {
+    "cout": 10,
+    "u00/1": 1,
+    "u00/2": 1
+   }
+  },
+  "time": 0.22,
+  "total_time": 0.22,
+  "peak_mb": 52.9,
+  "build_time": 0.02,
+  "job": {
+   "kind": "fold",
+   "curve": "secp256k1"
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 2744 AND gadgets and 2744 erasures with their preconditions, 14 word identities (carry chains), claims: r + 115792089210356248762697446949407573530086143415290314",
+  "counts": {
+   "qubits": 775,
+   "ops": 26159,
+   "AND": 2744,
+   "erasures": 2744
+  },
+  "stats": {
+   "ands": 2744,
+   "erases": 2744,
+   "cells": 6446,
+   "adders": 14,
+   "facts": 2,
+   "stageB": 7,
+   "stageC": 0,
+   "splits": 1,
+   "sem_zero": 0,
+   "virt": 0,
+   "reduce_steps": 108,
+   "atoms": 9699,
+   "classes": {
+    "cout": 5,
+    "u00/0": 6,
+    "u00/1": 2,
+    "u00/2": 1
+   }
+  },
+  "time": 0.26,
+  "total_time": 0.26,
+  "peak_mb": 60.5,
+  "build_time": 0.02,
+  "job": {
+   "kind": "fold",
+   "curve": "p256"
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 3333 AND gadgets and 3332 erasures with their preconditions, 10 word identities (carry chains), claims: M == 340282367000166625977638945021017194497*thi1; r + 394",
+  "counts": {
+   "qubits": 1541,
+   "ops": 30311,
+   "AND": 3333,
+   "erasures": 3332
+  },
+  "stats": {
+   "ands": 3333,
+   "erases": 3332,
+   "cells": 7124,
+   "adders": 10,
+   "facts": 4,
+   "stageB": 8,
+   "stageC": 0,
+   "splits": 1,
+   "sem_zero": 0,
+   "virt": 0,
+   "reduce_steps": 69,
+   "atoms": 10935,
+   "classes": {
+    "cout": 8,
+    "u00/1": 1,
+    "u00/2": 1
+   }
+  },
+  "time": 0.36,
+  "total_time": 0.35,
+  "peak_mb": 64.5,
+  "build_time": 0.02,
+  "job": {
+   "kind": "fold",
+   "curve": "p384"
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 1562 AND gadgets and 1562 erasures with their preconditions, 3 word identities (carry chains), claims: r + 6864797660130609714981900799081393217269435300143305409",
+  "counts": {
+   "qubits": 1566,
+   "ops": 11460,
+   "AND": 1562,
+   "erasures": 1562
+  },
+  "stats": {
+   "ands": 1562,
+   "erases": 1562,
+   "cells": 4160,
+   "adders": 3,
+   "facts": 0,
+   "stageB": 3,
+   "stageC": 0,
+   "splits": 0,
+   "sem_zero": 0,
+   "virt": 0,
+   "reduce_steps": 5,
+   "atoms": 6765,
+   "classes": {
+    "cout": 2,
+    "u00/1": 1
+   }
+  },
+  "time": 0.2,
+  "total_time": 0.19,
+  "peak_mb": 50.6,
+  "build_time": 0.01,
+  "job": {
+   "kind": "fold",
+   "curve": "p521"
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 67347 AND gadgets and 67346 erasures with their preconditions, 265 word identities (carry chains), claims: r + 578960446186580977117854925043439539266349923328202",
+  "counts": {
+   "qubits": 1802,
+   "ops": 736146,
+   "AND": 67347,
+   "erasures": 67346
+  },
+  "stats": {
+   "ands": 67347,
+   "erases": 67346,
+   "cells": 135425,
+   "adders": 265,
+   "facts": 3,
+   "stageB": 11,
+   "stageC": 0,
+   "splits": 1,
+   "sem_zero": 0,
+   "virt": 0,
+   "reduce_steps": 3125,
+   "atoms": 203269,
+   "classes": {
+    "s01/0": 1,
+    "s11/0": 254,
+    "u10/1": 1,
+    "u00/1": 1,
+    "cout": 7,
+    "u00/2": 1
+   }
+  },
+  "time": 8.75,
+  "total_time": 8.74,
+  "peak_mb": 784.5,
+  "build_time": 0.33,
+  "job": {
+   "kind": "modmul",
+   "curve": "curve25519",
+   "L": 0,
+   "op": "mul"
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 39050 AND gadgets and 39049 erasures with their preconditions, 1008 word identities (carry chains), claims: r + 57896044618658097711785492504343953926634992332820",
+  "counts": {
+   "qubits": 4160,
+   "ops": 412718,
+   "AND": 39050,
+   "erasures": 39049
+  },
+  "stats": {
+   "ands": 39050,
+   "erases": 39049,
+   "cells": 78772,
+   "adders": 1008,
+   "facts": 31,
+   "stageB": 140,
+   "stageC": 0,
+   "splits": 1,
+   "sem_zero": 0,
+   "virt": 0,
+   "reduce_steps": 19089,
+   "atoms": 118293,
+   "classes": {
+    "s01/0": 27,
+    "s11/0": 854,
+    "u10/1": 27,
+    "u00/1": 56,
+    "cout": 33,
+    "u00/0": 10,
+    "u00/2": 1
+   }
+  },
+  "time": 13.79,
+  "total_time": 13.77,
+  "peak_mb": 494.5,
+  "build_time": 0.23,
+  "job": {
+   "kind": "modmul",
+   "curve": "curve25519",
+   "L": 3,
+   "op": "mul"
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 34701 AND gadgets and 34700 erasures with their preconditions, 265 word identities (carry chains), claims: r + 578960446186580977117854925043439539266349923328202",
+  "counts": {
+   "qubits": 1542,
+   "ops": 377314,
+   "AND": 34701,
+   "erasures": 34700
+  },
+  "stats": {
+   "ands": 34701,
+   "erases": 34700,
+   "cells": 69882,
+   "adders": 265,
+   "facts": 3,
+   "stageB": 17,
+   "stageC": 1,
+   "splits": 2,
+   "sem_zero": 0,
+   "virt": 1,
+   "reduce_steps": 1843,
+   "atoms": 104826,
+   "classes": {
+    "s01/0": 1,
+    "s11/0": 253,
+    "u00/2": 2,
+    "virtual10": 1,
+    "u00/3": 1,
+    "cout": 7
+   }
+  },
+  "time": 3.89,
+  "total_time": 3.89,
+  "peak_mb": 416.6,
+  "build_time": 0.15,
+  "job": {
+   "kind": "modmul",
+   "curve": "curve25519",
+   "L": 0,
+   "op": "sq"
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 24505 AND gadgets and 24500 erasures with their preconditions, 622 word identities (carry chains), claims: r + 578960446186580977117854925043439539266349923328202",
+  "counts": {
+   "qubits": 2385,
+   "ops": 259713,
+   "AND": 24505,
+   "erasures": 24500
+  },
+  "stats": {
+   "ands": 24505,
+   "erases": 24500,
+   "cells": 49174,
+   "adders": 622,
+   "facts": 12,
+   "stageB": 107,
+   "stageC": 9,
+   "splits": 9,
+   "sem_zero": 0,
+   "virt": 8,
+   "reduce_steps": 5118,
+   "atoms": 73917,
+   "classes": {
+    "s01/0": 9,
+    "s11/0": 562,
+    "u00/2": 10,
+    "virtual10": 8,
+    "u00/3": 8,
+    "cout": 11,
+    "u00/1": 12,
+    "u10/1": 1,
+    "u00/0": 1
+   }
+  },
+  "time": 6.53,
+  "total_time": 6.52,
+  "peak_mb": 328.6,
+  "build_time": 0.13,
+  "job": {
+   "kind": "modmul",
+   "curve": "curve25519",
+   "L": 2,
+   "op": "sq"
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 68733 AND gadgets and 68732 erasures with their preconditions, 270 word identities (carry chains), claims: r + 115792089237316195423570985008687907853269984665640",
+  "counts": {
+   "qubits": 1893,
+   "ops": 750374,
+   "AND": 68733,
+   "erasures": 68732
+  },
+  "stats": {
+   "ands": 68733,
+   "erases": 68732,
+   "cells": 138107,
+   "adders": 270,
+   "facts": 5,
+   "stageB": 12,
+   "stageC": 0,
+   "splits": 1,
+   "sem_zero": 0,
+   "virt": 0,
+   "reduce_steps": 3432,
+   "atoms": 207234,
+   "classes": {
+    "s01/0": 1,
+    "s11/0": 255,
+    "u10/1": 1,
+    "u00/1": 2,
+    "cout": 10,
+    "u00/2": 1
+   }
+  },
+  "time": 8.46,
+  "total_time": 8.44,
+  "peak_mb": 801.3,
+  "build_time": 0.3,
+  "job": {
+   "kind": "modmul",
+   "curve": "secp256k1",
+   "L": 0,
+   "op": "mul"
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 40001 AND gadgets and 40000 erasures with their preconditions, 1013 word identities (carry chains), claims: r + 11579208923731619542357098500868790785326998466564",
+  "counts": {
+   "qubits": 4252,
+   "ops": 422171,
+   "AND": 40001,
+   "erasures": 40000
+  },
+  "stats": {
+   "ands": 40001,
+   "erases": 40000,
+   "cells": 80588,
+   "adders": 1013,
+   "facts": 26,
+   "stageB": 137,
+   "stageC": 0,
+   "splits": 1,
+   "sem_zero": 0,
+   "virt": 0,
+   "reduce_steps": 20614,
+   "atoms": 120957,
+   "classes": {
+    "s01/0": 27,
+    "s11/0": 855,
+    "u10/1": 27,
+    "u00/1": 58,
+    "cout": 36,
+    "u00/0": 9,
+    "u00/2": 1
+   }
+  },
+  "time": 14.97,
+  "total_time": 14.95,
+  "peak_mb": 505.5,
+  "build_time": 0.26,
+  "job": {
+   "kind": "modmul",
+   "curve": "secp256k1",
+   "L": 3,
+   "op": "mul"
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 35831 AND gadgets and 35830 erasures with their preconditions, 270 word identities (carry chains), claims: r + 115792089237316195423570985008687907853269984665640",
+  "counts": {
+   "qubits": 1632,
+   "ops": 388727,
+   "AND": 35831,
+   "erasures": 35830
+  },
+  "stats": {
+   "ands": 35831,
+   "erases": 35830,
+   "cells": 72051,
+   "adders": 270,
+   "facts": 5,
+   "stageB": 18,
+   "stageC": 1,
+   "splits": 2,
+   "sem_zero": 0,
+   "virt": 1,
+   "reduce_steps": 1889,
+   "atoms": 108021,
+   "classes": {
+    "s01/0": 1,
+    "s11/0": 254,
+    "u00/2": 2,
+    "virtual10": 1,
+    "u00/3": 1,
+    "cout": 10,
+    "u00/1": 1
+   }
+  },
+  "time": 3.99,
+  "total_time": 3.99,
+  "peak_mb": 426.2,
+  "build_time": 0.15,
+  "job": {
+   "kind": "modmul",
+   "curve": "secp256k1",
+   "L": 0,
+   "op": "sq"
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 25447 AND gadgets and 25442 erasures with their preconditions, 627 word identities (carry chains), claims: r + 115792089237316195423570985008687907853269984665640",
+  "counts": {
+   "qubits": 2475,
+   "ops": 269078,
+   "AND": 25447,
+   "erasures": 25442
+  },
+  "stats": {
+   "ands": 25447,
+   "erases": 25442,
+   "cells": 50971,
+   "adders": 627,
+   "facts": 11,
+   "stageB": 114,
+   "stageC": 9,
+   "splits": 10,
+   "sem_zero": 0,
+   "virt": 9,
+   "reduce_steps": 4745,
+   "atoms": 76553,
+   "classes": {
+    "s01/0": 9,
+    "s11/0": 563,
+    "u00/2": 10,
+    "virtual10": 9,
+    "u00/3": 9,
+    "cout": 14,
+    "u00/1": 13
+   }
+  },
+  "time": 8.57,
+  "total_time": 8.56,
+  "peak_mb": 345.1,
+  "build_time": 0.13,
+  "job": {
+   "kind": "modmul",
+   "curve": "secp256k1",
+   "L": 2,
+   "op": "sq"
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 69302 AND gadgets and 69302 erasures with their preconditions, 272 word identities (carry chains), claims: r + 115792089210356248762697446949407573530086143415290",
+  "counts": {
+   "qubits": 1799,
+   "ops": 757013,
+   "AND": 69302,
+   "erasures": 69302
+  },
+  "stats": {
+   "ands": 69302,
+   "erases": 69302,
+   "cells": 139910,
+   "adders": 272,
+   "facts": 2,
+   "stageB": 10,
+   "stageC": 0,
+   "splits": 1,
+   "sem_zero": 0,
+   "virt": 0,
+   "reduce_steps": 3200,
+   "atoms": 209720,
+   "classes": {
+    "s01/0": 1,
+    "s11/0": 255,
+    "u10/1": 1,
+    "u00/1": 3,
+    "cout": 5,
+    "u00/0": 6,
+    "u00/2": 1
+   }
+  },
+  "time": 8.76,
+  "total_time": 8.74,
+  "peak_mb": 825.8,
+  "build_time": 0.31,
+  "job": {
+   "kind": "modmul",
+   "curve": "p256",
+   "L": 0,
+   "op": "mul"
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 40570 AND gadgets and 40570 erasures with their preconditions, 1015 word identities (carry chains), claims: r + 11579208921035624876269744694940757353008614341529",
+  "counts": {
+   "qubits": 4158,
+   "ops": 428810,
+   "AND": 40570,
+   "erasures": 40570
+  },
+  "stats": {
+   "ands": 40570,
+   "erases": 40570,
+   "cells": 82327,
+   "adders": 1015,
+   "facts": 23,
+   "stageB": 135,
+   "stageC": 0,
+   "splits": 1,
+   "sem_zero": 0,
+   "virt": 0,
+   "reduce_steps": 19639,
+   "atoms": 123379,
+   "classes": {
+    "s01/0": 27,
+    "s11/0": 855,
+    "u10/1": 27,
+    "u00/1": 59,
+    "cout": 31,
+    "u00/0": 15,
+    "u00/2": 1
+   }
+  },
+  "time": 15.29,
+  "total_time": 15.27,
+  "peak_mb": 534.8,
+  "build_time": 0.24,
+  "job": {
+   "kind": "modmul",
+   "curve": "p256",
+   "L": 3,
+   "op": "mul"
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 36400 AND gadgets and 36400 erasures with their preconditions, 272 word identities (carry chains), claims: r + 115792089210356248762697446949407573530086143415290",
+  "counts": {
+   "qubits": 1538,
+   "ops": 395366,
+   "AND": 36400,
+   "erasures": 36400
+  },
+  "stats": {
+   "ands": 36400,
+   "erases": 36400,
+   "cells": 73851,
+   "adders": 272,
+   "facts": 2,
+   "stageB": 16,
+   "stageC": 1,
+   "splits": 2,
+   "sem_zero": 0,
+   "virt": 1,
+   "reduce_steps": 1913,
+   "atoms": 110503,
+   "classes": {
+    "s01/0": 1,
+    "s11/0": 254,
+    "u00/2": 2,
+    "virtual10": 1,
+    "u00/3": 1,
+    "cout": 5,
+    "u00/0": 6,
+    "u00/1": 2
+   }
+  },
+  "time": 4.26,
+  "total_time": 4.25,
+  "peak_mb": 441.0,
+  "build_time": 0.16,
+  "job": {
+   "kind": "modmul",
+   "curve": "p256",
+   "L": 0,
+   "op": "sq"
+  }
+ },
+ {
+  "status": "PROVED",
+  "method": "algebra",
+  "detail": "all inputs, all measurement outcomes: 26016 AND gadgets and 26012 erasures with their preconditions, 629 word identities (carry chains), claims: r + 115792089210356248762697446949407573530086143415290",
+  "counts": {
+   "qubits": 2381,
+   "ops": 275717,
+   "AND": 26016,
+   "erasures": 26012
+  },
+  "stats": {
+   "ands": 26016,
+   "erases": 26012,
+   "cells": 52740,
+   "adders": 629,
+   "facts": 8,
+   "stageB": 112,
+   "stageC": 9,
+   "splits": 10,
+   "sem_zero": 0,
+   "virt": 9,
+   "reduce_steps": 4740,
+   "atoms": 79004,
+   "classes": {
+    "s01/0": 9,
+    "s11/0": 563,
+    "u00/2": 10,
+    "virtual10": 9,
+    "u00/3": 9,
+    "cout": 9,
+    "u00/1": 14,
+    "u00/0": 6
+   }
+  },
+  "time": 8.24,
+  "total_time": 8.23,
+  "peak_mb": 365.9,
+  "build_time": 0.13,
+  "job": {
+   "kind": "modmul",
+   "curve": "p256",
+   "L": 2,
+   "op": "sq"
+  }
+ }
+]

@@ -142,6 +142,23 @@ degree ≤ 2 (GF(2^m) multipliers) the engine `exact2` decides exactly at any si
 ≤ 2; `auto` tries it first when the reference is bilinear.
 From Python: `from qoptct.verify.kprove import kprove; kprove("c.qasm", "ref.qc", clean=True, max_mb=1500)`.
 
+`qoptct aprove CIRCUIT.qasm SPEC.json [--budget S] [--json]` (new in 0.5; the same engine is
+`qoptct kprove CIRCUIT.qasm SPEC.json --engine algebra`) is a word-level algebraic prover for the integer arithmetic
+that BDDs cannot handle: multipliers, squarers, reductions modulo special primes, and their compositions, built from
+logical ANDs with measurement-based erasure. The specification is a JSON file with input words, output words and
+integer claims, for example
+`{"inputs": {"x": {"range": [0, 256]}, "y": {"range": [256, 512]}}, "outputs": {"out": {"range": [512, 1024]}},
+"claims": ["out == x*y"], "garbage": []}`.
+PROVED means: for every basis input and every combination of measurement outcomes the circuit computes a classical
+function for which the claims hold, the input wires are unchanged, all other wires end in |0> (garbage wires: any
+classical function), and no branch has an input-dependent phase. `multiply` / `square` at n = 256 with Karatsuba
+levels 0..3 take 4-9 s and at most 0.8 GB; the fold reductions take under a second; a full multiplication modulo
+Curve25519 / secp256k1 / P-256 takes 9-18 s (`python scripts/algebra_proofs.py proofs`). The prover is not a general
+equivalence checker: circuits that are not carry-chain arithmetic end in UNKNOWN (exit code 2) or, when they use
+gates outside its strict language, in an input error (exit code 3); a few correct Karatsuba circuits on very narrow
+or odd-width leaves are also left UNKNOWN. From Python:
+`from qoptct.verify.algebra import aprove, spec_mulsq; c = multiply(256, 3); aprove(c.to_qasm(), spec_mulsq(c))`.
+
 ## Qiskit plugin
 
 `pip install qoptct` registers two stage plugins for the Qiskit transpiler, both named `qoptct`:
