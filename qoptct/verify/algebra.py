@@ -36,7 +36,9 @@ integer multipliers; all steps are exact, nothing is sampled):
     When the circuit drops the top carry (addition mod 2^m, two's complement rows) K is eliminated by RANGE analysis:
     with V = E - 2^m (a x_top + b y_top) (signed / unsigned reading of the operands), if the interval of V lies in
     [0, 2^m) the result word equals V (unsigned), if it lies in [-2^(m-1), 2^(m-1)) the two's complement value of the
-    result equals V.  If no reading fits, K stays as an unknown bit (the proof then usually ends in UNKNOWN).
+    result equals V.  If no reading fits, K stays as an unresolved ('virtual') carry: an INTEGER in [-2, 1], not a bit (the proof then
+    usually ends in UNKNOWN).  Polynomials are multilinear (x^2 = x), true for bits only, so a product that would
+    square a virtual carry raises UNKNOWN (found by the v0.6 audit: K*K used to be collapsed to K).
  3. Intervals are sound over-approximations computed from the polynomials: (A) words of earlier adders are replaced
     by interval variables (parts of a word: floor(W / 2^d)), then Horner-style interval evaluation of the multilinear
     polynomial; (B) the same after rewriting the polynomial down to the input bits with the adder identities
@@ -49,11 +51,12 @@ integer multipliers; all steps are exact, nothing is sampled):
     A word W with a proved range W <= hi also gives vanishing monomials (bit patterns above hi are impossible);
     they are removed, which makes polynomials in the bits of such a word canonical.
  5. Compute - copy - uncompute (Bennett).  If the circuit is F, M, F^-1 with F^-1 the exact gate-by-gate mirror of F
-    (AND <-> erasure) and M only CXs out of the wires of F into wires F does not touch, only F, M is analysed: each
+    (AND <-> erasure) and M only CXs into wires that F does not mention in any role (not written, not read, not a
+    correction), only F, M is analysed: each
     mirrored gate meets the state of its original, so its precondition holds, its phase is trivial, and every wire
     written by F returns to its initial value (mirror_split).
 
-Polynomials are multilinear over Z[1/2] in the atoms (x^2 = x).  All arithmetic is exact (Python integers).
+Polynomials are multilinear over Z[1/2] in the atoms (x^2 = x; atoms are bits; virtual carries are excluded, see 2).  All arithmetic is exact (Python integers).
 
 RESULTS (scripts/algebra_proofs.py, one process per proof, a 10-core 16 GB Mac, pure Python, single thread):
     multiply(256, L), L = 0..3            PROVED   6 - 8 s    0.5 - 0.8 GB      (66 558 ... 37 826 AND)
@@ -124,9 +127,10 @@ AND13 = (('h', 't'), ('t', 't'), ('cx', 'a', 't'), ('cx', 'b', 't'), ('cx', 't',
 AND10 = (('h', 't'), ('t', 't'), ('cx', 'b', 't'), ('tdg', 't'), ('cx', 'a', 't'), ('t', 't'), ('cx', 'b', 't'),
          ('tdg', 't'), ('h', 't'), ('sdg', 't'))
 _TEMPLATES = (AND13, AND10)
-_GATE = re.compile(r'([a-z]+) q\[(\d+)\](?:, ?q\[(\d+)\])?;$')
-_MEAS = re.compile(r'c\[(\d+)\] = measure q\[(\d+)\];$')
-_IF = re.compile(r'if \(c\[(\d+)\]\) \{(.*)\}$')
+_I = r'(0|[1-9][0-9]*)'            # a non-negative decimal index: ASCII digits, no sign, no leading zeros
+_GATE = re.compile(r'([a-z]+) q\[' + _I + r'\](?:, ?q\[' + _I + r'\])?;$')
+_MEAS = re.compile(r'c\[' + _I + r'\] = measure q\[' + _I + r'\];$')
+_IF = re.compile(r'if \(c\[' + _I + r'\]\) \{(.*)\}$')
 _gadget_ok = {}
 
 
@@ -175,14 +179,14 @@ def parse_strict(text):
             lines.append(s)
     if len(lines) < 3 or lines[0] not in ('OPENQASM 3;', 'OPENQASM 3.0;') or lines[1] != 'include "stdgates.inc";':
         raise ParseError('header: OPENQASM 3 + stdgates.inc expected')
-    mt = re.fullmatch(r'qubit\[(\d+)\] q;', lines[2])
+    mt = re.fullmatch(r'qubit\[' + _I + r'\] q;', lines[2])
     if not mt:
         raise ParseError('qubit[N] q; expected')
     N = int(mt.group(1))
     i = 3
     nb = 0
     if i < len(lines):
-        mb = re.fullmatch(r'bit\[(\d+)\] c;', lines[i])
+        mb = re.fullmatch(r'bit\[' + _I + r'\] c;', lines[i])
         if mb:
             nb = int(mb.group(1))
             i += 1
@@ -293,7 +297,16 @@ def parse_strict(text):
 
 
 # ============================================================================ polynomials
+_KV = set()     # atoms of the engine that are virtual carries: INTEGERS in [-2, 1], not bits (see Engine.__init__)
+
+
 def mmul(m1, m2):
+    # Monomials are multilinear (x*x = x) which is true for bits only.  A virtual carry K is an integer in
+    # [-2, 1] (K*K != K, e.g. (-1)^2 = 1), so a product that would square it is not representable: UNKNOWN.
+    if _KV and m1 and m2:
+        for v in m1:
+            if v in _KV and v in m2:
+                raise Unknown('square of an unresolved (virtual) carry: the polynomial is not multilinear in it')
     if not m1:
         return m2
     if not m2:
@@ -480,6 +493,7 @@ class Engine:
     EXPAND_LIMIT = 48
 
     def __init__(self, N, in_wires, lanes=48, seed=7, deadline=None):
+        _KV.clear()                # one engine at a time (prove_ops); atom numbers are per engine
         self.N = N
         self.L = lanes
         self.mask = (1 << lanes) - 1
@@ -527,6 +541,8 @@ class Engine:
     # ------------------------------------------------------------------ atoms and sets
     def new_atom(self, kind, d, sim):
         self.kind.append(kind)
+        if kind == KV:
+            _KV.add(len(self.kind) - 1)
         self.adef.append(d)
         self.sim.append(sim)
         return len(self.kind) - 1
@@ -1258,9 +1274,11 @@ class Engine:
         if len(S) != 1:
             return False
         (a,) = S
-        if a == 0 or a in self.facts or self.kind[a] == KI:
-            return False
+        if a == 0 or a in self.facts or self.kind[a] in (KI, KV):
+            return False       # (a virtual carry is an integer, never a bit: no bit fact about it or from it)
         R = self.apply_facts(R)
+        if any(self.kind[r] == KV for r in R):
+            return False
         if a in R:
             return False
         if self.sim[a] != self.simset(R):
@@ -2129,7 +2147,7 @@ def _mirror(o):
 
 def mirror_split(ops):
     """ops = F + M + F^-1 with F^-1 the exact gate-by-gate mirror of F and M only CXs from the wires of F into wires
-    that F does not touch (Bennett: compute, copy, uncompute).  -> (len(F), start of F^-1) or None."""
+    that F does not mention in any role: not written, not read, not corrected (Bennett: compute, copy, uncompute).  -> (len(F), start of F^-1) or None."""
     i, j = 0, len(ops)
     while i < j:
         g = _mirror(ops[i])
@@ -2149,6 +2167,16 @@ def mirror_split(ops):
             touched.add(o[3])
         else:
             touched.add(o[1])
+    # every wire that F mentions in ANY role (target, control, AND operand, erasure correction): M must not write
+    # to it.  (If M changed a wire that F only READS, F^-1 would meet another state than F did and the erasures
+    # of F^-1 would carry an input-dependent phase.)
+    for o in ops[:i]:
+        if o[0] == 'erase':
+            touched.add(o[1])
+            for c in o[2]:
+                touched.update(c[1:])
+        else:
+            touched.update(o[1:])
     mt = set()
     for o in ops[i:j]:
         if o[0] != 'cx' or o[2] in touched:

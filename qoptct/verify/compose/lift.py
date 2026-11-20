@@ -108,6 +108,7 @@ def _lift(f):
     if not m or not mb:
         raise LiftError('header: expected "qubit[N] q;" and "bit[M] c;"')
     nq = int(m.group(1))
+    nbits = int(mb.group(1))
     ops = array('i')
     app = ops.extend
     nmeas = 0
@@ -125,19 +126,19 @@ def _lift(f):
             if c0 == 'c':
                 a, b = ln[5:-3].split('], q[')
                 a = int(a); b = int(b)
-                if ln != 'cx q[%d], q[%d];\n' % (a, b) or a == b or a >= nq or b >= nq:
+                if ln != 'cx q[%d], q[%d];\n' % (a, b) or a == b or a < 0 or b < 0 or a >= nq or b >= nq:
                     lineno[0] = nline; bad('not a recognised line: %r' % ln[:60])
                 app((K_CX, a, b, 0, -1))
             elif c0 == 'x':
                 a = int(ln[4:-3])
-                if ln != 'x q[%d];\n' % a or a >= nq:
+                if ln != 'x q[%d];\n' % a or a < 0 or a >= nq:
                     lineno[0] = nline; bad('not a recognised line: %r' % ln[:60])
                 app((K_X, a, 0, 0, -1))
             elif c0 == 'h':
                 lineno[0] = nline
                 t = int(ln[4:-3])
                 q = 'q[%d];\n' % t
-                if ln != 'h ' + q or t >= nq:
+                if ln != 'h ' + q or t < 0 or t >= nq:
                     bad('not a recognised line: %r' % ln[:60])
                 l2 = nxt()
                 if l2 == 't ' + q:
@@ -159,7 +160,7 @@ def _lift(f):
                     else:                                              # template 2 (qoptct.crypto.andcirc)
                         a = b
                         b = int(l4[5:-3].split('], q[')[0])
-                        if a >= nq or b >= nq:
+                        if a < 0 or b < 0 or a >= nq or b >= nq:
                             bad('AND gadget: bad wires')
                         for j, exp in enumerate(and_template2(a, b, t)[3:]):
                             got = l4 if j == 0 else nxt()
@@ -167,13 +168,13 @@ def _lift(f):
                                 bad('AND gadget (13 lines): bad line %d' % (4 + j))
                         nline += 12
                         styles[1] += 1
-                    if len({a, b, t}) != 3 or a >= nq or b >= nq:
+                    if len({a, b, t}) != 3 or a < 0 or b < 0 or a >= nq or b >= nq:
                         bad('AND gadget: wires not distinct')
                     app((K_AND, a, b, t, -1))
                 elif l2.startswith('c['):
                     k = int(l2[2:l2.index(']')])
-                    if l2 != 'c[%d] = measure q[%d];\n' % (k, t):
-                        bad('ERASE gadget: bad measurement line')
+                    if l2 != 'c[%d] = measure q[%d];\n' % (k, t) or not 0 <= k < nbits:
+                        bad('ERASE gadget: bad measurement line (or classical bit out of range)')
                     l3 = nxt()
                     mm = _RE_IF.match(l3)
                     if not mm or int(mm.group(1)) != k or int(mm.group(5)) != t:
@@ -182,8 +183,10 @@ def _lift(f):
                     lin = [int(x) for x in _RE_Z.findall(mm.group(4))]
                     if len(lin) > 1:
                         bad('ERASE gadget: more than one linear correction (unsupported)')
-                    if len({a, b, t, *lin}) != 3 + len(lin) or max([a, b] + lin) >= nq:
-                        bad('ERASE gadget: wires not distinct')
+                    if len({a, b, t, *lin}) != 3 + len(lin) or max([a, b] + lin) >= nq or min([a, b] + lin) < 0:
+                        bad('ERASE gadget: wires not distinct or out of range')
+                    if l3 != erase_template(a, b, t, lin, k)[2] + '\n':
+                        bad('ERASE gadget: correction line is not in canonical form (leading zeros ...)')
                     app((K_ERASE, a, b, t, lin[0] if lin else -1))
                     nmeas += 1
                     nline += 2

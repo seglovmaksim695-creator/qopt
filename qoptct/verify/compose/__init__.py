@@ -65,6 +65,54 @@ def _is_probable_prime(m, rounds=64, seed=12345):
     return True
 
 
+_MR_BASES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37)      # deterministic for every m < 3.18e23 > 2^64
+
+
+def _mr_witness(m, a, d, s):
+    """True if the base a proves m composite."""
+    x = pow(a, d, m)
+    if x in (1, m - 1):
+        return False
+    for _ in range(s - 1):
+        x = x * x % m
+        if x == m - 1:
+            return False
+    return True
+
+
+def primality(m, rounds=40):
+    """-> (verdict, how): verdict 'prime' (certain: a named prime, or m < 2^64 by deterministic Miller-Rabin),
+    'probable' (m >= 2^64: the 12 fixed bases and `rounds` further pseudo-random bases found no witness; a composite
+    passes with probability < 4^-rounds on average, never claimed as proof) or 'composite'."""
+    if not isinstance(m, int) or m < 2:
+        return 'composite', 'm < 2'
+    for q in _MR_BASES:
+        if m == q:
+            return 'prime', 'small prime'
+        if m % q == 0:
+            return 'composite', 'divisible by %d' % q
+    for name, v in PRIMES.items():
+        if m == v:
+            return 'prime', 'known prime (%s)' % name
+    if m < 2 ** 64:
+        d, s = m - 1, 0
+        while d % 2 == 0:
+            d //= 2
+            s += 1
+        if any(_mr_witness(m, a, d, s) for a in _MR_BASES):
+            return 'composite', 'Miller-Rabin witness'
+        return 'prime', 'deterministic Miller-Rabin (bases 2..37, exact for m < 2^64)'
+    d, s = m - 1, 0
+    while d % 2 == 0:
+        d //= 2
+        s += 1
+    rnd = random.Random(m & 0xffffffff)
+    bases = list(_MR_BASES) + [rnd.randrange(2, m - 1) for _ in range(rounds)]
+    if any(_mr_witness(m, a, d, s) for a in bases):
+        return 'composite', 'Miller-Rabin witness'
+    return 'probable', 'probable prime: Miller-Rabin, %d bases (a probabilistic test, not a proof of primality)' % len(bases)
+
+
 def named_prime(name):
     """a prime by name: secp256k1, p256, curve25519, p384, p521, or rand256 = a 256-bit prime without special form
     (the first probable prime, Miller-Rabin with 64 bases, after floor(2^254 * pi); it shows that nothing depends on
@@ -204,7 +252,10 @@ def verify_kaliski(qasm, p, reduction='generic', clean=False, hints=None, lifted
                    garbage), every AND target was |0>, every measurement-based erasure is exact (no phase);
       clean=True:  |x>|0> -> |x>|-x^{-1} 2^{2n} mod p> on wires 0..n-1, n..2n-1, every other wire back to |0>.
     hints: the certificate (KaliskiCircuit.hints(), untrusted); default: regenerated from the library.
-    -> dict: status ('PROVED' | 'REFUTED' | 'UNKNOWN'), stage, detail, counterexample, assumptions (name ->
+    PRIMALITY of p is checked first (key 'p_primality'): a composite p -> status 'ERROR' (never PROVED); a named
+    prime or p < 2^64 is certain; a larger unnamed p gets PROVED only 'under the condition that p is prime'
+    (Miller-Rabin is probabilistic) and the detail says so.
+    -> dict: status ('PROVED' | 'REFUTED' | 'UNKNOWN' | 'ERROR'), stage, detail, counterexample, assumptions (name ->
        number of segments where the mathematical assumption is used), segments, time, ...
     See the module docstring for the exact meaning of PROVED."""
     t0 = time.time()
@@ -215,8 +266,13 @@ def verify_kaliski(qasm, p, reduction='generic', clean=False, hints=None, lifted
         res.update(kw)
         res['time'] = round(time.time() - t0, 2)
         return res
-    if not isinstance(p, int) or p < 5 or p % 2 == 0:
+    if not isinstance(p, int) or isinstance(p, bool) or p < 5 or p % 2 == 0:
         return done(stage='input', detail='p must be an odd prime >= 5')
+    pv, phow = primality(p)
+    res['p_primality'] = '%s: %s' % (pv, phow)
+    if pv == 'composite':
+        return done(status='ERROR', stage='input', detail='p is not prime (%s): the theorem is for a prime p; the '
+                    'inverse does not exist for x sharing a factor with p' % phow)
     try:
         check_gadget_lemmas()
     except AssertionError as e:
@@ -255,6 +311,7 @@ def verify_kaliski(qasm, p, reduction='generic', clean=False, hints=None, lifted
             return done(detail='P_std disagrees with the circuit on a concrete input' if not t.get('circuit_agrees', 1)
                         else 'a mathematical assumption of P_std is violated on a concrete input: %r'
                         % (t['violations'][:1],))
+    note = '' if pv == 'prime' else ' PROVED under the condition that p is prime (only a probabilistic primality test was run).'
     return done(status='PROVED', stage='done', proved_modulo='paper lemmas M1..M6 on the integer algorithm (and the fold '
                 'lemma for reduction=special), compose/PROOF.md sections 4-5; tested by pstd_test',
-                detail='every segment of the circuit is machine-proved against its contract at full width')
+                detail='every segment of the circuit is machine-proved against its contract at full width.' + note)
