@@ -50,8 +50,9 @@
   1.7 GB each): ROBDD segments, algebra sub-goals (products, fold reductions), mirror segments (uncompute halves),
   the Kaliski sub-walk; the word-level layer (chord formula, exceptional cases, safe point) by a written elementary
   argument with machine-checked polynomial identities and enumeration over all curves with p <= 31 (`PROOF.md`, part
-  II). Canaries: no wrong circuit proved (thousands of small mutants against exhaustive truth; full-size mutants).
-  Not proved: the windowed form, `legacy=True`.
+  II). The windowed form (`ec_point_add_window`, also rebuilt on the library blocks: w = 4, 3 027 017 / 3 034 484 ANDs)
+  is proved for every index k by `verify_ecadd_window` (`--window W`). Canaries: no wrong circuit proved (thousands of
+  small mutants against exhaustive truth; full-size mutants). Not proved: `legacy=True`.
 * **`qoptct.crypto.residue`** (accumulator compression modulo q, 106 / 138 / 148 ANDs against 682 by the formula of the
   paper; against the paper's exact circuit count 352-418 the gain is smaller; junction with the next step not checked on
   a whole circuit), **`qoptct.crypto.modadd`** (modular adders, 4n-2 ANDs), `lookup` option `fanout='gray'`

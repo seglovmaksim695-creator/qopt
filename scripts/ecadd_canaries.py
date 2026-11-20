@@ -20,7 +20,8 @@ from array import array
 from qoptct.crypto import ecpoint as E
 from qoptct.crypto._ecp.ec import small_curve
 from qoptct.verify.compose import lift, lift_circuit, verify_ecadd
-from qoptct.verify.compose.ecadd import ECChain, _circuit_run, curve_points, check_parameters
+from qoptct.verify.compose.ecadd import (ECChain, ECWinChain, _circuit_run, _circuit_run_window, curve_points,
+                                         check_parameters, verify_ecadd_window)
 from qoptct.verify.compose.lift import Lifted, K_X, K_CX, K_AND, K_ERASE
 from qoptct.verify.compose.walker import ProofFailure
 
@@ -156,10 +157,13 @@ def doctor(hints, rnd):
     return h
 
 
-def chain_verdict(p, a, b, Q, hints, L):
-    """the verdict of the chain alone: True = PROVED (no sampled simulation, no refuter)."""
+def chain_verdict(p, a, b, Q, hints, L, w=0):
+    """the verdict of the chain alone: True = PROVED (no sampled simulation, no refuter). w > 0: Q is the table."""
     try:
-        ECChain(p, a, b, Q, tuple(hints['D']), hints, lifted=L, budget=120.0).run()
+        if w:
+            ECWinChain(p, a, b, Q, w, tuple(hints['D']), hints, lifted=L, budget=120.0).run()
+        else:
+            ECChain(p, a, b, Q, tuple(hints['D']), hints, lifted=L, budget=120.0).run()
         return True, ''
     except ProofFailure as e:
         return False, str(e)[:160]
@@ -192,13 +196,13 @@ def positions(hints, nops, rnd, count):
     return out
 
 
-def small_curves(ns, seed=1000):
+def small_curves(ns, seed=1000, minpts=6):
     out = []
     for n in ns:
         rng = random.Random(seed + n)
         got = []
         while len(got) < 2:
-            cv = small_curve(n, rng, prime_order=True, min_points=6,
+            cv = small_curve(n, rng, prime_order=True, min_points=minpts,
                              pfilter=lambda q: (1 << n) - q < (1 << (n // 2 + 1)))
             if all((cv['p'], cv['a'], cv['b']) != (o['p'], o['a'], o['b']) for o in got):
                 got.append(cv)
@@ -206,25 +210,35 @@ def small_curves(ns, seed=1000):
     return out
 
 
-def run_small(count, seed, ns, levels=1, out=None, progress=True):
+def run_small(count, seed, ns, levels=1, out=None, progress=True, window=0):
+    """window = w > 0: the windowed addition with a random table of 2^w points (truth: all pairs (P, k))."""
     rnd = random.Random(seed)
     stats = dict(mutants=0, wrong=0, wrong_proved=0, correct=0, correct_proved=0, by_label={}, by_kind={},
                  doctored=0, doctored_wrong_proved=0, base_proved=0, base=0)
     false_proved = []
     t0 = time.time()
-    for cv in small_curves(ns):
+    for cv in small_curves(ns, minpts=4 * (1 << window) + 8 if window else 6):
         p, a, b = cv['p'], cv['a'], cv['b']
         n = p.bit_length()
         allp = [None] + curve_points(p, a, b)
         for Q in rnd.sample(cv['points'], 2):
-            C = E.ec_point_add(p, a, b, Q, karatsuba_levels=levels)
+            if window:
+                try:
+                    Q = rnd.sample(cv['points'], 1 << window)                # the table
+                    C = E.ec_point_add_window(p, a, b, Q, window, karatsuba_levels=levels)
+                except ValueError:
+                    continue
+                pairs = [(P, k) for k in range(1 << window) for P in allp]
+                truth_of = lambda Lm, Q=Q, pairs=pairs: _circuit_run_window(Lm, n, window, pairs, p, a, Q) is None
+            else:
+                C = E.ec_point_add(p, a, b, Q, karatsuba_levels=levels)
+                truth_of = lambda Lm, Q=Q: _circuit_run(Lm, n, allp, p, a, Q) is None
             hints = json.loads(json.dumps(C.hints()))
-            assert check_parameters(p, a, b, Q, tuple(hints['D'])) is None
             L0 = lift_circuit(C.circ)
-            ok, why = chain_verdict(p, a, b, Q, hints, L0)
+            ok, why = chain_verdict(p, a, b, Q, hints, L0, window)
             stats['base'] += 1
             stats['base_proved'] += ok
-            assert _circuit_run(L0, n, allp, p, a, Q) is None
+            assert truth_of(L0)
             if not ok:
                 print('BASE NOT PROVED', p, a, b, Q, why)
             for lab, i in positions(hints, L0.n, rnd, count):
@@ -243,8 +257,8 @@ def run_small(count, seed, ns, levels=1, out=None, progress=True):
                 doc = rnd.random() < 0.15
                 if doc:
                     h = doctor(h, rnd)
-                truth = _circuit_run(L, n, allp, p, a, Q) is None
-                ok, why = chain_verdict(p, a, b, Q, h, L)
+                truth = truth_of(L)
+                ok, why = chain_verdict(p, a, b, Q, h, L, window)
                 stats['mutants'] += 1
                 stats['doctored'] += doc
                 key = 'correct' if truth else 'wrong'
@@ -256,11 +270,12 @@ def run_small(count, seed, ns, levels=1, out=None, progress=True):
                     e[1 if not truth else 3] += ok
                 if ok and not truth:
                     stats['doctored_wrong_proved'] += doc
-                    false_proved.append(dict(p=p, a=a, b=b, Q=list(Q), op=i, label=lab, kind=kind, doctored=doc))
+                    false_proved.append(dict(p=p, a=a, b=b, Q=[list(T) for T in Q] if window else list(Q), op=i,
+                                             label=lab, kind=kind, doctored=doc))
                     print('FALSE PROVED', false_proved[-1], flush=True)
             if progress:
                 print('p=%d a=%d b=%d Q=%s: %d mutants so far, wrong %d (proved %d), correct %d (proved %d)  %.0f s'
-                      % (p, a, b, Q, stats['mutants'], stats['wrong'], stats['wrong_proved'], stats['correct'],
+                      % (p, a, b, Q[:2], stats['mutants'], stats['wrong'], stats['wrong_proved'], stats['correct'],
                          stats['correct_proved'], time.time() - t0), flush=True)
     stats['false_proved'] = false_proved
     stats['time'] = round(time.time() - t0, 1)
@@ -353,6 +368,7 @@ def main(argv=None):
     s.add_argument('--seed', type=int, default=1)
     s.add_argument('--curves', default='4,5,6')
     s.add_argument('--levels', type=int, default=1)
+    s.add_argument('--window', type=int, default=0)
     s.add_argument('-o', '--out')
     g = sub.add_parser('big')
     g.add_argument('qasm')
@@ -363,7 +379,7 @@ def main(argv=None):
     g.add_argument('-o', '--out')
     a = ap.parse_args(argv)
     if a.cmd == 'small':
-        st = run_small(a.count, a.seed, [int(x) for x in a.curves.split(',')], a.levels, a.out)
+        st = run_small(a.count, a.seed, [int(x) for x in a.curves.split(',')], a.levels, a.out, window=a.window)
         print(json.dumps({k: v for k, v in st.items() if k not in ('by_label', 'by_kind')}))
         print('by label [wrong, wrong PROVED, correct, correct PROVED]:', json.dumps(st['by_label']))
         print('by kind:', json.dumps(st['by_kind']))

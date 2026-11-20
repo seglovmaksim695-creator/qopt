@@ -16,6 +16,9 @@ Elliptic-curve point addition P -> P + Q (qoptct.crypto.ecpoint.ec_point_add, co
 
 C: secp256k1, p256 (Q = K * G, default K = 123456789) or "p,a,b" (then --qx --qy).  Without a Q option ecverify takes
 Q from the certificate and prints it.  Exit code of ecverify: 0 PROVED, 1 REFUTED, 2 UNKNOWN, 3 bad parameters.
+--window W (all three commands): the windowed addition (P, k) -> (P + T[k], k) with the table T[k] = (K + k) * B,
+k = 0..2^W-1, B = G (named curves) or (--qx, --qy) (then K defaults to 1); ecverify without --k / --qx takes the table
+from the certificate.
 """
 import argparse
 import json
@@ -50,7 +53,13 @@ def _ec_curve(a):
         name = 'p%d' % p if p < 10 ** 6 else 'p%dbit' % p.bit_length()
     if a.qx is not None:
         Q = (int(a.qx, 0), int(a.qy, 0))
-    return p, ca, cb, Q, name
+    table = None
+    if a.window:
+        B = (cv['gx'], cv['gy']) if a.curve in names else Q
+        if B is not None and (a.curve not in names or a.k is not None or a.cmd != 'ecverify'):
+            k0 = int(a.k, 0) if a.k is not None else (123456789 if a.curve in names else 1)
+            table = [ec_mul(k0 + k, B, p, ca) for k in range(1 << a.window)]
+    return p, ca, cb, Q, name, table
 
 
 def ec_main(argv):
@@ -63,6 +72,7 @@ def ec_main(argv):
         a.add_argument('--qx')
         a.add_argument('--qy')
         a.add_argument('--levels', type=int, default=3)
+        a.add_argument('--window', type=int, default=0)
         if name == 'ecgen':
             a.add_argument('-o', '--out', required=True)
         if name == 'ecverify':
@@ -74,15 +84,21 @@ def ec_main(argv):
         if name == 'ecwec':
             a.add_argument('--count', type=int, default=64)
     a = ap.parse_args(argv)
-    from .ecadd import verify_ecadd, wec_test
-    p, ca, cb, Q, cname = _ec_curve(a)
+    from .ecadd import verify_ecadd, wec_test, verify_ecadd_window, wec_test_window
+    p, ca, cb, Q, cname, table = _ec_curve(a)
+    W = a.window
+    if W and table is not None and any(T is None for T in table):
+        ap.error('the table contains O')
     if a.cmd == 'ecgen':
         from ...crypto import ecpoint
-        if Q is None:
+        if (table if W else Q) is None:
             ap.error('give Q: --k or --qx/--qy')
         t0 = time.time()
-        C = ecpoint.ec_point_add(p, ca, cb, Q, karatsuba_levels=a.levels)
-        base = os.path.join(a.out, 'ecadd_%s_L%d' % (cname, a.levels))
+        if W:
+            C = ecpoint.ec_point_add_window(p, ca, cb, table, W, karatsuba_levels=a.levels)
+        else:
+            C = ecpoint.ec_point_add(p, ca, cb, Q, karatsuba_levels=a.levels)
+        base = os.path.join(a.out, 'ecadd_%s_L%d%s' % (cname, a.levels, '_w%d' % W if W else ''))
         os.makedirs(a.out, exist_ok=True)
         with open(base + '.hints.json', 'w') as f:
             json.dump(C.hints(), f)
@@ -90,27 +106,41 @@ def ec_main(argv):
         print('%s.qasm  %s  %.1f s' % (base, C.counts(), time.time() - t0))
         return 0
     if a.cmd == 'ecwec':
-        if Q is None:
+        if (table if W else Q) is None:
             ap.error('give Q: --k or --qx/--qy')
         t0 = time.time()
-        r = wec_test(p, ca, cb, Q, count=a.count, karatsuba_levels=a.levels)
+        if W:
+            r = wec_test_window(p, ca, cb, table, W, count=max(a.count, 160), karatsuba_levels=a.levels)
+        else:
+            r = wec_test(p, ca, cb, Q, count=a.count, karatsuba_levels=a.levels)
         print('W_ec on %d points: %s  (%.1f s)' % (r['inputs'], 'all assumptions and the result hold' if r['ok']
                                                     else 'VIOLATED %r' % r['violations'][:3], time.time() - t0))
         return 0 if r['ok'] else 1
     hints = json.load(open(a.hints)) if a.hints else None
-    if Q is None:
-        if hints is None:
-            ap.error('give Q (--k or --qx/--qy) or --hints')
-        Q = tuple(hints['Q'])
     prog = None if (a.quiet or a.json) else (lambda s: None if s.startswith('step') else print('  ' + s, flush=True))
-    r = verify_ecadd(a.qasm, p, ca, cb, Q, hints=hints, progress=prog, test_samples=0 if a.no_test else 64,
-                     karatsuba_levels=a.levels)
+    if W:
+        if table is None:
+            if hints is None or not hints.get('table'):
+                ap.error('give the table (--k or --qx/--qy) or --hints')
+            table = [tuple(T) for T in hints['table']]
+        r = verify_ecadd_window(a.qasm, p, ca, cb, table, W, hints=hints, progress=prog,
+                                test_samples=0 if a.no_test else 160, karatsuba_levels=a.levels)
+    else:
+        if Q is None:
+            if hints is None:
+                ap.error('give Q (--k or --qx/--qy) or --hints')
+            Q = tuple(hints['Q'])
+        r = verify_ecadd(a.qasm, p, ca, cb, Q, hints=hints, progress=prog, test_samples=0 if a.no_test else 64,
+                         karatsuba_levels=a.levels)
     if a.json:
         print(json.dumps(r, default=str))
     else:
-        print('%s  (point addition P -> P + Q, n=%d, %d ops, %.1f s)' % (r['status'], r['n'], r.get('ops', 0),
-                                                                          r['time']))
-        print('  Q: (%#x, %#x)' % tuple(Q))
+        print('%s  (point addition %s, n=%d, %d ops, %.1f s)' % (
+            r['status'], '(P, k) -> (P + T[k], k), w=%d' % W if W else 'P -> P + Q', r['n'], r.get('ops', 0), r['time']))
+        if W:
+            print('  T[0]: (%#x, %#x) ... %d entries' % (tuple(table[0]) + (len(table),)))
+        else:
+            print('  Q: (%#x, %#x)' % tuple(Q))
         for k in ('detail', 'where', 'counterexample', 'proved_modulo', 'assumptions', 'segments', 'mirrors',
                   'lemma_facts', 'bdd_nodes_max', 'wec_test'):
             if r.get(k) is not None:

@@ -397,5 +397,32 @@ chain itself (the code that the ROBDD proofs use) on all points of small curves 
   an independent tool), the client `compose.ecadd`, the 40-line polynomial arithmetic of `compose.ecmath`.
 * **Not trusted:** the generators (`qoptct.crypto.ecpoint`, `_ecp`, `kaliski`, `mulsq`, `fold`), the certificate
   (marks, D), the OpenQASM writer.
-* **Not covered:** the windowed addition (quantum table lookup of Q), the legacy construction (`legacy=True`),
-  inputs outside the curve, curves with a point of order 2, Q of order <= 4.
+* **Not covered:** the legacy constructions (`legacy=True`), inputs outside the curve, curves with a point of
+  order 2, Q of order <= 4, other Karatsuba depths than 3 at n = 256 (not run).
+
+## 12. The windowed addition (P, k) -> (P + T[k], k) (`ecadd.ECWinChain`, `verify_ecadd_window`)
+
+Circuit: `ec_point_add_window(p, a, b, table, w)` (default construction): wires 2n..2n+w-1 hold the index k; the
+nine fields xq, yq, -yq, 3xq, x(2Q), y(2Q), -y(2Q), x(D+Q), y(D+Q) of Q = T[k] are looked up into registers, the
+wrapper and the generic addition use these registers, the lookup is undone. **Theorem:** as in Part II, for every P
+in E or O and EVERY k in [0, 2^w), with H2, H3 required (and checked) for every table entry with the one
+certificate point D. The walk is the chain of section 8 with these differences:
+
+* `lk` / `unlk` (ROBDD over the w index bits): the registers receive / lose the table values; fact
+  `tab`: "the registers hold the fields of T[k]".
+* The wrapper segments are proved with the looked-up registers SUBSTITUTED by their table values as functions of
+  k (the parametrised preconditions of section 2, justified by the fact `tab`), so all their ROBDDs are over
+  (x, y, flags, k) with k on top. To keep them linear in n the wrapper is cut into four segments with LITERAL
+  contracts: `w_flags` (flags := [P = E_j(k)], from `ecdomw` = `ecdom` for every k; facts `fimp`: flag j implies
+  P = E_j(k), `onehot0`), `w_pre` (the XOR substitution of D exactly as the circuit computes it; proved facts
+  x, y < p), `w_fix` (G3, G4 as assumptions, the XOR corrections as computed; proved facts `fiff`: flag j <->
+  R = image_j(k), and `ecdomw` of the result), `w_post` (the flags are erased, from `fiff` and `ecdomw`).
+  Per-k predicates are evaluated on the Shannon cofactors k = j of the bit functions (`_krestrict`; requires the
+  index bits to be the top ROBDD variables, checked).
+* `msub` / `madd` segments (register minus / plus looked-up register mod p) replace the constant additions.
+* A fact about wires without a post in a segment contract survives the segment (`ECChain.seg`): every touched
+  wire without a post is PROVED to end with its entry value, so a predicate over such wires stays true. This keeps
+  `tab` and the bounds of the looked-up registers alive while the generic addition only reads them.
+
+Theorem T is used for every k separately (Q = T[k]); the word-level program is the same. Evidence: `wec_test_window`
+on all pairs (P, k) of small curves and on 160 inputs at n = 256 (for every k: O, +-T[k], +-2T[k], D, -(D + T[k])).

@@ -425,7 +425,8 @@ All counts are logical ANDs (= Toffoli) in the same model as above.
   products and reductions, syntactic mirror segments for the uncompute halves), the Kaliski lemmas by Z3, and a written
   elementary argument (`PROOF.md`, part II: curve algebra, enumerated on all curves with p <= 31) for the word-level
   program; for every point of the curve and O, assuming p prime, odd group order, order of Q above 4. The windowed
-  form and `legacy=True` are not proved.
+  form (w = 4: 3 027 017 / 3 034 484 ANDs for secp256k1 / P-256, 9 225 / 9 033 qubits) is proved the same way for every
+  index k (`qoptct compose ecverify --window 4`, 2.1 GB). `legacy=True` is not proved.
 * `residue.fold_accumulator(q, clen, nbits)`: compression of the accumulator modulo q (loop 2 of Gidney 2025):
   106 / 138 / 148 ANDs for q = 1 574 500 against 682 by the formula of the paper. Against the exact count of the
   paper's circuit (352-418) the gain is smaller; the junction with the next step (loop 3) was argued in words and not

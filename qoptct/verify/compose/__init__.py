@@ -317,6 +317,8 @@ def verify_kaliski(qasm, p, reduction='generic', clean=False, hints=None, lifted
                 detail='every segment of the circuit is machine-proved against its contract at full width.' + note)
 
 
-from .ecadd import verify_ecadd, wec_test, ecadd_hints, ECChain, lift_circuit  # noqa: E402
+from .ecadd import (verify_ecadd, wec_test, ecadd_hints, ECChain, lift_circuit,  # noqa: E402
+                    verify_ecadd_window, wec_test_window, ECWinChain)
 
-__all__ += ['verify_ecadd', 'wec_test', 'ecadd_hints', 'ECChain', 'lift_circuit']
+__all__ += ['verify_ecadd', 'wec_test', 'ecadd_hints', 'ECChain', 'lift_circuit', 'verify_ecadd_window',
+            'wec_test_window', 'ECWinChain']

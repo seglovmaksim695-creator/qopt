@@ -14,7 +14,7 @@ import pytest
 
 from qoptct.crypto import ecpoint as E
 from qoptct.crypto._ecp.ec import small_curve
-from qoptct.verify.compose import verify_ecadd, wec_test, lift_circuit, lift
+from qoptct.verify.compose import verify_ecadd, wec_test, lift_circuit, lift, verify_ecadd_window, wec_test_window
 from qoptct.verify.compose import ecadd, ecmath
 from qoptct.verify.compose.lift import Lifted
 from qoptct.verify.compose.__main__ import main as compose_main
@@ -274,8 +274,99 @@ def test_cli(tmp_path, capsys):
                          '--quiet']) in (1, 2)
 
 
+# ------------------------------------------------------------------ window variant (P, k) -> (P + T[k], k)
+def window_case(n, w, L=1, seed=0):
+    rng = random.Random(1000 + n)
+    cv = small_curve(n, rng, prime_order=True, min_points=4 * (1 << w) + 8,
+                     pfilter=lambda q: (1 << n) - q < (1 << (n // 2 + 1)))
+    r2 = random.Random(n * 100 + w + seed)
+    T = r2.sample(cv['points'], 1 << w)
+    C = E.ec_point_add_window(cv['p'], cv['a'], cv['b'], T, w, karatsuba_levels=L)
+    return cv, T, C, json.loads(json.dumps(C.hints()))
+
+
+@pytest.mark.parametrize('n,w', [(5, 2), (6, 2), (6, 3), (7, 3), (8, 4)])
+def test_window_proved_small(n, w):
+    cv, T, C, h = window_case(n, w)
+    p, a, b = cv['p'], cv['a'], cv['b']
+    r = verify_ecadd_window(None, p, a, b, T, w, hints=h, lifted=lift_circuit(C.circ))
+    assert r['status'] == 'PROVED', r
+    assert r['mirrors'] == 5 and r['wec_test']['ok'] and r['wec_test']['circuit_agrees']
+    assert r['wec_test']['inputs'] == (len(cv['points']) + 1) << w                 # all pairs (P, k)
+    assert r['assumptions']['G1-denominator-nonzero'] == 2 and r['assumptions']['D-input'] == 1
+
+
+def test_window_text_cli_and_errors(tmp_path, capsys):
+    cv, T, C, h = window_case(6, 2)
+    p, a, b = cv['p'], cv['a'], cv['b']
+    path = str(tmp_path / 'w.qasm')
+    C.write_qasm(path)
+    r = verify_ecadd_window(path, p, a, b, T, 2, hints=h)
+    assert r['status'] == 'PROVED'
+    L = lift_circuit(C.circ)
+    # another table (two entries exchanged): the circuit does not compute it
+    T2 = [T[1], T[0]] + T[2:]
+    assert verify_ecadd_window(None, p, a, b, T2, 2, hints=h, lifted=L)['status'] != 'PROVED'
+    assert verify_ecadd_window(None, p, a, b, T[:3], 2, hints=h, lifted=L)['status'] == 'ERROR'
+    assert verify_ecadd_window(None, p, a, b, T, 2, hints=dict(h, D=list(T[0])), lifted=L)['status'] == 'ERROR'
+    t = wec_test_window(p, a, b, T, 2, hints=h, lifted=L)
+    assert t['ok'] and t['inputs'] == 4 * (len(cv['points']) + 1)
+    # CLI: the table (K + k) * B
+    B = cv['points'][3]
+    curve = '%d,%d,%d' % (p, a, b)
+    args = ['--curve', curve, '--qx', str(B[0]), '--qy', str(B[1]), '--window', '2', '--levels', '1']
+    table = [ecadd.ec_mul(1 + k, B, p, a) for k in range(4)]
+    try:
+        E.ec_point_add_window(p, a, b, table, 2, karatsuba_levels=1)
+    except ValueError:
+        pytest.skip('no safe point for this table')
+    assert compose_main(['ecgen'] + args + ['-o', str(tmp_path)]) == 0
+    base = str(tmp_path / ('ecadd_p%d_L1_w2' % p))
+    assert compose_main(['ecverify', '--curve', curve, '--window', '2', base + '.qasm', '--hints',
+                         base + '.hints.json', '--quiet']) == 0
+    assert 'PROVED' in capsys.readouterr().out
+    assert compose_main(['ecwec'] + args) == 0
+
+
+def test_window_mutants_never_proved_wrongly():
+    can = _canaries()
+    st = can.run_small(count=40, seed=21, ns=[5, 6], levels=1, progress=False, window=2)
+    assert st['base'] >= 4 and st['base_proved'] == st['base']
+    assert st['wrong'] > 100 and st['wrong_proved'] == 0, st['false_proved']
+
+
+@pytest.mark.slow
+def test_window_mutants_never_proved_wrongly_slow():
+    can = _canaries()
+    st = can.run_small(count=200, seed=22, ns=[5, 6], levels=1, progress=False, window=2)
+    assert st['wrong'] > 800 and st['wrong_proved'] == 0, st['false_proved']
+    st = can.run_small(count=120, seed=23, ns=[6], levels=1, progress=False, window=3)
+    assert st['wrong_proved'] == 0, st['false_proved']
+
+
 # ------------------------------------------------------------------ n = 256
 NEW = {'secp256k1': (3023913, 6916), 'P-256': (3031380, 6724)}
+NEWW = {'secp256k1': (3027017, 9225), 'P-256': (3034484, 9033)}          # window, w = 4
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize('name', ['secp256k1', 'P-256'])
+def test_n256_window_proved(name):
+    """w = 4; about 2.5 minutes and 2.1 GB per curve."""
+    import gc
+    cv = E.CURVES[name]
+    p, a, b = cv['p'], cv['a'], cv['b']
+    T = [E.ec_mul(123456789 + k, (cv['gx'], cv['gy']), p, a) for k in range(16)]
+    C = E.ec_point_add_window(p, a, b, T, 4)
+    c = C.counts()
+    assert (c['AND'], c['qubits']) == NEWW[name]
+    h = json.loads(json.dumps(C.hints()))
+    L = lift_circuit(C.circ)
+    del C
+    gc.collect()
+    r = verify_ecadd_window(None, p, a, b, T, 4, hints=h, lifted=L)
+    assert r['status'] == 'PROVED', {k: v for k, v in r.items() if k != 'algebra'}
+    assert len(r['algebra']) == 14 and r['mirrors'] == 5 and r['wec_test']['ok']
 
 
 @pytest.mark.slow
