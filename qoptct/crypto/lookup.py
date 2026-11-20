@@ -38,6 +38,17 @@ unlookup_meas / lookup_pair     measurement-based uncomputation (X-measure z, ph
     of hi x lo monomials): U(c) = (2^ceil(c/2)-ceil(c/2)-1) + (2^floor(c/2)-floor(c/2)-1) ANDs (c=6: 8).
     lookup_pair(table, c, w, mode): y ^= T[a] through a temporary z: lookup, CX, unlookup ('qroam1' clears [z | R]
     with ONE unlookup of the combined table: c=6, w=21: 26+21+8 = 55 instead of 57+8 = 65; 'narrow': 33+8 = 41).
+fanout='gray' (davio_lookup, lookup_add; emit_davio_gray)   CX fan-out by a Gray-code accumulator ("Russian fours",
+    idea of lab agent a4, measured by k1): the products M_S N_T (hi / lo monomials, 1 AND each) are made in batches of
+    b wires that are alive together and fanned into the z register through ONE accumulator wire walked along the
+    reflected Gray code: 2^b + w CX per batch instead of ~ b w / 2.  ANDs are those of the Davio lookup (never more; a
+    sparse table can save one or two), T is unchanged, +1..+30 qubits (all lo monomials stay alive, + the accumulator).
+    For wide words only (c = 10, w = 1024, dense random table: 528 201 -> 167 231 CX = -68 %, 1013 ANDs either way;
+    c = 8, w = 256: 33 520 -> 16 192; c = 6, w = 64: 2 243 -> 1 444); batch by batch the direct fan-out is kept when it is
+    cheaper, so narrow words (w <= 16) are not worse.  The default fanout='plain' reproduces the previous circuits
+    byte for byte.  The -78 % of the lab claim (186 514 vs 1 077 908 CX per lookup-add at n = 2048, c = 9..10) is for the
+    whole lookup-addition of the lab's runway-chain structure, which this module does not contain; here only the
+    lookup itself is built.
 lookup_add(table, c, w)         acc(w) += T[a] mod 2^w: narrow lookup + Gidney adder (w-1 ANDs) + unlookup
     (c=6, w=32: 40 + 31 + 8 = 79; one step of loop1 in Gidney 2025).
 
@@ -75,7 +86,7 @@ import numpy as np
 from qoptct.contrib.arith import ir as _ir
 
 __all__ = ['LookupBuildError', 'Circ', 'Plan', 'LookupCircuit', 'anf_table', 'plan_narrow', 'emit_narrow',
-           'emit_davio', 'emit_qroam1', 'emit_unlookup_meas', 'emit_add_gidney', 'narrow_lookup', 'davio_lookup',
+           'emit_davio', 'emit_davio_gray', 'gray_fanout_cx', 'emit_qroam1', 'emit_unlookup_meas', 'emit_add_gidney', 'narrow_lookup', 'davio_lookup',
            'qroam1_lookup', 'lookup_pair', 'lookup_add', 'reference_qc', 'davio_ands', 'unlookup_ands',
            'qroam1_ands', 'base_ands']
 
@@ -635,6 +646,127 @@ def emit_davio(k, addr, table, z):
     visit(0, None)
 
 
+def gray_fanout_cx(naive, nz, b):
+    """CX of a Gray-code fan-out batch: 2^b - 1 (accumulator walk) + (b - 1 at most for the undo, here exactly the
+    weight of the last Gray word, 1) + nz (one CX per output row with a nonzero pattern); `naive` = direct CX count.
+    Returned: the cheaper of the two, which is what _gray_fanout emits."""
+    return min(naive, (1 << b) - 1 + 1 + nz)
+
+
+def _gray_fanout(k, wires, vecs, z, force=False):
+    """z[i] ^= XOR_{j: bit i of vecs[j]} wires[j] for a batch of b = len(wires) simultaneously live wires.
+    Direct CX per (row, wire), or ("Russian fours", Four Russians) ONE extra accumulator wire walked along the reflected
+    Gray code over all 2^b - 1 non-empty subsets of the batch: row i with pattern p (the set of wires it needs) takes one CX
+    from the accumulator at the moment it holds exactly p.  CX = (2^b - 1) + 1 + #rows with p != 0 instead of
+    sum_i |p_i| (about b w / 2 for a dense random table); the cheaper is chosen unless force.  No AND, T = 0; +1 qubit
+    (released at the end; the accumulator returns to 0)."""
+    b = len(wires)
+    w = len(z)
+    pat = [0] * w
+    for j, v in enumerate(vecs):
+        i = 0
+        while v:
+            if v & 1:
+                pat[i] |= 1 << j
+            v >>= 1
+            i += 1
+    naive = sum(bin(p).count('1') for p in pat)
+    nz = sum(1 for p in pat if p)
+    if not force and naive <= (1 << b) + nz:
+        for i, p in enumerate(pat):
+            for j in range(b):
+                if (p >> j) & 1:
+                    k.cx(wires[j], z[i])
+        return
+    bucket = {}
+    for i, p in enumerate(pat):
+        if p:
+            bucket.setdefault(p, []).append(i)
+    acc = k.new()
+    cur = 0
+    for t in range(1, 1 << b):
+        g = t ^ (t >> 1)
+        j = (g ^ cur).bit_length() - 1
+        k.cx(wires[j], acc)
+        cur = g
+        for i in bucket.get(g, ()):
+            k.cx(acc, z[i])
+    for j in range(b):
+        if (cur >> j) & 1:
+            k.cx(wires[j], acc)
+    k.rel(acc)
+
+
+def emit_davio_gray(k, addr, table, z, l=None, B=None, force=False):
+    """z ^= table[addr] like emit_davio (same AND count for a dense table: one AND per needed monomial of degree
+    >= 2) but with the CX fan-out done in batches by the Gray-code accumulator (_gray_fanout).  The address is split
+    into lo (l bits, default c // 2: ALL lo monomials stay alive, 2^l - l - 1 ANDs) and hi (h = c - l bits, monomials by
+    a DFS); for each hi monomial M_S the products M_S N_T (one AND each) are made in batches of B wires that are alive
+    together and fanned out; batch size B (default: from the word width, 2..8) = 2^B + w CX per batch. Pays off for wide words
+    (w >> 2^B / B); for narrow words the direct fan-out is chosen automatically batch by batch, so the CX count is never
+    larger than that of the same bilinear order with direct CX.  force=True always walks the Gray code (tests)."""
+    c = len(addr)
+    if l is None:
+        l = c // 2
+    if B is None:
+        B = max(2, min(8, len(z).bit_length() - 2))          # w = 32: 4, 64: 5, 256: 7, >= 1024: 8
+    if not 0 <= l <= c or B < 1:
+        raise LookupBuildError('bad split / batch size')
+    h = c - l
+    anf = anf_table(table, c)
+    lo, hi = addr[:l], addr[l:]
+    Nw = {}
+    madeN = _build_mono(k, lo, Nw)
+    hneed = [False] * (1 << h)
+    for S in range((1 << h) - 1, -1, -1):
+        if any(anf[(S << l) | Tm] for Tm in range(1 << l)):
+            hneed[S] = True
+        else:
+            for j in range(S.bit_length(), h):
+                if hneed[S | (1 << j)]:
+                    hneed[S] = True
+                    break
+
+    def node(S, mS):
+        items = [(Tm, anf[(S << l) | Tm]) for Tm in range(1 << l) if anf[(S << l) | Tm]]
+        if S == 0:
+            for Tm, v in items:
+                if Tm == 0:
+                    _fan(k, None, v, z)
+            items = [(Tm, v) for Tm, v in items if Tm]
+            for st in range(0, len(items), B):
+                bt = items[st:st + B]
+                _gray_fanout(k, [Nw[Tm] for Tm, _ in bt], [v for _, v in bt], z, force)
+            return
+        for st in range(0, len(items), B):
+            bt = items[st:st + B]
+            ws = []
+            for Tm, v in bt:
+                if Tm == 0:
+                    ws.append(mS)
+                else:
+                    ws.append(k.AND(mS, Nw[Tm]))
+            _gray_fanout(k, ws, [v for _, v in bt], z, force)
+            for (Tm, v), wv in zip(bt, ws):
+                if Tm:
+                    k.erase_and(wv, mS, Nw[Tm])
+
+    def visit(S, wv):
+        node(S, wv)
+        for j in range(S.bit_length(), h):
+            ch = S | (1 << j)
+            if not hneed[ch]:
+                continue
+            if S == 0:
+                visit(ch, hi[j])
+            else:
+                t = k.AND(wv, hi[j])
+                visit(ch, t)
+                k.erase_and(t, wv, hi[j])
+    visit(0, None)
+    _erase_mono(k, lo, Nw, madeN)
+
+
 def emit_narrow(k, addr, table, z, plan):
     """z ^= table[addr] by the bilinear plan (plan_narrow).  Returns the number of mixed products (ANDs beyond base).
     The free part (pure hi / pure lo monomials) is computed from truth tables and the absence of a mixed residue is
@@ -965,9 +1097,22 @@ def _assemble(kind, method, T, c, w, emit, ref_kind, z_samples, outcome_patterns
                                  % (1 << c, len(zs), max(1, outcome_patterns)))
 
 
-def davio_lookup(table, c, w, z_samples=4, outcome_patterns=3, seed=0):
-    """z ^= T[a] by the ANF/Davio subset tree (baseline)."""
+def _fanout_mode(fanout):
+    if fanout not in ('plain', 'gray'):
+        raise ValueError("fanout must be 'plain' or 'gray'")
+    return fanout == 'gray'
+
+
+def davio_lookup(table, c, w, z_samples=4, outcome_patterns=3, seed=0, fanout='plain', gray_b=None, gray_l=None,
+                 gray_force=False):
+    """z ^= T[a] by the ANF/Davio subset tree (baseline). fanout='gray': the same ANDs (for a dense table), CX fan-out
+    by the Gray-code accumulator in batches of gray_b wires (None: automatic, 2..8) (emit_davio_gray; method 'davio-gray'); default 'plain'
+    reproduces the previous circuits exactly."""
     T = _check_table(table, c, w)
+    if _fanout_mode(fanout):
+        return _assemble('lookup', 'davio-gray', T, c, w,
+                         lambda k, a, z: emit_davio_gray(k, a, T, z, l=gray_l, B=gray_b, force=gray_force), 'xor',
+                         z_samples, outcome_patterns, seed)
     return _assemble('lookup', 'davio', T, c, w, lambda k, a, z: emit_davio(k, a, T, z), 'xor', z_samples,
                      outcome_patterns, seed)
 
@@ -1048,10 +1193,21 @@ def lookup_pair(table, c, w, mode='narrow', seed=0, splits=None, z_samples=4, ou
     return _assemble('pair', method, T, c, w, emit, 'xor', z_samples, outcome_patterns, seed, plan=plan, pt=pt)
 
 
-def lookup_add(table, c, w, seed=0, splits=None, z_samples=8, outcome_patterns=3):
+def lookup_add(table, c, w, seed=0, splits=None, z_samples=8, outcome_patterns=3, fanout='plain', gray_b=None,
+               gray_l=None, gray_force=False):
     """acc(w) += T[a] mod 2^w (one step of Gidney 2025's loop1): narrow lookup into a temporary z, Gidney adder
-    (w-1 ANDs), measurement-based unlookup.  Wires: a, acc (= 'z' wires of reference_qc kind 'add')."""
+    (w-1 ANDs), measurement-based unlookup.  Wires: a, acc (= 'z' wires of reference_qc kind 'add').
+    fanout='gray' (wide words, e.g. the lookup-additions of a windowed RSA multiplication, w ~ 1000-2000): the lookup is
+    the Davio-count lookup with the Gray-code fan-out (emit_davio_gray, method 'davio-gray'; no bilinear plan is
+    searched: for w >> 2^c the plan has no advantage, the ANF core is full); default 'plain' is unchanged."""
     T = _check_table(table, c, w)
+    if _fanout_mode(fanout):
+        def emit_g(k, a, y):
+            z = [k.new() for _ in range(w)]
+            emit_davio_gray(k, a, T, z, l=gray_l, B=gray_b, force=gray_force)
+            emit_add_gidney(k, y, z)
+            emit_unlookup_meas(k, a, T, z)
+        return _assemble('add', 'davio-gray', T, c, w, emit_g, 'add', z_samples, outcome_patterns, seed, mode='add')
     t0 = time.time()
     plan = plan_narrow(T, c, w, seed=seed, splits=splits)
     pt = time.time() - t0

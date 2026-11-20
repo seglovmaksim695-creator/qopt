@@ -273,3 +273,101 @@ def test_pure_and_deterministic():
 def test_bad_input(args):
     with pytest.raises(ValueError):
         L.narrow_lookup(*args)
+
+
+# ------------------------------------------------------------------ Gray-code fan-out ("Russian fours"), fanout='gray'
+def test_gray_same_ands_fewer_cx():
+    """same ANDs as the plain Davio lookup (dense table), fewer CX for wide words; plain default untouched."""
+    for c, w, cx_plain, cx_gray in [(6, 64, 2243, 1444), (8, 256, 33520, 16192)]:
+        T = table(c, w, 1)
+        d = L.davio_lookup(T, c, w, z_samples=2, outcome_patterns=1)
+        g = L.davio_lookup(T, c, w, z_samples=2, outcome_patterns=1, fanout='gray')
+        assert g.method == 'davio-gray' and d.method == 'davio'
+        assert d.n_and == g.n_and == L.davio_ands(c)
+        assert (d.cx_count, g.cx_count) == (cx_plain, cx_gray) or g.cx_count < d.cx_count
+        assert g.cx_count < 0.7 * d.cx_count and g.qubits >= d.qubits
+    d0 = L.davio_lookup(table(5, 8, 1), 5, 8)
+    assert d0.qasm == L.davio_lookup(table(5, 8, 1), 5, 8, fanout='plain').qasm
+
+
+def test_gray_never_worse_than_direct_batches():
+    """small words (a sparse table may even save an AND: M_S N_T needs no intermediate monomials): the batch chooses the direct fan-out, so no loss against the plain fan-out of the same order."""
+    for c, w in [(4, 3), (5, 5), (6, 8)]:
+        T = table(c, w, 3)
+        g = L.davio_lookup(T, c, w, z_samples=2, outcome_patterns=1, fanout='gray')
+        d = L.davio_lookup(T, c, w, z_samples=2, outcome_patterns=1)
+        assert g.n_and <= d.n_and and g.cx_count <= d.cx_count + 2 * (1 << (c // 2)), (c, w)
+
+
+@pytest.mark.parametrize('c,w,l,b', [(3, 4, 1, 2), (4, 4, 2, 2), (4, 6, 1, 3), (5, 9, 2, 3), (5, 8, 3, 2), (5, 3, 0, 2),
+                                     (1, 2, 0, 2)])
+def test_gray_forced_small_all_tables(c, w, l, b, tmp_path):
+    """the Gray walk is FORCED (even where direct CX is cheaper); exact build-time check + independent simulation of the
+    emitted text on all addresses; random and edge tables (all zero, all ones, single bit)."""
+    rng = random.Random(c * 100 + w)
+    tabs = [table(c, w, s) for s in range(3)] + [[0] * (1 << c), [(1 << w) - 1] * (1 << c),
+                                                 [1 << rng.randrange(w) if a == 1 else 0 for a in range(1 << c)]]
+    for T in tabs:
+        r = L.davio_lookup(T, c, w, z_samples=3, outcome_patterns=2, fanout='gray', gray_l=l, gray_b=b, gray_force=True)
+        assert r.method == 'davio-gray'
+        assert sim_check(r, tmp_path, zs=(0, 1, 5))[0]
+
+
+def test_gray_lookup_add_small(tmp_path):
+    c, w = 5, 12
+    T = table(c, w, 7)
+    r = L.lookup_add(T, c, w, fanout='gray', z_samples=4)
+    assert r.kind == 'add' and r.method == 'davio-gray'
+    assert r.n_and == L.davio_ands(c) + (w - 1) + L.unlookup_ands(c)
+    assert sim_check(r, tmp_path, zs=(0, 1, 4000, (1 << w) - 1))[0]
+
+
+def test_gray_validation():
+    T = table(3, 4, 1)
+    with pytest.raises(ValueError):
+        L.davio_lookup(T, 3, 4, fanout='x')
+    with pytest.raises(ValueError):
+        L.lookup_add(T, 3, 4, fanout='unary')
+    with pytest.raises(L.LookupBuildError):
+        L.davio_lookup(T, 3, 4, fanout='gray', gray_l=9)
+
+
+@pytest.mark.parametrize('c,w,l,b', [(3, 3, 1, 2), (4, 4, 2, 2)])
+def test_prove_gray_small(c, w, l, b, tmp_path):
+    r = L.davio_lookup(table(c, w, 2), c, w, fanout='gray', gray_l=l, gray_b=b, gray_force=True)
+    assert prove(r, tmp_path) == 'PROVED'
+    r = L.lookup_add(table(c, w, 3), c, w, fanout='gray', gray_l=l, gray_b=b, gray_force=True)
+    assert prove(r, tmp_path, tag='add') == 'PROVED'
+
+
+def test_gray_canaries_rejected(tmp_path):
+    r = L.davio_lookup(table(4, 4, 5), 4, 4, fanout='gray', gray_l=2, gray_b=2, gray_force=True)
+    assert prove(r, tmp_path, tag='orig') == 'PROVED'
+    bad = canaries(r.qasm)
+    for name, txt in bad.items():
+        st = prove(r, tmp_path, qasm=txt, tag=name, budget=120)
+        if st != 'REFUTED':
+            assert st != 'PROVED', name
+            assert not sim_check(r, tmp_path, qasm=txt, tag=name + '_s', m_trials=6)[0], name
+
+
+@pytest.mark.parametrize('what', ['lookup_6_32', 'add_6_32'])
+def test_kprove_gray_c6(what, tmp_path):
+    kp = pytest.importorskip('qoptct.verify.kprove')
+    if what == 'lookup_6_32':
+        r = L.davio_lookup(table(6, 32, 1), 6, 32, fanout='gray', gray_force=True)
+        assert r.n_and == 57
+    else:
+        r = L.lookup_add(table(6, 32, 4), 6, 32, fanout='gray', gray_force=True)
+        assert r.n_and == 57 + 31 + 8
+    qp, qcp = tmp_path / 'k.qasm', tmp_path / 'k.qc'
+    r.write(str(qp), str(qcp))
+    assert kp.kprove(str(qp), str(qcp), clean=True, budget_sec=600)['status'] == 'PROVED'
+
+
+@pytest.mark.slow
+def test_gray_c10_w1024_counts():
+    """RSA-size lookup (c = 10, w = 1024): 1013 ANDs either way, CX 528 201 -> 167 231 (-68 %)."""
+    T = table(10, 1024, 1)
+    g = L.davio_lookup(T, 10, 1024, z_samples=1, outcome_patterns=1, fanout='gray')
+    assert g.n_and == 1013 and g.cx_count == 167231
