@@ -54,6 +54,18 @@
   `--list-attacks`, `--check-attacks`: models of RSA / ECDLP / AES-Grover from published algorithms and from checked
   qoptct blocks (statuses published / qoptct / estimate); not end-to-end circuits. Kaliski count 12n^2 - 8n - 3 is used.
 
+### Fixed (audit of the provers)
+* `verify.algebra`: (1) the mirror lemma of `clean=True` now requires that the copying part writes to no wire that the
+  computing part mentions in any role (before: only to the wires it changes), otherwise a false PROVED was possible;
+  (2) the virtual carry of an adder (an integer in [-2, 1]) is no longer treated as a bit: its square gives UNKNOWN;
+  (3) strict parsing of wire indices (no leading zeros).
+* `verify.compose`: the lifter rejects negative indices `q[-j]`, indices beyond the register and classical bit numbers
+  outside `bit[M]`; `verify_kaliski` checks the primality of p: a composite p gives ERROR, for p >= 2^64 outside the named
+  curves PROVED carries the note "under the condition that p is prime (probabilistic test)" (key `p_primality`).
+* An independent audit found false PROVED results on three classes of specially constructed circuits; they are closed.
+  Regression tests on the audit examples: `tests/data/audit`. Some correct circuits with a virtual carry may now end in
+  UNKNOWN.
+
 ### Changed
 * `qoptct hw`: all fidelity figures are model estimates from calibration snapshots; the portfolio keeps the Qiskit
   candidate where the qoptct one is worse.

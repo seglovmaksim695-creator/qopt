@@ -173,6 +173,16 @@ checked by Z3 for all n and p (`pip install "qoptct[z3]"`, needs the `z3` binary
 contracts is a written argument (`qoptct/verify/compose/PROOF.md`), not machine-checked. Only the default
 construction (`legacy=False`) is covered.
 
+Limits of these proofs (after an independent audit of the provers): garbage registers (the upper half of a product, the
+quotient, Karatsuba garbage) are not specified, such products are "with garbage"; the `clean` variant was not proved by
+`aprove` at n = 256 (only up to n = 64; the clean Kaliski inversion at n = 256 is proved by `qoptct compose`). The Kaliski
+statement is for x in [1, p) and prime p: x = 0 and x >= p are not covered; the primality of the named curves is a known
+fact, for any other p < 2^64 it is checked deterministically and for larger p by a probabilistic test, and the result is
+marked (`p_primality`); a composite p gives ERROR. The provers give no certificate for an independent checker. The audit
+found false PROVED results on three classes of specially constructed circuits (a flaw in the mirror lemma, a virtual
+carry treated as a bit, negative wire indices in the lifter); they are fixed and the audit examples are regression tests
+(`tests/data/audit`). Some correct circuits with a virtual carry may now end in UNKNOWN (conservative).
+
 ## Qiskit plugin
 
 `pip install qoptct` registers two stage plugins for the Qiskit transpiler, both named `qoptct`:
