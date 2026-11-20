@@ -39,9 +39,7 @@ def special_points(C):
 
 
 # ------------------------------------------------------------------ small curves: ALL P x ALL Q
-@pytest.mark.parametrize('n,idx', [(4, 0), (4, 1), (5, 0), (5, 1), (6, 0), (6, 1),
-                                   pytest.param(7, 0, marks=pytest.mark.slow), pytest.param(7, 1, marks=pytest.mark.slow),
-                                   pytest.param(8, 0, marks=pytest.mark.slow), pytest.param(8, 1, marks=pytest.mark.slow)])
+@pytest.mark.parametrize('n,idx', [(n, i) for n in range(4, 9) for i in (0, 1)])
 @pytest.mark.parametrize('mult', ['sd', 'school'])
 def test_all_P_all_Q(n, idx, mult):
     cv = curves(n)[idx]
@@ -81,6 +79,16 @@ def test_random_and_exceptional_points(n):
     # also the images of the exceptional set under the safe point: D + Q and -(D + Q)
     DQ = E.ec_add(C.D, Q, p, a)
     assert C.check([DQ, E.ec_neg(DQ, p), E.ec_add(Q, E.ec_add(Q, Q, p, a), p, a)]) == 0
+
+
+@pytest.mark.parametrize('n', [5, 6, 8])
+def test_reduction_solinas_option(n):
+    """the package's own Solinas search (reduction='solinas') gives the same function as the fold reduction."""
+    cv = curves(n)[0]
+    p, a, b = cv['p'], cv['a'], cv['b']
+    Q = cv['points'][1]
+    C = E.ec_point_add(p, a, b, Q, karatsuba_levels=1, reduction='solinas')
+    assert C.check([None] + cv['points']) == 0
 
 
 def test_counts_structure():
@@ -164,8 +172,7 @@ def make_table(cv, w, rng):
     return T
 
 
-@pytest.mark.parametrize('n,w', [(5, 2), (5, 3), (6, 2), (6, 3), (6, 4),
-                                 pytest.param(7, 3, marks=pytest.mark.slow), pytest.param(8, 4, marks=pytest.mark.slow)])
+@pytest.mark.parametrize('n,w', [(5, 2), (5, 3), (6, 2), (6, 3), (6, 4), (7, 3), (8, 4)])
 @pytest.mark.parametrize('mult', ['sd', 'school'])
 def test_window_all_pairs(n, w, mult):
     cv = curves(n, k=1, minpts=4 * (1 << w) + 8)[0]
