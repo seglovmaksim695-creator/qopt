@@ -28,6 +28,12 @@ KINDS = ('cx_flip', 'cx_target', 'cx_control', 'cx_to_x', 'x_move', 'and_ctrl', 
          'insert_x', 'insert_cx', 'swap_adjacent', 'and_to_erase', 'erase_to_and')
 
 
+APPLICABLE = {K_X: ('x_move', 'drop', 'insert_x', 'insert_cx', 'swap_adjacent'),
+              K_CX: ('cx_flip', 'cx_target', 'cx_control', 'cx_to_x', 'drop', 'insert_x', 'insert_cx', 'swap_adjacent'),
+              K_AND: ('and_ctrl', 'and_ctrl', 'and_to_erase', 'insert_x', 'swap_adjacent'),
+              K_ERASE: ('erase_ctrl', 'erase_lin', 'erase_lin', 'erase_to_and', 'insert_cx', 'swap_adjacent')}
+
+
 def mutate(L, kind, i, rnd):
     """-> (new op array, delta of the op count) or None if the mutation does not apply at op i."""
     ops = L.ops
@@ -101,6 +107,20 @@ def mutate(L, kind, i, rnd):
     out = array('i', ops)
     out[5 * i:5 * i + 5] = array('i', new)
     return out, 0
+
+
+def commute(o1, o2):
+    """True if the two lifted ops act on disjoint wires or only share wires that both only read."""
+    def rw(o):
+        kd, a, b, t, l = o
+        if kd == K_X:
+            return {a}, {a}
+        if kd == K_CX:
+            return {b}, {a, b}
+        return {t}, {a, b, t} | ({l} if l >= 0 else set())
+    w1, a1 = rw(o1)
+    w2, a2 = rw(o2)
+    return not (w1 & a2) and not (w2 & a1)
 
 
 def shift_marks(hints, i, delta):
@@ -208,7 +228,13 @@ def run_small(count, seed, ns, levels=1, out=None, progress=True):
             if not ok:
                 print('BASE NOT PROVED', p, a, b, Q, why)
             for lab, i in positions(hints, L0.n, rnd, count):
-                kind = rnd.choice(KINDS)
+                if rnd.random() < 0.5:                       # half of the mutants on AND / ERASE gadgets
+                    j = i
+                    while j < L0.n and L0.ops[5 * j] not in (K_AND, K_ERASE):
+                        j += 1
+                    if j < L0.n and j - i < 12:
+                        i = j
+                kind = rnd.choice(APPLICABLE[L0.ops[5 * i]])
                 m = mutate(L0, kind, i, rnd)
                 if m is None:
                     continue
@@ -292,6 +318,8 @@ def run_big(qasm, hints_path, curve, only=None, out=None, seed=5):
             j = min(L.n - 2, i)
             saved = array('i', L.ops[5 * j:5 * j + 10])
             small = Lifted(L.nq, array('i', saved), 0)
+            if kind == 'swap_adjacent' and commute(list(saved[:5]), list(saved[5:])):
+                continue                                     # an equivalent circuit, not a canary
             m = mutate(small, kind, 0, rnd)
             if m is not None and m[1] == 0:
                 break

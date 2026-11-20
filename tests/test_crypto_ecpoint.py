@@ -40,8 +40,9 @@ def special_points(C):
 
 # ------------------------------------------------------------------ small curves: ALL P x ALL Q
 @pytest.mark.parametrize('n,idx', [(n, i) for n in range(4, 9) for i in (0, 1)])
-@pytest.mark.parametrize('mult', ['sd', 'school'])
+@pytest.mark.parametrize('mult', ['new', 'sd', 'school'])
 def test_all_P_all_Q(n, idx, mult):
+    """'new': the default construction on the library blocks; 'sd' / 'school': the legacy construction (lab k4)."""
     cv = curves(n)[idx]
     p, a, b = cv['p'], cv['a'], cv['b']
     pts = [None] + cv['points']
@@ -50,7 +51,11 @@ def test_all_P_all_Q(n, idx, mult):
         qs = qs[::4]
     ands = set()
     for Q in qs:
-        C = E.ec_point_add(p, a, b, Q, karatsuba_levels=1, multiplier=mult)
+        if mult == 'new':
+            C = E.ec_point_add(p, a, b, Q, karatsuba_levels=1)
+            assert not C.legacy and len(C.hints()['marks']) > 50
+        else:
+            C = E.ec_point_add(p, a, b, Q, karatsuba_levels=1, multiplier=mult, legacy=True)
         assert C.check(pts) == 0, (cv, Q)
         ands.add(C.counts()['AND'])
     assert len(ands) <= 4                      # the count depends on Q only through the constants (a few ANDs)
@@ -87,7 +92,7 @@ def test_reduction_solinas_option(n):
     cv = curves(n)[0]
     p, a, b = cv['p'], cv['a'], cv['b']
     Q = cv['points'][1]
-    C = E.ec_point_add(p, a, b, Q, karatsuba_levels=1, reduction='solinas')
+    C = E.ec_point_add(p, a, b, Q, karatsuba_levels=1, reduction='solinas', legacy=True)
     assert C.check([None] + cv['points']) == 0
 
 
@@ -115,6 +120,10 @@ def test_argument_checks():
         E.ec_point_add(p, a, b, Q, karatsuba_levels=9)
     with pytest.raises(ValueError):
         E.ec_point_add(p, a, b, Q, multiplier='x')
+    with pytest.raises(ValueError):
+        E.ec_point_add(p, a, b, Q, multiplier='school')          # legacy construction only
+    with pytest.raises(ValueError):
+        E.ec_point_add(p, a, b, Q, reduction='solinas')          # legacy construction only
     with pytest.raises(ValueError):
         E.ec_point_add(p, a, b, Q, n=p.bit_length() + 1)
     with pytest.raises(ValueError):
@@ -301,17 +310,24 @@ def test_qasm_counts_match():
 
 # ------------------------------------------------------------------ n = 256 (slow: minutes, about 0.5 GB)
 BIG = {'P-256': dict(L3=3041421, L2=3082199, L0=3293519), 'secp256k1': dict(L3=3033954, L2=3074732, L0=3286052)}
+# the default construction (library Kaliski core, mulsq, fold): (ANDs, qubits)
+NEW = {'P-256': dict(L3=(3031380, 6724), L2=(3072707, 5532), L0=(3284271, 4365)),
+       'secp256k1': dict(L3=(3023913, 6916), L2=(3065240, 5724), L0=(3276804, 4557))}
 
 
 @pytest.mark.slow
 @pytest.mark.parametrize('name', ['P-256', 'secp256k1'])
-def test_n256_points_and_counts(name):
+@pytest.mark.parametrize('legacy', [False, True])
+def test_n256_points_and_counts(name, legacy):
     cv = E.CURVES[name]
     p, a, b = cv['p'], cv['a'], cv['b']
     rng = random.Random(5)
     Q = E.find_point(p, a, b, rng)
-    C = E.ec_point_add(p, a, b, Q, karatsuba_levels=3)
-    assert C.counts()['AND'] == BIG[name]['L3']                  # the lab number (K_CLAIMS, rows k4)
+    C = E.ec_point_add(p, a, b, Q, karatsuba_levels=3, legacy=legacy)
+    if legacy:
+        assert C.counts()['AND'] == BIG[name]['L3']              # the lab number (K_CLAIMS, rows k4)
+    else:
+        assert (C.counts()['AND'], C.counts()['qubits']) == NEW[name]['L3']
     pts = C.exceptional_points() + [E.ec_neg(E.ec_add(C.D, Q, p, a), p)] + [E.find_point(p, a, b, rng) for _ in range(12)]
     assert len(pts) >= 16 and None in pts and Q in pts
     assert C.check(pts) == 0
@@ -323,5 +339,7 @@ def test_n256_count_only_levels_p256():
     p, a, b = cv['p'], cv['a'], cv['b']
     Q = E.find_point(p, a, b, random.Random(5))
     for L in (0, 2):
-        C = E.ec_point_add(p, a, b, Q, karatsuba_levels=L)
+        C = E.ec_point_add(p, a, b, Q, karatsuba_levels=L, legacy=True)
         assert C.counts()['AND'] == BIG['P-256']['L%d' % L]
+        C = E.ec_point_add(p, a, b, Q, karatsuba_levels=L)
+        assert (C.counts()['AND'], C.counts()['qubits']) == NEW['P-256']['L%d' % L]

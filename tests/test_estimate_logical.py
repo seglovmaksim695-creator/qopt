@@ -255,11 +255,12 @@ def test_rsa_loop2_constant_matches_residue():
 @pytest.mark.slow
 @pytest.mark.parametrize('name,curve', [('P-256', 'p256'), ('secp256k1', 'secp256k1')])
 def test_lab_pointadd_constant_equals_library_ec_point_add(name, curve):
-    """K4_POINTADD_LAB (L3) is the number of the real circuit qoptct.crypto.ecpoint.ec_point_add (n = 256: ~20 s, 0.5 GB)."""
+    """K4_POINTADD_LAB (L3) is the number of the real circuit qoptct.crypto.ecpoint.ec_point_add in its legacy (lab k4)
+    construction (n = 256: ~20 s, 0.5 GB); the default construction is cheaper (3 031 380 / 3 023 913)."""
     from qoptct.crypto import ecpoint as E
     cv = E.CURVES[name]
     Q = E.find_point(cv['p'], cv['a'], cv['b'], random.Random(5))
-    C = E.ec_point_add(cv['p'], cv['a'], cv['b'], Q, karatsuba_levels=3)
+    C = E.ec_point_add(cv['p'], cv['a'], cv['b'], Q, karatsuba_levels=3, legacy=True)
     assert C.counts()['AND'] == lg.K4_POINTADD_LAB[(curve, 'L3')][0] == {'p256': 3041421, 'secp256k1': 3033954}[curve]
     assert C.counts()['qubits'] == lg.K4_POINTADD_LAB[(curve, 'L3')][1]
 
