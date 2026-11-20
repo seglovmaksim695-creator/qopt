@@ -238,6 +238,36 @@ def table(args):
     for k, f in sorted(fam.items()):
         w(f"| {k} | {len(f['r2'])} | {(_gmean(f['r2']) - 1) * 100:+.1f}% | {(_gmean(f['d2']) - 1) * 100:+.1f}% | x{_gmean(f['rf']):.2f} | "
           f"{(_gmean(f['r2_0']) - 1) * 100:+.1f}% | x{_gmean(f['rf_0']):.2f} | {(_gmean(f['h2']) - 1) * 100:+.1f}%, x{_gmean(f['hf']):.2f} |")
+    # head-to-head counts and tket
+    def best_new(r):
+        new = [r["rows"][l] for l in ("qopt+qiskit", "hw", "qopt+hw") if l in r["rows"] and r["rows"][l]["verified"] is True]
+        return max(new, key=lambda x: x["metrics"]["fid"]) if new else None
+
+    ver = [r for r in rs if r["rows"]["qiskit_o3_best"]["verified"] is True and best_new(r)]
+    if ver:
+        wf = sum(best_new(r)["metrics"]["fid"] > r["rows"]["qiskit_o3_best"]["metrics"]["fid"] for r in ver)
+        w2 = sum(best_new(r)["metrics"]["twoq"] < r["rows"]["qiskit_o3_best"]["metrics"]["twoq"] for r in ver)
+        w("")
+        w(f"Head to head on the {len(ver)} circuits where both sides are verified: a qoptct strategy has the higher expected "
+          f"fidelity than Qiskit O3 best-of-seeds on {wf}, fewer two-qubit gates on {w2}.")
+    tk = [r for r in ver if r["rows"].get("tket", {}).get("verified") is True]
+    if tk:
+        tf = {}
+        for r in tk:
+            t, q, n = r["rows"]["tket"]["metrics"], r["rows"]["qiskit_o3_best"]["metrics"], best_new(r)["metrics"]
+            f = tf.setdefault(r["family"], {"t2": [], "tfq": [], "n2": [], "nf": []})
+            f["t2"].append(t["twoq"] / max(q["twoq"], 1)); f["tfq"].append(t["fid"] / max(q["fid"], 1e-300))
+            f["n2"].append(n["twoq"] / max(t["twoq"], 1)); f["nf"].append(n["fid"] / max(t["fid"], 1e-300))
+        w("")
+        w("tket (pytket-qiskit default pass, better of levels 2 and 3), geometric means on circuits where it is verified:\n")
+        w("| family | circuits | tket vs Qiskit O3 best: 2q, fidelity | best qoptct strategy vs tket: 2q, fidelity |")
+        w("|---|---|---|---|")
+        for k, f in sorted(tf.items()):
+            w(f"| {k} | {len(f['t2'])} | {(_gmean(f['t2']) - 1) * 100:+.1f}%, x{_gmean(f['tfq']):.2f} | "
+              f"{(_gmean(f['n2']) - 1) * 100:+.1f}%, x{_gmean(f['nf']):.2f} |")
+        nt = sum(best_new(r)["metrics"]["fid"] > r["rows"]["tket"]["metrics"]["fid"] for r in tk)
+        w("")
+        w(f"A qoptct strategy has the higher expected fidelity than tket on {nt} of {len(tk)} circuits.")
     sims = [r for r in rs if any("sim" in v for v in r["rows"].values())]
     if sims:
         w("")
@@ -245,12 +275,25 @@ def table(args):
           "distribution / probability of the most likely ideal outcome):\n")
         w("| circuit | n | " + " | ".join(labels) + " |")
         w("|---|---|" + "---|" * len(labels))
+        rat, cmp_est = [], []
         for r in sims:
             cells = []
             for l in labels:
-                s = r["rows"].get(l, {}).get("sim")
-                cells.append(f"{s['hellinger']:.3f} / {s['p_top']:.3f}" if s else "-")
+                sm = r["rows"].get(l, {}).get("sim")
+                cells.append(f"{sm['hellinger']:.3f} / {sm['p_top']:.3f}" if sm else "-")
             w(f"| {r['name']} | {r['logical']['qubits']} | " + " | ".join(cells) + " |")
+            ref = r["rows"]["qiskit_o3_best"].get("sim")
+            new = [r["rows"][l] for l in ("qopt+qiskit", "hw", "qopt+hw") if l in r["rows"] and "sim" in r["rows"][l]]
+            if ref and new:
+                bn = max(new, key=lambda x: x["metrics"]["fid"])      # the one the expected fidelity would pick
+                rat.append((bn["sim"]["hellinger"] / max(ref["hellinger"], 1e-9), bn["metrics"]["fid"] > r["rows"]["qiskit_o3_best"]["metrics"]["fid"],
+                            bn["sim"]["hellinger"] > ref["hellinger"]))
+        if rat:
+            agree = sum(a == b for _, a, b in rat)
+            w("")
+            w(f"Simulated Hellinger fidelity of the qoptct strategy with the best expected fidelity relative to Qiskit O3 "
+              f"best-of-seeds: geometric mean x{_gmean([x for x, _, _ in rat]):.2f} over {len(rat)} circuits; better on "
+              f"{sum(b for _, _, b in rat)}; the sign of the expected-fidelity comparison agrees with the simulation on {agree}.")
     text = "\n".join(out)
     if args.md:
         with open(args.md, "w") as f:
