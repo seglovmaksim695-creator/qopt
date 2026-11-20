@@ -81,6 +81,8 @@ fake_sherbrooke (ECR), 31 smallest circuits: same picture. Full tables: `REPORT.
 
 ## Limitations
 
+* Check against real runs: on 8 real IBM jobs (ibm_fez, ibm_marrakesh; 286 result rows, one calibration snapshot per chip) the calibration estimate understated the error by a factor of about 1.6 (1.6-1.7 for the models compared). As a tool for a preliminary choice between variants it is useful: it ordered 93.7 % of the distinguishable pairs correctly (100 % on Fez, 76.4 % on Marrakesh, where only 6 tasks were available). The absolute fidelity numbers must not be trusted. A fitted correction factor exists but did not pass the accuracy criterion and is not built into the code.
+
 * Unitary circuits only: no mid-circuit measurement, no classical control (a `ValueError` is raised). Final
   measurements are removed and must be put back on `final_map` (`--measure` does it).
 * The expected fidelity is a model. The noisy simulation agrees with it in ranking, but both use the same

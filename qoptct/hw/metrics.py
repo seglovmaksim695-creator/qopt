@@ -6,6 +6,9 @@ final positions of the logical qubits  x  T1/T2 damping of every used qubit over
 schedule with the calibrated gate durations; a qubit starts to count at its first gate and all qubits are read out
 together at the end).  ``esp`` is the same without the idle term.  This is the usual first-order estimate: it
 ignores crosstalk and coherent errors, so it ranks circuits; it does not predict the absolute device result.
+Check against 8 real IBM jobs (ibm_fez, ibm_marrakesh): the error was understated by a factor of about 1.6; the
+ranking of variants was right for 93.7 % of the distinguishable pairs (Fez 100 %, Marrakesh 76.4 %, only 6 tasks).
+Use it for a preliminary choice between variants, not for absolute fidelity numbers. No correction factor is applied.
 """
 import math
 
