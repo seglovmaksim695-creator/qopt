@@ -99,7 +99,7 @@ def test_ecdlp_gf2m_qoptct():
         assert r.toffoli == t and r.status == 'qoptct'
         assert 0.52 < r.extra['gain'] < 0.55
     assert lg.ecdlp_gf2m_qoptct(163).qubits == 1959
-    assert lg.ecdlp_gf2m_qoptct(409).toffoli == 820 * (2 * 11 * 2501 + 817)
+    assert lg.ecdlp_gf2m_qoptct(409).toffoli == 820 * (55006 + 817)       # exact 55 006 ANDs, not 22 * 2501 = 55 022
     w = lg.ecdlp_gf2m_windowed_estimate(163)
     assert w.status == 'estimate' and w.toffoli == 720766 and 'ESTIMATE' in w.note
     assert lg.ecdlp_gf2m_windowed_estimate(163, conservative=True).toffoli == 1061300
@@ -148,6 +148,7 @@ def test_blocks_gf2m_library_all_fields():
     assert lib['gf2m_mult'] == lg.BLOCKS['gf2m_mult']
     assert lib['gf2m_square_relabel_cx'] == lg.BLOCKS['gf2m_square_relabel_cx'] == {163: 408, 233: 153, 283: 713,
                                                                                      409: 204, 571: 1538}
+    assert lib['gf2m_pointadd_and'] == lg.BLOCKS['gf2m_pointadd_and']
 
 
 def test_blocks_narrow_lookup_constants():
@@ -233,3 +234,56 @@ def test_cli_attack_errors(capsys):
     assert main_estimate(['--qubits', '10']) == 3                              # old behaviour unchanged
     capsys.readouterr()
     assert main_estimate(['--toffoli', '1e9', '--qubits', '2000', '--model', 'gidney2025']) == 0
+
+
+# ---------------------------------------------------------------------------------------------- live counters
+def test_gf2m_pointadd_block_matches_library_fast():
+    from qoptct.crypto.gf2ec import gf2_point_add_count
+    for m in (163, 409):
+        assert gf2_point_add_count(m)['AND'] == lg.BLOCKS['gf2m_pointadd_and'][m]
+    assert lg.BLOCKS['gf2m_pointadd_and'][409] == 55006          # not 22 * 2501 = 55 022
+    assert lg.BLOCKS['gf2m_pointadd_and'][163] == 2 * 10 * 908    # the other fields have no linear summands
+
+
+def test_rsa_loop2_constant_matches_residue():
+    from qoptct.crypto import residue
+    # q = 1 574 500, l = 21, accumulator 29 bits (accumulator_bits(214, 21)), window 4
+    assert residue.accumulator_bits(214, 21) == 29
+    assert residue.fold_accumulator_ands(1574500, 21, 29, 4) == lg.BLOCKS['rsa_loop2_per_prime'] == 106
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize('name,curve', [('P-256', 'p256'), ('secp256k1', 'secp256k1')])
+def test_lab_pointadd_constant_equals_library_ec_point_add(name, curve):
+    """K4_POINTADD_LAB (L3) is the number of the real circuit qoptct.crypto.ecpoint.ec_point_add (n = 256: ~20 s, 0.5 GB)."""
+    from qoptct.crypto import ecpoint as E
+    cv = E.CURVES[name]
+    Q = E.find_point(cv['p'], cv['a'], cv['b'], random.Random(5))
+    C = E.ec_point_add(cv['p'], cv['a'], cv['b'], Q, karatsuba_levels=3)
+    assert C.counts()['AND'] == lg.K4_POINTADD_LAB[(curve, 'L3')][0] == {'p256': 3041421, 'secp256k1': 3033954}[curve]
+    assert C.counts()['qubits'] == lg.K4_POINTADD_LAB[(curve, 'L3')][1]
+
+
+# ---------------------------------------------------------------------------------------------- physical: reaction limit
+def test_ecdlp_physical_default_is_reaction_limited():
+    """The ECDLP physical estimate passes the depth 2 x Toffoli (as lab/work/v05_phys/k_table.py): 0.175 -> 0.122 / 0.086
+    megaqubit-days (-30 % / -51 %), not the -70 % of the unlimited run."""
+    rep = lg.attack_report('ecdlp-p256')
+    pub, q = rep['rows']
+    assert abs(pub['physical']['megaqubit_days'] - 0.175) < 0.002
+    assert abs(q['physical']['megaqubit_days'] - 0.122) < 0.002 and q['physical']['physical_qubits'] > 1.2e7
+    assert abs(q['physical']['megaqubit_days'] / pub['physical']['megaqubit_days'] - 1 + 0.30) < 0.01
+    l0 = lg.attack_report('ecdlp-p256', 'L0', source='qoptct')['rows'][0]
+    assert l0['qubits'] == 4368 and abs(l0['physical']['megaqubit_days'] - 0.086) < 0.002
+    assert abs(l0['physical']['megaqubit_days'] / pub['physical']['megaqubit_days'] - 1 + 0.51) < 0.01
+    free = lg.attack_report('ecdlp-p256', reaction_limit=False)['rows'][1]
+    assert free['physical']['megaqubit_days'] < 0.6 * q['physical']['megaqubit_days']       # the overstated gain
+    assert lg.attack_report('rsa2048-g25')['rows'][1]['physical']['model'] == 'gidney2025'   # RSA is not affected
+
+
+def test_cli_no_reaction_limit(capsys):
+    assert main_estimate(['--attack', 'ecdlp-p256', '--source', 'qoptct', '--json']) == 0
+    lim = json.loads(capsys.readouterr().out)['rows'][0]['physical']['megaqubit_days']
+    assert main_estimate(['--attack', 'ecdlp-p256', '--source', 'qoptct', '--json', '--no-reaction-limit']) == 0
+    free = json.loads(capsys.readouterr().out)['rows'][0]['physical']['megaqubit_days']
+    assert abs(lim - 0.122) < 0.002 and free < 0.6 * lim

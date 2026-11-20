@@ -40,6 +40,9 @@ def build_parser(prog="qoptct estimate"):
                     "addition, L3 (default, most qubits), L2, L0 (fewest qubits)")
     ap.add_argument("--source", default="both", choices=["both", "published", "qoptct"],
                     help="--attack: published numbers, numbers with qoptct blocks, or both (default)")
+    ap.add_argument("--no-reaction-limit", action="store_true",
+                    help="--attack ecdlp-*: physical estimate WITHOUT the reaction-time limit (depth 2 x Toffoli of "
+                         "Litinski 2023); by default the limit is applied, without it the gain is overstated")
     ap.add_argument("--list-attacks", action="store_true", help="table 'published / with qoptct blocks' for all attacks")
     ap.add_argument("--check-attacks", action="store_true",
                     help="reproduce the published tables of the logical models (Table 5 of Gidney 2025, ...) and exit")
@@ -117,7 +120,7 @@ def main_estimate(argv=None):
         return 0
     if a.attack is not None:
         try:
-            rep = lg.attack_report(a.attack, a.variant, a.source)
+            rep = lg.attack_report(a.attack, a.variant, a.source, reaction_limit=not a.no_reaction_limit)
         except ValueError as e:
             print("error: %s" % e, file=sys.stderr)
             return 3

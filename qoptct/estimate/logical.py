@@ -78,6 +78,10 @@ BLOCKS = {
     'gf2m_mult': {163: 908, 233: 1343, 283: 1669, 409: 2501, 571: 3569},
     # GF(2^m) in-place squaring with output-wire relabelling, CX count; lib gf2m_square(m, relabel=True)
     'gf2m_square_relabel_cx': {163: 408, 233: 153, 283: 713, 409: 204, 571: 1538},
+    # ANDs of one binary-curve point addition (second point classical, default registers, uncontrolled), exact;
+    # lib gf2ec.gf2_point_add_count (the controlled form costs +(2m-1)).  m = 409: 55 006, not 22 * 2501 = 55 022,
+    # because some summands of the doubling steps are linear and need no AND.
+    'gf2m_pointadd_and': {163: 18160, 233: 29546, 283: 40056, 409: 55006, 571: 92794},
     # logical qubits of the lab binary-curve point addition (k6, division with p = l registers + 3)
     'gf2m_pointadd_qubits': {163: 1959, 233: 3032, 283: 3965, 409: 5320, 571: 8568},
     # narrow 6-bit lookup (k1 bilinear split; lib lookup.narrow_lookup): best / typical on random tables, see lookup.py
@@ -97,12 +101,21 @@ K4_POINTADD_LAB = {
 KALISKI_CALLS_PER_POINTADD = 4      # 2 divisions x (compute + uncompute), cf. Litinski Fig. 5 (4 inversions)
 
 
+def _gf2m_pointadd_and(m, b):
+    """ANDs of one uncontrolled binary-curve point addition: exact table entry, else 2(l+1) products."""
+    if m in b['gf2m_pointadd_and']:
+        return b['gf2m_pointadd_and'][m]
+    return 2 * (it_len(m) + 1) * b['gf2m_mult'][m]
+
+
 def library_blocks(gf2m_ms=(163, 233, 283, 409, 571)):
     """Recompute the library-backed entries of BLOCKS from qoptct.crypto (about 20 s for all five fields).
     -> dict with the same keys (only the 'lib' entries)."""
     from qoptct.crypto import kaliski_inverse, gf2m_mult_count, gf2m_square
     from qoptct.crypto.fold import CURVES
-    out = {'kaliski_special': {}, 'kaliski_special_legacy': {}, 'gf2m_mult': {}, 'gf2m_square_relabel_cx': {}}
+    from qoptct.crypto.gf2ec import gf2_point_add_count
+    out = {'kaliski_special': {}, 'kaliski_special_legacy': {}, 'gf2m_mult': {}, 'gf2m_square_relabel_cx': {},
+           'gf2m_pointadd_and': {}}
     for name in ('p256', 'secp256k1'):
         p = CURVES[name]
         out['kaliski_special'][name] = kaliski_inverse(p, reduction='special').counts()['AND']
@@ -110,6 +123,7 @@ def library_blocks(gf2m_ms=(163, 233, 283, 409, 571)):
     for m in gf2m_ms:
         out['gf2m_mult'][m] = gf2m_mult_count(m)['AND']
         out['gf2m_square_relabel_cx'][m] = gf2m_square(m, relabel=True).counts()['CX']
+        out['gf2m_pointadd_and'][m] = gf2_point_add_count(m)['AND']
     return out
 
 
@@ -464,14 +478,14 @@ def ecdlp_gf2m_qoptct(m=163, blocks=None):
     b = dict(BLOCKS, **(blocks or {}))
     M = b['gf2m_mult'][m]
     l = it_len(m)
-    pa = 2 * (l + 1) * M + (2 * m - 1)
+    pa = _gf2m_pointadd_and(m, b) + (2 * m - 1)
     tot = (2 * m + 2) * pa
     ref = taguchi_takayasu2023_ecdlp(m).toffoli if m in KIM_M else None
     return LogicalEstimate(
         'ecdlp-b%d' % m, 'qoptct', tot, b['gf2m_pointadd_qubits'][m], 'AND', 'qoptct',
         'ePrint 2023/553 framework; blocks: qoptct.crypto.gf2m', 'no windows; exceptional cases not handled; '
         'end-to-end circuit not assembled (blocks: gate-level m=163,233; kprove m<=9)',
-        parts={'multiplications': (2 * m + 2) * 2 * (l + 1) * M, 'control': (2 * m + 2) * (2 * m - 1)},
+        parts={'multiplications': (2 * m + 2) * _gf2m_pointadd_and(m, b), 'control': (2 * m + 2) * (2 * m - 1)},
         extra=dict(l=l, multiplier=M, pointadd=pa, gain=(1 - tot / ref) if ref else None))
 
 
@@ -486,7 +500,7 @@ def ecdlp_gf2m_windowed_estimate(m=163, blocks=None, conservative=False):
     for s in range(6, 16):
         N = 2 * math.ceil((m + 1) / s) + (12 if conservative else 0)
         lk = 2 * (2 ** s - 1) if conservative else 2 ** s - s - 1
-        t = N * (2 * (l + 1) * M + 3 * lk)
+        t = N * (_gf2m_pointadd_and(m, b) + 3 * lk)
         if best is None or t < best[0]:
             best = (t, s, N)
     t, s, N = best
@@ -631,20 +645,28 @@ ATTACKS = {
 PHYSICAL_SHOTS = {'rsa2048-g25': 9.2}
 
 
-def _physical(model, toffoli, qubits, shots=None):
+# Reaction depth of the elliptic-curve runs: Litinski 2023 bounds the depth by 2 x Toffoli (Sec. 2.3 of the paper;
+# reaction-limited run time).  Without it the run time is only limited by the factories and the gain is overstated.
+ECDLP_DEPTH_PER_TOFFOLI = 2.0
+
+
+def _physical(model, toffoli, qubits, shots=None, reaction_limit=True):
     from . import physical as ph
     kw = {'shots': shots} if model == 'gidney2025' and shots else {}
-    r = ph.estimate(model, toffoli, int(qubits), **kw)
+    depth = ECDLP_DEPTH_PER_TOFFOLI * toffoli if (model == 'litinski2023' and reaction_limit) else None
+    r = ph.estimate(model, toffoli, int(qubits), depth, **kw)
     return dict(model=r.model, physical_qubits=r.physical_qubits, code_distance=r.code_distance,
                 runtime_s=r.runtime_s, expected_runtime_s=r.expected_runtime_s, failure_prob=r.failure_prob,
                 megaqubit_days=r.megaqubit_days, notes=list(r.notes))
 
 
-def attack_report(name, variant=None, source='both', physical=True):
+def attack_report(name, variant=None, source='both', physical=True, reaction_limit=True):
     """-> dict(name, title, rows=[LogicalEstimate.to_dict() + 'physical' ...]).  source: 'published' | 'qoptct' |
     'both'.  The physical estimate uses qoptct.estimate.physical: gidney2025 for RSA (9.2 shots, as in Table 5),
     litinski2023 for elliptic curves (a generic space-time model from the Toffoli and qubit count; for the binary
-    curves and for the 'published' B-curve rows it is an extrapolation of Litinski's architecture); none for AES."""
+    curves and for the 'published' B-curve rows it is an extrapolation of Litinski's architecture); none for AES.
+    For the elliptic curves the reaction depth is 2 x Toffoli (Litinski's bound), the run is reaction limited;
+    reaction_limit=False drops the limit (only the factories bound the run time; the gain is then overstated)."""
     if name not in ATTACKS:
         raise ValueError('unknown attack %r (known: %s)' % (name, ', '.join(sorted(ATTACKS))))
     a = ATTACKS[name]
@@ -659,7 +681,7 @@ def attack_report(name, variant=None, source='both', physical=True):
         r = fn(variant).to_dict()
         r['physical'] = None
         if physical and a['phys']:
-            r['physical'] = _physical(a['phys'], r['toffoli'], r['qubits'], PHYSICAL_SHOTS.get(name))
+            r['physical'] = _physical(a['phys'], r['toffoli'], r['qubits'], PHYSICAL_SHOTS.get(name), reaction_limit)
         rows.append(r)
     return dict(name=name, title=a['title'], variant=variant, rows=rows)
 
