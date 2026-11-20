@@ -1122,7 +1122,9 @@ def is_bilinear_ref(qc):
 
 def kprove(qasm, qc=None, clean=False, budget_sec=600, engine='auto', pre=None, confirm=True, sample=True, spec=None,
            max_mb=None, **kw):
-    """Main entry. engine: auto | bdd | anf | sample | exact2.  auto: for a bilinear reference first exact2
+    """Main entry. engine: auto | bdd | anf | sample | exact2 | algebra.  engine='algebra': the word-level algebraic
+    prover of qoptct.verify.algebra; `qc` (or `spec`) is then a JSON word-level specification (path or dict), not a
+    .qc reference (integer multipliers / squarers / modular reductions at 256+ bits, which the BDD engine cannot do).  auto: for a bilinear reference first exact2
     (qoptct.verify.exact2: exact for circuits of GF(2) degree <= 2, any size) and anf; then bdd; anf if still open
     and <= 4000 qubits; then sample.
     max_mb: memory budget of this call in MB, counted as the GROWTH of the process RSS over its value at the start of
@@ -1131,6 +1133,14 @@ def kprove(qasm, qc=None, clean=False, budget_sec=600, engine='auto', pre=None, 
     worker process): with engine='auto' a BDD UNKNOWN is followed by anf (unlimited memory) and by sampling, so the
     result is then usually SAMPLED; engine='bdd' keeps the call within max_mb.
     result['mem'] = dict(max_mb, base_mb, peak_growth_mb)."""
+    if engine == 'algebra':
+        # word-level algebraic prover (qoptct.verify.algebra): the "reference" is a JSON word-level specification
+        from .algebra import aprove
+        r = aprove(qasm, spec if spec is not None else qc, budget_sec=budget_sec)
+        r.setdefault('tried', ['algebra: %s' % r['status']])
+        r.setdefault('total_time', r.get('time', 0.0))
+        r.setdefault('counts', {})
+        return r
     mem = MemGuard(max_mb)
     kw['mem'] = mem
     qasm = os.path.abspath(qasm)
@@ -1221,7 +1231,9 @@ def main(argv=None):
     ap.add_argument('qc')
     ap.add_argument('--clean', action='store_true')
     ap.add_argument('--budget', type=float, default=600)
-    ap.add_argument('--engine', default='auto', choices=['auto', 'bdd', 'anf', 'sample', 'exact2'])
+    ap.add_argument('--engine', default='auto', choices=['auto', 'bdd', 'anf', 'sample', 'exact2', 'algebra'],
+                    help='algebra: word-level algebraic prover; the second argument is then a JSON specification '
+                         '(see qoptct aprove --help)')
     ap.add_argument('--pre', default=None, help="input promise, e.g. 'lt:a:0xFFFF,lt:b:0xFFFF' (register a<N, b<N)")
     ap.add_argument('--max-mb', type=float, default=None,
                     help='memory budget in MB of the BDD engine (growth of the RSS during the proof; default '

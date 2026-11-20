@@ -26,6 +26,9 @@ Install: pip install qoptct  (neural mode --net: pip install "qoptct[net]"). Pyt
       0 PROVED, 1 REFUTED, 2 UNKNOWN, 3 usage or input error (missing file, malformed circuit).
   qoptct kprove CIRCUIT.qasm REF.qc [--clean] [--budget S] [--engine ...] [--max-mb MB] [--json]
       BDD-based exact proof against a classical reference (qoptct.verify.kprove); see `qoptct kprove --help`.
+  qoptct aprove CIRCUIT.qasm SPEC.json [--budget S] [--json]
+      word-level algebraic exact proof of integer arithmetic (multipliers, squarers, modular reduction) against a
+      JSON specification such as "out == x*y" (qoptct.verify.algebra); also `qoptct kprove C.qasm SPEC.json --engine algebra`.
   qoptct estimate --toffoli T --qubits Q [--model all|ge2019|gidney2025|litinski2023] [--json] | --check
       Physical (surface-code) cost from logical counts, formula models calibrated on published papers
       (qoptct.estimate); see `qoptct estimate --help`.
@@ -1365,12 +1368,18 @@ def _main():
     sp.add_parser("kprove", add_help=False,
                   help="exact BDD-based proof for large classical-reference circuits (qoptct.verify.kprove); "
                        "see `qoptct kprove --help`")
+    sp.add_parser("aprove", add_help=False,
+                  help="word-level algebraic exact proof of integer-arithmetic circuits against a JSON spec "
+                       "(qoptct.verify.algebra); see `qoptct aprove --help`")
     sp.add_parser("estimate", add_help=False, help="physical cost (surface code) from logical Toffoli/qubit counts "
                   "(module qoptct.estimate; `qoptct estimate --help`)")
     sp.add_parser("version")
     if sys.argv[1:2] == ["kprove"]:
         from .verify.kprove import main as kprove_main
         sys.exit(kprove_main(sys.argv[2:]))
+    if sys.argv[1:2] == ["aprove"]:
+        from .verify.algebra import main as aprove_main
+        sys.exit(aprove_main(sys.argv[2:]))
     if sys.argv[1:2] == ["estimate"]:
         from .estimate.cli import main_estimate
         sys.exit(main_estimate(sys.argv[2:]))

@@ -70,7 +70,8 @@ import sys
 import threading
 import time
 
-__all__ = ['aprove', 'prove_ops', 'parse_strict', 'spec_mulsq', 'spec_fold', 'main', 'Poly']
+__all__ = ['aprove', 'prove_ops', 'parse_strict', 'spec_mulsq', 'spec_fold', 'ops_to_qasm', 'ops_of_mulsq',
+           'ops_of_andcirc', 'compose_modmul', 'main', 'Poly']
 
 EMPTY = frozenset()
 ONE = frozenset((0,))
@@ -2230,6 +2231,116 @@ def spec_fold(R):
         claims.append('r + %d*(H + thi1 - 1 + g) == L + %d*H' % (p, 1 << n))
     claims.append('r <= %d' % (p - 1))
     return dict(inputs=ins, outputs=outs, claims=claims, garbage=gar, keep=list(range(n, 2 * n)))
+
+
+# ============================================================================ op lists: text, generators, composition
+def ops_to_qasm(N, ops):
+    """OpenQASM 3 text of an op list (AND gadget = AND13), readable by parse_strict and by qoptct.verify.kprove."""
+    L = []
+    nb = 0
+    for o in ops:
+        k = o[0]
+        if k == 'x':
+            L.append('x q[%d];' % o[1])
+        elif k == 'cx':
+            L.append('cx q[%d], q[%d];' % (o[1], o[2]))
+        elif k == 'and':
+            r = dict(a=o[1], b=o[2], t=o[3])
+            for g in AND13:
+                L.append('%s %s;' % (g[0], ', '.join('q[%d]' % r[x] for x in g[1:])))
+        else:
+            t = o[1]
+            L.append('h q[%d];' % t)
+            L.append('c[%d] = measure q[%d];' % (nb, t))
+            body = ' '.join(('cz q[%d], q[%d];' % (c[1], c[2])) if c[0] == 'cz' else ('z q[%d];' % c[1]) for c in o[2])
+            L.append('if (c[%d]) {%s%sx q[%d];}' % (nb, body, ' ' if body else '', t))
+            nb += 1
+    return 'OPENQASM 3.0;\ninclude "stdgates.inc";\nqubit[%d] q;\nbit[%d] c;\n' % (N, max(nb, 1)) + '\n'.join(L) + '\n'
+
+
+def ops_of_mulsq(circ):
+    """op list of a qoptct.crypto.mulsq.MulSqCircuit (same gates as circ.to_qasm())."""
+    out = []
+    for o in circ.ops:
+        if o[0] == 'erase':
+            t, a, b, lin = o[1:]
+            out.append(('erase', t, (('cz', a, b),) + tuple(('z', w) for w in lin)))
+        else:
+            out.append(tuple(o))
+    return circ.num_qubits, out
+
+
+def ops_of_andcirc(C, first=(), wire=None):
+    """op list of a qoptct.crypto.andcirc.Circ; numbering as Circ.qasm(first), or by the function `wire`."""
+    if wire is None:
+        mp = {w: i for i, w in enumerate(first)}
+        for w in range(C.N):
+            if w not in mp:
+                mp[w] = len(mp)
+        wire = mp.__getitem__
+    out = []
+    for o in C.ops:
+        k = o[0]
+        if k == 'x':
+            out.append(('x', wire(o[1])))
+        elif k == 'cx':
+            out.append(('cx', wire(o[1]), wire(o[2])))
+        elif k == 'AND':
+            out.append(('and', wire(o[1]), wire(o[2]), wire(o[3])))
+        elif k == 'MZ':
+            out.append(('erase', wire(o[1]), tuple((c[0],) + tuple(wire(q) for q in c[1:]) for c in o[2])))
+        else:
+            raise ValueError('explicit %s is outside the language of the algebra prover' % k)
+    return C.N, out
+
+
+def compose_modmul(mul, R):
+    """Modular multiplication (or squaring) = MulSqCircuit `mul` (n bits) followed by the FoldReduction `R` (same n)
+    applied to its product register.  -> (N, ops, spec): r == x*y mod p with 0 <= r < p; x, y unchanged; everything
+    else (high half of the product, quotient registers, Karatsuba garbage) is garbage, ancillas end at |0>."""
+    n = R.n
+    if mul.n != n:
+        raise ValueError('multiplier and reduction must have the same width n')
+    N1, ops = ops_of_mulsq(mul)
+    pos = {w: i for i, w in enumerate(R.order)}
+    extra = {}
+
+    def wire(w):
+        i = pos.get(w)
+        if i is not None and i < 2 * n:
+            return mul.out[i]
+        if w not in extra:
+            extra[w] = N1 + len(extra)
+        return extra[w]
+    for w in R.order[2 * n:]:
+        wire(w)
+    _, ops2 = ops_of_andcirc(R.circ, wire=wire)
+    N = N1 + max(0, R.circ.N - 2 * n)
+    lay = R.layout
+    reg = lambda name: [wire(R.order[q]) for q in lay[name]]
+    outs = dict(r=reg('r'), Hq=reg('H'), thi1=reg('thi1'), g=reg('g'))
+    gar = list(mul.garbage) + outs['Hq'] + outs['thi1'] + outs['g']
+    if 'M' in lay:
+        outs['M'] = reg('M')
+        gar += outs['M']
+    prod = 'x*y' if mul.kind == 'mul' else 'x*x'
+    ins = dict(x=list(mul.x), y=list(mul.y)) if mul.kind == 'mul' else dict(x=list(mul.x))
+    p = R.p
+    if R.method == 'solinas':
+        from qoptct.crypto.fold import p256_formula
+        qs = []
+        for i in range(16):
+            d = (1 << (32 * i)) - p256_formula(1 << (32 * i))
+            if d % p or (i < 8 and d):
+                raise ValueError('internal: NIST formula coefficient')
+            if i >= 8:
+                outs['W%d' % i] = outs['Hq'][32 * (i - 8):32 * (i - 7)]
+                qs.append('%d*W%d' % (d // p, i))
+        claims = ['r + %d*(thi1 - 1 + g - 5 + %s) == %s' % (p, ' + '.join(qs), prod)]
+    else:
+        claims = ['r + %d*(Hq + thi1 - 1 + g) == %s' % (p, prod)]
+    claims.append('r <= %d' % (p - 1))
+    return N, ops + ops2, dict(inputs=ins, outputs=outs, claims=claims, garbage=gar)
 
 
 # ============================================================================ command line
