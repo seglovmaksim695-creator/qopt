@@ -942,7 +942,7 @@ class Engine:
             cur = nxt
         if strict:
             aw = self.atom_wire
-            for c in cells[:-1]:
+            for c in cells:
                 w = aw.get(c.cout)
                 if w is not None and self.wires[w] == self.fs(c.cout):
                     return None                     # a carry of this chain is still on its wire: adder in progress
