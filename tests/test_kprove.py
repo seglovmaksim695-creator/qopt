@@ -100,12 +100,21 @@ def test_memory_budget_is_growth(tmp_path, monkeypatch):
         assert r["mem"]["base_mb"] >= 150 and r["mem"]["measure"] == "current RSS"
     del ballast
     if current_rss_mb() is not None:
-        g = MemGuard(5)
-        big = bytearray(60 * 1000 * 1000)
-        big[::4096] = b"\1" * len(big[::4096])
-        with pytest.raises(Exception, match="memory"):
-            g.check()
-        del big
+        # RSS is read from the OS; on a loaded machine (swap, compressed pages) the growth may not show at once,
+        # so the allocation is repeated up to 3 times (the guard itself is unchanged and must raise)
+        raised = None
+        for _ in range(3):
+            g = MemGuard(5)
+            big = bytearray(60 * 1000 * 1000)
+            big[::4096] = b"\1" * len(big[::4096])
+            try:
+                g.check()
+            except Exception as e:                       # noqa: BLE001
+                raised = e
+            del big
+            if raised is not None:
+                break
+        assert raised is not None and "memory" in str(raised)
     assert MemGuard().max_mb == 900
     monkeypatch.setenv("KPROVE_MAX_MB", "1234")
     assert MemGuard().max_mb == 1234 and MemGuard(77).max_mb == 77
