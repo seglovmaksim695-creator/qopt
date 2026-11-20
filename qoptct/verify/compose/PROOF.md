@@ -17,7 +17,7 @@ residual phase and no dependence of the final state on the outcomes.
 The proof has three layers. (1) Sections 1-3: machine proofs performed by the checker on the concrete text, at full
 width, for all inputs at once (ROBDD). (2) Section 4: the properties M1..M6 of Kaliski's algorithm as integer
 arithmetic, used as preconditions in layer 1; they are proved on paper AND by the SMT solver Z3 for every n, p, x
-(`compose.lemmas_z3`, 293 implications), and tested by execution. (3) Short paper arguments that glue the layers:
+(`compose.lemmas_z3`, 297 implications), and tested by execution. (3) Short paper arguments that glue the layers:
 Lemmas 1-3, the Horner argument and the fold lemma of section 5. Section 7 lists exactly what is trusted.
 
 ## 1. Lifting (machine) and the gadget lemmas (machine, exact arithmetic)
@@ -185,9 +185,13 @@ the monomials. Guards against a vacuous proof: Z3 evaluates the text of Inv on a
 p = 5..31, 61 (pow2 as a table): it holds; 10 negative controls (hypotheses alone, slightly stronger claims, the tie
 step without primality) are NOT unsat.
 
+The reductions of section 5 are covered by four more queries (plain integer arithmetic): DIV (one step of the long
+division keeps H = p*q + rem, 0 <= rem < p: the Horner induction), FOLD (the fold lemma, with the positive and
+negative terms summed into Cpos, Cneg), QUOT (one step of the quotient search) and an auxiliary product bound.
+
 What Z3 does not see: that the SMT text of the step equals the contracts of `compose.kal` (it is a transcription:
 compare `lemmas_z3._case` with `Chain.run`; `pstd_test` executes the contracts themselves and checks the same
-assertions), and the reductions of section 5.
+assertions), and that the literal additions modulo 2^len of a folding round compose to X mod 2^len.
 
 ### 4.2 Tests by execution
 
@@ -228,7 +232,8 @@ assumptions hold (not claimed).
 * the strict lifter (`compose.lift`);
 * the ROBDD package `qoptct.verify.bdd` (canonicity: equal functions have equal edges) and `compose.bv`;
 * the walker `compose.kal` (contracts, Z and fact bookkeeping, coverage checks) and Lemmas 2, 3;
-* for M1..M6: Z3 (the 293 queries of `compose.lemmas_z3`), the three axioms of pow2, the primality of p, and the
+* for M1..M6 and the reductions: Z3 (the 297 queries of `compose.lemmas_z3`), the three axioms of pow2, the primality of p, and the
   transcription of the frame step into SMT; the paper proofs of section 4 are then redundant;
-* the paper arguments of section 5 (fold lemma with its numeric side conditions checked by the walker, Horner);
+* the glue arguments: Lemmas 1-3, and in section 5 the composition of the Z3-proved steps (Horner; fold rounds,
+  whose numeric side conditions are checked by the walker with exact integers);
 * NOT trusted: the generator `qoptct.crypto.kaliski`, its docstring, the certificate, the OpenQASM writer.

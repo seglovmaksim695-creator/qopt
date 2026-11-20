@@ -320,7 +320,7 @@ def _z3():
 def test_lemmas_z3_quick():
     """a part of the Z3 proof of M1..M6: the arithmetic lemmas, INIT, FINAL, the invariant on real runs."""
     L = _z3()
-    for only in ('LEMMA', 'INIT', 'FINAL', 'CONCRETE: Inv holds along all runs for p = 13', 'M5: k = 2n-1'):
+    for only in ('LEMMA', 'DIV', 'FOLD', 'QUOT', 'INIT', 'FINAL', 'CONCRETE: Inv holds along all runs for p = 13', 'M5: k = 2n-1'):
         r = L.run(timeout=60, only=only)
         assert r['ok'] and r['total'] >= 1, (only, r)
     # the trace used by the concrete queries is Kaliski's algorithm: it ends with u = 1, v = 0, r = K

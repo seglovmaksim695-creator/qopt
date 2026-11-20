@@ -94,6 +94,40 @@ LEMMAS = [('LEMMA: 2*A2 = Y -> 2*A2*Z = Y*Z',
            '(assert (not (= (* A Z) (* B Z))))\n(check-sat)\n')]
 
 
+# the reductions (PROOF.md section 5), free of pow2: plain integer arithmetic
+REDUCTION = [
+    ('DIV: one step of the long division keeps "H = p*q + rem, 0 <= rem < p" (Horner)',
+     '(declare-const p Int) (declare-const H Int) (declare-const q Int) (declare-const rem Int) (declare-const bit Int)\n'
+     '(assert (>= p 1)) (assert (= H (+ (* p q) rem))) (assert (<= 0 rem)) (assert (< rem p))\n'
+     '(assert (or (= bit 0) (= bit 1)))\n'
+     '(define-fun W () Int (+ (* 2 rem) bit))\n(define-fun f () Bool (< W p))\n'
+     '(define-fun rem2 () Int (ite f W (- W p)))\n'
+     '(assert (not (and (< W (* 2 p)) (<= 0 rem2) (< rem2 p) '
+     '(= (+ (* 2 H) bit) (+ (* p (+ (* 2 q) (ite f 0 1))) rem2)))))\n(check-sat)\n'),
+    ('LEMMA: 0 <= H <= Hmax, C >= 0 -> 0 <= H*C <= Hmax*C',
+     '(declare-const H Int) (declare-const Hmax Int) (declare-const C Int)\n'
+     '(assert (<= 0 H)) (assert (<= H Hmax)) (assert (>= C 0))\n'
+     '(assert (not (and (<= 0 (* H C)) (<= (* H C) (* Hmax C)))))\n(check-sat)\n'),
+    ('FOLD: X = K + L + H*Cpos - H*Cneg is in [0, Bn) and X = H*M + L (mod p)',
+     '(declare-const p Int) (declare-const M Int) (declare-const L Int) (declare-const H Int) (declare-const Hmax Int)\n'
+     '(declare-const Cpos Int) (declare-const Cneg Int) (declare-const K Int) (declare-const q0 Int) (declare-const qK Int)\n'
+     '(assert (<= 0 L)) (assert (< L M)) (assert (<= 0 H)) (assert (<= H Hmax)) (assert (>= Cpos 0)) (assert (>= Cneg 0))\n'
+     '(assert (= (- (- Cpos Cneg) M) (* p q0))) (assert (= K (* p qK))) (assert (>= K (* Hmax Cneg)))\n'
+     '; instances of the lemma above (C = Cpos, C = Cneg) and of y = z -> y*t = z*t (t = H)\n'
+     '(assert (and (<= 0 (* H Cpos)) (<= (* H Cpos) (* Hmax Cpos)) (<= 0 (* H Cneg)) (<= (* H Cneg) (* Hmax Cneg))))\n'
+     '(assert (= (* H (- (- Cpos Cneg) M)) (* H (* p q0))))\n'
+     '(define-fun X () Int (- (+ K L (* H Cpos)) (* H Cneg)))\n'
+     '(assert (not (and (<= 0 X) (< X (+ K M (* Hmax Cpos))) (= (- X (+ (* H M) L)) (* p (+ qK (* H q0)))))))\n'
+     '(check-sat)\n'),
+    ('QUOT: A < Bd, Kq = p*j -> A - [A >= Kq]*Kq is in [0, max(Kq, Bd - Kq)) (or [0, Bd) if Bd <= Kq), same residue',
+     '(declare-const p Int) (declare-const A Int) (declare-const Bd Int) (declare-const Kq Int) (declare-const j Int)\n'
+     '(assert (<= 0 A)) (assert (< A Bd)) (assert (= Kq (* p j))) (assert (> Kq 0))\n'
+     '(define-fun A2 () Int (ite (>= A Kq) (- A Kq) A))\n'
+     '(define-fun Bn () Int (ite (> Bd Kq) (ite (>= Kq (- Bd Kq)) Kq (- Bd Kq)) Bd))\n'
+     '(assert (not (and (<= 0 A2) (< A2 Bn) (= (- A A2) (* p (ite (>= A Kq) j 0))))))\n(check-sat)\n'),
+]
+
+
 def _case(wp, br, ph):
     """-> (case name, head text, list of (goal name, extra text, goal formula))."""
     nb, cb, w, e = CASES_BR[br]
@@ -157,7 +191,7 @@ def _case(wp, br, ph):
 
 def queries():
     """-> list of (name, smt2 text); every text must be unsat."""
-    out = list(LEMMAS)
+    out = list(LEMMAS) + list(REDUCTION)
     out.append(('INIT: Inv(0) for (A, B, R, S) = (p, x, 0, 1)',
                 PRELUDE + '(assert (not (inv 0 false p x 0 1 n n 1 0)))\n(check-sat)\n'))
     out.append(('FINAL: Inv(2n) -> u = 1, v = 0, 0 <= r < 2^(2n), x*r + 2^(2n) = p*c',
