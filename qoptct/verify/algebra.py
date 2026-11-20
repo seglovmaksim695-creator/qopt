@@ -1747,7 +1747,7 @@ class Engine:
             if dl is not None and time.time() > dl:
                 raise Unknown('time budget exceeded during rewriting')
         Q = self.pfacts(Q) if self.facts else Q
-        if fallback and _depth < 4:
+        if _depth < 4:
             # bit-level fallback: a left-over lowest sum bit s = x xor y of a half adder whose carry x*y is a product
             sub = {}
             for v in Q.vars():
@@ -1755,6 +1755,8 @@ class Engine:
                     cell = self.sig_cell[v]
                     k = cell.cout
                     if k is not None and not cell.C and self.kind[k] == KA and self.val_atom(k).d != {(k,): 1}:
+                        if not fallback and not any(len(m) == 2 and m in Q.d for m in self.val_atom(k).d):
+                            continue                # (only where the product x*y is already in the polynomial)
                         try:
                             sub[v] = self.val(cell.X) + self.val(cell.Y) - self.val_atom(k) * 2
                         except Unknown:
@@ -1767,7 +1769,7 @@ class Engine:
                         if v in sub:
                             t = t * sub[v]
                     out.iadd(Poly(t.d, Q.e))
-                return self.reduce(out, assume, _depth + 1, True)
+                return self.reduce(out, assume, _depth + 1, fallback)
         return Q
 
     # ------------------------------------------------------------------ exhaustive evaluation over a small cut
