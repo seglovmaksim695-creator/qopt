@@ -56,6 +56,23 @@ def test_polynomial_identities():
     assert (y ** 3 - y * (x + 1)).reduce_y(x + 1).is_zero() and not (y ** 2 - x).reduce_y(x + 1).is_zero()
 
 
+def test_polynomial_identities_sympy():
+    """the same identities with an independent computer algebra system (optional dependency)."""
+    sp = pytest.importorskip('sympy')
+    a, x, y, xq, yq = sp.symbols('a x y xq yq')
+    b = yq ** 2 - xq ** 3 - a * xq
+    g = x ** 3 + a * x + b
+    dx, dy = x - xq, y - yq
+    Xn = dy ** 2 - (x + xq) * dx ** 2
+    Yn = dy * (xq * dx ** 2 - Xn) - yq * dx ** 3
+    mod = lambda e: sp.rem(sp.expand(e), y ** 2 - g, y)
+    M = 3 * xq ** 2 + a
+    assert mod(Yn ** 2 - Xn ** 3 - a * Xn * dx ** 4 - b * dx ** 6) == 0
+    assert sp.expand(4 * yq ** 2 * g - (M * dx + 2 * yq ** 2) ** 2 - dx ** 2 * (4 * yq ** 2 * x - M ** 2 + 8 * xq * yq ** 2)) == 0
+    assert mod(dy ** 2 - (x + 2 * xq) * dx ** 2 - (M * dx + 2 * yq ** 2) + 2 * yq * y) == 0
+    assert mod(Yn ** 2 - Xn ** 3 - a * Xn * dx ** 4 - b * dx ** 6 + 1) != 0
+
+
 def test_theorem_T_enumeration():
     r = ecmath.exhaustive_T([5, 7, 11], all_D=True)
     assert r['curves'] == 64 and r['cases'] > 4000 and not r['violations']

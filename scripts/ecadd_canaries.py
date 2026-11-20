@@ -302,7 +302,7 @@ def pick_big(hints, L, rnd, only=None):
     plan = []
     want = {'w_pre': 4, 'addc': 3, 'cm_const': 1, 'cm_term': 2, 'fold': 4, 'init': 1, 'cmp': 3, 'swap': 3, 'sub': 3,
             'add': 3, 'last': 1, 'mul': 4, 'sq': 2, 'apply': 5, 'neg': 2, 'mirror': 6, 'w_post': 5, 'sp_const': 1,
-            'sp_term': 1, 'sp_q': 1}
+            'sp_term': 1, 'sp_q': 1, 'lk': 3, 'w_flags': 3, 'w_fix': 4, 'unlk': 3, 'msub': 3, 'madd': 3}
     for lab, cnt in want.items():
         if lab not in bylab or (only and lab not in only):
             continue
@@ -318,7 +318,8 @@ def run_big(qasm, hints_path, curve, only=None, out=None, seed=5):
     cv = E.CURVES[{'secp256k1': 'secp256k1', 'p256': 'P-256'}[curve]]
     p, a, b = cv['p'], cv['a'], cv['b']
     hints = json.load(open(hints_path))
-    Q = tuple(hints['Q'])
+    w = hints.get('w') or 0
+    Q = [tuple(T) for T in hints['table']] if w else tuple(hints['Q'])
     t0 = time.time()
     L = lift(qasm)
     print('lifted %d ops in %.0f s' % (L.n, time.time() - t0), flush=True)
@@ -343,7 +344,10 @@ def run_big(qasm, hints_path, curve, only=None, out=None, seed=5):
             continue
         L.ops[5 * j:5 * j + 10] = m[0]
         t1 = time.time()
-        r = verify_ecadd(None, p, a, b, Q, hints=hints, lifted=L, refute_samples=64, test_samples=64)
+        if w:
+            r = verify_ecadd_window(None, p, a, b, Q, w, hints=hints, lifted=L)
+        else:
+            r = verify_ecadd(None, p, a, b, Q, hints=hints, lifted=L, refute_samples=64, test_samples=64)
         L.ops[5 * j:5 * j + 10] = saved
         rec = dict(curve=curve, label=lab, op=j, kind=kind, status=r['status'], stage=r.get('stage'),
                    detail=str(r.get('detail'))[:200], counterexample=str(r.get('counterexample'))[:120],
