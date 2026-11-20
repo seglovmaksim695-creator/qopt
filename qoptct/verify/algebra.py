@@ -672,7 +672,7 @@ class Engine:
         else:
             S = self.read(c)
             self.unfresh(c)
-        D = self.read(t)
+        D = self.wires[t] if t in self.fresh else self.read(t)     # a fresh AND output stays an AND atom
         self.opi += 1
         if not S:
             return
@@ -1498,23 +1498,32 @@ class Engine:
             for p in quad:
                 R.update(p)
             k = len(R)
-            npairs = k * (k - 1) // 2
-            if J.vanish:
-                for v in J.vanish:
-                    if len(v) == 2 and v <= R:
-                        npairs -= 1
-            if set(order[:k]) != R or len(quad) != npairs:
+            if set(order[:k]) != R:
                 return None
-            (a0, b0), c0 = next(iter(quad.items()))
-            den0 = 2 * lhs[a0] * lhs[b0]
-            for (a, b), q in quad.items():
-                w = 2 * lhs[a] * lhs[b]
-                if len(q) != len(c0):
-                    return None
-                for r, c in q.items():
-                    cc = c0.get(r)
-                    if cc is None or c * den0 != cc * w:
-                        return None
+            # reference pair: the two highest bits; pairs that deviate from A * 2 w_a w_b stay as they are
+            key0 = (order[0], order[1]) if (order[0], order[1]) in quad else (order[1], order[0])
+            c0 = quad.get(key0)
+            if c0 is None:
+                return None
+            den0 = 2 * lhs[key0[0]] * lhs[key0[1]]
+            good = 0
+            Rl = order[:k]
+            for ia in range(k):
+                for ib in range(ia + 1, k):
+                    a, b = Rl[ia], Rl[ib]
+                    q = quad.get((a, b)) or quad.get((b, a)) or {}
+                    w = 2 * lhs[a] * lhs[b]
+                    if len(q) == len(c0) and all(c0.get(r) is not None and c * den0 == c0[r] * w for r, c in q.items()):
+                        good += 1
+                        continue
+                    dq = Poly(dict(q), Q.e)
+                    dq.iadd(_frac(c0, den0, Q.e), -w)
+                    if dq.d:
+                        if extra is None:
+                            extra = Poly()
+                        extra.iadd(dq * Poly({mmul((a,), (b,)): 1}))
+            if 2 * good < k * (k - 1) // 2:
+                return None
             A = _frac(c0, den0, Q.e)
             B = None
             for a in order[:k]:
