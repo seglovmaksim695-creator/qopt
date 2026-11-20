@@ -186,6 +186,10 @@ def load_results(out):
     return rs
 
 
+def _fx(v):
+    return '>x100' if v > 100 else ('<x0.01' if v < 0.01 else f'x{v:.2f}')
+
+
 def _gmean(xs):
     xs = [x for x in xs if x and x > 0]
     return math.exp(sum(math.log(x) for x in xs) / len(xs)) if xs else float("nan")
@@ -263,8 +267,8 @@ def table(args):
         w("| family | circuits | tket vs Qiskit O3 best: 2q, fidelity | best qoptct strategy vs tket: 2q, fidelity |")
         w("|---|---|---|---|")
         for k, f in sorted(tf.items()):
-            w(f"| {k} | {len(f['t2'])} | {(_gmean(f['t2']) - 1) * 100:+.1f}%, x{_gmean(f['tfq']):.2f} | "
-              f"{(_gmean(f['n2']) - 1) * 100:+.1f}%, x{_gmean(f['nf']):.2f} |")
+            w(f"| {k} | {len(f['t2'])} | {(_gmean(f['t2']) - 1) * 100:+.1f}%, {_fx(_gmean(f['tfq']))} | "
+              f"{(_gmean(f['n2']) - 1) * 100:+.1f}%, {_fx(_gmean(f['nf']))} |")
         nt = sum(best_new(r)["metrics"]["fid"] > r["rows"]["tket"]["metrics"]["fid"] for r in tk)
         w("")
         w(f"A qoptct strategy has the higher expected fidelity than tket on {nt} of {len(tk)} circuits.")
