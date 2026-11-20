@@ -5,6 +5,9 @@
     python -m qoptct.dyn bench --backend FakeBoston --families adder,cmp --max-qubits 16 --sim --out res.json
     python -m qoptct.dyn threshold adder 4 --backend FakeBoston
     python -m qoptct.dyn convert in.qasm out.qasm --backend FakeBoston --mode auto
+
+By default every command selects the static (reverse computation) variant. Dynamic variants (M, H) are chosen only
+with --allow-dynamic, which prints a warning (ibm_kingston, 20.11.2026: the model was far too optimistic for them).
 """
 import argparse
 import json
@@ -39,11 +42,12 @@ def cmd_choose(a):
     from . import choose
     M = _model(a)
     r = choose.choose(a.family, a.size, M, seeds=tuple(range(a.seeds)), simulate=a.sim, shots=a.shots,
-                      n_inputs=a.inputs, router=_router(a))
+                      n_inputs=a.inputs, router=_router(a), allow_dynamic=a.allow_dynamic)
     print('model:', json.dumps(r['model']))
     for row in r['rows']:
         print(_fmt(row))
-    print('best by estimate:', r['best'])
+    print('best by estimate:', r['best'] + ('' if a.allow_dynamic or r['best_model'] == r['best'] else
+          '   (static; model prefers %s, not used without --allow-dynamic)' % r['best_model']))
     if a.qasm:
         from qiskit import qasm3
         with open(a.qasm, 'w') as f:
@@ -66,7 +70,8 @@ def cmd_bench(a):
                 continue
             t = time.time()
             r = choose.choose(fam, size, M, seeds=tuple(range(a.seeds)), simulate=a.sim, shots=a.shots,
-                              n_inputs=a.inputs, sim_max_qubits=a.sim_max_qubits, router=_router(a))
+                              n_inputs=a.inputs, sim_max_qubits=a.sim_max_qubits, router=_router(a),
+                              allow_dynamic=a.allow_dynamic)
             for row in r['rows']:
                 row.update(family=fam, size=size, backend=M.name, best=r['best']); rows.append(row)
                 print(_fmt(row), flush=True)
@@ -126,7 +131,8 @@ def cmd_convert(a):
     from qiskit import qasm3
     from . import choose
     qc = qasm3.load(a.inp)
-    out, rep = choose.choose_circuit(qc, _model(a), seeds=tuple(range(a.seeds)), mode=a.mode)
+    out, rep = choose.choose_circuit(qc, _model(a), seeds=tuple(range(a.seeds)), mode=a.mode,
+                                     allow_dynamic=a.allow_dynamic)
     with open(a.out, 'w') as f:
         f.write(qasm3.dumps(out))
     print(json.dumps({k: v for k, v in rep.items() if not k.startswith('stats')}))
@@ -144,6 +150,9 @@ def main(argv=None):
         s.add_argument('--route', type=float, default=0, metavar='SEC',
                        help='also compile the static variants with the qoptct.hw compiler (budget in seconds)')
         s.add_argument('--fast-meas', action='store_true', help='model mid-circuit measurements with measure_2')
+        s.add_argument('--allow-dynamic', action='store_true',
+                       help='allow measurement-based (M) and hybrid (H) variants to be selected; prints a warning '
+                            '(on ibm_kingston the model was far too optimistic for them)')
     s = sub.add_parser('choose'); s.add_argument('family'); s.add_argument('size', type=int); common(s)
     s.add_argument('--sim', action='store_true'); s.add_argument('--shots', type=int, default=300)
     s.add_argument('--inputs', type=int, default=8); s.add_argument('--qasm'); s.set_defaults(fn=cmd_choose)
@@ -164,6 +173,9 @@ def main(argv=None):
     s = sub.add_parser('convert'); s.add_argument('inp'); s.add_argument('out'); common(s)
     s.add_argument('--mode', default='auto', choices=['auto', 'rule', 'unitary', 'keep']); s.set_defaults(fn=cmd_convert)
     a = p.parse_args(argv)
+    if getattr(a, 'allow_dynamic', False):                      # warnings are filtered above: print it
+        from .choose import DYN_WARNING
+        print('WARNING:', DYN_WARNING, file=sys.stderr)
     a.fn(a)
 
 

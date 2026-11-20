@@ -35,9 +35,10 @@
   and a streamed `write_qasm`.
 * **`qoptct dyn`** (`qoptct.dyn`, extra `qoptct[dyn]`, experimental): measurement-based erasure versus ordinary reverse
   computation on noisy hardware. The default is the ordinary (static) uncomputation; another form is taken only when its
-  estimated fidelity is strictly better (hybrid for "lookup + add" blocks). With `--route SEC` the static variant is
-  compiled by `qoptct.hw`. On today's chips dynamic erasure does not pay in our models. Model estimates, not measured on
-  hardware.
+  estimated fidelity is strictly better. With `--route SEC` the static variant is
+  compiled by `qoptct.hw`. After the real-chip check (below) the dynamic variants (measurement M, hybrid H) are **not
+  selected automatically**: `DynErasePass`, `choose_circuit` and `qoptct dyn choose` return the static form unless
+  `allow_dynamic=True` / `--allow-dynamic` is given (a warning is printed).
 * Subcommands `qoptct compose` and `qoptct dyn`; `PROOF.md` is shipped in the package.
 * **`qoptct.crypto.ecpoint`** (`ec_point_add`, `ec_point_add_window`; core in `qoptct/crypto/_ecp/`): exact complete addition
   of a classical point to a quantum point on a prime-field curve (also P = O, P = Q, P = -Q, P = -2Q), windowed form.
@@ -66,7 +67,20 @@
   Regression tests on the audit examples: `tests/data/audit`. Some correct circuits with a virtual carry may now end in
   UNKNOWN.
 
+### Real-chip check (ibm_kingston, 20.11.2026, one job per experiment)
+Protocol and results: `docs/real_runs/2026-11-20_ibm_kingston/`.
+* `qoptct hw` against Qiskit O3 on 4 small circuits: +5 % (QFT-5) and +4 % (adder) in Hellinger fidelity with fewer
+  two-qubit gates (25 against 30; 27 against 43); QAOA-5 and the Heisenberg chain within noise; mean ratio 1.02.
+  By the pre-set criterion: a draw, not a success. The model gains ("-14...-41 % two-qubit gates, x1.2-1.85 expected
+  fidelity") are model figures; the measured gain in fidelity on small circuits was 0-5 %.
+* Measurement-based erasure lost to ordinary uncomputation on every block checked; the hybrid lost too (lookadd2x2:
+  0.682 against 0.772). It won only in the model (adder2: predicted 0.918, measured 0.525 for measurement erasure).
+* The calibration estimate stays optimistic (adder: 0.877 estimated, 0.781 measured).
+
 ### Changed
+* `qoptct dyn`: measurement-based and hybrid erasure are chosen only with an explicit option (`allow_dynamic=True`,
+  `--allow-dynamic`); by default the static form is always returned. The `choose()` result gets `best_model`
+  (best of all variants by the model) next to `best` (best static).
 * `qoptct hw`: all fidelity figures are model estimates from calibration snapshots; the portfolio keeps the Qiskit
   candidate where the qoptct one is worse.
 

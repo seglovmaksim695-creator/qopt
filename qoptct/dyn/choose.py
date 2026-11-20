@@ -11,14 +11,28 @@
     site_rule(model, n_live)               the analytic per-site rule (no compilation)
     DynErasePass / choose_circuit          the same decision for a Qiskit circuit that already contains
                                            `h t; measure t -> c; if (c) {cz a, b; x t}` erasures
+
+Dynamic variants (M, Md, H) are selected only with allow_dynamic=True (CLI: --allow-dynamic); see DYN_WARNING.
 """
 import math
+import warnings
 
 from qiskit import QuantumCircuit
 from qiskit.converters import circuit_to_dag, dag_to_circuit
 from qiskit.transpiler.basepasses import TransformationPass
 
 from . import gen, hw, lower
+
+
+DYN_WARNING = ('qoptct.dyn: allow_dynamic is on. On a real chip (ibm_kingston, 20.11.2026, one job per experiment) the '
+               'model strongly underestimated the cost of a mid-circuit measurement (adder2: predicted 0.918, '
+               'measured 0.525) and the hybrid lost to ordinary uncomputation (0.682 against 0.772). Dynamic '
+               'variants (M, H) are not selected by default; the model estimate for them is optimistic.')
+
+
+def warn_dynamic():
+    """the warning printed whenever dynamic (measurement-based) variants may be selected."""
+    warnings.warn(DYN_WARNING, UserWarning, stacklevel=3)
 
 
 def resolve_backend(name):
@@ -64,10 +78,15 @@ def evaluate(block, erase, via_target, model, seeds=(0, 1, 2, 3), layouts=(), ro
 
 
 def choose(family, size, model, seeds=(0, 1, 2, 3), simulate=False, shots=300, n_inputs=8, sim_max_qubits=24,
-           check=True, router=None, **kw):
+           check=True, router=None, allow_dynamic=False, **kw):
     """-> dict(best=label, rows=[...], comps={label: comp}, blocks={label: block}). Each row: label, qubits, 2q
-    counts, duration, estimate (+ simulated pZ / pX). router: see hw.compile_circuit (e.g. hw.hw_router())."""
+    counts, duration, estimate (+ simulated pZ / pX). router: see hw.compile_circuit (e.g. hw.hw_router()).
+    Default: 'best' is the best STATIC variant (U or T); the dynamic ones (M, Md, H) are still compiled and listed in
+    the table ('best_model' is the best of all by the model estimate), but are 'best' only with allow_dynamic=True
+    (which warns: on ibm_kingston the model was too optimistic for them)."""
     from . import sim
+    if allow_dynamic:
+        warn_dynamic()
     rows = []; comps = {}; blocks = {}; layout_u = None
     for label, B, erase, vt in variants(family, size, **kw):
         if check:
@@ -84,8 +103,11 @@ def choose(family, size, model, seeds=(0, 1, 2, 3), simulate=False, shots=300, n
             r = sim.run_tests(B, comp, model, shots=shots, n_inputs=n_inputs)
             row.update({k: r[k] for k in ('pZ', 'pZ_err', 'pX', 'pX_err', 'methodZ', 'methodX') if k in r})
         rows.append(row); comps[label] = comp; blocks[label] = B
-    best = max(rows, key=lambda r: (round(r['f_est'], 9), r['variant'] in ('U', 'T')))['variant']   # ties: static
-    return dict(best=best, rows=rows, comps=comps, blocks=blocks, model=model.summary())
+    def top(rs):
+        return max(rs, key=lambda r: (round(r['f_est'], 9), r['variant'] in ('U', 'T')))['variant']   # ties: static
+    best_model = top(rows)
+    best = best_model if allow_dynamic else top([r for r in rows if r['variant'] in ('U', 'T')])
+    return dict(best=best, best_model=best_model, allow_dynamic=allow_dynamic, rows=rows, comps=comps, blocks=blocks, model=model.summary())
 
 
 def rescore(result, model):
@@ -210,16 +232,20 @@ def to_unitary_erasure(qc, hybrid=False):
     return out, len(sites)
 
 
-def choose_circuit(qc, model, seeds=(0, 1, 2, 3), mode='auto'):
+def choose_circuit(qc, model, seeds=(0, 1, 2, 3), mode='auto', allow_dynamic=False):
     """qc: a logical circuit with measurement-based erasures. mode: 'auto' (compile both forms, keep the one with
     the higher estimated fidelity), 'rule' (analytic site rule, no compilation), 'unitary', 'keep'.
+    Without allow_dynamic=True the result is always the static (reverse-computation) form, whatever the mode says
+    ('keep' is the exception: the caller asks explicitly to leave the circuit as it is). With allow_dynamic=True the
+    measurement-based and hybrid forms may be chosen by the model, with a warning (see DYN_WARNING).
     -> (circuit, report)."""
     alt, n = to_unitary_erasure(qc)
-    rep = dict(sites=n, mode=mode)
+    rep = dict(sites=n, mode=mode, allow_dynamic=allow_dynamic)
     if n == 0 or mode == 'keep':
         rep['chosen'] = 'keep'; return qc, rep
-    if mode == 'unitary':
+    if mode == 'unitary' or not allow_dynamic:
         rep['chosen'] = 'unitary'; return alt, rep
+    warn_dynamic()
     if mode == 'rule':
         r = site_rule(model, qc.num_qubits); rep.update(rule=r)
         rep['chosen'] = 'keep' if r['better'] == 'meas' else 'unitary'
@@ -245,11 +271,14 @@ class DynErasePass(TransformationPass):
     """Hardware-aware choice between measurement-based erasure and reverse computation.
 
     Run it on the logical circuit (before layout). ``backend`` (or ``model``: a dyn.hw.HwModel) supplies the
-    calibration. Without a backend the default is the ordinary (static) uncomputation. mode='auto' compiles the forms
-    (static, hybrid, measurement-based) and takes another form than the static one only when its estimate is better; 'rule' uses the analytic site rule;
-    'unitary' always converts. ``self.last`` holds the report."""
+    calibration. By default (allow_dynamic=False) the result is always the ordinary (static) uncomputation: on a real
+    chip (ibm_kingston, 20.11.2026) the model was far too optimistic for measurement-based erasure and the hybrid
+    lost to the static form. With allow_dynamic=True (a warning is issued) mode='auto' compiles the forms (static,
+    hybrid, measurement-based) and takes another form than the static one only when its estimate is better; 'rule'
+    uses the analytic site rule; 'unitary' always converts. ``self.last`` holds the report."""
 
-    def __init__(self, backend=None, model=None, mode='auto', seeds=(0, 1, 2, 3), ff_latency=600e-9):
+    def __init__(self, backend=None, model=None, mode='auto', seeds=(0, 1, 2, 3), ff_latency=600e-9,
+                 allow_dynamic=False):
         super().__init__()
         if model is None and backend is not None:
             model = hw.HwModel.from_backend(backend, ff_latency=ff_latency)
@@ -258,8 +287,9 @@ class DynErasePass(TransformationPass):
         if model is None and mode == 'rule':
             raise ValueError('mode=%r needs a backend or a model' % mode)
         self.model = model; self.mode = mode; self.seeds = tuple(seeds); self.last = None
+        self.allow_dynamic = allow_dynamic
 
     def run(self, dag):
         qc = dag_to_circuit(dag)
-        out, self.last = choose_circuit(qc, self.model, self.seeds, self.mode)
+        out, self.last = choose_circuit(qc, self.model, self.seeds, self.mode, self.allow_dynamic)
         return dag if out is qc else circuit_to_dag(out)

@@ -1,8 +1,8 @@
 # `qoptct hw` — compiling for noisy IBM-like hardware
 
 Status: experimental (branch `f-route`). Everything below was measured on *fake* backends, i.e. stored calibration
-snapshots of real IBM devices (`qiskit_ibm_runtime.fake_provider`), and with a noisy simulation. Nothing was run on
-real hardware for this document.
+snapshots of real IBM devices (`qiskit_ibm_runtime.fake_provider`), and with a noisy simulation. The only real-chip
+measurement is the small check in the section "Check on a real chip" below.
 
 ## What it does
 
@@ -73,11 +73,31 @@ floating-point tolerance. Limit: 26 used qubits (state vector); above that the s
 ## Results
 
 fake_torino, 76 circuits (arithmetic, QFT, Grover, Hamiltonian simulation, QAOA, ...), 5-30 qubits; geometric means of the
-best qoptct strategy against Qiskit O3 best of 10 seeds: arithmetic -34% two-qubit gates / x1.47 expected fidelity,
+best qoptct strategy against Qiskit O3 best of 10 seeds (model figures from the chip model; on a real chip the measured
+gain in fidelity was 0-5 % on small circuits, see below): arithmetic -34% two-qubit gates / x1.47 expected fidelity,
 Toffoli-level arithmetic -41% / x1.85, Hamiltonian simulation -19% / x1.48, QAOA -24% / x1.38, QFT -16% / x1.38,
 Grover -14% / x1.25, misc -29% / x1.09. Higher expected fidelity than Qiskit on 70 of 75 verified circuits, than tket
 on 72 of 74. Aer noisy simulation (29 small circuits): Hellinger fidelity x1.14, agrees with the model's ranking on 27.
 fake_sherbrooke (ECR), 31 smallest circuits: same picture. Full tables: `REPORT.md` and `runs/*_table.md` (not in git).
+
+## Check on a real chip (ibm_kingston, 20.11.2026, one job per experiment)
+
+Two experiments, one Sampler job each, success criteria written down before submission
+(`docs/real_runs/2026-11-20_ibm_kingston/`). Statistical error: about 0.01 (2000 shots) and 0.025 (400 shots).
+
+* **`qoptct hw` against Qiskit O3 (best of 5 seeds), 4 small circuits.** qoptct is better by +5 % (QFT-5) and +4 %
+  (adder) in Hellinger fidelity, with fewer two-qubit gates (25 against 30; 27 against 43); on QAOA-5 and the Heisenberg
+  chain the difference is within noise. Mean ratio 1.02. By the pre-set criterion (success needed at least 3 of 4
+  circuits and a mean ratio of at least 1.05) the result is a **draw**, not a success.
+* **Measurement-based erasure on the chip loses to ordinary uncomputation on every block checked** (adder2, adder3,
+  cmp2); the hybrid lost as well (lookadd2x2, X test: 0.682 against 0.772). The model badly underestimates the cost of a
+  measurement in the middle of a circuit (adder2: predicted 0.918, measured 0.525). The hybrid won only in the model.
+  Therefore dynamic variants are no longer chosen by the model: only by the explicit option `--allow-dynamic`
+  (`allow_dynamic=True`), which prints a warning.
+* **The calibration estimate stays optimistic** (adder after `qoptct hw`: estimate 0.877, measured 0.781). Use it to rank
+  variants, not as an absolute number.
+
+Protocol, results and the plan of the real run: `docs/real_runs/2026-11-20_ibm_kingston/`.
 
 ## Limitations
 
@@ -86,8 +106,9 @@ fake_sherbrooke (ECR), 31 smallest circuits: same picture. Full tables: `REPORT.
 * Unitary circuits only: no mid-circuit measurement, no classical control (a `ValueError` is raised). Final
   measurements are removed and must be put back on `final_map` (`--measure` does it).
 * The expected fidelity is a model. The noisy simulation agrees with it in ranking, but both use the same
-  calibration snapshot and neither contains crosstalk, leakage or calibration drift. A hardware run is needed to
-  confirm the gains (`scripts/hw_real_run.py`, not run).
+  calibration snapshot and neither contains crosstalk, leakage or calibration drift. A first hardware run
+  (`scripts/hw_real_run.py`, ibm_kingston, 20.11.2026, 4 small circuits) gave a draw by the pre-set criterion: +4-5 % on
+  two circuits, within noise on two; larger circuits were not run on the chip.
 * Verification stops at 26 used qubits; larger results are returned with status "not verified" (exit code 2).
 * The router is pure Python. Its search time is a fixed budget (default 20 s per logical variant), while Qiskit
   level 3 needs 0.05–1 s per seed for these circuits; with equal wall time Qiskit could run more seeds than the 10

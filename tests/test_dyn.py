@@ -120,7 +120,8 @@ def test_choose_on_fake_backend_and_ideal_measurement():
     r = choose.choose('adder', 3, M, seeds=(0, 1), simulate=True, shots=60, n_inputs=4)
     labels = {row['variant'] for row in r['rows']}
     assert labels == {'U', 'M', 'Md', 'T'}
-    assert r['best'] in ('U', 'T')                       # today's calibration: the static circuit wins
+    assert r['best'] in ('U', 'T')                       # default: always static, whatever the model says
+    assert r['allow_dynamic'] is False
     for row in r['rows']:
         assert 0 < row['f_est'] < 1 and abs(row['pZ'] - row['f_est']) < 0.15
     # a hypothetical device with an instant, perfect measurement chain: the dynamic variant is at least as good
@@ -129,12 +130,50 @@ def test_choose_on_fake_backend_and_ideal_measurement():
     assert max(sc['M'], sc['Md']) > sc['U']
 
 
+def test_choose_dynamic_only_on_explicit_option_and_warns():
+    pytest.importorskip('qiskit_ibm_runtime')
+    M = hw.HwModel.from_backend(choose.resolve_backend('FakeBoston'))
+    # a hypothetical instant, perfect measurement: the model prefers a dynamic variant, but by default it is not taken
+    M2 = M.scaled(ro=0.0, meas_dur=1e-3, ff_latency=1e-10)
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter('error')                   # the default path must not warn
+        r = choose.choose('adder', 3, M2, seeds=(0,))
+    assert r['best'] in ('U', 'T') and r['allow_dynamic'] is False
+    assert r['best_model'] in ('M', 'Md', 'H')           # the model alone would pick a dynamic variant
+    with pytest.warns(UserWarning, match='ibm_kingston'):
+        r2 = choose.choose('adder', 3, M2, seeds=(0,), allow_dynamic=True)
+    assert r2['best'] == r2['best_model'] in ('M', 'Md', 'H')
+
+
 def test_cli_choose_smoke(capsys):
     pytest.importorskip('qiskit_ibm_runtime')
     from qoptct.dyn.__main__ import main
     main(['choose', 'cmp', '1', '--backend', 'FakeBoston', '--seeds', '1'])
     out = capsys.readouterr().out
     assert 'best by estimate:' in out and 'cmp1' in out
+    assert 'best by estimate: U' in out or 'best by estimate: T' in out      # static by default
+    capsys.readouterr()
+    main(['choose', 'cmp', '1', '--backend', 'FakeBoston', '--seeds', '1', '--allow-dynamic'])
+    assert 'ibm_kingston' in capsys.readouterr().err      # the warning is printed
+
+
+def test_pass_default_is_static_and_dynamic_needs_option():
+    from qiskit.transpiler import PassManager
+    B = gen.comparator(2)
+    qc = lower.to_qiskit(B.C, 'meas', via_target=False)
+    M = _toy_model(nq=8)
+    p = choose.DynErasePass(model=M, mode='auto')
+    out = PassManager([p]).run(qc)
+    assert p.last['chosen'] == 'unitary' and 'if_else' not in out.count_ops()
+    p = choose.DynErasePass(model=M, mode='rule')
+    PassManager([p]).run(qc)
+    assert p.last['chosen'] == 'unitary'
+    fast = _toy_model(nq=8, ro=0.0, meas=1e-9, ff=1e-10)
+    with pytest.warns(UserWarning, match='ibm_kingston'):
+        p = choose.DynErasePass(model=fast, mode='rule', allow_dynamic=True)
+        PassManager([p]).run(qc)
+    assert p.last['chosen'] == 'keep'                    # explicit option: the measurement form may be kept
 
 
 def test_breakeven_monotone_in_coherence():
@@ -164,7 +203,12 @@ def test_pass_hybrid_on_lookup_add():
     M = hw.HwModel.from_backend(choose.resolve_backend('FakeBoston'))
     B = [b for b in gen.build('lookadd', 3) if b.variant == 'out-meas'][0]
     qc = lower.to_qiskit(B.C, 'meas', False)
-    out, rep = choose.choose_circuit(qc, M, seeds=(0,))
+    out0, rep0 = choose.choose_circuit(qc, M, seeds=(0,))             # default: static, no model involved
+    assert rep0['chosen'] == 'unitary' and 'if_else' not in out0.count_ops() and 'f_est_hybrid' not in rep0
+    out1, rep1 = choose.choose_circuit(qc, M.scaled(ro=0.0, meas_dur=1e-3, ff_latency=1e-10), seeds=(0,), mode='auto')
+    assert rep1['chosen'] == 'unitary'                                # even where the model would favour measurement
+    with pytest.warns(UserWarning, match='ibm_kingston'):
+        out, rep = choose.choose_circuit(qc, M, seeds=(0,), allow_dynamic=True)
     assert rep['sites'] > 0 and 'f_est_hybrid' in rep
     f = {'keep': rep['f_est_meas'], 'unitary': rep['f_est_unitary'], 'hybrid': rep['f_est_hybrid']}
     assert f[rep['chosen']] == max(f.values())

@@ -9,6 +9,13 @@ ignores crosstalk and coherent errors, so it ranks circuits; it does not predict
 Check against 8 real IBM jobs (ibm_fez, ibm_marrakesh): the error was understated by a factor of about 1.6; the
 ranking of variants was right for 93.7 % of the distinguishable pairs (Fez 100 %, Marrakesh 76.4 %, only 6 tasks).
 Use it for a preliminary choice between variants, not for absolute fidelity numbers. No correction factor is applied.
+
+Check on a real chip (ibm_kingston, 20.11.2026, one job, 4 small circuits, 2000 shots): the estimate stays optimistic
+(adder after qoptct hw: estimated 0.877, measured 0.781). qoptct hw against Qiskit O3: +5 % (QFT-5) and +4 % (adder)
+in Hellinger fidelity with fewer two-qubit gates (25 against 30; 27 against 43), within noise on QAOA-5 and the
+Heisenberg chain; mean ratio 1.02, a draw by the pre-set criterion. The model figures "-14...-41 % two-qubit gates,
+x1.2-1.85 expected fidelity" are from the chip model; the measured gain in fidelity on small circuits was 0-5 %.
+See docs/real_runs/2026-11-20_ibm_kingston/.
 """
 import math
 

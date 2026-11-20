@@ -264,21 +264,41 @@ short real run and refuses to submit without `--submit` and `QOPT_ALLOW_REAL=1`.
 
 The portfolio keeps the Qiskit candidate wherever the qoptct one is worse by the metric, so the result is never worse
 than Qiskit level 3 by that metric. All fidelity numbers are model estimates from the chip model and a calibration
-snapshot (fake backends); they were not measured on real hardware. Check against real runs: on 8 real IBM jobs (ibm_fez, ibm_marrakesh; 286 result rows, one calibration snapshot per chip) the calibration estimate understated the error by a factor of about 1.6 (1.6-1.7 for the models compared). As a tool for a preliminary choice between variants it is useful: it ordered 93.7 % of the distinguishable pairs correctly (100 % on Fez, 76.4 % on Marrakesh, where only 6 tasks were available). The absolute fidelity numbers must not be trusted. A fitted correction factor exists but did not pass the accuracy criterion and is not built into the code.
+snapshot (fake backends); only the small real-chip check below was measured. Check against real runs: on 8 real IBM jobs (ibm_fez, ibm_marrakesh; 286 result rows, one calibration snapshot per chip) the calibration estimate understated the error by a factor of about 1.6 (1.6-1.7 for the models compared). As a tool for a preliminary choice between variants it is useful: it ordered 93.7 % of the distinguishable pairs correctly (100 % on Fez, 76.4 % on Marrakesh, where only 6 tasks were available). The absolute fidelity numbers must not be trusted. A fitted correction factor exists but did not pass the accuracy criterion and is not built into the code.
 
 Results on 76 algorithmic circuits (4-30 qubits), methods, the comparison with Qiskit level 3 and tket, the noisy
-simulation and the limitations are in [`docs/HW.md`](docs/HW.md).
+simulation and the limitations are in [`docs/HW.md`](docs/HW.md). Those gains are model figures (fake backends); on a
+real chip the measured gain in fidelity was 0-5 % on small circuits:
+
+### Check on a real chip (ibm_kingston, 20.11.2026, one job per experiment)
+
+Two experiments, one Sampler job each, success criteria written down before submission
+(`docs/real_runs/2026-11-20_ibm_kingston/`). Statistical error: about 0.01 (2000 shots) and 0.025 (400 shots).
+
+* **`qoptct hw` against Qiskit O3 (best of 5 seeds), 4 small circuits.** qoptct is better by +5 % (QFT-5) and +4 %
+  (adder) in Hellinger fidelity, with fewer two-qubit gates (25 against 30; 27 against 43); on QAOA-5 and the Heisenberg
+  chain the difference is within noise. Mean ratio 1.02. By the pre-set criterion (success needed at least 3 of 4
+  circuits and a mean ratio of at least 1.05) the result is a **draw**, not a success.
+* **Measurement-based erasure on the chip loses to ordinary uncomputation on every block checked** (adder2, adder3,
+  cmp2); the hybrid lost as well (lookadd2x2, X test: 0.682 against 0.772). The model badly underestimates the cost of a
+  measurement in the middle of a circuit (adder2: predicted 0.918, measured 0.525). The hybrid won only in the model.
+  Therefore dynamic variants are no longer chosen by the model: only by the explicit option `--allow-dynamic`
+  (`allow_dynamic=True`), which prints a warning.
+* **The calibration estimate stays optimistic** (adder after `qoptct hw`: estimate 0.877, measured 0.781). Use it to rank
+  variants, not as an absolute number.
 
 ## Measurement-based erasure on hardware: `qoptct dyn` (new in 0.6, experimental)
 
 On IBM chips the default is the ordinary (static) uncomputation of a logical AND (reverse gadget, 3 CX); measurement-based
-erasure with a classical correction is not used unless a pass finds that it wins. `qoptct.dyn` compiles the variants of
-an arithmetic block (static, hybrid, measurement-based) for a backend calibration and keeps the one with the best
-expected fidelity; a hybrid (single ANDs reversed, multi-term erasures measured) is chosen for "lookup + add" blocks when
-it is better. In our models dynamic erasure does not pay on today's chips (a measurement with feed-forward idles every live qubit for
-about 2.8 µs). `qoptct dyn choose adder 4 --backend FakeBoston`; with `--route SEC` the static variant is compiled by
-`qoptct.hw`. Extra: `pip install "qoptct[dyn]"`. Numbers are from chip models and calibration snapshots, not measured
-on real hardware.
+erasure with a classical correction (M) and the hybrid (H: single ANDs reversed, multi-term erasures measured) are **not
+selected automatically**: `DynErasePass`, `choose_circuit` and `qoptct dyn choose` always return the static form unless
+`--allow-dynamic` (`allow_dynamic=True`) is given, which prints a warning. `qoptct.dyn` compiles the variants of an
+arithmetic block for a backend calibration and lists their model estimates. Reason: on a real chip (ibm_kingston,
+20.11.2026) the model strongly underestimated the cost of a measurement in the middle of a circuit (adder2: predicted
+0.918, measured 0.525), and the hybrid lost to ordinary uncomputation (0.682 against 0.772); it won only in the model
+(a measurement with feed-forward idles every live qubit for about 2.8 µs). `qoptct dyn choose adder 4 --backend
+FakeBoston`; with `--route SEC` the static variant is compiled by `qoptct.hw`. Extra: `pip install "qoptct[dyn]"`.
+Model figures come from chip models and calibration snapshots; the real-chip check is described under `qoptct hw`.
 
 
 ## Cost models — read this before comparing numbers
