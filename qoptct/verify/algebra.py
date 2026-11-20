@@ -942,6 +942,11 @@ class Engine:
             cur = nxt
         if strict:
             aw = self.atom_wire
+            if len(bottom.C) == 1:
+                (c0,) = bottom.C
+                w = aw.get(c0)
+                if w is not None and self.wires[w] == self.fs(c0):
+                    return None                     # the carry-in is a carry still on its wire: adder in progress
             for c in cells:
                 w = aw.get(c.cout)
                 if w is not None and self.wires[w] == self.fs(c.cout):
