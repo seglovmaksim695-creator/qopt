@@ -157,3 +157,15 @@ def test_cli_sensitivity_smoke(capsys):
     main(['sensitivity', '--backend', 'FakeBoston', '--seeds', '1', '--blocks', 'cmp:2', '--coh', '1', '--g2', '1',
           '--ro', '0.1'])
     assert 'break-even' in capsys.readouterr().out
+
+
+def test_pass_hybrid_on_lookup_add():
+    pytest.importorskip('qiskit_ibm_runtime')
+    M = hw.HwModel.from_backend(choose.resolve_backend('FakeBoston'))
+    B = [b for b in gen.build('lookadd', 3) if b.variant == 'out-meas'][0]
+    qc = lower.to_qiskit(B.C, 'meas', False)
+    out, rep = choose.choose_circuit(qc, M, seeds=(0,))
+    assert rep['sites'] > 0 and 'f_est_hybrid' in rep
+    f = {'keep': rep['f_est_meas'], 'unitary': rep['f_est_unitary'], 'hybrid': rep['f_est_hybrid']}
+    assert f[rep['chosen']] == max(f.values())
+    assert out.num_qubits == qc.num_qubits

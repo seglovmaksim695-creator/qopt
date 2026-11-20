@@ -184,11 +184,13 @@ def _match_sites(qc):
     return sites
 
 
-def to_unitary_erasure(qc):
+def to_unitary_erasure(qc, hybrid=False):
     """replace every matched measurement-based erasure by reverse computation. Precondition (the same one that
     makes the measurement-based erasure itself correct): the erased qubit holds exactly the XOR of the fix-up
     monomials (t = a AND b for a single cz(a, b)). -> (new circuit, number of sites replaced)."""
     sites = _match_sites(qc)
+    if hybrid:                                              # only the single-AND sites; multi-term ones stay
+        sites = [x for x in sites if len(x[4]) == 1 and len(x[4][0]) == 2]
     if not sites:
         return qc, 0
     drop = {}; at = {}
@@ -227,9 +229,14 @@ def choose_circuit(qc, model, seeds=(0, 1, 2, 3), mode='auto'):
     b = hw.compile_circuit(alt, model, seeds=seeds, live_virtual=live, initial_layouts=[])
     rep.update(f_est_meas=a['sched'].fid, f_est_unitary=b['sched'].fid, stats_meas=a['sched'].stats(),
                stats_unitary=b['sched'].stats())
-    if a['sched'].fid >= b['sched'].fid:
-        rep['chosen'] = 'keep'; return qc, rep
-    rep['chosen'] = 'unitary'; return alt, rep
+    cands = {'keep': (a['sched'].fid, qc), 'unitary': (b['sched'].fid, alt)}
+    hyb, nh = to_unitary_erasure(qc, hybrid=True)           # hybrid: single ANDs reversed, multi-term erasures measured
+    if 0 < nh < n:
+        c = hw.compile_circuit(hyb, model, seeds=seeds, live_virtual=live, initial_layouts=[])
+        rep['f_est_hybrid'] = c['sched'].fid; cands['hybrid'] = (c['sched'].fid, hyb)
+    best = max(cands, key=lambda k: cands[k][0])             # ties: keep, then unitary, then hybrid (dict order)
+    rep['chosen'] = best
+    return cands[best][1], rep
 
 
 class DynErasePass(TransformationPass):
