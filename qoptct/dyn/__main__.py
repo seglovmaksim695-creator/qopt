@@ -16,7 +16,7 @@ import warnings
 def _fmt(row):
     s = '%-14s %-3s q=%-2d 2Q=%-4d(+%-3d cond) meas=%-2d depth=%-4d T=%7.2f us  F_est=%.3f' % (
         row['circuit'], row['variant'], row['qubits'], row['n2q'], row['n2q_cond'], row['n_meas'], row['depth'],
-        row['duration_us'], row['f_est'])
+        row['duration_us'], row['f_est']) + (' [hw]' if row.get('routed') else '')
     if 'pZ' in row:
         s += '  sim: Z=%.3f+-%.3f' % (row['pZ'], row['pZ_err'])
     if 'pX' in row:
@@ -29,11 +29,16 @@ def _model(a):
     return hw.HwModel.from_backend(choose.resolve_backend(a.backend), ff_latency=a.ff_ns * 1e-9, fast_meas=a.fast_meas)
 
 
+def _router(a):
+    from . import hw
+    return hw.hw_router(seconds=a.route) if getattr(a, 'route', 0) else None
+
+
 def cmd_choose(a):
     from . import choose
     M = _model(a)
     r = choose.choose(a.family, a.size, M, seeds=tuple(range(a.seeds)), simulate=a.sim, shots=a.shots,
-                      n_inputs=a.inputs)
+                      n_inputs=a.inputs, router=_router(a))
     print('model:', json.dumps(r['model']))
     for row in r['rows']:
         print(_fmt(row))
@@ -55,7 +60,7 @@ def cmd_bench(a):
                 continue
             t = time.time()
             r = choose.choose(fam, size, M, seeds=tuple(range(a.seeds)), simulate=a.sim, shots=a.shots,
-                              n_inputs=a.inputs, sim_max_qubits=a.sim_max_qubits)
+                              n_inputs=a.inputs, sim_max_qubits=a.sim_max_qubits, router=_router(a))
             for row in r['rows']:
                 row.update(family=fam, size=size, backend=M.name, best=r['best']); rows.append(row)
                 print(_fmt(row), flush=True)
@@ -105,6 +110,8 @@ def main(argv=None):
     def common(s):
         s.add_argument('--backend', default='FakeBoston'); s.add_argument('--ff-ns', type=float, default=600.0)
         s.add_argument('--seeds', type=int, default=4)
+        s.add_argument('--route', type=float, default=0, metavar='SEC',
+                       help='also compile the static variants with the qoptct.hw compiler (budget in seconds)')
         s.add_argument('--fast-meas', action='store_true', help='model mid-circuit measurements with measure_2')
     s = sub.add_parser('choose'); s.add_argument('family'); s.add_argument('size', type=int); common(s)
     s.add_argument('--sim', action='store_true'); s.add_argument('--shots', type=int, default=300)

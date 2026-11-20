@@ -55,17 +55,18 @@ def variants(family, size, **kw):
     return out
 
 
-def evaluate(block, erase, via_target, model, seeds=(0, 1, 2, 3), layouts=()):
+def evaluate(block, erase, via_target, model, seeds=(0, 1, 2, 3), layouts=(), router=None):
     qc = lower.to_qiskit(block.C, erase, via_target)
-    comp = hw.compile_circuit(qc, model, seeds=seeds, live_virtual=block.data, initial_layouts=layouts)
+    comp = hw.compile_circuit(qc, model, seeds=seeds, live_virtual=block.data, initial_layouts=layouts,
+                              router=router)
     comp['logical'] = qc
     return comp
 
 
 def choose(family, size, model, seeds=(0, 1, 2, 3), simulate=False, shots=300, n_inputs=8, sim_max_qubits=24,
-           check=True, **kw):
+           check=True, router=None, **kw):
     """-> dict(best=label, rows=[...], comps={label: comp}, blocks={label: block}). Each row: label, qubits, 2q
-    counts, duration, estimate (+ simulated pZ / pX)."""
+    counts, duration, estimate (+ simulated pZ / pX). router: see hw.compile_circuit (e.g. hw.hw_router())."""
     from . import sim
     rows = []; comps = {}; blocks = {}; layout_u = None
     for label, B, erase, vt in variants(family, size, **kw):
@@ -73,12 +74,12 @@ def choose(family, size, model, seeds=(0, 1, 2, 3), simulate=False, shots=300, n
             ok, why, nin, exh = B.check(4096)
             if not ok:
                 raise RuntimeError('%s %s: classical check failed: %s' % (B.name, label, why))
-        comp = evaluate(B, erase, vt, model, seeds, [layout_u] if layout_u is not None else [])
+        comp = evaluate(B, erase, vt, model, seeds, [layout_u] if layout_u is not None else [], router)
         if label == 'U':
             layout_u = comp['layout_init']
         S = comp['sched']; st = S.stats()
         row = dict(circuit=B.name, variant=label, logical_qubits=B.n, sites=lower.n_sites(B.C),
-                   depth=comp['tqc'].depth(), **st)
+                   depth=comp['tqc'].depth(), routed=comp['routed'], **st)
         if simulate and len(S.qubits) <= sim_max_qubits:
             r = sim.run_tests(B, comp, model, shots=shots, n_inputs=n_inputs)
             row.update({k: r[k] for k in ('pZ', 'pZ_err', 'pX', 'pX_err', 'methodZ', 'methodX') if k in r})

@@ -217,9 +217,12 @@ def schedule(tqc, model, live=(), final=()):
     return S
 
 
-def compile_circuit(qc, model, seeds=(0, 1, 2, 3), level=3, live_virtual=(), initial_layouts=()):
+def compile_circuit(qc, model, seeds=(0, 1, 2, 3), level=3, live_virtual=(), initial_layouts=(), router=None):
     """transpile qc for model.backend with several seeds (and optional initial layouts), schedule each, return the
-    best by estimated fidelity: dict(tqc, sched, layout_init, layout_final, seed)."""
+    best by estimated fidelity: dict(tqc, sched, layout_init, layout_final, seed).
+    router: optional external compiler for STATIC circuits, router(qc, backend, seeds) -> (circuit on physical
+    qubits, init_map, final_map) (see hw_router: the qoptct.hw compiler); its result competes with the transpile
+    candidates under the same estimate. Circuits with measurements / if_else never go to the router."""
     from qiskit import transpile
     best = None
     trials = [(s, None) for s in seeds] + [(seeds[0], L) for L in initial_layouts if L is not None]
@@ -239,6 +242,27 @@ def compile_circuit(qc, model, seeds=(0, 1, 2, 3), level=3, live_virtual=(), ini
             err = e; continue
         if best is None or S.logF > best['sched'].logF:
             best = dict(tqc=tqc, sched=S, layout_init=init, layout_final=fin, seed=seed, from_layout=L is not None)
+    if router is not None and not any(i.operation.name in ('measure', 'if_else', 'reset') for i in qc.data):
+        try:
+            tqc, init, fin = router(qc, model.backend, tuple(seeds))
+            S = schedule(tqc, model, live=[init[w] for w in live_virtual], final=[fin[w] for w in live_virtual])
+            if best is None or S.logF > best['sched'].logF:
+                best = dict(tqc=tqc, sched=S, layout_init=list(init), layout_final=list(fin), seed=None,
+                            from_layout=False, routed=True)
+        except Exception as e:                              # the external router is optional
+            err = e
     if best is None:
         raise RuntimeError('compilation failed: %s' % err)
+    best.setdefault('routed', False)
     return best
+
+
+def hw_router(seconds=20.0, **kw):
+    """adapter to the hardware compiler of qoptct.hw (branch f-route): -> router for compile_circuit.
+    compile_hw handles unitary circuits only, which is exactly the static variant."""
+    def route(qc, backend, seeds):
+        from qoptct.hw import compile_hw
+        r = compile_hw(qc, backend, seeds=seeds, seconds=seconds, **kw)
+        n = qc.num_qubits
+        return r.circuit, [r.init_map[i] for i in range(n)], [r.final_map[i] for i in range(n)]
+    return route
