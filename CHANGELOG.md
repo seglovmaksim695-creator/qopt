@@ -17,6 +17,14 @@
   Limits: not a general equivalence checker (carry-chain arithmetic only; anything else ends in UNKNOWN or ERROR);
   some correct circuits are not proved (Karatsuba on very narrow or odd-width leaves, `square(256, 3, legacy=True)`);
   garbage registers are only shown to be classical functions of the input.
+* **`qoptct.hw`** and the subcommand **`qoptct hw --backend fake_torino IN.qasm [-o OUT.qasm] [--report R.json]`**
+  (experimental; extra `qoptct[hw]`): compilation for noisy IBM-like devices (heavy-hex, CZ/ECR + RZ, SX, X) with
+  calibration data. A verified portfolio of Qiskit level 3, qoptct logical CX/T optimization + Qiskit, and a new
+  router (commutation-aware dependencies, exact SWAP-absorption cost from the KAK decomposition, floating blocks,
+  mirror rule, line layouts, calibration-aware relocation). Metrics: two-qubit gates, depth, expected fidelity from
+  calibration; equivalence check with qubit maps (`qoptct.hw.check.verify_compiled`); benchmark driver
+  `python -m qoptct.hw.bench`, tket comparison `scripts/hw_tket.py`, real-run preparation `scripts/hw_real_run.py`
+  (never submits by itself). Results and limitations: `docs/HW.md`.
 * **`qoptct.verify.kprove`** and the subcommand **`qoptct kprove CIRCUIT.qasm REF.qc [--clean] [--budget S]
   [--engine auto|bdd|anf|sample|exact2] [--pre lt:REG:N] [--max-mb MB] [--json]`**: exact verification of large Clifford+T circuits with
   mid-circuit measurements and classically controlled corrections against a *classical* (reversible, possibly with

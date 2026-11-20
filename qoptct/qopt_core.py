@@ -32,6 +32,9 @@ Install: pip install qoptct  (neural mode --net: pip install "qoptct[net]"). Pyt
   qoptct estimate --toffoli T --qubits Q [--model all|ge2019|gidney2025|litinski2023] [--json] | --check
       Physical (surface-code) cost from logical counts, formula models calibrated on published papers
       (qoptct.estimate); see `qoptct estimate --help`.
+  qoptct hw --backend fake_torino IN.qasm [-o OUT.qasm] [--report R.json]
+      Compile for a noisy IBM-like device (heavy-hex, CZ/ECR): routing, two-qubit-gate and depth reduction with
+      calibration data, verified against the input (qoptct.hw; needs qiskit-ibm-runtime); see `qoptct hw --help`.
   qoptct version
 """
 import re
@@ -1373,7 +1376,12 @@ def _main():
                        "(qoptct.verify.algebra); see `qoptct aprove --help`")
     sp.add_parser("estimate", add_help=False, help="physical cost (surface code) from logical Toffoli/qubit counts "
                   "(module qoptct.estimate; `qoptct estimate --help`)")
+    sp.add_parser("hw", add_help=False, help="compile for a noisy IBM-like device: routing + two-qubit / depth "
+                  "reduction with calibration data (module qoptct.hw; `qoptct hw --help`)")
     sp.add_parser("version")
+    if sys.argv[1:2] == ["hw"]:
+        from .hw.cli import main_hw
+        sys.exit(main_hw(sys.argv[2:]))
     if sys.argv[1:2] == ["kprove"]:
         from .verify.kprove import main as kprove_main
         sys.exit(kprove_main(sys.argv[2:]))
