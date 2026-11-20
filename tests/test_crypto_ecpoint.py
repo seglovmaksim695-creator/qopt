@@ -182,13 +182,17 @@ def make_table(cv, w, rng):
 
 
 @pytest.mark.parametrize('n,w', [(5, 2), (5, 3), (6, 2), (6, 3), (6, 4), (7, 3), (8, 4)])
-@pytest.mark.parametrize('mult', ['sd', 'school'])
+@pytest.mark.parametrize('mult', ['new', 'sd', 'school'])
 def test_window_all_pairs(n, w, mult):
     cv = curves(n, k=1, minpts=4 * (1 << w) + 8)[0]
     rng = random.Random(n * 100 + w)
     p, a, b = cv['p'], cv['a'], cv['b']
     T = make_table(cv, w, rng)
-    C = E.ec_point_add_window(p, a, b, T, w, karatsuba_levels=1, multiplier=mult)
+    if mult == 'new':
+        C = E.ec_point_add_window(p, a, b, T, w, karatsuba_levels=1)
+        assert not C.legacy and len(C.hints()['marks']) > 50
+    else:
+        C = E.ec_point_add_window(p, a, b, T, w, karatsuba_levels=1, multiplier=mult, legacy=True)
     pairs = [(P, k) for P in [None] + cv['points'] for k in range(1 << w)]
     assert C.check([P for P, _ in pairs], [k for _, k in pairs]) == 0
     cnt = C.counts()

@@ -41,7 +41,8 @@ from .kal import Chain
 from .lift import Lifted, K_X, K_CX, K_AND, K_ERASE
 from .walker import Walker, ProofFailure, register_fact, inter as _inter
 
-__all__ = ['ECChain', 'ec_add', 'ec_neg', 'ec_mul', 'on_curve', 'lift_circuit', 'curve_points']
+__all__ = ['ECChain', 'ECWinChain', 'ec_add', 'ec_neg', 'ec_mul', 'on_curve', 'lift_circuit', 'curve_points',
+           'verify_ecadd', 'verify_ecadd_window', 'wec_test', 'wec_test_window', 'ecadd_hints', 'check_parameters']
 
 
 # ------------------------------------------------------------------ classical reference (independent of the generator)
@@ -138,9 +139,55 @@ def _onehot0(al, val, key):
     return r
 
 
+_MUXC = [None]
+
+
+def _muxbits(al, kb, consts, nbits):
+    """(bits, eqk): bit i of consts[k] selected by the index bits kb, and the indicators [k == j]. One-entry cache
+    that holds the algebra object itself (never its id: ids are reused)."""
+    c = _MUXC[0]
+    if c is not None and c[0] is al and c[1] == kb and c[2] is consts and c[3] == nbits:
+        return c[4], c[5]
+    eqk = [_eqc(al, kb, j) for j in range(len(consts))]
+    bits = []
+    for i in range(nbits):
+        r = al.F
+        for j, cst in enumerate(consts):
+            if (cst >> i) & 1:
+                r = al.or_(r, eqk[j])
+        bits.append(r)
+    _MUXC[0] = (al, kb, consts, nbits, bits, eqk)
+    return bits, eqk
+
+
+def _tab(al, val, key):
+    kb = tuple(val(w) for w in key[1])
+    bits, _ = _muxbits(al, kb, key[3], len(key[2]))
+    r = al.T
+    for w, m in zip(key[2], bits):
+        r = al.and_(r, al.not_(al.xor(val(w), m)))
+    return r
+
+
+def _ecdomw(al, val, key):
+    x = [val(w) for w in key[1]]
+    y = [val(w) for w in key[2]]
+    kb = [val(w) for w in key[3]]
+    r = al.T
+    for j, consts in enumerate(key[5]):
+        r = al.and_(r, al.or_(al.not_(_eqc(al, kb, j)), _ecdom_bit(al, x, y, key[4], consts)))
+    return r
+
+
 # ('ecdom', X, Y, p, ((xq, yq), (x2q, y2q)));   ('onehot0', flags): at most one flag is set
+# window: ('tab', K, R, consts): the wires R hold consts[k];  ('ecdomw', X, Y, K, p, per-k consts): ecdom for T[k];
+#         ('xor3', (g, f1, f2)): g = f1 xor f2
 register_fact('ecdom', lambda key: key[1] + key[2], _ecdom)
 register_fact('onehot0', lambda key: key[1], _onehot0)
+register_fact('tab', lambda key: key[1] + key[2], _tab)
+register_fact('ecdomw', lambda key: key[1] + key[2] + key[3], _ecdomw)
+register_fact('xor3', lambda key: key[1],
+              lambda al, val, key: al.not_(al.xor(val(key[1][0]), al.xor(val(key[1][1]), val(key[1][2])))))
 
 
 def lift_circuit(C):
@@ -273,15 +320,26 @@ class ECChain(Chain):
         return self.pos if self.prove else None
 
     def seg(self, label, k, pos, order, spec, subst=()):
-        if self._written is not None:
-            wr = self._written
+        """Walker.seg, plus: (i) the wires with a post are recorded while an apply part is walked (frame condition
+        of the mirror lemma); (ii) a fact about wires WITHOUT a post survives the segment: the segment proof shows
+        that every touched wire without a post ends with its entry value (under the precondition, which holds on
+        the real runs), so a predicate over such wires that was true at the entry is true at the exit."""
+        from .walker import fact_wires
+        wr = self._written
+        posted = [None]
 
-            def spec2(al, val, spec=spec):
-                r = spec(al, val)
+        def spec2(al, val, spec=spec):
+            r = spec(al, val)
+            posted[0] = set(r[0])
+            if wr is not None:
                 wr.update(r[0])
-                return r
-            return Walker.seg(self, label, k, pos, order, spec2, subst)
-        return Walker.seg(self, label, k, pos, order, spec, subst)
+            return r
+        before = set(self.facts) if self.prove else None
+        Walker.seg(self, label, k, pos, order, spec2, subst)
+        if before is not None and posted[0] is not None:
+            for key in before - self.facts:
+                if posted[0].isdisjoint(fact_wires(key)):
+                    self.facts.add(key)
 
     def assume_fact(self, key, name):
         """a named mathematical assumption given as a fact."""
@@ -480,10 +538,24 @@ class ECChain(Chain):
             return {R[i]: res[i] for i in range(n)}, [], [lt], [lt], []
         self.seg('addc', None, pos, list(R), spec)
 
-    def _madd(self, P, R):
-        """R <- R + P mod p (the apply part ends with the mark 'apply')."""
+    def _msub(self, A, R):
+        """R <- R - A mod p (mark 'msub'; window variant: A is a looked-up register)."""
         n, p = self.n, self.p
-        pos, _ = self.mark('apply')
+        pos, _ = self.mark('msub')
+        ltA, ltR = ('lt', tuple(A), p), ('lt', tuple(R), p)
+
+        def spec(al, val):
+            a = [val(w) for w in A]
+            r = [val(w) for w in R]
+            d, bor = bv.sub(al, r, a)
+            dp, _ = bv.add(al, d, bv.const(al, p, n))
+            return {R[i]: al.ite(bor, dp[i], d[i]) for i in range(n)}, [], [ltA, ltR], [ltA, ltR], []
+        self.seg('msub', None, pos, _inter(A, R), spec)
+
+    def _madd(self, P, R, label='apply'):
+        """R <- R + P mod p (the apply part ends with the mark 'apply'; window variant: mark 'madd')."""
+        n, p = self.n, self.p
+        pos, _ = self.mark(label)
         ltP, ltR = ('lt', tuple(P), p), ('lt', tuple(R), p)
 
         def spec(al, val):
@@ -722,6 +794,200 @@ class ECChain(Chain):
         self.finish(())
         if self.prove:
             dirty = set(range(self.nq)) - self.Z - set(X) - set(Y)
+            need(not dirty, 'ancilla wires are not proved to end at |0> (%d wires, e.g. %s)'
+                 % (len(dirty), sorted(dirty)[:4]))
+        return self
+
+
+# ====================================================================== window variant: (P, k) -> (P + T[k], k)
+WFIELDS = ('xq', 'yq', 'ymq', 'x3q', 'x2q', 'y2q', 'ym2q', 'xdq', 'ydq')
+
+
+class ECWinChain(ECChain):
+    """the walk of the windowed addition (qoptct.crypto.ecpoint.ec_point_add_window, default construction): wires
+    0..n-1 x, n..2n-1 y, 2n..2n+w-1 the index k; Q = table[k] is looked up into nine registers (xq, yq, -yq, 3xq,
+    x(2Q), y(2Q), -y(2Q), x(D+Q), y(D+Q)). Same chain as ECChain with: the lookup / unlookup segments (ROBDD over
+    k), the wrapper contracts with k-dependent constants (the looked-up registers are substituted by their table
+    values: fact 'tab'), register subtractions / additions instead of constant additions. Assumptions as ECChain,
+    for every k."""
+
+    def __init__(self, p, a, b, table, w, D, hints, lifted=None, inputs=None, progress=None, budget=900.0):
+        self.p, self.a, self.b = p, a, b
+        self.n = n = p.bit_length()
+        self.red = 'none'
+        self.w = w
+        self.table = [(int(T[0]), int(T[1])) for T in table]
+        self.D = (int(D[0]), int(D[1]))
+        self.budget = budget
+        self._written = None
+        self.alg = []
+        self.nmirror = 0
+        if len(self.table) != (1 << w) or w < 1:
+            raise ProofFailure('the table must have 2^w entries')
+        X, Y, K = list(range(n)), list(range(n, 2 * n)), list(range(2 * n, 2 * n + w))
+        init = None
+        if lifted is None:
+            inputs = list(inputs)
+            init = {}
+            for j, (P, k) in enumerate(inputs):
+                x, y = (0, 0) if P is None else P
+                v = x | (y << n) | (k << (2 * n))
+                for i in range(2 * n + w):
+                    if (v >> i) & 1:
+                        init[i] = init.get(i, 0) | (1 << j)
+        Walker.__init__(self, hints, X + Y + K, lifted=lifted, init=init, labels=inputs, progress=progress)
+        self.X, self.Y, self.K = X, Y, K
+        self.tabs = []
+        for Q in self.table:
+            Q2 = ec_add(Q, Q, p, a)
+            if Q2 is None:
+                raise ProofFailure('2Q = O for a table point')
+            DQ = ec_add(self.D, Q, p, a)
+            if DQ is None:
+                raise ProofFailure('D + Q = O for a table point')
+            mQ, m2Q = ec_neg(Q, p), ec_neg(Q2, p)
+            self.tabs.append(dict(Q=Q, Q2=Q2, mQ=mQ, m2Q=m2Q, DQ=DQ, E=[None, Q, mQ, m2Q], img=[Q, Q2, None, mQ],
+                                  vals=dict(xq=Q[0], yq=Q[1], ymq=mQ[1], x3q=3 * Q[0] % p, x2q=Q2[0], y2q=Q2[1],
+                                            ym2q=m2Q[1], xdq=DQ[0], ydq=DQ[1])))
+
+    def run(self):
+        n, p, w = self.n, self.p, self.w
+        need = self.need
+        X, Y, K, D, tabs = self.X, self.Y, self.K, self.D, self.tabs
+        NK = 1 << w
+        code = lambda P: (0, 0) if P is None else P
+        bit = lambda al, v, i: al.T if (v >> i) & 1 else al.F
+        dom = ('ecdomw', tuple(X), tuple(Y), tuple(K), p, tuple((t['Q'], t['Q2']) for t in tabs))
+        self.assume_fact(dom, 'D-input')
+        ltX, ltY = ('lt', tuple(X), p), ('lt', tuple(Y), p)
+        # ---- lookup of the nine fields of T[k]
+        pos, info = self.mark('lk')
+        R = {f: self.fresh_list(info.get(f)) for f in WFIELDS}
+        need(all(len(R[f]) == n for f in WFIELDS), 'certificate: bad lookup registers')
+        Rall = [x for f in WFIELDS for x in R[f]]
+        consts = tuple(sum(t['vals'][f] << (n * i) for i, f in enumerate(WFIELDS)) for t in tabs)
+        tab = ('tab', tuple(K), tuple(Rall), consts)
+        NR = len(Rall)
+
+        def mux(al, val):
+            return _muxbits(al, tuple(val(k) for k in K), consts, NR)[0]
+
+        def spec(al, val):
+            m = mux(al, val)
+            return {Rall[i]: m[i] for i in range(NR)}, [], [], [tab], []
+        self.seg('lk', None, pos, K + Rall, spec)
+        # the looked-up registers as functions of k (parametrised precondition: fact tab)
+        sb = [(Rall[i], (lambda al, val, i=i: mux(al, val)[i]), None, tab,
+               (lambda al, val, i=i: al.not_(al.xor(val(Rall[i]), mux(al, val)[i])))) for i in range(NR)]
+        ltR = [('lt', tuple(R[f]), p) for f in WFIELDS]
+
+        def spec(al, val):
+            return {}, [], [tab], [tab] + ltR, []
+        self.seg('tab', None, self._here(), K + Rall, spec, sb)
+
+        def kpred(al, val, x, y, what):
+            """OR over k of [k == j] and (x, y) == code(what(tabs[j]))."""
+            eqk = _muxbits(al, tuple(val(k) for k in K), consts, NR)[1]
+            r = al.F
+            for j in range(NK):
+                cx_, cy_ = code(what(tabs[j]))
+                r = al.or_(r, al.and_(eqk[j], al.and_(_eqc(al, x, cx_), _eqc(al, y, cy_))))
+            return r
+
+        def kbits(al, val, what, i):
+            """(bit i of x, bit i of y) of code(what(tabs[k]))."""
+            eqk = _muxbits(al, tuple(val(k) for k in K), consts, NR)[1]
+            bx = by = al.F
+            for j in range(NK):
+                cx_, cy_ = code(what(tabs[j]))
+                if (cx_ >> i) & 1:
+                    bx = al.or_(bx, eqk[j])
+                if (cy_ >> i) & 1:
+                    by = al.or_(by, eqk[j])
+            return bx, by
+        # ---- wrapper, part 1
+        pos, info = self.mark('w_pre')
+        F = [self.fresh(info.get(k)) for k in ('fO', 'fQ', 'fmQ', 'fm2Q')]
+        gq = self.fresh(info.get('gq'))
+        oh, gqf = ('onehot0', tuple(F)), ('xor3', (gq, F[1], F[2]))
+
+        def spec(al, val):
+            x = [val(v) for v in X]
+            y = [val(v) for v in Y]
+            ind = [kpred(al, val, x, y, (lambda t, j=j: t['E'][j])) for j in range(4)]
+            anyf = al.F
+            for f in ind:
+                anyf = al.or_(anyf, f)
+            posts = {F[j]: ind[j] for j in range(4)}
+            posts[gq] = al.xor(ind[1], ind[2])
+            for i in range(n):
+                posts[X[i]] = al.ite(anyf, bit(al, D[0], i), x[i])
+                posts[Y[i]] = al.ite(anyf, bit(al, D[1], i), y[i])
+            return posts, [], [dom, tab], [ltX, ltY, oh, gqf], []
+        self.seg('w_pre', None, pos, K + Rall + _inter(X, Y) + F + [gq], spec, sb)
+        # ---- the generic addition with the looked-up Q
+        self._msub(R['xq'], X)
+        self._msub(R['yq'], Y)
+        pos, info = self.mark('lam')
+        Lr = self.fresh_list(info.get('Lr'))
+        need(len(Lr) == n, 'certificate: bad lambda register')
+        self._cau(lambda: self._div(Y, X), lambda P: self._xor(P, Lr, True))
+        self._cau(lambda: self._pmul(Lr, X), lambda P: self._madd(P, Y))
+        self._cau(lambda: self._pmul(Lr, Lr), lambda P: (self._neg(X), self._madd(P, X)))
+        self._msub(R['x3q'], X)
+        self._cau(lambda: self._pmul(Lr, X), lambda P: self._madd(P, Y))
+        self._neg(X)
+        self._cau(lambda: self._div(Y, X), lambda P: self._xor(P, Lr, False))
+        self._neg(X)
+        self._madd(R['xq'], X, 'madd')
+        self._madd(R['ymq'], Y, 'madd')
+        self.disown(Lr)
+        # ---- wrapper, part 2
+        pos, _ = self.mark('w_post')
+        cpk = dom[5]
+
+        def spec(al, val):
+            x = [val(v) for v in X]
+            y = [val(v) for v in Y]
+            f = [val(v) for v in F]
+            eqk = _muxbits(al, tuple(val(k) for k in K), consts, NR)[1]
+            anyf = al.F
+            for t in f:
+                anyf = al.or_(anyf, t)
+            a1 = al.or_(al.not_(anyf), kpred(al, val, x, y, lambda t: t['DQ']))
+            good = al.T
+            eqO = al.and_(_eqc(al, x, 0), _eqc(al, y, 0))
+            for j in range(NK):
+                t = tabs[j]
+                bad = eqO
+                for P in (t['Q'], t['mQ'], t['Q2']):
+                    bad = al.or_(bad, al.and_(_eqc(al, x, P[0]), _eqc(al, y, P[1])))
+                ok = al.and_(_ecdom_bit(al, x, y, p, cpk[j]), al.not_(bad))
+                good = al.and_(good, al.or_(al.not_(eqk[j]), ok))
+            a2 = al.or_(anyf, good)
+            posts = {v: al.F for v in F}
+            posts[gq] = al.F
+            for i in range(n):
+                vx, vy = x[i], y[i]
+                for j in range(4):
+                    bx, by = kbits(al, val, (lambda t, j=j: t['img'][j]), i)
+                    vx = al.ite(f[j], bx, vx)
+                    vy = al.ite(f[j], by, vy)
+                posts[X[i]] = vx
+                posts[Y[i]] = vy
+            return posts, [('G3-flagged-result', a1), ('G4-generic-result', a2)], [oh, gqf, tab], [ltX, ltY, tab], []
+        self.seg('w_post', None, pos, K + Rall + F + [gq] + _inter(X, Y), spec, sb)
+        self.disown(F + [gq])
+        # ---- unlookup
+        pos, _ = self.mark('unlk')
+
+        def spec(al, val):
+            return {Rall[i]: al.F for i in range(NR)}, [], [tab], [], []
+        self.seg('unlk', None, pos, K + Rall, spec, sb)
+        self.disown(Rall)
+        self.finish(())
+        if self.prove:
+            dirty = set(range(self.nq)) - self.Z - set(X) - set(Y) - set(K)
             need(not dirty, 'ancilla wires are not proved to end at |0> (%d wires, e.g. %s)'
                  % (len(dirty), sorted(dirty)[:4]))
         return self
@@ -979,3 +1245,182 @@ def verify_ecadd(qasm, p, a, b, Q, hints=None, lifted=None, refute_samples=64, t
                               'tested by wec_test) and the Kaliski lemmas M1..M6 (Z3, PROOF.md sections 4-5)',
                 detail='every segment of the circuit is machine-proved against its contract at full width: ROBDD '
                        'segments, algebra sub-goals (products, fold reductions), mirror segments.' + note)
+
+
+# ---------------------------------------------------------------------- window variant: drivers
+def check_window_parameters(p, a, b, table, w, D):
+    """the side conditions of Theorem T for every table entry. -> None or the text of the violated one."""
+    if not isinstance(w, int) or isinstance(w, bool) or not 1 <= w <= 8 or len(table) != (1 << w):
+        return 'the table must have 2^w entries, 1 <= w <= 8'
+    for k, T in enumerate(table):
+        bad = check_parameters(p, a, b, T, D)
+        if bad:
+            return 'table entry %d: %s' % (k, bad)
+    return None
+
+
+def sample_window_inputs(p, a, b, table, D, count, seed=1):
+    """inputs (P, k): all pairs if p is small; else for every k the exceptional points of T[k], D, D + T[k] and
+    their negatives, and random pairs."""
+    NK = len(table)
+    if p <= 600:
+        return [(P, k) for k in range(NK) for P in [None] + curve_points(p, a, b)]
+    rnd = random.Random(seed)
+    out = []
+    for k, Q in enumerate(table):
+        Q2 = ec_add(Q, Q, p, a)
+        DQ = ec_add(D, Q, p, a)
+        out += [(P, k) for P in (None, Q, ec_neg(Q, p), Q2, ec_neg(Q2, p), D, ec_neg(DQ, p))]
+    while len(out) < count:
+        k = rnd.randrange(NK)
+        out.append((ec_mul(rnd.getrandbits(p.bit_length() + 8) + 5, table[rnd.randrange(NK)], p, a), k))
+    return out
+
+
+def ecadd_window_hints(p, a, b, table, w, karatsuba_levels=3, D=None):
+    from ...crypto import ecpoint
+    return ecpoint.ec_point_add_window(p, a, b, [tuple(T) for T in table], w, karatsuba_levels=karatsuba_levels,
+                                       D=D).hints()
+
+
+def _circuit_run_window(L, n, w, inputs, p, a, table):
+    from .walker import simulate_flat
+    init = {}
+    for j, (P, k) in enumerate(inputs):
+        x, y = (0, 0) if P is None else P
+        v = x | (y << n) | (k << (2 * n))
+        for i in range(2 * n + w):
+            if (v >> i) & 1:
+                init[i] = init.get(i, 0) | (1 << j)
+    v, bad = simulate_flat(L, init, len(inputs))
+    if bad is not None:
+        j = (bad[2] & -bad[2]).bit_length() - 1
+        return dict(input=inputs[j], reason='op %d: %s' % (bad[0], bad[1]))
+    for q in range(2 * n + w, L.nq):
+        if v[q]:
+            j = (v[q] & -v[q]).bit_length() - 1
+            return dict(input=inputs[j], reason='wire %d is not returned to zero' % q)
+    for j, (P, k) in enumerate(inputs):
+        got = sum(((v[i] >> j) & 1) << i for i in range(2 * n + w))
+        R = ec_add(P, table[k], p, a)
+        x, y = (0, 0) if R is None else R
+        if got != (x | (y << n) | (k << (2 * n))):
+            return dict(input=(P, k), reason='wrong result on the output wires')
+    return None
+
+
+def wec_test_window(p, a, b, table, w, hints=None, inputs=None, count=160, lifted=None, karatsuba_levels=3):
+    """wec_test for the windowed addition: the word-level program on the inputs (P, k)."""
+    table = [tuple(T) for T in table]
+    if hints is None:
+        hints = ecadd_window_hints(p, a, b, table, w, karatsuba_levels)
+    D = tuple(hints['D'])
+    if inputs is None:
+        inputs = sample_window_inputs(p, a, b, table, D, count)
+    inputs = list(inputs)
+    n = p.bit_length()
+    viol = []
+    try:
+        ch = ECWinChain(p, a, b, table, w, D, hints, inputs=inputs).run()
+        viol = list(ch.viol)
+        gx, gy, gk = ch._get(ch.X), ch._get(ch.Y), ch._get(ch.K)
+        io = set(ch.X) | set(ch.Y) | set(ch.K)
+        for j, (P, k) in enumerate(inputs):
+            R = ec_add(P, table[k], p, a)
+            if (gx[j], gy[j], gk[j]) != ((0, 0) if R is None else R) + (k,) and len(viol) < 20:
+                viol.append(dict(segment='final', what='result (%d, %d, k=%d)' % (gx[j], gy[j], gk[j]), x=(P, k)))
+        for q, m in ch.store.items():
+            if m and q not in io and len(viol) < 20:
+                viol.append(dict(segment='final', what='wire %d is not 0' % q, x=inputs[(m & -m).bit_length() - 1]))
+    except ProofFailure as e:
+        viol.append(dict(segment='chain', what=str(e), x=None))
+    res = dict(ok=not viol, inputs=len(inputs), violations=viol[:20])
+    if lifted is not None:
+        cex = _circuit_run_window(lifted, n, w, inputs, p, a, table)
+        res['circuit_agrees'] = cex is None
+        if cex is not None:
+            res['circuit_counterexample'] = cex
+        res['ok'] = res['ok'] and cex is None
+    return res
+
+
+def verify_ecadd_window(qasm, p, a, b, table, w, hints=None, lifted=None, refute_samples=160, test_samples=160,
+                        progress=None, karatsuba_levels=3, budget=900.0):
+    """As verify_ecadd, for the windowed addition (P, k) -> (P + table[k], k) of ec_point_add_window (default
+    construction): wires 0..n-1 x, n..2n-1 y, 2n..2n+w-1 the index k; for EVERY point P of the curve and O and EVERY
+    k in [0, 2^w). Every table entry must satisfy the conditions of Theorem T with the certificate's D (order > 4,
+    D safe for every entry): checked."""
+    import time
+    from . import primality, check_gadget_lemmas, lift, LiftError
+    t0 = time.time()
+    n = p.bit_length() if isinstance(p, int) else 0
+    res = dict(status='UNKNOWN', p=p, a=a, b=b, w=w, n=n, stage='input')
+
+    def done(**kw):
+        res.update(kw)
+        res['time'] = round(time.time() - t0, 2)
+        return res
+    try:
+        table = [(int(T[0]), int(T[1])) for T in table]
+    except (TypeError, IndexError, ValueError):
+        return done(status='ERROR', detail='parameters: bad table')
+    if hints is None:
+        try:
+            hints = ecadd_window_hints(p, a, b, table, w, karatsuba_levels)
+        except (ValueError, TypeError) as e:
+            return done(status='ERROR', detail='parameters: %s' % e)
+    D = hints.get('D')
+    bad = check_window_parameters(p, a, b, table, w, D)
+    if bad:
+        return done(status='ERROR', detail='parameters: ' + bad)
+    D = tuple(D)
+    pv, phow = primality(p)
+    res['p_primality'] = '%s: %s' % (pv, phow)
+    res['D'] = list(D)
+    res['stage'] = 'gadgets'
+    try:
+        check_gadget_lemmas()
+    except AssertionError as e:
+        return done(detail='gadget lemma failed: %r' % (e,))
+    res['stage'] = 'lift'
+    try:
+        L = lifted if lifted is not None else lift(qasm)
+    except LiftError as e:
+        return done(detail='not a composition of the AND / ERASE gadgets: %s' % e)
+    res.update(ops=L.n, qubits=L.nq, measurements=L.nmeas, t_lift=round(time.time() - t0, 2))
+    res['stage'] = 'chain'
+    try:
+        if not isinstance(hints.get('marks'), list):
+            raise ProofFailure('certificate: no marks')
+        if L.nq < 2 * n + w:
+            raise ProofFailure('interface: fewer than 2n + w wires')
+        ch = ECWinChain(p, a, b, table, w, D, hints, lifted=L, progress=progress, budget=budget).run()
+    except ProofFailure as e:
+        det = {k: v for k, v in e.detail.items() if k != 'entry_counterexample'}
+        cex = None
+        if refute_samples:
+            cex = _circuit_run_window(L, n, w, sample_window_inputs(p, a, b, table, D, refute_samples, seed=7),
+                                      p, a, table)
+        if cex is not None:
+            return done(status='REFUTED', detail=str(e), where=det, counterexample=cex)
+        return done(detail=str(e), where=det)
+    except (KeyError, TypeError, IndexError, AttributeError) as e:
+        return done(detail='certificate: malformed (%s: %s)' % (type(e).__name__, e))
+    res.update(segments=ch.nseg, mirrors=ch.nmirror, assumptions=dict(sorted(ch.assumed.items())),
+               lemma_facts=sorted(set(ch.admitted)), algebra=ch.alg, bdd_nodes_total=ch.nodes,
+               bdd_nodes_max=ch.maxnodes)
+    if test_samples:
+        res['stage'] = 'wec_test'
+        t = wec_test_window(p, a, b, table, w, hints=hints, count=test_samples, lifted=L)
+        res['wec_test'] = t
+        if not t['ok']:
+            if not t.get('circuit_agrees', True):
+                return done(status='REFUTED', detail='the circuit is wrong on a concrete input',
+                            counterexample=t.get('circuit_counterexample'))
+            return done(detail='an assumption of W_ec is violated on a concrete input: %r' % (t['violations'][:1],))
+    note = '' if pv == 'prime' else ' PROVED under the condition that p is prime (only a probabilistic test was run).'
+    return done(status='PROVED', stage='done',
+                proved_modulo='D-input (domain), G1..G4 (Theorem T for every table entry, PROOF.md section 10) and '
+                              'the Kaliski lemmas M1..M6 (Z3, PROOF.md sections 4-5)',
+                detail='every segment of the circuit is machine-proved against its contract at full width: ROBDD '
+                       'segments (incl. the table lookup), algebra sub-goals, mirror segments.' + note)

@@ -112,7 +112,8 @@ def _cau(C, fn, apply):
     for w in reversed(live): C.release(w)
 
 
-def make(p, L):
+def blocks(p, L):
+    """(prod_apply, div_apply): the compute / apply / uncompute product and division blocks."""
     n = p.bit_length()
     c2 = pow(2, 2 * n, p)
 
@@ -132,27 +133,61 @@ def make(p, L):
             dset = set(den) | set(num)
             return P, [w for w in live if w not in dset]
         _cau(C, fn, apply)
+    return prod_apply, div_apply
+
+
+def _appliers(C, p):
+    def xor_into(T):
+        def f(P):
+            for a_, b_ in zip(P, T): C.cx(a_, b_)
+        return f
+
+    def madd(T):
+        def f(P):
+            mod_add(C, P, T, p)
+        return f
+
+    def rsub(T):
+        def f(P):
+            mod_neg(C, T, p); C.mark('neg'); mod_add(C, P, T, p)
+        return f
+    return xor_into, madd, rsub
+
+
+def generic_q(C, X, Y, R, p, L):
+    """the generic addition with a QUANTUM Q (window variant): R['xq'], R['yq'], R['ymq'] (= -yq), R['x3q'] (= 3 xq)
+    are registers; as make(p, L) with the constant additions replaced by register additions (marks msub / madd)."""
+    n = len(X)
+    prod_apply, div_apply = blocks(p, L)
+    xor_into, madd, rsub = _appliers(C, p)
+    xq, yq, ymq, x3q = R['xq'], R['yq'], R['ymq'], R['x3q']
+    mod_sub(C, xq, X, p); C.mark('msub')
+    mod_sub(C, yq, Y, p); C.mark('msub')                               # dx, dy
+    Lr = [C.alloc() for _ in range(n)]
+    C.mark('lam', Lr=list(Lr))
+    div_apply(C, Y, X, xor_into(Lr))                                   # L = -lambda
+    prod_apply(C, Lr, X, madd(Y))                                      # Y = 0
+    prod_apply(C, Lr, Lr, rsub(X))                                     # X = lambda^2 - dx
+    mod_sub(C, x3q, X, p); C.mark('msub')                              # X = x' - xq
+    prod_apply(C, Lr, X, madd(Y))                                      # Y = y' + yq
+    mod_neg(C, X, p); C.mark('neg')                                    # X = xq - x'
+    div_apply(C, Y, X, xor_into(Lr))                                   # L -> 0
+    mod_neg(C, X, p); C.mark('neg')
+    mod_add(C, xq, X, p); C.mark('madd')
+    mod_add(C, ymq, Y, p); C.mark('madd')                              # (x', y')
+    for w in reversed(Lr): C.release(w)
+
+
+def make(p, L):
+    n = p.bit_length()
+    prod_apply, div_apply = blocks(p, L)
 
     def generic(C, X, Y, Q):
         xq, yq = Q
         mod_add_const(C, X, -xq, p); mod_add_const(C, Y, -yq, p)
         Lr = [C.alloc() for _ in range(n)]
         C.mark('lam', Lr=list(Lr))
-
-        def xor_into(T):
-            def f(P):
-                for a_, b_ in zip(P, T): C.cx(a_, b_)
-            return f
-
-        def madd(T):
-            def f(P):
-                mod_add(C, P, T, p)
-            return f
-
-        def rsub(T):
-            def f(P):
-                mod_neg(C, T, p); C.mark('neg'); mod_add(C, P, T, p)
-            return f
+        xor_into, madd, rsub = _appliers(C, p)
         div_apply(C, Y, X, xor_into(Lr))                               # L = -lambda
         prod_apply(C, Lr, X, madd(Y))                                  # Y = dy - lambda dx = 0
         prod_apply(C, Lr, Lr, rsub(X))                                 # X = lambda^2 - dx

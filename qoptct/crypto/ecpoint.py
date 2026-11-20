@@ -245,7 +245,7 @@ class ECPointAddCircuit:
             C = _E.CircK(); X = C.reg('x', n); Y = C.reg('y', n)
             if s.window:
                 K = C.reg('k', w)
-                _win.point_add_window(C, X, Y, K, table, cv, D, L)
+                _win.point_add_window(C, X, Y, K, table, cv, D, L, generic=None if legacy else _padd2.generic_q)
                 s.K = K
             else:
                 generic = _padd.make(p, L) if legacy else _padd2.make(p, L)
@@ -316,8 +316,9 @@ class ECPointAddCircuit:
     # -- certificate / text
     def hints(s):
         """untrusted certificate for qoptct.verify.compose.verify_ecadd (segment marks: positions, wire names)."""
-        return dict(p=s.p, a=s.a, b=s.b, n=s.n, Q=list(s.Q), D=list(s.D), nqubits=s.circ.nw, X=list(s.X),
-                    Y=list(s.Y), karatsuba_levels=s.karatsuba_levels, legacy=s.legacy,
+        return dict(p=s.p, a=s.a, b=s.b, n=s.n, Q=list(s.Q) if s.Q else None, D=list(s.D), nqubits=s.circ.nw,
+                    X=list(s.X), Y=list(s.Y), K=list(s.K), w=s.w, table=[list(T) for T in s.table] if s.window else None,
+                    karatsuba_levels=s.karatsuba_levels, legacy=s.legacy,
                     marks=[[pos, label, info] for pos, label, info in s.circ.marks])
 
     def write_qasm(s, path):
@@ -383,7 +384,7 @@ def ec_point_add(p, a, b, Q, n=None, karatsuba_levels=3, reduction='fold', multi
 
 
 def ec_point_add_window(p, a, b, table, w, n=None, karatsuba_levels=3, reduction='fold', multiplier='sd', D=None,
-                        seed=1):
+                        seed=1, legacy=False):
     """Windowed exact addition (P, k) -> (P + table[k], k) for a w-bit quantum index k (Shor's algorithm window).
 
     table: the 2^w classical points T[k] != O (the offset T[k] = k G + R0 is accounted for classically by the
@@ -391,6 +392,9 @@ def ec_point_add_window(p, a, b, table, w, n=None, karatsuba_levels=3, reduction
     searched (random points; for tiny curves the table must leave enough points). Lookup by minterms (2^w - 2 ANDs each
     way); the unlookup is a repeated XOR of the same table. Returns an ECPointAddCircuit (window = True)."""
     n = _check_args(p, a, b, n, karatsuba_levels, multiplier, reduction)
+    if not legacy and (multiplier != 'sd' or reduction != 'fold'):
+        raise ValueError("multiplier='school' and reduction='solinas' exist only in the legacy construction "
+                         "(pass legacy=True)")
     table = [tuple(T) for T in table]
     if len(table) != (1 << w) or w < 1:
         raise ValueError('table must have 2^w entries, w >= 1')
@@ -418,4 +422,5 @@ def ec_point_add_window(p, a, b, table, w, n=None, karatsuba_levels=3, reduction
             raise ValueError('no safe point D found; pass D explicitly')
     elif not safe(tuple(D)):
         raise ValueError('D is not safe for every table entry')
-    return ECPointAddCircuit(p, a, b, n, None, table, w, tuple(D), karatsuba_levels, multiplier, reduction)
+    return ECPointAddCircuit(p, a, b, n, None, table, w, tuple(D), karatsuba_levels, multiplier, reduction,
+                             legacy=legacy)

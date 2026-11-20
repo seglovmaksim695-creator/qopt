@@ -126,11 +126,14 @@ def mod_rsub_(C, a, b, p):
     mod_neg(C, b, p); mod_add(C, a, b, p)
 
 
-def point_add_window(C, X, Y, Kw, Tk, cv, D, L=1):
+def point_add_window(C, X, Y, Kw, Tk, cv, D, L=1, generic=None):
+    """generic: None -> generic_q (legacy, lab k4); else generic(C, X, Y, R, p, L) (padd2.generic_q: library blocks).
+    The marks are untrusted hints for qoptct.verify.compose."""
     p = cv['p']; n = len(X)
     vals = table_vals(Tk, D, cv)
     R = {f: [C.alloc() for _ in range(n)] for f in FIELDS}
     lookup(C, Kw, vals, R)
+    C.mark('lk', **{f: list(R[f]) for f in FIELDS})
     # --- флаги
     fO, undO = eq_chain(C, Y, 0); undO(erase_last=False)
     g, und = eq_reg_chain(C, X, R['xq'], guard=fO)
@@ -148,8 +151,10 @@ def point_add_window(C, X, Y, Kw, Tk, cv, D, L=1):
     and_xor(C, fQ, R['yq'], Y); and_xor(C, fmQ, R['ymq'], Y); xor_const(C, gq, Y, Dy)
     and_xor(C, fm2Q, R['x2q'], X); and_xor(C, fm2Q, R['ym2q'], Y)
     xor_const(C, fm2Q, X, Dx); xor_const(C, fm2Q, Y, Dy)
+    C.mark('w_pre', fO=fO, fQ=fQ, fmQ=fmQ, fm2Q=fm2Q, gq=gq)
     # --- общее сложение: D -> D + Q_k
-    generic_q(C, X, Y, R, p, L)
+    if generic is None: generic_q(C, X, Y, R, p, L)
+    else: generic(C, X, Y, R, p, L)
     # --- исправление: R ^= F·(D+Q) ; затем образы: O->Q, Q->2Q, −Q->O, −2Q->−Q
     F = gq; C.cx(fO, F); C.cx(fm2Q, F)                                   # F = любой флаг
     and_xor(C, F, R['xdq'], X); and_xor(C, F, R['ydq'], Y)
@@ -171,7 +176,9 @@ def point_add_window(C, X, Y, Kw, Tk, cv, D, L=1):
     t, und = eq_chain(C, Y, 0, upto=n - 1)
     lit_erase(C, fmQ, t, Y[n - 1], 0)
     und()
+    C.mark('w_post')
     # --- снятие поиска
     lookup(C, Kw, vals, R)
+    C.mark('unlk')
     for f in reversed(FIELDS):
         for w in reversed(R[f]): C.release(w)
