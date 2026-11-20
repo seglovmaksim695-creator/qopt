@@ -192,6 +192,38 @@ p = QoptPass(); out = PassManager([p]).run(qc); print(p.last)   # runs, replaced
 
 `QoptMeasPass(ancillas=[...])` is the measurement-based variant (logical AND, needs qubits known to start in |0>).
 
+## Compiling for noisy hardware: `qoptct hw` (new, experimental)
+
+`qoptct hw` compiles a unitary circuit for an IBM-like device (heavy-hex coupling, native CZ or ECR + RZ, SX, X) and
+minimizes what matters on NISQ hardware: the number of two-qubit gates after routing, the depth, and the expected
+fidelity computed from the calibration data of the backend.
+
+```
+pip install "qoptct[hw]"                      # qiskit-ibm-runtime (fake backends = calibration snapshots), qiskit-aer
+qoptct hw --backend fake_torino in.qasm -o out.qasm --report out.json
+```
+```python
+from qoptct.hw import compile_hw
+r = compile_hw(qc, "fake_torino", seeds=range(5), seconds=20)
+r.circuit, r.init_map, r.final_map, r.metrics["twoq"], r.metrics["fid"], r.strategy, r.verified
+```
+
+It is a portfolio; the candidate with the best expected fidelity that passes the equivalence check is returned:
+Qiskit `optimization_level=3` (one run per seed, always included, so the result is never worse than Qiskit by the
+metric used), qoptct's proven CX/T optimization of the logical circuit followed by Qiskit, and the qoptct router
+(`qoptct/hw/router.py`) with and without the logical optimization. The router is SABRE-like with four additions:
+commutation-aware dependencies (all gates that may legally come next are in the front layer), exact SWAP cost
+(a SWAP next to a gate on the same pair is merged with it; the cost is taken from the KAK decomposition of the
+merged block: +0, +1 or +3 native gates), "floating" blocks (a block stays mergeable while only gates that commute
+with it pass over its wires) and a mirror rule (right after a gate, swap its pair if that helps), plus line layouts on
+low-error paths and a final move of the used region to the best-calibrated isomorphic region of the device.
+Every returned circuit is checked against the input with the qubit maps taken into account (state-vector test on
+random product states, up to 26 used qubits). Nothing is ever submitted to IBM; `scripts/hw_real_run.py` prepares one
+short real run and refuses to submit without `--submit` and `QOPT_ALLOW_REAL=1`.
+
+Results on 76 algorithmic circuits (4-30 qubits), methods, the comparison with Qiskit level 3 and tket, the noisy
+simulation and the limitations are in [`docs/HW.md`](docs/HW.md).
+
 ## Cost models — read this before comparing numbers
 
 The same benchmark has different "best" numbers in different models. All tables say which model they use.

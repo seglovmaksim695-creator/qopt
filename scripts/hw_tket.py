@@ -35,6 +35,8 @@ def tk_compile(logical, info, level, n_phys, timeout):
     out = QuantumCircuit(n_phys)
     for cmd in c.get_commands():
         t = cmd.op.type
+        if t in (OpType.noop, OpType.Barrier, OpType.Phase):
+            continue
         qs = [q.index[0] for q in cmd.qubits]
         if t == OpType.Rz:
             out.rz(float(cmd.op.params[0]) * math.pi, qs[0])
@@ -61,6 +63,14 @@ def tk_compile(logical, info, level, n_phys, timeout):
     for q, node in cu.final_map.items():
         if q in lq:
             fin[lq[q]] = node.index[0]
+    # a logical qubit without gates may be left unplaced by tket: park it on a free physical qubit
+    used = {q.index[0] for q in c.qubits if q.reg_name == "node"} | {x for x in init + fin if x is not None}
+    if any(q.reg_name != "node" for cmd in c.get_commands() for q in cmd.qubits):
+        raise ValueError("tket left gates on unplaced qubits")
+    free = (p for p in range(n_phys) if p not in used)
+    for i in range(logical.num_qubits):
+        if init[i] is None or fin[i] is None:
+            init[i] = fin[i] = next(free)
     return out, init, fin
 
 
