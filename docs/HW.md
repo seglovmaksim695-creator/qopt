@@ -72,7 +72,12 @@ floating-point tolerance. Limit: 26 used qubits (state vector); above that the s
 
 ## Results
 
-RESULTS_PLACEHOLDER
+fake_torino, 76 circuits (arithmetic, QFT, Grover, Hamiltonian simulation, QAOA, ...), 5-30 qubits; geometric means of the
+best qoptct strategy against Qiskit O3 best of 10 seeds: arithmetic -34% two-qubit gates / x1.47 expected fidelity,
+Toffoli-level arithmetic -41% / x1.85, Hamiltonian simulation -19% / x1.48, QAOA -24% / x1.38, QFT -16% / x1.38,
+Grover -14% / x1.25, misc -29% / x1.09. Higher expected fidelity than Qiskit on 70 of 75 verified circuits, than tket
+on 72 of 74. Aer noisy simulation (29 small circuits): Hellinger fidelity x1.14, agrees with the model's ranking on 27.
+fake_sherbrooke (ECR), 31 smallest circuits: same picture. Full tables: `REPORT.md` and `runs/*_table.md` (not in git).
 
 ## Limitations
 
