@@ -31,6 +31,17 @@ def main(paths):
             dyn = [r for r in rs if r['variant'] not in ('U', 'T')]
             bd = max(dyn, key=lambda r: r['f_est']) if dyn else None
             summ.append((be, rs[0]['circuit'], best, static, bd['variant'] if bd else '-', bd['f_est'] if bd else 0.0))
+        # does the simulation agree with the estimate about who wins (static vs dynamic), where the gap > 0.02?
+        agree = tot = 0
+        for k in order:
+            rs = [r for r in rows if (r['family'], r['size']) == k and 'pZ' in r]
+            st = [r for r in rs if r['variant'] in ('U', 'T')]; dy = [r for r in rs if r['variant'] not in ('U', 'T')]
+            if st and dy:
+                ge = max(r['f_est'] for r in st) - max(r['f_est'] for r in dy)
+                gs = max(r['pZ'] for r in st) - max(r['pZ'] for r in dy)
+                if abs(ge) > 0.02:
+                    tot += 1; agree += (ge > 0) == (gs > 0)
+        print('\nСовпадение победителя (статика/динамика) по оценке и по симуляции Z при разрыве > 0,02: %d из %d' % (agree, tot))
         # accuracy of the estimate
         errs = [abs(r['pZ'] - r['f_est']) for r in rows if 'pZ' in r and r['f_est'] > 0.05]
         if errs:
