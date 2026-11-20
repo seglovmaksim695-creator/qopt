@@ -412,7 +412,8 @@ def test_n256_proved(name):
     for lab, kind in (('w_post', 'cx_flip'), ('mul', 'and_ctrl')):
         j = next(i for i, m in enumerate(marks) if m[1] == lab)
         lo, hi = marks[j - 1][0], marks[j][0]
-        i = next(i for i in range((lo + hi) // 2, hi) if L.ops[5 * i] == (1 if kind == 'cx_flip' else 2))
+        cand = [i for i in range(lo, hi) if L.ops[5 * i] == (1 if kind == 'cx_flip' else 2)]
+        i = cand[len(cand) // 2]
         saved = L.ops[5 * i:5 * i + 5]
         m = can.mutate(Lifted(L.nq, saved, 0), kind, 0, rnd)
         L.ops[5 * i:5 * i + 5] = m[0]

@@ -8,7 +8,9 @@
         PROVED.
     python scripts/ecadd_canaries.py big QASM HINTS --curve secp256k1|p256 [--only LABELS] [-o out.jsonl]
         targeted in-memory mutants of a full-size (n = 256) circuit lifted from its OpenQASM text, one per run of the
-        verifier; none may be PROVED.
+        verifier; none may be PROVED, except mutants that are equivalent circuits (adjacent commuting ops are
+        skipped; a Z correction added on an idle |0> ancilla is the identity -- such a PROVED must be checked by hand:
+        the record contains the original and the mutated op).
 """
 import argparse
 import json
@@ -349,7 +351,8 @@ def run_big(qasm, hints_path, curve, only=None, out=None, seed=5):
         else:
             r = verify_ecadd(None, p, a, b, Q, hints=hints, lifted=L, refute_samples=64, test_samples=64)
         L.ops[5 * j:5 * j + 10] = saved
-        rec = dict(curve=curve, label=lab, op=j, kind=kind, status=r['status'], stage=r.get('stage'),
+        rec = dict(curve=curve, label=lab, op=j, kind=kind, orig=list(saved), mutant=list(m[0]),
+                   status=r['status'], stage=r.get('stage'),
                    detail=str(r.get('detail'))[:200], counterexample=str(r.get('counterexample'))[:120],
                    time=round(time.time() - t1, 1))
         res.append(rec)
