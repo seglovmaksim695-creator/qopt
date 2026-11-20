@@ -14,9 +14,11 @@ with amplitude exactly 2^{-m/2} for each of the 2^m outcome strings (m = number 
 superposition of inputs x in [1, p) the circuit is the isometry |x>|0> -> |x, K, ...> for every outcome: there is no
 residual phase and no dependence of the final state on the outcomes.
 
-The proof has a machine part (sections 1-3: performed by the checker on the concrete text, at full width, for all
-inputs at once) and a paper part (sections 4-6: properties of Kaliski's algorithm as integer arithmetic). Section 7
-lists exactly what is trusted.
+The proof has three layers. (1) Sections 1-3: machine proofs performed by the checker on the concrete text, at full
+width, for all inputs at once (ROBDD). (2) Section 4: the properties M1..M6 of Kaliski's algorithm as integer
+arithmetic, used as preconditions in layer 1; they are proved on paper AND by the SMT solver Z3 for every n, p, x
+(`compose.lemmas_z3`, 293 implications), and tested by execution. (3) Short paper arguments that glue the layers:
+Lemmas 1-3, the Horner argument and the fold lemma of section 5. Section 7 lists exactly what is trusted.
 
 ## 1. Lifting (machine) and the gadget lemmas (machine, exact arithmetic)
 
@@ -153,8 +155,45 @@ The assumptions used by the contracts:
 
 **Result.** After 2n steps (u, v) = (1, 0) (M5) and by I2 x*r = -2^{2n} (mod p), i.e. r = K (mod p), 0 <= r < 2^{2n}.
 
-`pstd_test` executes P_std bit-sliced and checks every assumption, every fact and the result:
-all odd primes p < 2^11 and ALL x in [1, p) (lab run), sampled x at n = 256. This is a test of the paper part, not a proof.
+### 4.1 Machine check of M1..M6 by Z3 (`python -m qoptct.verify.compose.lemmas_z3`)
+
+The paper proofs above are replaced by an induction over k whose every implication is discharged by Z3, for all
+integers n >= 2, all odd p with 2^(n-1) < p < 2^n and all 1 <= x < p at once. State before step k, in the frame
+of wp = w_{k-1}: integers A, B, R, S, with ghost values a, b (exponents of the bounds) and cR, cS (quotients).
+With (u, v, r, s) = (B, A, S, R) if wp else (A, B, R, S) and sg = -1 if wp else 1:
+
+    Inv:  0 <= k <= 2n;  A, B, R, S >= 0;  A*S + B*R = p;  u >= 1;  r < 2^k;  s <= 2^k;
+          x*R + sg*A*2^k = p*cR;   x*S - sg*B*2^k = p*cS;   k >= 1 -> B odd;   k = 0 -> not wp;
+          either  v >= 1, v < p, a + b = 2n - k, 0 <= a, b <= n, A < 2^a, B < 2^b
+          or      v = 0, u = 1, wp, k >= 1.
+
+Proved (each as an unsatisfiable query; 2 frame bits x 4 branches of Kaliski's step x {v >= 1, v = 0} cases):
+
+* INIT: Inv holds for (A, B, R, S) = (p, x, 0, 1), k = 0 (a = b = n, cR = 1, cS = 0).
+* STEP: Inv(k), k <= 2n-1 imply, for the frame step exactly as in the contracts (w = wspec, d = wp xor w, swap,
+  e = A_0, A = (A - eB)/2, R = R + eS, S = 2S): M1 (A, B < 2^wa), M2 (d -> A, B odd), M3 (e -> B < 2^wb),
+  M4 (d -> R, S < 2^n; e -> S < 2^n; R + eS < 2^n), M5 (k = 2n-2 -> w; k = 2n-1 -> w, A even, d = 0, e = 0),
+  M6 (2S < 2^(2n)), exactness of the step (e -> B odd and B <= A; A - eB even and >= 0), and Inv(k+1).
+* FINAL: Inv(2n) implies u = 1, v = 0, 0 <= r < 2^(2n), x*r + 2^(2n) = p*c, i.e. r = K (mod p).
+
+Assumed in these queries (all true): pow2(0) = 1, pow2(i+1) = 2 pow2(i), pow2 monotone (pow2(i) is 2^i; "a register
+fits w bits" is "value < pow2(w)", with wa, wb computed by the same formulas as in the walker); p odd,
+pow2(n-1) < p < pow2(n); one instance of the primality of p (if B(R+S) = p and 1 <= B < p then B = 1; it is needed
+exactly in the step (u, u) -> (u, 0), where it gives u = 1). Three one-line lemmas of integer arithmetic
+(y = z -> y*t = z*t) are proved by Z3 separately and used as instances, so that the main queries are linear over
+the monomials. Guards against a vacuous proof: Z3 evaluates the text of Inv on all states of all real runs for
+p = 5..31, 61 (pow2 as a table): it holds; 10 negative controls (hypotheses alone, slightly stronger claims, the tie
+step without primality) are NOT unsat.
+
+What Z3 does not see: that the SMT text of the step equals the contracts of `compose.kal` (it is a transcription:
+compare `lemmas_z3._case` with `Chain.run`; `pstd_test` executes the contracts themselves and checks the same
+assertions), and the reductions of section 5.
+
+### 4.2 Tests by execution
+
+`pstd_test` executes P_std (the contracts themselves) bit-sliced and checks every assumption, every fact and the
+result: all 307 odd primes p < 2^11 with ALL x in [1, p) (577 728 runs), and 4096 structured and random x for each
+n = 256 prime. With `lifted=` it also runs the real circuit on the same inputs and compares every wire with P_std.
 
 ## 5. Reductions
 
@@ -189,5 +228,7 @@ assumptions hold (not claimed).
 * the strict lifter (`compose.lift`);
 * the ROBDD package `qoptct.verify.bdd` (canonicity: equal functions have equal edges) and `compose.bv`;
 * the walker `compose.kal` (contracts, Z and fact bookkeeping, coverage checks) and Lemmas 2, 3;
-* the paper proofs of sections 4, 5 (M1..M6, I0..I5, fold lemma, Horner);
+* for M1..M6: Z3 (the 293 queries of `compose.lemmas_z3`), the three axioms of pow2, the primality of p, and the
+  transcription of the frame step into SMT; the paper proofs of section 4 are then redundant;
+* the paper arguments of section 5 (fold lemma with its numeric side conditions checked by the walker, Horner);
 * NOT trusted: the generator `qoptct.crypto.kaliski`, its docstring, the certificate, the OpenQASM writer.
