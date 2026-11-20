@@ -4,6 +4,9 @@
     qoptct estimate --toffoli 4.91e9 --qubits 1400 [--depth D] [--model gidney2025|ge2019|litinski2023|all]
                     [--shots 9.2] [--p 1e-3] [--cycle-us 1] [--reaction-us 10] [--json]
     qoptct estimate --check        # reproduce the published numbers of the three papers
+    qoptct estimate --attack rsa2048-g25|ecdlp-p256|ecdlp-k1|ecdlp-b163|...|aes128 [--variant L3|L2|L0]
+                    [--source both|published|qoptct] [--json]     # logical model + physical estimate
+    qoptct estimate --list-attacks | --check-attacks              # table published / qoptct blocks; reproduction
 
 Exit code: 0 = estimate printed, 3 = usage or input error (one `error: ...` line on stderr)."""
 import argparse
@@ -11,6 +14,7 @@ import json
 import math
 import sys
 
+from . import logical as lg
 from . import physical as ph
 
 
@@ -29,6 +33,16 @@ def build_parser(prog="qoptct estimate"):
     ap.add_argument("--reaction-us", type=float, default=10.0, help="reaction time in us (default 10)")
     ap.add_argument("--json", action="store_true", help="print JSON")
     ap.add_argument("--check", action="store_true", help="reproduce the papers' published numbers and exit")
+    ap.add_argument("--attack", default=None, help="end-to-end logical model + physical estimate of a published "
+                    "algorithm (qoptct.estimate.logical): %s; --toffoli/--qubits are then not needed" %
+                    " | ".join(sorted(lg.ATTACKS)))
+    ap.add_argument("--variant", default=None, help="--attack ecdlp-p256|ecdlp-k1: Karatsuba levels of the lab point "
+                    "addition, L3 (default, most qubits), L2, L0 (fewest qubits)")
+    ap.add_argument("--source", default="both", choices=["both", "published", "qoptct"],
+                    help="--attack: published numbers, numbers with qoptct blocks, or both (default)")
+    ap.add_argument("--list-attacks", action="store_true", help="table 'published / with qoptct blocks' for all attacks")
+    ap.add_argument("--check-attacks", action="store_true",
+                    help="reproduce the published tables of the logical models (Table 5 of Gidney 2025, ...) and exit")
     return ap
 
 
@@ -88,8 +102,29 @@ def main_estimate(argv=None):
             for m, q, o, p in rows:
                 print("%-24s %-30s ours %-11.4g paper %-11.4g (%+.1f %%)" % (m, q, o, p, 100 * (o / p - 1)))
         return 0
+    if a.check_attacks:
+        rows = lg.reproduce_published()
+        if a.json:
+            print(json.dumps([dict(name=n, ours=g, published=w, tolerance=t, ok=ok, source=s)
+                              for n, g, w, t, ok, s in rows]))
+        else:
+            for n, g, w, t, ok, s in rows:
+                print("%-4s %-36s ours %-12.5g published %-12.5g tol %.1f %%  (%s)" % ("ok" if ok else "FAIL", n, g, w,
+                                                                                    100 * t, s))
+        return 0 if all(r[4] for r in rows) else 1
+    if a.list_attacks:
+        print(lg.attack_table())
+        return 0
+    if a.attack is not None:
+        try:
+            rep = lg.attack_report(a.attack, a.variant, a.source)
+        except ValueError as e:
+            print("error: %s" % e, file=sys.stderr)
+            return 3
+        print(json.dumps(rep, default=str) if a.json else lg.format_report(rep))
+        return 0
     if a.toffoli is None or a.qubits is None:
-        print("error: --toffoli and --qubits are required (or --check)", file=sys.stderr)
+        print("error: --toffoli and --qubits are required (or --check, --attack, --list-attacks)", file=sys.stderr)
         return 3
     if not math.isfinite(a.qubits) or a.qubits != int(a.qubits):
         print("error: --qubits must be an integer", file=sys.stderr)
