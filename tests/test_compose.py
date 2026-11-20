@@ -336,3 +336,78 @@ def test_lemmas_z3_all():
     """M1..M6 for every n, every odd prime p, every x: all implications unsat, no negative control unsat."""
     r = _z3().run(timeout=120)
     assert r['ok'] and r['total'] >= 290 and not r['bad_controls'], r
+
+
+# ----------------------------------------------------------------------------- regressions of the v0.6 audit
+import gzip
+import os
+
+from qoptct.verify.compose import primality, named_prime, PRIMES
+
+AUDIT = os.path.join(os.path.dirname(__file__), 'data', 'audit')
+
+
+def test_audit_negative_index_circuit_not_proved():
+    """the auditor's circuit (p = 1021) contains `cx q[-j], ...`: q[-j] is q[N-j] in OpenQASM 3 -> it is NOT a
+    separate wire; it used to be PROVED although the circuit returns a wrong K on 22 inputs."""
+    text = gzip.open(os.path.join(AUDIT, 'neg_index_p1021.qasm.gz'), 'rt').read()
+    hints = json.load(open(os.path.join(AUDIT, 'neg_index_p1021.hints.json')))
+    assert 'q[-' in text
+    with pytest.raises(LiftError):
+        lift(text)
+    r = verify_kaliski(text, 1021, 'generic', hints=hints)
+    assert r['status'] == 'UNKNOWN' and r['stage'] == 'lift'
+
+
+def test_lift_rejects_negative_and_foreign_indices():
+    L = kaliski_inverse(13).to_qasm().split('\n')
+    ic = next(i for i, s in enumerate(L) if i and s.startswith('cx q[') and L[i - 1].startswith(('sdg', 'cx ', 'x ', 'if ')))
+    ix = next(i for i, s in enumerate(L) if s.startswith('x q['))
+    it = next(i for i, s in enumerate(L) if s.startswith('tdg '))
+    im = next(i for i, s in enumerate(L) if 'measure' in s)
+    ii = next(i for i, s in enumerate(L) if s.startswith('if '))
+    a, b = [int(x) for x in L[ic][5:-2].split('], q[')]
+    nq = int(L[2][6:-4])
+    muts = [L[:ic] + ['cx q[-1], q[%d];' % b] + L[ic + 1:],
+            L[:ic] + ['cx q[%d], q[-1];' % a] + L[ic + 1:],
+            L[:ic] + ['cx q[%d], q[%d];' % (a, nq)] + L[ic + 1:],
+            L[:ic] + ['cx q[0%d], q[%d];' % (a, b)] + L[ic + 1:],
+            L[:ic] + ['cx q[ %d], q[%d];' % (a, b)] + L[ic + 1:],
+            L[:ix] + ['x q[-1];'] + L[ix + 1:],
+            L[:ix] + ['x q[%d];' % nq] + L[ix + 1:],
+            # the AND operand b of the first gadget (the cx line right after 't q[t]') as a negative index
+            L[:it - 1] + [L[it - 1].replace('cx q[', 'cx q[-', 1)] + L[it:],
+            # classical bit outside bit[M] c; and a leading zero in the correction
+            L[:im] + [L[im].replace('c[0]', 'c[999]')] + L[im + 1:],
+            L[:ii] + [L[ii].replace('cz q[', 'cz q[0', 1)] + L[ii + 1:]]
+    for m in muts:
+        txt = '\n'.join(m)
+        with pytest.raises(LiftError):
+            lift(txt)
+        r = verify_kaliski(txt, 13)
+        assert r['status'] != 'PROVED' and r['stage'] == 'lift', (m[:0], r['status'])
+
+
+def test_primality_check():
+    assert primality(1052651)[0] == 'composite'            # 1021 * 1031
+    assert primality(4186067)[0] == 'composite'            # 2039 * 2053
+    assert primality(15)[0] == 'composite' and primality(561)[0] == 'composite'
+    assert primality(1021)[0] == 'prime' and primality(2 ** 61 - 1)[0] == 'prime'
+    for name in PRIMES:
+        v, how = primality(PRIMES[name])
+        assert v == 'prime' and 'known prime' in how
+    v, how = primality(named_prime('rand256'))
+    assert v == 'probable' and 'probabilistic' in how
+    # a Mersenne prime above 2^64 is only 'probable'; a 70-bit semiprime is composite
+    assert primality(2 ** 89 - 1)[0] == 'probable'
+    assert primality((2 ** 35 - 31) * (2 ** 35 - 49))[0] == 'composite'
+
+
+def test_composite_p_is_error_not_proved():
+    r = verify_kaliski(kaliski_inverse(13).to_qasm(), 15)
+    assert r['status'] == 'ERROR' and 'not prime' in r['detail']
+    # the auditor's composite p = 1021 * 1031 (a circuit written for it): never PROVED
+    r = verify_kaliski(kaliski_inverse(1013).to_qasm(), 1021 * 1031)
+    assert r['status'] == 'ERROR'
+    r = verify_kaliski(kaliski_inverse(13).to_qasm(), 13)
+    assert r['status'] == 'PROVED' and r['p_primality'].startswith('prime')

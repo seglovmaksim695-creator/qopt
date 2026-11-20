@@ -303,3 +303,51 @@ def test_n256(kind, L):
     N, ops, spec = _mul(256, L, kind)
     r = A.prove_ops(N, ops, spec, budget_sec=1200)
     assert r['status'] == 'PROVED', r['detail']
+
+
+# ----------------------------------------------------------------------------- regressions of the v0.6 audit
+AUDIT = os.path.join(os.path.dirname(__file__), 'data', 'audit')
+
+
+@pytest.mark.parametrize('name', ['hole1_mirror', 'hole2_virtual_carry'])
+def test_audit_holes_are_not_proved(name):
+    """both circuits are WRONG (exhaustive check by the auditor); they used to be PROVED."""
+    r = A.aprove(os.path.join(AUDIT, name + '.qasm'), os.path.join(AUDIT, name + '.spec.json'))
+    assert r['status'] in ('UNKNOWN', 'REFUTED', 'ERROR'), r
+
+
+def test_mirror_copy_must_not_write_a_wire_that_f_reads():
+    # F: a, b -> t = a AND b (writes only t); M copies INTO a wire that F reads (a = wire 0): not Bennett form
+    F = [('and', 0, 1, 3)]
+    inv = [('erase', 3, (('cz', 0, 1),))]
+    assert A.mirror_split(F + [('cx', 3, 2)] + inv) == (1, 2)          # the genuine form: copy into a fresh wire
+    assert A.mirror_split(F + [('cx', 3, 0)] + inv) is None            # M writes the control of F
+    assert A.mirror_split(F + [('cx', 3, 1)] + inv) is None
+
+
+def test_virtual_carry_is_not_a_bit():
+    """a virtual carry symbol is an integer in [-2, 1]: its square must never be collapsed to itself."""
+    A._KV.clear()
+    A._KV.add(7)
+    try:
+        assert A.mmul((3,), (5,)) == (3, 5)
+        assert A.mmul((3, 7), (5,)) == (3, 5, 7)
+        for m1, m2 in (((7,), (7,)), ((3, 7), (7,)), ((7,), (2, 7, 9))):
+            with pytest.raises(A.Unknown):
+                A.mmul(m1, m2)
+        assert A.mmul((3,), (3,)) == (3,)                               # bits stay idempotent
+    finally:
+        A._KV.clear()
+
+
+def test_parser_rejects_odd_indices():
+    c = mulsq.multiply(3)
+    txt = c.to_qasm()
+    lines = txt.split('\n')
+    i = next(k for k, s in enumerate(lines) if s.startswith('cx q['))
+    a, b = [int(x) for x in lines[i][5:-2].split('], q[')]
+    for rep in ('cx q[-%d], q[%d];' % (a + 1, b), 'cx q[0%d], q[%d];' % (a, b), 'cx q[+%d], q[%d];' % (a, b),
+                'cx q[%d], q[ %d];' % (a, b), 'cx q[%s], q[%d];' % ('١', b)):
+        bad = '\n'.join(lines[:i] + [rep] + lines[i + 1:])
+        with pytest.raises(A.ParseError):
+            A.parse_strict(bad)

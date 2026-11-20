@@ -222,9 +222,14 @@ walker requires the final bound to be <= p, so out = A < p and A = r (mod p): ou
 
 ## 6. Primality
 
-M2 and I0 need gcd(p, x) = 1 for all x in [1, p), i.e. p prime. The checker does not test primality;
-secp256k1 and P-256 are standard primes. For a composite p the theorem holds for the x coprime to p on which the
-assumptions hold (not claimed).
+M2 and I0 need gcd(p, x) = 1 for all x in [1, p), i.e. p prime. Since the v0.6 audit fixes the checker TESTS this first
+(`compose.primality`, result key `p_primality`):
+* a composite p -> status ERROR (never PROVED; found by the v0.6 audit: p = 1021*1031 used to get PROVED);
+* the named primes secp256k1, P-256, Curve25519, P-384, P-521 -> 'known prime';
+* p < 2^64 -> deterministic Miller-Rabin (bases 2..37 are exact below 3.18e23), certain;
+* any larger p (e.g. rand256) -> Miller-Rabin with 12 fixed + 40 pseudo-random bases, a PROBABILISTIC test; PROVED
+  then carries the note 'PROVED under the condition that p is prime (only a probabilistic primality test was run)'.
+The theorem is for x in [1, p) and prime p; x = 0 and x >= p are not covered.
 
 ## 7. Trusted base
 
@@ -232,7 +237,7 @@ assumptions hold (not claimed).
 * the strict lifter (`compose.lift`);
 * the ROBDD package `qoptct.verify.bdd` (canonicity: equal functions have equal edges) and `compose.bv`;
 * the walker `compose.kal` (contracts, Z and fact bookkeeping, coverage checks) and Lemmas 2, 3;
-* for M1..M6 and the reductions: Z3 (the 297 queries of `compose.lemmas_z3`), the three axioms of pow2, the primality of p, and the
+* for M1..M6 and the reductions: Z3 (the 297 queries of `compose.lemmas_z3`), the three axioms of pow2, the primality of p (tested, see section 6), and the
   transcription of the frame step into SMT; the paper proofs of section 4 are then redundant;
 * the glue arguments: Lemmas 1-3, and in section 5 the composition of the Z3-proved steps (Horner; fold rounds,
   whose numeric side conditions are checked by the walker with exact integers);
