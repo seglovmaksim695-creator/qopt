@@ -39,6 +39,20 @@
   compiled by `qoptct.hw`. On today's chips dynamic erasure does not pay in our models. Model estimates, not measured on
   hardware.
 * Subcommands `qoptct compose` and `qoptct dyn`; `PROOF.md` is shipped in the package.
+* **`qoptct.crypto.ecpoint`** (`ec_point_add`, `ec_point_add_window`; core in `qoptct/crypto/_ecp/`): exact complete addition
+  of a classical point to a quantum point on a prime-field curve (also P = O, P = Q, P = -Q, P = -2Q), windowed form.
+  P-256 / secp256k1 at n = 256: 3 041 421 / 3 033 954 ANDs. An exact scheme, not the cheapest known one: the approximate schemes of
+  2026 are cheaper. Checked on small curves exhaustively and on edge points at n = 256; no machine proof of the whole circuit.
+* **`qoptct.crypto.residue`** (accumulator compression modulo q, 106 / 138 / 148 ANDs against 682 by the formula of the
+  paper; against the paper's exact circuit count 352-418 the gain is smaller; junction with the next step not checked on
+  a whole circuit), **`qoptct.crypto.modadd`** (modular adders, 4n-2 ANDs), `lookup` option `fanout='gray'`
+  (up to -68 % CX on large tables, same ANDs; the default is unchanged).
+* **`qoptct.crypto.gf2ec`**: point addition on binary curves (m = 163: 18 160 ANDs, m = 409: 55 006); exceptional cases are
+  not handled (as in BBHL / Taguchi-Takayasu). New registry entries `gf2m_square_m163_798cx`, `gf2m_square_m283_1386cx`.
+  `ErasurePhaseChecker` no longer puts wires into the zero assumptions after the last phase of an erasure group.
+* **`qoptct.estimate.logical`** and `qoptct estimate --attack NAME [--variant L3|L2|L0] [--source ...] [--no-reaction-limit]`,
+  `--list-attacks`, `--check-attacks`: models of RSA / ECDLP / AES-Grover from published algorithms and from checked
+  qoptct blocks (statuses published / qoptct / estimate); not end-to-end circuits. Kaliski count 12n^2 - 8n - 3 is used.
 
 ### Changed
 * `qoptct hw`: all fidelity figures are model estimates from calibration snapshots; the portfolio keeps the Qiskit

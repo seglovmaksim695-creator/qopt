@@ -14,12 +14,18 @@ Modules:
     andcirc  small engine used by fold: wires, AND / measurement-based erase, Gidney adders (register or constant
              addend), exact bit-sliced simulation, OpenQASM 3 output (qoptct dialect)
     lookup   lookup.narrow_lookup(table, c, w, ...) -- narrow table lookups z ^= T[a] (bilinear split, QROAM s=1,
-             ANF/Davio), measurement-based unlookup, lookup-accumulate acc += T[a]
+             ANF/Davio), measurement-based unlookup, lookup-accumulate acc += T[a]; fanout='gray' option for Davio
     gf2m     gf2m_multiply / gf2m_square / gf2m_inverse / gf2m_divide -- GF(2^m) arithmetic (binary fields of the
              NIST/SEC curves): CRT bilinear multiplier, in-place squaring, Itoh-Tsujii inversion and division
+    ecpoint  ec_point_add / ec_point_add_window -- exact complete addition of a classical point to a quantum point on a
+             prime-field curve (core in the private subpackage _ecp); approximate schemes are cheaper
+    residue  fold_accumulator(q, clen, nbits) -- accumulator compression modulo q (loop 2 of Gidney 2025),
+             accumulator_bits
+    modadd   mod_add / mod_sub / mod_double / compare_geq ... -- modular adders (4n - 2 ANDs)
+    gf2ec    gf2_point_add(m, ...) -- point addition on binary curves over GF(2^m), exceptional cases not handled
 
-The names exported here come from kaliski, mulsq and gf2m; fold and lookup are used as modules
-(``from qoptct.crypto import fold, lookup``), since lookup has its own ``reference_qc``.
+The names exported here come from kaliski, mulsq and gf2m; fold, lookup, ecpoint, residue, modadd and gf2ec are used as
+modules (``from qoptct.crypto import fold, lookup, ecpoint``), since lookup has its own ``reference_qc``.
 
     from qoptct.crypto import multiply, square
     c = multiply(256, karatsuba_levels=3)      # (x, y, 0) -> (x, y, x*y) + garbage

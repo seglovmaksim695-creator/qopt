@@ -344,7 +344,7 @@ independently of the circuit. Model: logical AND = 4 T + 3 CX, uncomputation by 
 | `lookup_c6_w32_40and`, `lookup_c6_w21_33and` | table lookup z ⊕= T[a], 6-bit address, 32 / 21-bit word | 40 / 33 | 1477 / 991 | 47 / 40 | 2^c − c − 1 = 57 AND for the standard lookup. The idea of a narrow lookup combined with an adder in the Gidney–Ekerå framework is due to Luongo et al. 2025 (arXiv:2502.17325); with lookups shared between several primes (Sharma–Lau 2026) this construction gives no gain |
 | `gf2m_mult_m8_clean` | c = a·b in GF(2^8) | 26 (104) | 347 | 25 | small analogue of the m = 163…571 multipliers |
 | `gf2m_mult_m163_908and` | c ⊕= a·b in GF(2^163) (NIST polynomial), any c | 908 (3632) | 75 823 | 490 | same model as Kim et al. 2022 (992 Toffoli) and Garn–Kan (999); smaller bilinear complexity published (906, arXiv:1303.7082). Proved by the `exact2` engine (degree ≤ 2) |
-| `gf2m_square_m{163,233,283,409,571}_*` | in place a ← a² mod f (NIST polynomials) | 0 | 875 / 825 / 1534 / 1418 / 3239 | m | compared with the generic in-place bound m² − m used in the literature, not with a published circuit. These are the earlier lab files kept as proved; the current generator `gf2m_square(m)` builds 798 / 825 / 1386 / 1418 / 3239 CX (fewer for m = 163 and 283) |
+| `gf2m_square_m{163,233,283,409,571}_*` | in place a ← a² mod f (NIST polynomials) | 0 | 875 / 825 / 1534 / 1418 / 3239 | m | compared with the generic in-place bound m² − m used in the literature, not with a published circuit. The earlier lab files are kept as proved; the generator `gf2m_square(m)` builds 798 / 825 / 1386 / 1418 / 3239 CX, and the circuits for m = 163 (`..._798cx`) and m = 283 (`..._1386cx`) are in the registry as well |
 
 What is **not** claimed: no record for whole attacks (RSA, ECDLP); this release contains proved building blocks, not
 end-to-end attack circuits. The measurement-based erasure of GF(2^m) products (used for division circuits) was
@@ -396,6 +396,44 @@ qoptct estimate --check
 from qoptct.estimate import estimate
 r = estimate("litinski2023", toffoli=1.09e8, qubits=3000)
 r.physical_qubits, r.runtime_s, r.failure_prob, r.code_distance
+```
+
+### Exact point addition, residues, modular adders, binary curves (new in 0.6)
+
+Building blocks added to `qoptct.crypto`; used as modules (`from qoptct.crypto import ecpoint, residue, modadd, gf2ec`).
+All counts are logical ANDs (= Toffoli) in the same model as above.
+
+* `ecpoint.ec_point_add(p, a, b, Q)`, `ec_point_add_window(...)`: **exact** complete addition of a classical point Q to a
+  quantum point P on a prime-field curve (also for P = O, P = Q, P = -Q, P = -2Q); the windowed form takes Q from a table.
+  P-256 / secp256k1, n = 256: 3 041 421 / 3 033 954 ANDs (6 742 / 6 934 qubits). This is an exact scheme, not the cheapest known one:
+  the approximate schemes of 2026 (arXiv:2609.05625, arXiv:2606.02235) are cheaper and use fewer qubits (they have a
+  non-zero failure probability). Checked exhaustively on small curves, on edge points at n = 256, phases by sparse
+  simulation; no machine proof of the whole circuit.
+* `residue.fold_accumulator(q, clen, nbits)`: compression of the accumulator modulo q (loop 2 of Gidney 2025):
+  106 / 138 / 148 ANDs for q = 1 574 500 against 682 by the formula of the paper. Against the exact count of the
+  paper's circuit (352-418) the gain is smaller; the junction with the next step (loop 3) was argued in words and not
+  checked on a whole circuit. Proved by `qoptct kprove` for 29 bits / window 4 and 32 bits / window 4 at l = 21.
+* `lookup.davio_lookup(..., fanout='gray')`: optional Gray-code fan-out of CX; up to -68 % CX on large tables
+  (c = 10, w = 1024: 167 231 instead of 528 201 CX, same ANDs). It is an option, the default is unchanged.
+* `modadd`: modular adders / subtractors, doubling, comparisons. Modular addition 4n-2 ANDs (published: 4n), a gain of 2 ANDs.
+* `gf2ec.gf2_point_add(m, ...)`: point addition on a binary curve over GF(2^m), second point classical:
+  m = 163: 18 160 ANDs (10 registers) / 29 056 (4 registers); m = 409: 55 006. Exceptional cases (point at infinity,
+  P1 = P2, P1 = -P2, P1 + P2 = +-P2) are **not** handled, as in Banegas et al. 2021 and Taguchi-Takayasu 2023.
+  With the default `lowering='crt'` the 4-register variant for m = 163 needs 1 142 qubits; 981 qubits need
+  `lowering='parity'` (about 6 times more CX).
+
+### Models of whole attacks: `qoptct estimate --attack` (new in 0.6)
+
+`qoptct.estimate.logical` reproduces the logical cost (ANDs, logical qubits) of published RSA, ECDLP and AES-Grover
+algorithms and gives the same frameworks with the blocks of `qoptct.crypto`. It is a resource-estimation tool: **the
+numbers are models built from checked blocks, not end-to-end circuits.** Every line has a status: `published`
+(reproduces the number of the paper), `qoptct` (blocks checked, whole circuit not built), `estimate`.
+
+```
+qoptct estimate --list-attacks
+qoptct estimate --attack ecdlp-p256 --variant L0
+qoptct estimate --attack rsa2048-g25
+qoptct estimate --check-attacks        # compares with the published tables
 ```
 
 ## Hardware check (IBM Quantum)
