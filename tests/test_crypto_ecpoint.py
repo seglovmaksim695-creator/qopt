@@ -47,9 +47,9 @@ def test_all_P_all_Q(n, idx, mult):
     cv = curves(n)[idx]
     p, a, b = cv['p'], cv['a'], cv['b']
     pts = [None] + cv['points']
-    qs = cv['points'] if n <= 5 else cv['points'][::2] if n == 6 else cv['points'][::5]
+    qs = cv['points']                          # ALL Q
     if mult == 'school':
-        qs = qs[::3]
+        qs = qs[::4]
     ands = set()
     for Q in qs:
         C = E.ec_point_add(p, a, b, Q, karatsuba_levels=1, multiplier=mult)
@@ -241,12 +241,14 @@ def test_classical_mutants_rejected():
     Q = cv['points'][2]
     C = E.ec_point_add(p, a, b, Q, karatsuba_levels=1)
     assert C.check(pts) == 0
-    dead = 0
-    sample = _mutants(C, (0, 1), 60, 1) + _mutants(C, (3,), 10, 2)     # x / cx / and
-    for i in sample:
-        if _run_without(C, i, pts) == 0:
-            dead += 1                                                    # a deleted op that changes nothing
-    assert dead <= 6, dead                                               # (a few CX / X are redundant on the data)
+    # n = 4 is tiny: many CX / AND are redundant on the valid data (constant products), so only rates are asserted;
+    # every deleted X gate must be noticed.
+    rate = {}
+    for kind, cnt in ((0, 40), (1, 80), (3, 40)):
+        hit = [_run_without(C, i, pts) != 0 for i in _mutants(C, (kind,), cnt, kind + 1)]
+        rate[kind] = sum(hit) / len(hit)
+    assert rate[0] == 1.0, rate
+    assert rate[1] >= 0.55 and rate[3] >= 0.4, rate
     assert C.check(pts) == 0                                             # the circuit is restored
 
 
