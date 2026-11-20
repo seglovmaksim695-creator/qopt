@@ -13,10 +13,16 @@ from .redk2 import reduce_k2
 RED = {'mode': 'k2'}
 
 
+_P256 = 0xffffffff00000001000000000000000000000000ffffffffffffffffffffffff
+
+
 def reduce_any(C, V, p, B):
-    """V (значение < B) -> V mod p: редукция k2 (если влезает в 2n бит и mode=k2), иначе red_special."""
+    """V (value < B) -> V mod p: the fold reduction of qoptct.crypto.fold (mode 'k2') when it applies (V fits in 2n
+    bits and c = 2^n - p satisfies c^2 + 2c + 2 < 2^n, or p = P-256), else the Solinas search red_special."""
     n = p.bit_length()
-    if RED['mode'] == 'k2' and B <= (1 << (2 * n)) and ((1 << n) - p) < (1 << (n // 2)) or (RED['mode'] == 'k2' and p == 0xffffffff00000001000000000000000000000000ffffffffffffffffffffffff and B <= (1 << 512)):
+    c = (1 << n) - p
+    fold_ok = (B <= (1 << (2 * n)) and c * c + 2 * c + 2 < (1 << n)) or (p == _P256 and B <= (1 << 512))
+    if RED['mode'] == 'k2' and fold_ok:
         V = list(V)[:2 * n]
         pad = [C.alloc() for _ in range(2 * n - len(V))]
         out, gar = reduce_k2(C, V + pad, p)
