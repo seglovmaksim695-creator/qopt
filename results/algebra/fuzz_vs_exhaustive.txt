@@ -1,0 +1,18 @@
+('clean', 3, 0) ops 400 {'PROVED': 90, 'REFUTED': 771, 'UNKNOWN': 299, 'ERROR': 0, 'wrong': 1069, 'proved_correct': 90, 'FALSE_PROVED': 0, 'FALSE_REFUTED': 0} 0s
+('clean', 4, 1) ops 644 {'PROVED': 66, 'REFUTED': 768, 'UNKNOWN': 327, 'ERROR': 0, 'wrong': 1095, 'proved_correct': 66, 'FALSE_PROVED': 0, 'FALSE_REFUTED': 0} 0s
+('mul', 3, 0) ops 190 {'PROVED': 100, 'REFUTED': 942, 'UNKNOWN': 113, 'ERROR': 0, 'wrong': 1055, 'proved_correct': 100, 'FALSE_PROVED': 0, 'FALSE_REFUTED': 0} 0s
+('mul', 4, 0) ops 306 {'PROVED': 73, 'REFUTED': 968, 'UNKNOWN': 135, 'ERROR': 0, 'wrong': 1103, 'proved_correct': 73, 'FALSE_PROVED': 0, 'FALSE_REFUTED': 0} 0s
+('mul', 5, 1) ops 789 {'PROVED': 59, 'REFUTED': 930, 'UNKNOWN': 185, 'ERROR': 0, 'wrong': 1113, 'proved_correct': 59, 'FALSE_PROVED': 0, 'FALSE_REFUTED': 0} 1s
+('mul', 6, 2) ops 933 {'PROVED': 56, 'REFUTED': 977, 'UNKNOWN': 143, 'ERROR': 0, 'wrong': 1120, 'proved_correct': 56, 'FALSE_PROVED': 0, 'FALSE_REFUTED': 0} 2s
+('mul', 7, 3) ops 1544 {'PROVED': 57, 'REFUTED': 725, 'UNKNOWN': 409, 'ERROR': 0, 'wrong': 1125, 'proved_correct': 57, 'FALSE_PROVED': 0, 'FALSE_REFUTED': 0} 31s
+('sq', 4, 0) ops 153 {'PROVED': 85, 'REFUTED': 962, 'UNKNOWN': 103, 'ERROR': 0, 'wrong': 1062, 'proved_correct': 85, 'FALSE_PROVED': 0, 'FALSE_REFUTED': 0} 1s
+('sq', 5, 0) ops 237 {'PROVED': 98, 'REFUTED': 910, 'UNKNOWN': 139, 'ERROR': 0, 'wrong': 1049, 'proved_correct': 98, 'FALSE_PROVED': 0, 'FALSE_REFUTED': 0} 3s
+('sq', 6, 1) ops 491 {'PROVED': 65, 'REFUTED': 929, 'UNKNOWN': 190, 'ERROR': 0, 'wrong': 1116, 'proved_correct': 65, 'FALSE_PROVED': 0, 'FALSE_REFUTED': 0} 2s
+('sq', 8, 2) ops 966 {'PROVED': 73, 'REFUTED': 761, 'UNKNOWN': 349, 'ERROR': 0, 'wrong': 1109, 'proved_correct': 73, 'FALSE_PROVED': 0, 'FALSE_REFUTED': 0} 3s
+('sq', 9, 1) ops 1023 {'PROVED': 52, 'REFUTED': 939, 'UNKNOWN': 192, 'ERROR': 0, 'wrong': 1130, 'proved_correct': 52, 'FALSE_PROVED': 0, 'FALSE_REFUTED': 0} 6s
+('fold', 5, 3) ops 209 {'PROVED': 125, 'REFUTED': 916, 'UNKNOWN': 120, 'ERROR': 0, 'wrong': 1029, 'proved_correct': 125, 'FALSE_PROVED': 0, 'FALSE_REFUTED': 0} 4s
+('fold', 6, 5) ops 267 {'PROVED': 151, 'REFUTED': 905, 'UNKNOWN': 113, 'ERROR': 0, 'wrong': 1003, 'proved_correct': 151, 'FALSE_PROVED': 0, 'FALSE_REFUTED': 0} 10s
+('fold', 7, 1) ops 152 {'PROVED': 73, 'REFUTED': 998, 'UNKNOWN': 104, 'ERROR': 0, 'wrong': 1102, 'proved_correct': 73, 'FALSE_PROVED': 0, 'FALSE_REFUTED': 0} 18s
+('modmul', 5, 3) ops 653 {'PROVED': 96, 'REFUTED': 948, 'UNKNOWN': 144, 'ERROR': 0, 'wrong': 1089, 'proved_correct': 96, 'FALSE_PROVED': 0, 'FALSE_REFUTED': 0} 4s
+('modmul', 6, 5) ops 871 {'PROVED': 106, 'REFUTED': 910, 'UNKNOWN': 165, 'ERROR': 0, 'wrong': 1068, 'proved_correct': 106, 'FALSE_PROVED': 0, 'FALSE_REFUTED': 0} 8s
+TOTAL {'PROVED': 1425, 'REFUTED': 15259, 'UNKNOWN': 3230, 'ERROR': 0, 'wrong': 18437, 'proved_correct': 1425, 'FALSE_PROVED': 0, 'FALSE_REFUTED': 0}

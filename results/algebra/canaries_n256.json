@@ -1,0 +1,2937 @@
+[
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "claim \"out == x*y\" fails on the input {'x': 0, 'y': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 1536,
+   "ops": 730853,
+   "AND": 66558,
+   "erasures": 66558
+  },
+  "time": 1.46,
+  "total_time": 1.45,
+  "peak_mb": 441.1,
+  "build_time": 0.34,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 0,
+   "mut": {
+    "type": "drop_cx",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "wire q[47] ends changed on the input {'x': 0, 'y': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 1536,
+   "ops": 730853,
+   "AND": 66558,
+   "erasures": 66558
+  },
+  "time": 1.37,
+  "total_time": 1.36,
+  "peak_mb": 442.7,
+  "build_time": 0.32,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 0,
+   "mut": {
+    "type": "drop_cx",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "wire q[77] ends changed on the input {'x': 0, 'y': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 1536,
+   "ops": 730853,
+   "AND": 66558,
+   "erasures": 66558
+  },
+  "time": 1.51,
+  "total_time": 1.49,
+  "peak_mb": 440.6,
+  "build_time": 0.32,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 0,
+   "mut": {
+    "type": "drop_cx",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "wire q[279] ends changed on the input {'x': 0, 'y': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 1536,
+   "ops": 730853,
+   "AND": 66558,
+   "erasures": 66558
+  },
+  "time": 1.5,
+  "total_time": 1.48,
+  "peak_mb": 434.0,
+  "build_time": 0.31,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 0,
+   "mut": {
+    "type": "drop_x",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "claim \"out == x*y\" fails on the input {'x': 0, 'y': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 1536,
+   "ops": 730853,
+   "AND": 66558,
+   "erasures": 66558
+  },
+  "time": 1.49,
+  "total_time": 1.47,
+  "peak_mb": 433.2,
+  "build_time": 0.32,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 0,
+   "mut": {
+    "type": "drop_x",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "claim \"out == x*y\" fails on the input {'x': 0, 'y': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 1536,
+   "ops": 730853,
+   "AND": 66558,
+   "erasures": 66558
+  },
+  "time": 1.45,
+  "total_time": 1.43,
+  "peak_mb": 434.4,
+  "build_time": 0.31,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 0,
+   "mut": {
+    "type": "drop_x",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "claim \"out == x*y\" fails on the input {'x': 0, 'y': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 1536,
+   "ops": 730854,
+   "AND": 66558,
+   "erasures": 66558
+  },
+  "time": 1.44,
+  "total_time": 1.43,
+  "peak_mb": 438.3,
+  "build_time": 0.33,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 0,
+   "mut": {
+    "type": "cx_control",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "wire q[47] ends changed on the input {'x': 0, 'y': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 1536,
+   "ops": 730854,
+   "AND": 66558,
+   "erasures": 66558
+  },
+  "time": 1.51,
+  "total_time": 1.49,
+  "peak_mb": 441.3,
+  "build_time": 0.33,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 0,
+   "mut": {
+    "type": "cx_control",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "wire q[77] ends changed on the input {'x': 0, 'y': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 1536,
+   "ops": 730854,
+   "AND": 66558,
+   "erasures": 66558
+  },
+  "time": 1.61,
+  "total_time": 1.59,
+  "peak_mb": 438.8,
+  "build_time": 0.34,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 0,
+   "mut": {
+    "type": "cx_control",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 21580: erasure of q[974]: the phase of the outcome-1 branch depends on the input (inputs {'x': 9321227254469748950787843716125045646329768836097659223852767991639344883568, 'y': 8133286979582118531",
+  "counts": {
+   "qubits": 1536,
+   "ops": 730854,
+   "AND": 66558,
+   "erasures": 66558
+  },
+  "time": 1.44,
+  "total_time": 1.43,
+  "peak_mb": 436.0,
+  "build_time": 0.35,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 0,
+   "mut": {
+    "type": "and_operand",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 367124: erasure of q[1026]: the phase of the outcome-1 branch depends on the input (inputs {'x': 28149746847258824284346510097261792297672430949366177682099070000203211207817, 'y': 7730886018656026",
+  "counts": {
+   "qubits": 1536,
+   "ops": 730854,
+   "AND": 66558,
+   "erasures": 66558
+  },
+  "time": 1.43,
+  "total_time": 1.41,
+  "peak_mb": 435.6,
+  "build_time": 0.32,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 0,
+   "mut": {
+    "type": "and_operand",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 712672: erasure of q[1076]: the phase of the outcome-1 branch depends on the input (inputs {'x': 9321227254469748950787843716125045646329768836097659223852767991639344883568, 'y': 81332869795821185",
+  "counts": {
+   "qubits": 1536,
+   "ops": 730854,
+   "AND": 66558,
+   "erasures": 66558
+  },
+  "time": 1.5,
+  "total_time": 1.48,
+  "peak_mb": 434.0,
+  "build_time": 0.38,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 0,
+   "mut": {
+    "type": "and_operand",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 22112: erasure of q[841]: the phase of the outcome-1 branch depends on the input (inputs {'x': 0, 'y': 0} and {'x': 115792089237316195423570985008687907853269984665640564039457584007913129639935, '",
+  "counts": {
+   "qubits": 1536,
+   "ops": 730854,
+   "AND": 66558,
+   "erasures": 66558
+  },
+  "time": 1.4,
+  "total_time": 1.39,
+  "peak_mb": 434.0,
+  "build_time": 0.36,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 0,
+   "mut": {
+    "type": "drop_z",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 364798: erasure of q[898]: the phase of the outcome-1 branch depends on the input (inputs {'x': 0, 'y': 0} and {'x': 115792089237316195423570985008687907853269984665640564039457584007913129639935, ",
+  "counts": {
+   "qubits": 1536,
+   "ops": 730854,
+   "AND": 66558,
+   "erasures": 66558
+  },
+  "time": 1.44,
+  "total_time": 1.43,
+  "peak_mb": 434.0,
+  "build_time": 0.34,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 0,
+   "mut": {
+    "type": "drop_z",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 709286: erasure of q[1214]: the phase of the outcome-1 branch depends on the input (inputs {'x': 0, 'y': 0} and {'x': 115792089237316195423570985008687907853269984665640564039457584007913129639935,",
+  "counts": {
+   "qubits": 1536,
+   "ops": 730854,
+   "AND": 66558,
+   "erasures": 66558
+  },
+  "time": 1.51,
+  "total_time": 1.49,
+  "peak_mb": 436.6,
+  "build_time": 0.33,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 0,
+   "mut": {
+    "type": "drop_z",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 22140: erasure of q[834]: the phase of the outcome-1 branch depends on the input (inputs {'x': 17930906484853031342325341010843772831037112015921939650478939841936978641865, 'y': 425869801947598633",
+  "counts": {
+   "qubits": 1536,
+   "ops": 730854,
+   "AND": 66558,
+   "erasures": 66558
+  },
+  "time": 1.47,
+  "total_time": 1.46,
+  "peak_mb": 434.7,
+  "build_time": 0.32,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 0,
+   "mut": {
+    "type": "drop_cz",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 367116: erasure of q[1028]: the phase of the outcome-1 branch depends on the input (inputs {'x': 17930906484853031342325341010843772831037112015921939650478939841936978641865, 'y': 4258698019475986",
+  "counts": {
+   "qubits": 1536,
+   "ops": 730854,
+   "AND": 66558,
+   "erasures": 66558
+  },
+  "time": 1.51,
+  "total_time": 1.49,
+  "peak_mb": 437.3,
+  "build_time": 0.36,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 0,
+   "mut": {
+    "type": "drop_cz",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 712088: erasure of q[1222]: the phase of the outcome-1 branch depends on the input (inputs {'x': 9321227254469748950787843716125045646329768836097659223852767991639344883568, 'y': 81332869795821185",
+  "counts": {
+   "qubits": 1536,
+   "ops": 730854,
+   "AND": 66558,
+   "erasures": 66558
+  },
+  "time": 1.46,
+  "total_time": 1.44,
+  "peak_mb": 434.4,
+  "build_time": 0.34,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 0,
+   "mut": {
+    "type": "drop_cz",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "UNKNOWN",
+  "method": "algebra",
+  "detail": "op 23176: AND target q[834] is not |0> on the input {'x': 0, 'y': 0} (precondition of the gadget violated; the gate model does not apply) [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 1536,
+   "ops": 730853,
+   "AND": 66558,
+   "erasures": 66557
+  },
+  "time": 1.38,
+  "total_time": 1.36,
+  "peak_mb": 436.1,
+  "build_time": 0.35,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 0,
+   "mut": {
+    "type": "drop_erase",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "UNKNOWN",
+  "method": "algebra",
+  "detail": "op 368791: AND target q[1028] is not |0> on the input {'x': 0, 'y': 0} (precondition of the gadget violated; the gate model does not apply) [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 1536,
+   "ops": 730853,
+   "AND": 66558,
+   "erasures": 66557
+  },
+  "time": 1.48,
+  "total_time": 1.46,
+  "peak_mb": 433.6,
+  "build_time": 0.31,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 0,
+   "mut": {
+    "type": "drop_erase",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "UNKNOWN",
+  "method": "algebra",
+  "detail": "op 714411: AND target q[1222] is not |0> on the input {'x': 0, 'y': 0} (precondition of the gadget violated; the gate model does not apply) [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 1536,
+   "ops": 730853,
+   "AND": 66558,
+   "erasures": 66557
+  },
+  "time": 1.47,
+  "total_time": 1.46,
+  "peak_mb": 436.2,
+  "build_time": 0.33,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 0,
+   "mut": {
+    "type": "drop_erase",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "claim \"out == 1 + x*y\" fails on the input {'x': 0, 'y': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 1536,
+   "ops": 730854,
+   "AND": 66558,
+   "erasures": 66558
+  },
+  "time": 1.55,
+  "total_time": 1.53,
+  "peak_mb": 435.9,
+  "build_time": 0.29,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 0,
+   "mut": {
+    "type": "claim",
+    "at": 0
+   }
+  }
+ },
+ {
+  "status": "UNKNOWN",
+  "method": "algebra",
+  "detail": "claim \"out == x*y\": 4 monomials left after rewriting",
+  "counts": {
+   "qubits": 1575,
+   "ops": 730973,
+   "AND": 66597,
+   "erasures": 66597
+  },
+  "stats": {
+   "ands": 66597,
+   "erases": 66597,
+   "cells": 133411,
+   "adders": 259,
+   "facts": 0,
+   "stageB": 5,
+   "stageC": 0,
+   "splits": 0,
+   "sem_zero": 0,
+   "virt": 1,
+   "reduce_steps": 771,
+   "atoms": 200520,
+   "classes": {
+    "s01/0": 1,
+    "s11/0": 255,
+    "u10/1": 1,
+    "u00/1": 1,
+    "virtual00": 1
+   }
+  },
+  "time": 5.58,
+  "total_time": 5.56,
+  "peak_mb": 770.1,
+  "build_time": 0.32,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 0,
+   "mut": {
+    "type": "rare",
+    "at": 0
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "wire q[2] ends changed on the input {'x': 0, 'y': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 3895,
+   "ops": 402650,
+   "AND": 37826,
+   "erasures": 37826
+  },
+  "time": 0.83,
+  "total_time": 0.82,
+  "peak_mb": 256.9,
+  "build_time": 0.24,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_cx",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "wire q[3511] ends not at |0> on the input {'x': 0, 'y': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 3895,
+   "ops": 402650,
+   "AND": 37826,
+   "erasures": 37826
+  },
+  "time": 0.79,
+  "total_time": 0.78,
+  "peak_mb": 258.0,
+  "build_time": 0.25,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_cx",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 388458: erasure of q[3559]: the phase of the outcome-1 branch depends on the input (inputs {'x': 115792089237316195423570985008687907853269984665640564039457584007913129639935, 'y': 115792089237316",
+  "counts": {
+   "qubits": 3895,
+   "ops": 402650,
+   "AND": 37826,
+   "erasures": 37826
+  },
+  "time": 0.78,
+  "total_time": 0.77,
+  "peak_mb": 259.0,
+  "build_time": 0.24,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_cx",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "wire q[3511] ends not at |0> on the input {'x': 0, 'y': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 3895,
+   "ops": 402650,
+   "AND": 37826,
+   "erasures": 37826
+  },
+  "time": 0.83,
+  "total_time": 0.82,
+  "peak_mb": 257.1,
+  "build_time": 0.25,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_x",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "UNKNOWN",
+  "method": "algebra",
+  "detail": "op 255539: AND target q[2997] is not |0> on the input {'x': 0, 'y': 0} (precondition of the gadget violated; the gate model does not apply) [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 3895,
+   "ops": 402650,
+   "AND": 37826,
+   "erasures": 37826
+  },
+  "time": 0.78,
+  "total_time": 0.77,
+  "peak_mb": 255.4,
+  "build_time": 0.25,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_x",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "claim \"out == x*y\" fails on the input {'x': 0, 'y': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 3895,
+   "ops": 402650,
+   "AND": 37826,
+   "erasures": 37826
+  },
+  "time": 0.81,
+  "total_time": 0.79,
+  "peak_mb": 257.2,
+  "build_time": 0.24,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_x",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "wire q[2] ends changed on the input {'x': 0, 'y': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 3895,
+   "ops": 402651,
+   "AND": 37826,
+   "erasures": 37826
+  },
+  "time": 0.79,
+  "total_time": 0.78,
+  "peak_mb": 255.0,
+  "build_time": 0.25,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "cx_control",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "wire q[3511] ends not at |0> on the input {'x': 0, 'y': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 3895,
+   "ops": 402651,
+   "AND": 37826,
+   "erasures": 37826
+  },
+  "time": 0.82,
+  "total_time": 0.81,
+  "peak_mb": 256.4,
+  "build_time": 0.25,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "cx_control",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 388459: erasure of q[3559]: the phase of the outcome-1 branch depends on the input (inputs {'x': 115792089237316195423570985008687907853269984665640564039457584007913129639935, 'y': 0} and {'x': 0,",
+  "counts": {
+   "qubits": 3895,
+   "ops": 402651,
+   "AND": 37826,
+   "erasures": 37826
+  },
+  "time": 0.8,
+  "total_time": 0.79,
+  "peak_mb": 256.8,
+  "build_time": 0.26,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "cx_control",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "UNKNOWN",
+  "method": "algebra",
+  "detail": "op 12266: erasure of q[623]: wire xor correction is not proved constant",
+  "counts": {
+   "qubits": 3895,
+   "ops": 402651,
+   "AND": 37826,
+   "erasures": 37826
+  },
+  "stats": {
+   "ands": 1150,
+   "erases": 1103,
+   "cells": 2332,
+   "adders": 34,
+   "facts": 0,
+   "stageB": 3,
+   "stageC": 1,
+   "splits": 0,
+   "sem_zero": 1,
+   "virt": 0,
+   "reduce_steps": 32,
+   "atoms": 3947,
+   "classes": {
+    "s01/0": 1,
+    "s11/0": 31,
+    "u10/1": 1,
+    "cout": 1
+   }
+  },
+  "time": 0.87,
+  "total_time": 0.86,
+  "peak_mb": 255.5,
+  "build_time": 0.27,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "and_operand",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 202993: erasure of q[2077]: the phase of the outcome-1 branch depends on the input (inputs {'x': 56867105935977597728681856290294724522797584838666288689052992046125176720540, 'y': 6511154527809857",
+  "counts": {
+   "qubits": 3895,
+   "ops": 402651,
+   "AND": 37826,
+   "erasures": 37826
+  },
+  "time": 0.86,
+  "total_time": 0.85,
+  "peak_mb": 256.0,
+  "build_time": 0.27,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "and_operand",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 392498: erasure of q[3600]: the phase of the outcome-1 branch depends on the input (inputs {'x': 81996593832174042697379480051586252021634202469511228671287253014369747595635, 'y': 4314830455703457",
+  "counts": {
+   "qubits": 3895,
+   "ops": 402651,
+   "AND": 37826,
+   "erasures": 37826
+  },
+  "time": 0.83,
+  "total_time": 0.82,
+  "peak_mb": 255.7,
+  "build_time": 0.25,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "and_operand",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 11982: erasure of q[577]: the phase of the outcome-1 branch depends on the input (inputs {'x': 115792089237316195423570985008687907853269984665640564039457584007913129639935, 'y': 0} and {'x': 0, '",
+  "counts": {
+   "qubits": 3895,
+   "ops": 402651,
+   "AND": 37826,
+   "erasures": 37826
+  },
+  "time": 0.78,
+  "total_time": 0.77,
+  "peak_mb": 255.5,
+  "build_time": 0.26,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_z",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 201822: erasure of q[2084]: the phase of the outcome-1 branch depends on the input (inputs {'x': 0, 'y': 0} and {'x': 115792089237316195423570985008687907853269984665640564039457584007913129639935,",
+  "counts": {
+   "qubits": 3895,
+   "ops": 402651,
+   "AND": 37826,
+   "erasures": 37826
+  },
+  "time": 0.78,
+  "total_time": 0.77,
+  "peak_mb": 255.9,
+  "build_time": 0.25,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_z",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 391162: erasure of q[3576]: the phase of the outcome-1 branch depends on the input (inputs {'x': 81996593832174042697379480051586252021634202469511228671287253014369747595635, 'y': 4314830455703457",
+  "counts": {
+   "qubits": 3895,
+   "ops": 402651,
+   "AND": 37826,
+   "erasures": 37826
+  },
+  "time": 0.85,
+  "total_time": 0.84,
+  "peak_mb": 257.9,
+  "build_time": 0.26,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_z",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 12361: erasure of q[591]: the phase of the outcome-1 branch depends on the input (inputs {'x': 17930906484853031342325341010843772831037112015921939650478939841936978641865, 'y': 425869801947598633",
+  "counts": {
+   "qubits": 3895,
+   "ops": 402651,
+   "AND": 37826,
+   "erasures": 37826
+  },
+  "time": 0.76,
+  "total_time": 0.74,
+  "peak_mb": 259.0,
+  "build_time": 0.26,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_cz",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 202981: erasure of q[2080]: the phase of the outcome-1 branch depends on the input (inputs {'x': 17930906484853031342325341010843772831037112015921939650478939841936978641865, 'y': 4258698019475986",
+  "counts": {
+   "qubits": 3895,
+   "ops": 402651,
+   "AND": 37826,
+   "erasures": 37826
+  },
+  "time": 0.82,
+  "total_time": 0.81,
+  "peak_mb": 257.8,
+  "build_time": 0.27,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_cz",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 392666: erasure of q[3558]: the phase of the outcome-1 branch depends on the input (inputs {'x': 81996593832174042697379480051586252021634202469511228671287253014369747595635, 'y': 4314830455703457",
+  "counts": {
+   "qubits": 3895,
+   "ops": 402651,
+   "AND": 37826,
+   "erasures": 37826
+  },
+  "time": 0.88,
+  "total_time": 0.87,
+  "peak_mb": 259.6,
+  "build_time": 0.27,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_cz",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "wire q[3511] ends not at |0> on the input {'x': 115792089237316195423570985008687907853269984665640564039457584007913129639935, 'y': 1157920892373161954235709850086879078532699846656405640394575840079",
+  "counts": {
+   "qubits": 3895,
+   "ops": 402650,
+   "AND": 37826,
+   "erasures": 37825
+  },
+  "time": 0.83,
+  "total_time": 0.81,
+  "peak_mb": 255.3,
+  "build_time": 0.25,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_erase",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "UNKNOWN",
+  "method": "algebra",
+  "detail": "op 203211: AND target q[2080] is not |0> on the input {'x': 0, 'y': 0} (precondition of the gadget violated; the gate model does not apply) [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 3895,
+   "ops": 402650,
+   "AND": 37826,
+   "erasures": 37825
+  },
+  "time": 0.84,
+  "total_time": 0.83,
+  "peak_mb": 255.7,
+  "build_time": 0.25,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_erase",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "UNKNOWN",
+  "method": "algebra",
+  "detail": "op 393192: AND target q[3558] is not |0> on the input {'x': 56867105935977597728681856290294724522797584838666288689052992046125176720540, 'y': 65111545278098571226288774002946764576233802392132644302",
+  "counts": {
+   "qubits": 3895,
+   "ops": 402650,
+   "AND": 37826,
+   "erasures": 37825
+  },
+  "time": 0.83,
+  "total_time": 0.83,
+  "peak_mb": 258.9,
+  "build_time": 0.24,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_erase",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "claim \"out == 1 + x*y\" fails on the input {'x': 0, 'y': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 3895,
+   "ops": 402651,
+   "AND": 37826,
+   "erasures": 37826
+  },
+  "time": 0.82,
+  "total_time": 0.81,
+  "peak_mb": 255.8,
+  "build_time": 0.25,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "claim",
+    "at": 0
+   }
+  }
+ },
+ {
+  "status": "UNKNOWN",
+  "method": "algebra",
+  "detail": "claim \"out == x*y\": 4 monomials left after rewriting",
+  "counts": {
+   "qubits": 3934,
+   "ops": 402770,
+   "AND": 37865,
+   "erasures": 37865
+  },
+  "stats": {
+   "ands": 37865,
+   "erases": 37865,
+   "cells": 75892,
+   "adders": 1002,
+   "facts": 21,
+   "stageB": 130,
+   "stageC": 0,
+   "splits": 0,
+   "sem_zero": 0,
+   "virt": 1,
+   "reduce_steps": 10523,
+   "atoms": 114243,
+   "classes": {
+    "s01/0": 27,
+    "s11/0": 855,
+    "u10/1": 27,
+    "u00/1": 57,
+    "cout": 26,
+    "u00/0": 9,
+    "virtual00": 1
+   }
+  },
+  "time": 7.02,
+  "total_time": 7.01,
+  "peak_mb": 474.3,
+  "build_time": 0.24,
+  "job": {
+   "kind": "mul",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "rare",
+    "at": 0
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 6801: erasure of q[332]: the phase of the outcome-1 branch depends on the input (inputs {'x': 0} and {'x': 115792089237316195423570985008687907853269984665640564039457584007913129639935} differ) [i",
+  "counts": {
+   "qubits": 3000,
+   "ops": 232256,
+   "AND": 22145,
+   "erasures": 22132
+  },
+  "time": 0.48,
+  "total_time": 0.47,
+  "peak_mb": 170.6,
+  "build_time": 0.17,
+  "job": {
+   "kind": "sq",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_cx",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 114951: erasure of q[1556]: the phase of the outcome-1 branch depends on the input (inputs {'x': 0} and {'x': 9321227254469748950787843716125045646329768836097659223852767991639344883568} differ) [",
+  "counts": {
+   "qubits": 3000,
+   "ops": 232256,
+   "AND": 22145,
+   "erasures": 22132
+  },
+  "time": 0.47,
+  "total_time": 0.47,
+  "peak_mb": 172.9,
+  "build_time": 0.15,
+  "job": {
+   "kind": "sq",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_cx",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "claim \"out == x*x\" fails on the input {'x': 96143773752661871285939347417694177327645969257268971372534837533931140161877} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 3000,
+   "ops": 232256,
+   "AND": 22145,
+   "erasures": 22132
+  },
+  "time": 0.51,
+  "total_time": 0.5,
+  "peak_mb": 170.8,
+  "build_time": 0.16,
+  "job": {
+   "kind": "sq",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_cx",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "wire q[2617] ends not at |0> on the input {'x': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 3000,
+   "ops": 232256,
+   "AND": 22145,
+   "erasures": 22132
+  },
+  "time": 0.45,
+  "total_time": 0.45,
+  "peak_mb": 171.5,
+  "build_time": 0.14,
+  "job": {
+   "kind": "sq",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_x",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "wire q[2617] ends not at |0> on the input {'x': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 3000,
+   "ops": 232256,
+   "AND": 22145,
+   "erasures": 22132
+  },
+  "time": 0.49,
+  "total_time": 0.48,
+  "peak_mb": 169.1,
+  "build_time": 0.15,
+  "job": {
+   "kind": "sq",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_x",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "claim \"out == x*x\" fails on the input {'x': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 3000,
+   "ops": 232256,
+   "AND": 22145,
+   "erasures": 22132
+  },
+  "time": 0.46,
+  "total_time": 0.46,
+  "peak_mb": 169.9,
+  "build_time": 0.15,
+  "job": {
+   "kind": "sq",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_x",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 6802: erasure of q[332]: the phase of the outcome-1 branch depends on the input (inputs {'x': 0} and {'x': 115792089237316195423570985008687907853269984665640564039457584007913129639935} differ) [i",
+  "counts": {
+   "qubits": 3000,
+   "ops": 232257,
+   "AND": 22145,
+   "erasures": 22132
+  },
+  "time": 0.45,
+  "total_time": 0.44,
+  "peak_mb": 168.5,
+  "build_time": 0.14,
+  "job": {
+   "kind": "sq",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "cx_control",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 114952: erasure of q[1556]: the phase of the outcome-1 branch depends on the input (inputs {'x': 0} and {'x': 9321227254469748950787843716125045646329768836097659223852767991639344883568} differ) [",
+  "counts": {
+   "qubits": 3000,
+   "ops": 232257,
+   "AND": 22145,
+   "erasures": 22132
+  },
+  "time": 0.46,
+  "total_time": 0.45,
+  "peak_mb": 171.8,
+  "build_time": 0.15,
+  "job": {
+   "kind": "sq",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "cx_control",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "claim \"out == x*x\" fails on the input {'x': 115792089237316195423570985008687907853269984665640564039457584007913129639935} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 3000,
+   "ops": 232257,
+   "AND": 22145,
+   "erasures": 22132
+  },
+  "time": 0.47,
+  "total_time": 0.46,
+  "peak_mb": 169.2,
+  "build_time": 0.15,
+  "job": {
+   "kind": "sq",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "cx_control",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 7241: erasure of q[346]: the phase of the outcome-1 branch depends on the input (inputs {'x': 17930906484853031342325341010843772831037112015921939650478939841936978641865} and {'x': 0} differ) [in",
+  "counts": {
+   "qubits": 3000,
+   "ops": 232257,
+   "AND": 22145,
+   "erasures": 22132
+  },
+  "time": 0.43,
+  "total_time": 0.43,
+  "peak_mb": 171.4,
+  "build_time": 0.15,
+  "job": {
+   "kind": "sq",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "and_operand",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 117781: erasure of q[1567]: the phase of the outcome-1 branch depends on the input (inputs {'x': 9321227254469748950787843716125045646329768836097659223852767991639344883568} and {'x': 0} differ) [",
+  "counts": {
+   "qubits": 3000,
+   "ops": 232257,
+   "AND": 22145,
+   "erasures": 22132
+  },
+  "time": 0.47,
+  "total_time": 0.46,
+  "peak_mb": 170.2,
+  "build_time": 0.16,
+  "job": {
+   "kind": "sq",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "and_operand",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 225616: erasure of q[2845]: the phase of the outcome-1 branch depends on the input (inputs {'x': 9321227254469748950787843716125045646329768836097659223852767991639344883568} and {'x': 0} differ) [",
+  "counts": {
+   "qubits": 3000,
+   "ops": 232257,
+   "AND": 22145,
+   "erasures": 22132
+  },
+  "time": 0.46,
+  "total_time": 0.46,
+  "peak_mb": 169.8,
+  "build_time": 0.15,
+  "job": {
+   "kind": "sq",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "and_operand",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 7120: erasure of q[346]: the phase of the outcome-1 branch depends on the input (inputs {'x': 0} and {'x': 81996593832174042697379480051586252021634202469511228671287253014369747595635} differ) [in",
+  "counts": {
+   "qubits": 3000,
+   "ops": 232257,
+   "AND": 22145,
+   "erasures": 22132
+  },
+  "time": 0.46,
+  "total_time": 0.45,
+  "peak_mb": 171.4,
+  "build_time": 0.15,
+  "job": {
+   "kind": "sq",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_z",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 116625: erasure of q[1575]: the phase of the outcome-1 branch depends on the input (inputs {'x': 115792089237316195423570985008687907853269984665640564039457584007913129639935} and {'x': 0} differ)",
+  "counts": {
+   "qubits": 3000,
+   "ops": 232257,
+   "AND": 22145,
+   "erasures": 22132
+  },
+  "time": 0.45,
+  "total_time": 0.44,
+  "peak_mb": 168.7,
+  "build_time": 0.15,
+  "job": {
+   "kind": "sq",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_z",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 226088: erasure of q[2727]: the phase of the outcome-1 branch depends on the input (inputs {'x': 81996593832174042697379480051586252021634202469511228671287253014369747595635} and {'x': 0} differ) ",
+  "counts": {
+   "qubits": 3000,
+   "ops": 232257,
+   "AND": 22145,
+   "erasures": 22132
+  },
+  "time": 0.45,
+  "total_time": 0.44,
+  "peak_mb": 168.1,
+  "build_time": 0.15,
+  "job": {
+   "kind": "sq",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_z",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 7249: erasure of q[344]: the phase of the outcome-1 branch depends on the input (inputs {'x': 9321227254469748950787843716125045646329768836097659223852767991639344883568} and {'x': 0} differ) [ind",
+  "counts": {
+   "qubits": 3000,
+   "ops": 232257,
+   "AND": 22145,
+   "erasures": 22132
+  },
+  "time": 0.45,
+  "total_time": 0.44,
+  "peak_mb": 171.2,
+  "build_time": 0.16,
+  "job": {
+   "kind": "sq",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_cz",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 117677: erasure of q[1593]: the phase of the outcome-1 branch depends on the input (inputs {'x': 96143773752661871285939347417694177327645969257268971372534837533931140161877} and {'x': 0} differ) ",
+  "counts": {
+   "qubits": 3000,
+   "ops": 232257,
+   "AND": 22145,
+   "erasures": 22132
+  },
+  "time": 0.43,
+  "total_time": 0.43,
+  "peak_mb": 167.6,
+  "build_time": 0.17,
+  "job": {
+   "kind": "sq",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_cz",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 226420: erasure of q[2644]: the phase of the outcome-1 branch depends on the input (inputs {'x': 65212835793503989664827533596796510827894477371391132878016232395734662912289} and {'x': 0} differ) ",
+  "counts": {
+   "qubits": 3000,
+   "ops": 232257,
+   "AND": 22145,
+   "erasures": 22132
+  },
+  "time": 0.44,
+  "total_time": 0.43,
+  "peak_mb": 171.5,
+  "build_time": 0.18,
+  "job": {
+   "kind": "sq",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_cz",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "UNKNOWN",
+  "method": "algebra",
+  "detail": "op 7302: AND target q[344] is not |0> on the input {'x': 0} (precondition of the gadget violated; the gate model does not apply) [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 3000,
+   "ops": 232256,
+   "AND": 22145,
+   "erasures": 22131
+  },
+  "time": 0.44,
+  "total_time": 0.43,
+  "peak_mb": 169.9,
+  "build_time": 0.15,
+  "job": {
+   "kind": "sq",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_erase",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "UNKNOWN",
+  "method": "algebra",
+  "detail": "op 118202: AND target q[1593] is not |0> on the input {'x': 115792089237316195423570985008687907853269984665640564039457584007913129639935} (precondition of the gadget violated; the gate model does no",
+  "counts": {
+   "qubits": 3000,
+   "ops": 232256,
+   "AND": 22145,
+   "erasures": 22131
+  },
+  "time": 0.48,
+  "total_time": 0.47,
+  "peak_mb": 171.4,
+  "build_time": 0.15,
+  "job": {
+   "kind": "sq",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_erase",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "UNKNOWN",
+  "method": "algebra",
+  "detail": "op 227167: AND target q[2644] is not |0> on the input {'x': 9321227254469748950787843716125045646329768836097659223852767991639344883568} (precondition of the gadget violated; the gate model does not ",
+  "counts": {
+   "qubits": 3000,
+   "ops": 232256,
+   "AND": 22145,
+   "erasures": 22131
+  },
+  "time": 0.47,
+  "total_time": 0.46,
+  "peak_mb": 169.7,
+  "build_time": 0.15,
+  "job": {
+   "kind": "sq",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "drop_erase",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "claim \"out == 1 + x*x\" fails on the input {'x': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 3000,
+   "ops": 232257,
+   "AND": 22145,
+   "erasures": 22132
+  },
+  "time": 0.45,
+  "total_time": 0.45,
+  "peak_mb": 168.9,
+  "build_time": 0.14,
+  "job": {
+   "kind": "sq",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "claim",
+    "at": 0
+   }
+  }
+ },
+ {
+  "status": "UNKNOWN",
+  "method": "algebra",
+  "detail": "claim \"out == x*x\": 2 monomials left after rewriting",
+  "counts": {
+   "qubits": 3039,
+   "ops": 232376,
+   "AND": 22184,
+   "erasures": 22171
+  },
+  "stats": {
+   "ands": 22184,
+   "erases": 22171,
+   "cells": 43746,
+   "adders": 989,
+   "facts": 21,
+   "stageB": 316,
+   "stageC": 27,
+   "splits": 26,
+   "sem_zero": 0,
+   "virt": 26,
+   "reduce_steps": 7231,
+   "atoms": 66172,
+   "classes": {
+    "s01/0": 27,
+    "s11/0": 828,
+    "u00/2": 27,
+    "virtual10": 26,
+    "u00/3": 26,
+    "cout": 13,
+    "u00/1": 39,
+    "u10/1": 1,
+    "u00/0": 1,
+    "s10/0": 1
+   }
+  },
+  "time": 7.14,
+  "total_time": 7.13,
+  "peak_mb": 304.7,
+  "build_time": 0.14,
+  "job": {
+   "kind": "sq",
+   "n": 256,
+   "L": 3,
+   "mut": {
+    "type": "rare",
+    "at": 0
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 2188: erasure of q[650]: the phase of the outcome-1 branch depends on the input (inputs {'L': 81996593832174042697379480051586252021634202469511228671287253014369747595635, 'H': 4314830455703457688",
+  "counts": {
+   "qubits": 869,
+   "ops": 19519,
+   "AND": 2175,
+   "erasures": 2174
+  },
+  "time": 0.04,
+  "total_time": 0.04,
+  "peak_mb": 46.5,
+  "build_time": 0.02,
+  "job": {
+   "kind": "fold",
+   "curve": "secp256k1",
+   "mut": {
+    "type": "drop_cx",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "claim \"r + 11579208923731619542357098500868790785326998466564056403\" fails on the input {'L': 115792089237316195423570985008687907853269984665640564039457584007913129639935, 'H': 115792089237316195423",
+  "counts": {
+   "qubits": 869,
+   "ops": 19519,
+   "AND": 2175,
+   "erasures": 2174
+  },
+  "time": 0.05,
+  "total_time": 0.05,
+  "peak_mb": 46.7,
+  "build_time": 0.01,
+  "job": {
+   "kind": "fold",
+   "curve": "secp256k1",
+   "mut": {
+    "type": "drop_cx",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "UNKNOWN",
+  "method": "algebra",
+  "detail": "op 18879: erasure of q[796]: wire xor correction is not proved constant",
+  "counts": {
+   "qubits": 869,
+   "ops": 19519,
+   "AND": 2175,
+   "erasures": 2174
+  },
+  "stats": {
+   "ands": 2175,
+   "erases": 1992,
+   "cells": 4559,
+   "adders": 11,
+   "facts": 4,
+   "stageB": 1,
+   "stageC": 0,
+   "splits": 0,
+   "sem_zero": 1,
+   "virt": 0,
+   "reduce_steps": 2,
+   "atoms": 6946,
+   "classes": {
+    "cout": 10,
+    "u00/1": 1
+   }
+  },
+  "time": 0.12,
+  "total_time": 0.12,
+  "peak_mb": 52.6,
+  "build_time": 0.01,
+  "job": {
+   "kind": "fold",
+   "curve": "secp256k1",
+   "mut": {
+    "type": "drop_cx",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "claim \"r + 11579208923731619542357098500868790785326998466564056403\" fails on the input {'L': 0, 'H': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 869,
+   "ops": 19519,
+   "AND": 2175,
+   "erasures": 2174
+  },
+  "time": 0.06,
+  "total_time": 0.05,
+  "peak_mb": 46.0,
+  "build_time": 0.01,
+  "job": {
+   "kind": "fold",
+   "curve": "secp256k1",
+   "mut": {
+    "type": "drop_x",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "claim \"M == 4294968273*thi1\" fails on the input {'L': 0, 'H': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 869,
+   "ops": 19519,
+   "AND": 2175,
+   "erasures": 2174
+  },
+  "time": 0.04,
+  "total_time": 0.04,
+  "peak_mb": 45.8,
+  "build_time": 0.01,
+  "job": {
+   "kind": "fold",
+   "curve": "secp256k1",
+   "mut": {
+    "type": "drop_x",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "claim \"r + 11579208923731619542357098500868790785326998466564056403\" fails on the input {'L': 0, 'H': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 869,
+   "ops": 19519,
+   "AND": 2175,
+   "erasures": 2174
+  },
+  "time": 0.04,
+  "total_time": 0.04,
+  "peak_mb": 46.1,
+  "build_time": 0.01,
+  "job": {
+   "kind": "fold",
+   "curve": "secp256k1",
+   "mut": {
+    "type": "drop_x",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 2189: erasure of q[650]: the phase of the outcome-1 branch depends on the input (inputs {'L': 81996593832174042697379480051586252021634202469511228671287253014369747595635, 'H': 4314830455703457688",
+  "counts": {
+   "qubits": 869,
+   "ops": 19520,
+   "AND": 2175,
+   "erasures": 2174
+  },
+  "time": 0.04,
+  "total_time": 0.04,
+  "peak_mb": 46.1,
+  "build_time": 0.01,
+  "job": {
+   "kind": "fold",
+   "curve": "secp256k1",
+   "mut": {
+    "type": "cx_control",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "claim \"r + 11579208923731619542357098500868790785326998466564056403\" fails on the input {'L': 115792089237316195423570985008687907853269984665640564039457584007913129639935, 'H': 115792089237316195423",
+  "counts": {
+   "qubits": 869,
+   "ops": 19520,
+   "AND": 2175,
+   "erasures": 2174
+  },
+  "time": 0.05,
+  "total_time": 0.04,
+  "peak_mb": 46.7,
+  "build_time": 0.01,
+  "job": {
+   "kind": "fold",
+   "curve": "secp256k1",
+   "mut": {
+    "type": "cx_control",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 18880: erasure of q[796]: the phase of the outcome-1 branch depends on the input (inputs {'L': 0, 'H': 0} and {'L': 115792089237316195423570985008687907853269984665640564039457584007913129639935, '",
+  "counts": {
+   "qubits": 869,
+   "ops": 19520,
+   "AND": 2175,
+   "erasures": 2174
+  },
+  "time": 0.04,
+  "total_time": 0.04,
+  "peak_mb": 46.1,
+  "build_time": 0.01,
+  "job": {
+   "kind": "fold",
+   "curve": "secp256k1",
+   "mut": {
+    "type": "cx_control",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 2389: erasure of q[610]: the phase of the outcome-1 branch depends on the input (inputs {'L': 17930906484853031342325341010843772831037112015921939650478939841936978641865, 'H': 4258698019475986339",
+  "counts": {
+   "qubits": 869,
+   "ops": 19520,
+   "AND": 2175,
+   "erasures": 2174
+  },
+  "time": 0.04,
+  "total_time": 0.04,
+  "peak_mb": 46.6,
+  "build_time": 0.01,
+  "job": {
+   "kind": "fold",
+   "curve": "secp256k1",
+   "mut": {
+    "type": "and_operand",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 9441: erasure of q[782]: the phase of the outcome-1 branch depends on the input (inputs {'L': 114130699494363733835524582942418640521324028528672600165156455435725096558691, 'H': 251888283400421968",
+  "counts": {
+   "qubits": 869,
+   "ops": 19520,
+   "AND": 2175,
+   "erasures": 2174
+  },
+  "time": 0.04,
+  "total_time": 0.04,
+  "peak_mb": 45.8,
+  "build_time": 0.02,
+  "job": {
+   "kind": "fold",
+   "curve": "secp256k1",
+   "mut": {
+    "type": "and_operand",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "UNKNOWN",
+  "method": "algebra",
+  "detail": "op 18866: erasure of q[803]: wire xor correction is not proved constant",
+  "counts": {
+   "qubits": 869,
+   "ops": 19520,
+   "AND": 2175,
+   "erasures": 2174
+  },
+  "stats": {
+   "ands": 2175,
+   "erases": 1985,
+   "cells": 4555,
+   "adders": 14,
+   "facts": 5,
+   "stageB": 11,
+   "stageC": 2,
+   "splits": 1,
+   "sem_zero": 1,
+   "virt": 1,
+   "reduce_steps": 48,
+   "atoms": 7126,
+   "classes": {
+    "cout": 12,
+    "u00/1": 1,
+    "virtual00": 1
+   }
+  },
+  "time": 0.16,
+  "total_time": 0.16,
+  "peak_mb": 53.0,
+  "build_time": 0.01,
+  "job": {
+   "kind": "fold",
+   "curve": "secp256k1",
+   "mut": {
+    "type": "and_operand",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "ERROR",
+  "detail": "job failed: IndexError('list index out of range')",
+  "job": {
+   "kind": "fold",
+   "curve": "secp256k1",
+   "mut": {
+    "type": "drop_z",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "ERROR",
+  "detail": "job failed: IndexError('list index out of range')",
+  "job": {
+   "kind": "fold",
+   "curve": "secp256k1",
+   "mut": {
+    "type": "drop_z",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "ERROR",
+  "detail": "job failed: IndexError('list index out of range')",
+  "job": {
+   "kind": "fold",
+   "curve": "secp256k1",
+   "mut": {
+    "type": "drop_z",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 1604: erasure of q[767]: the phase of the outcome-1 branch depends on the input (inputs {'L': 92462332480039998011957461788838638412938001744113958127162380291517333229946, 'H': 1060342812458691085",
+  "counts": {
+   "qubits": 869,
+   "ops": 19520,
+   "AND": 2175,
+   "erasures": 2174
+  },
+  "time": 0.03,
+  "total_time": 0.03,
+  "peak_mb": 46.3,
+  "build_time": 0.02,
+  "job": {
+   "kind": "fold",
+   "curve": "secp256k1",
+   "mut": {
+    "type": "drop_cz",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 10536: erasure of q[563]: the phase of the outcome-1 branch depends on the input (inputs {'L': 94462526816035476278096798008281973310188502667109973026193454091288445670441, 'H': 374199510066884009",
+  "counts": {
+   "qubits": 869,
+   "ops": 19520,
+   "AND": 2175,
+   "erasures": 2174
+  },
+  "time": 0.04,
+  "total_time": 0.04,
+  "peak_mb": 46.0,
+  "build_time": 0.02,
+  "job": {
+   "kind": "fold",
+   "curve": "secp256k1",
+   "mut": {
+    "type": "drop_cz",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "UNKNOWN",
+  "method": "algebra",
+  "detail": "op 19114: erasure of q[679]: wire xor correction is not proved constant",
+  "counts": {
+   "qubits": 869,
+   "ops": 19520,
+   "AND": 2175,
+   "erasures": 2174
+  },
+  "stats": {
+   "ands": 2175,
+   "erases": 2109,
+   "cells": 4677,
+   "adders": 12,
+   "facts": 4,
+   "stageB": 2,
+   "stageC": 1,
+   "splits": 0,
+   "sem_zero": 1,
+   "virt": 0,
+   "reduce_steps": 2,
+   "atoms": 7181,
+   "classes": {
+    "cout": 11,
+    "u00/1": 1
+   }
+  },
+  "time": 0.13,
+  "total_time": 0.13,
+  "peak_mb": 52.4,
+  "build_time": 0.01,
+  "job": {
+   "kind": "fold",
+   "curve": "secp256k1",
+   "mut": {
+    "type": "drop_cz",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "UNKNOWN",
+  "method": "algebra",
+  "detail": "op 3821: AND target q[767] is not |0> on the input {'L': 92462332480039998011957461788838638412938001744113958127162380291517333229946, 'H': 10603428124586910855649825040848293285484573363725531345545",
+  "counts": {
+   "qubits": 869,
+   "ops": 19519,
+   "AND": 2175,
+   "erasures": 2173
+  },
+  "time": 0.04,
+  "total_time": 0.04,
+  "peak_mb": 46.1,
+  "build_time": 0.02,
+  "job": {
+   "kind": "fold",
+   "curve": "secp256k1",
+   "mut": {
+    "type": "drop_erase",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "UNKNOWN",
+  "method": "algebra",
+  "detail": "op 11002: AND target q[563] is not |0> on the input {'L': 94462526816035476278096798008281973310188502667109973026193454091288445670441, 'H': 3741995100668840091284503114678278866134173075106763283141",
+  "counts": {
+   "qubits": 869,
+   "ops": 19519,
+   "AND": 2175,
+   "erasures": 2173
+  },
+  "time": 0.04,
+  "total_time": 0.04,
+  "peak_mb": 46.4,
+  "build_time": 0.01,
+  "job": {
+   "kind": "fold",
+   "curve": "secp256k1",
+   "mut": {
+    "type": "drop_erase",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "UNKNOWN",
+  "method": "algebra",
+  "detail": "wire q[679] is not proved to end at |0>",
+  "counts": {
+   "qubits": 869,
+   "ops": 19519,
+   "AND": 2175,
+   "erasures": 2173
+  },
+  "stats": {
+   "ands": 2175,
+   "erases": 2173,
+   "cells": 4735,
+   "adders": 13,
+   "facts": 5,
+   "stageB": 10,
+   "stageC": 1,
+   "splits": 1,
+   "sem_zero": 1,
+   "virt": 0,
+   "reduce_steps": 70,
+   "atoms": 7305,
+   "classes": {
+    "cout": 11,
+    "u00/1": 1,
+    "u00/2": 1
+   }
+  },
+  "time": 0.2,
+  "total_time": 0.2,
+  "peak_mb": 52.7,
+  "build_time": 0.01,
+  "job": {
+   "kind": "fold",
+   "curve": "secp256k1",
+   "mut": {
+    "type": "drop_erase",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "claim \"M == 1 + 4294968273*thi1\" fails on the input {'L': 0, 'H': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 869,
+   "ops": 19520,
+   "AND": 2175,
+   "erasures": 2174
+  },
+  "time": 0.04,
+  "total_time": 0.04,
+  "peak_mb": 46.1,
+  "build_time": 0.02,
+  "job": {
+   "kind": "fold",
+   "curve": "secp256k1",
+   "mut": {
+    "type": "claim",
+    "at": 0
+   }
+  }
+ },
+ {
+  "status": "UNKNOWN",
+  "method": "algebra",
+  "detail": "op 19618: erasure of q[869]: wire xor correction is not proved constant",
+  "counts": {
+   "qubits": 908,
+   "ops": 19639,
+   "AND": 2214,
+   "erasures": 2213
+  },
+  "stats": {
+   "ands": 2214,
+   "erases": 2213,
+   "cells": 4777,
+   "adders": 14,
+   "facts": 5,
+   "stageB": 13,
+   "stageC": 3,
+   "splits": 2,
+   "sem_zero": 1,
+   "virt": 0,
+   "reduce_steps": 81,
+   "atoms": 7386,
+   "classes": {
+    "cout": 11,
+    "u00/1": 1,
+    "u00/2": 1,
+    "s10/0": 1
+   }
+  },
+  "time": 0.2,
+  "total_time": 0.2,
+  "peak_mb": 52.6,
+  "build_time": 0.01,
+  "job": {
+   "kind": "fold",
+   "curve": "secp256k1",
+   "mut": {
+    "type": "rare",
+    "at": 0
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "wire q[50] ends changed on the input {'x': 0, 'y': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 4160,
+   "ops": 412717,
+   "AND": 39050,
+   "erasures": 39049
+  },
+  "time": 0.89,
+  "total_time": 0.88,
+  "peak_mb": 273.3,
+  "build_time": 0.26,
+  "job": {
+   "kind": "modmul",
+   "curve": "curve25519",
+   "L": 3,
+   "op": "mul",
+   "mut": {
+    "type": "drop_cx",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 204379: erasure of q[2092]: the phase of the outcome-1 branch depends on the input (inputs {'x': 0, 'y': 0} and {'x': 57896044618658097711785492504343953926634992332820282019728792003956564819967, ",
+  "counts": {
+   "qubits": 4160,
+   "ops": 412717,
+   "AND": 39050,
+   "erasures": 39049
+  },
+  "time": 0.79,
+  "total_time": 0.78,
+  "peak_mb": 273.9,
+  "build_time": 0.26,
+  "job": {
+   "kind": "modmul",
+   "curve": "curve25519",
+   "L": 3,
+   "op": "mul",
+   "mut": {
+    "type": "drop_cx",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 401732: erasure of q[3514]: the phase of the outcome-1 branch depends on the input (inputs {'x': 38573144009347903880684969292711608879394334637162033290894514495256133597515, 'y': 3754513017138121",
+  "counts": {
+   "qubits": 4160,
+   "ops": 412717,
+   "AND": 39050,
+   "erasures": 39049
+  },
+  "time": 0.81,
+  "total_time": 0.8,
+  "peak_mb": 273.7,
+  "build_time": 0.27,
+  "job": {
+   "kind": "modmul",
+   "curve": "curve25519",
+   "L": 3,
+   "op": "mul",
+   "mut": {
+    "type": "drop_cx",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "wire q[3504] ends not at |0> on the input {'x': 0, 'y': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 4160,
+   "ops": 412717,
+   "AND": 39050,
+   "erasures": 39049
+  },
+  "time": 0.87,
+  "total_time": 0.86,
+  "peak_mb": 272.2,
+  "build_time": 0.27,
+  "job": {
+   "kind": "modmul",
+   "curve": "curve25519",
+   "L": 3,
+   "op": "mul",
+   "mut": {
+    "type": "drop_x",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "wire q[3504] ends not at |0> on the input {'x': 0, 'y': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 4160,
+   "ops": 412717,
+   "AND": 39050,
+   "erasures": 39049
+  },
+  "time": 0.85,
+  "total_time": 0.84,
+  "peak_mb": 271.4,
+  "build_time": 0.25,
+  "job": {
+   "kind": "modmul",
+   "curve": "curve25519",
+   "L": 3,
+   "op": "mul",
+   "mut": {
+    "type": "drop_x",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "claim \"r + 57896044618658097711785492504343953926634992332820282019\" fails on the input {'x': 0, 'y': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 4160,
+   "ops": 412717,
+   "AND": 39050,
+   "erasures": 39049
+  },
+  "time": 0.85,
+  "total_time": 0.84,
+  "peak_mb": 272.3,
+  "build_time": 0.26,
+  "job": {
+   "kind": "modmul",
+   "curve": "curve25519",
+   "L": 3,
+   "op": "mul",
+   "mut": {
+    "type": "drop_x",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "wire q[50] ends changed on the input {'x': 0, 'y': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 4160,
+   "ops": 412718,
+   "AND": 39050,
+   "erasures": 39049
+  },
+  "time": 0.87,
+  "total_time": 0.86,
+  "peak_mb": 270.2,
+  "build_time": 0.28,
+  "job": {
+   "kind": "modmul",
+   "curve": "curve25519",
+   "L": 3,
+   "op": "mul",
+   "mut": {
+    "type": "cx_control",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 204380: erasure of q[2092]: the phase of the outcome-1 branch depends on the input (inputs {'x': 0, 'y': 0} and {'x': 57896044618658097711785492504343953926634992332820282019728792003956564819967, ",
+  "counts": {
+   "qubits": 4160,
+   "ops": 412718,
+   "AND": 39050,
+   "erasures": 39049
+  },
+  "time": 0.85,
+  "total_time": 0.84,
+  "peak_mb": 272.2,
+  "build_time": 0.26,
+  "job": {
+   "kind": "modmul",
+   "curve": "curve25519",
+   "L": 3,
+   "op": "mul",
+   "mut": {
+    "type": "cx_control",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 401733: erasure of q[3514]: the phase of the outcome-1 branch depends on the input (inputs {'x': 24100549213515944985593987547242298094999210136690946651558461010413182775667, 'y': 2840056449541105",
+  "counts": {
+   "qubits": 4160,
+   "ops": 412718,
+   "AND": 39050,
+   "erasures": 39049
+  },
+  "time": 0.86,
+  "total_time": 0.85,
+  "peak_mb": 272.1,
+  "build_time": 0.26,
+  "job": {
+   "kind": "modmul",
+   "curve": "curve25519",
+   "L": 3,
+   "op": "mul",
+   "mut": {
+    "type": "cx_control",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 12716: erasure of q[630]: the phase of the outcome-1 branch depends on the input (inputs {'x': 28149746847258824284346510097261792297672430949366177682099070000203211207817, 'y': 388256311358043376",
+  "counts": {
+   "qubits": 4160,
+   "ops": 412718,
+   "AND": 39050,
+   "erasures": 39049
+  },
+  "time": 0.8,
+  "total_time": 0.79,
+  "peak_mb": 273.1,
+  "build_time": 0.26,
+  "job": {
+   "kind": "modmul",
+   "curve": "curve25519",
+   "L": 3,
+   "op": "mul",
+   "mut": {
+    "type": "and_operand",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 209148: erasure of q[2127]: the phase of the outcome-1 branch depends on the input (inputs {'x': 17930906484853031342325341010843772831037112015921939650478939841936978641865, 'y': 2727791577086162",
+  "counts": {
+   "qubits": 4160,
+   "ops": 412718,
+   "AND": 39050,
+   "erasures": 39049
+  },
+  "time": 0.87,
+  "total_time": 0.86,
+  "peak_mb": 270.9,
+  "build_time": 0.26,
+  "job": {
+   "kind": "modmul",
+   "curve": "curve25519",
+   "L": 3,
+   "op": "mul",
+   "mut": {
+    "type": "and_operand",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 403670: erasure of q[4025]: the phase of the outcome-1 branch depends on the input (inputs {'x': 56867105935977597728681856290294724522797584838666288689052992046125176720540, 'y': 1443100131888094",
+  "counts": {
+   "qubits": 4160,
+   "ops": 412718,
+   "AND": 39050,
+   "erasures": 39049
+  },
+  "time": 0.87,
+  "total_time": 0.86,
+  "peak_mb": 272.0,
+  "build_time": 0.26,
+  "job": {
+   "kind": "modmul",
+   "curve": "curve25519",
+   "L": 3,
+   "op": "mul",
+   "mut": {
+    "type": "and_operand",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 12318: erasure of q[1022]: the phase of the outcome-1 branch depends on the input (inputs {'x': 0, 'y': 0} and {'x': 57896044618658097711785492504343953926634992332820282019728792003956564819967, '",
+  "counts": {
+   "qubits": 4160,
+   "ops": 412718,
+   "AND": 39050,
+   "erasures": 39049
+  },
+  "time": 0.82,
+  "total_time": 0.81,
+  "peak_mb": 272.0,
+  "build_time": 0.27,
+  "job": {
+   "kind": "modmul",
+   "curve": "curve25519",
+   "L": 3,
+   "op": "mul",
+   "mut": {
+    "type": "drop_z",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 201388: erasure of q[2078]: the phase of the outcome-1 branch depends on the input (inputs {'x': 0, 'y': 0} and {'x': 57896044618658097711785492504343953926634992332820282019728792003956564819967, ",
+  "counts": {
+   "qubits": 4160,
+   "ops": 412718,
+   "AND": 39050,
+   "erasures": 39049
+  },
+  "time": 0.82,
+  "total_time": 0.81,
+  "peak_mb": 271.8,
+  "build_time": 0.28,
+  "job": {
+   "kind": "modmul",
+   "curve": "curve25519",
+   "L": 3,
+   "op": "mul",
+   "mut": {
+    "type": "drop_z",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 390300: erasure of q[3571]: the phase of the outcome-1 branch depends on the input (inputs {'x': 24100549213515944985593987547242298094999210136690946651558461010413182775667, 'y': 2840056449541105",
+  "counts": {
+   "qubits": 4160,
+   "ops": 412718,
+   "AND": 39050,
+   "erasures": 39049
+  },
+  "time": 0.82,
+  "total_time": 0.81,
+  "peak_mb": 272.1,
+  "build_time": 0.27,
+  "job": {
+   "kind": "modmul",
+   "curve": "curve25519",
+   "L": 3,
+   "op": "mul",
+   "mut": {
+    "type": "drop_z",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 12772: erasure of q[616]: the phase of the outcome-1 branch depends on the input (inputs {'x': 28149746847258824284346510097261792297672430949366177682099070000203211207817, 'y': 388256311358043376",
+  "counts": {
+   "qubits": 4160,
+   "ops": 412718,
+   "AND": 39050,
+   "erasures": 39049
+  },
+  "time": 0.82,
+  "total_time": 0.8,
+  "peak_mb": 271.8,
+  "build_time": 0.28,
+  "job": {
+   "kind": "modmul",
+   "curve": "curve25519",
+   "L": 3,
+   "op": "mul",
+   "mut": {
+    "type": "drop_cz",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 209344: erasure of q[2078]: the phase of the outcome-1 branch depends on the input (inputs {'x': 17930906484853031342325341010843772831037112015921939650478939841936978641865, 'y': 2727791577086162",
+  "counts": {
+   "qubits": 4160,
+   "ops": 412718,
+   "AND": 39050,
+   "erasures": 39049
+  },
+  "time": 0.79,
+  "total_time": 0.78,
+  "peak_mb": 269.9,
+  "build_time": 0.26,
+  "job": {
+   "kind": "modmul",
+   "curve": "curve25519",
+   "L": 3,
+   "op": "mul",
+   "mut": {
+    "type": "drop_cz",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "op 403695: erasure of q[4020]: the phase of the outcome-1 branch depends on the input (inputs {'x': 9321227254469748950787843716125045646329768836097659223852767991639344883568, 'y': 46873650354326175",
+  "counts": {
+   "qubits": 4160,
+   "ops": 412718,
+   "AND": 39050,
+   "erasures": 39049
+  },
+  "time": 0.82,
+  "total_time": 0.8,
+  "peak_mb": 271.0,
+  "build_time": 0.27,
+  "job": {
+   "kind": "modmul",
+   "curve": "curve25519",
+   "L": 3,
+   "op": "mul",
+   "mut": {
+    "type": "drop_cz",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "UNKNOWN",
+  "method": "algebra",
+  "detail": "op 12919: AND target q[616] is not |0> on the input {'x': 0, 'y': 0} (precondition of the gadget violated; the gate model does not apply) [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 4160,
+   "ops": 412717,
+   "AND": 39050,
+   "erasures": 39048
+  },
+  "time": 0.8,
+  "total_time": 0.78,
+  "peak_mb": 273.2,
+  "build_time": 0.25,
+  "job": {
+   "kind": "modmul",
+   "curve": "curve25519",
+   "L": 3,
+   "op": "mul",
+   "mut": {
+    "type": "drop_erase",
+    "at": 0.03
+   }
+  }
+ },
+ {
+  "status": "UNKNOWN",
+  "method": "algebra",
+  "detail": "op 209546: AND target q[2078] is not |0> on the input {'x': 24100549213515944985593987547242298094999210136690946651558461010413182775667, 'y': 28400564495411056053890983273254915686560037803141826484",
+  "counts": {
+   "qubits": 4160,
+   "ops": 412717,
+   "AND": 39050,
+   "erasures": 39048
+  },
+  "time": 0.83,
+  "total_time": 0.82,
+  "peak_mb": 270.0,
+  "build_time": 0.25,
+  "job": {
+   "kind": "modmul",
+   "curve": "curve25519",
+   "L": 3,
+   "op": "mul",
+   "mut": {
+    "type": "drop_erase",
+    "at": 0.5
+   }
+  }
+ },
+ {
+  "status": "UNKNOWN",
+  "method": "algebra",
+  "detail": "op 404962: AND target q[4020] is not |0> on the input {'x': 9321227254469748950787843716125045646329768836097659223852767991639344883568, 'y': 468736503543261752081421413578240208567136568468774107413",
+  "counts": {
+   "qubits": 4160,
+   "ops": 412717,
+   "AND": 39050,
+   "erasures": 39048
+  },
+  "time": 0.84,
+  "total_time": 0.82,
+  "peak_mb": 272.3,
+  "build_time": 0.25,
+  "job": {
+   "kind": "modmul",
+   "curve": "curve25519",
+   "L": 3,
+   "op": "mul",
+   "mut": {
+    "type": "drop_erase",
+    "at": 0.97
+   }
+  }
+ },
+ {
+  "status": "REFUTED",
+  "method": "algebra",
+  "detail": "claim \"r + 57896044618658097711785492504343953926634992332820282019\" fails on the input {'x': 0, 'y': 0} [independent bit-sliced simulation]",
+  "counts": {
+   "qubits": 4160,
+   "ops": 412718,
+   "AND": 39050,
+   "erasures": 39049
+  },
+  "time": 0.87,
+  "total_time": 0.86,
+  "peak_mb": 272.1,
+  "build_time": 0.24,
+  "job": {
+   "kind": "modmul",
+   "curve": "curve25519",
+   "L": 3,
+   "op": "mul",
+   "mut": {
+    "type": "claim",
+    "at": 0
+   }
+  }
+ },
+ {
+  "status": "UNKNOWN",
+  "method": "algebra",
+  "detail": "claim \"r + 57896044618658097711785492504343953926634992332820282019\": 3 monomials left after rewriting",
+  "counts": {
+   "qubits": 4199,
+   "ops": 412837,
+   "AND": 39089,
+   "erasures": 39088
+  },
+  "stats": {
+   "ands": 39089,
+   "erases": 39088,
+   "cells": 78812,
+   "adders": 1009,
+   "facts": 31,
+   "stageB": 142,
+   "stageC": 0,
+   "splits": 1,
+   "sem_zero": 0,
+   "virt": 1,
+   "reduce_steps": 19089,
+   "atoms": 118372,
+   "classes": {
+    "s01/0": 27,
+    "s11/0": 854,
+    "u10/1": 27,
+    "u00/1": 56,
+    "cout": 33,
+    "u00/0": 10,
+    "u00/2": 1,
+    "virtual00": 1
+   }
+  },
+  "time": 13.74,
+  "total_time": 13.73,
+  "peak_mb": 498.1,
+  "build_time": 0.24,
+  "job": {
+   "kind": "modmul",
+   "curve": "curve25519",
+   "L": 3,
+   "op": "mul",
+   "mut": {
+    "type": "rare",
+    "at": 0
+   }
+  }
+ }
+]

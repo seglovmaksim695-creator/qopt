@@ -93,7 +93,10 @@ def run_job(job):
     t0 = time.time()
     N, ops, spec = build(job)
     if job.get('mut'):
-        N, ops, spec = mutate(N, ops, spec, job['mut'])
+        try:
+            N, ops, spec = mutate(N, ops, spec, job['mut'])
+        except IndexError:                           # the circuit has no gate of this kind (e.g. no Z corrections)
+            return dict(status='N/A', detail='no such gate in this circuit', job=job, time=0.0)
     tb = time.time() - t0
     if job.get('engine') == 'kprove':
         import os
@@ -187,6 +190,7 @@ def main(argv):
         if out:
             json.dump(res, open(out, 'w'), indent=1, default=str)
     if mode == 'canaries':
+        res = [r for r in res if r['status'] != 'N/A']
         bad = [r for r in res if r['status'] == 'PROVED']
         cnt = {}
         for r in res:
