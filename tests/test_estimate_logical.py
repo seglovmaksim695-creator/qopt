@@ -77,19 +77,24 @@ def test_rsa_g25_qoptct_2048():
 
 
 def test_ecdlp_prime_qoptct_numbers_and_change_against_lab():
+    """the point addition is the real, proved scheme (POINTADD_PROVED); the lab k4 numbers stay under kaliski='legacy'."""
     r = lg.ecdlp_prime_qoptct('p256', 'L3')
-    assert r.extra['pointadd'] == 3041421 - 4 * 2307 == 3032193
-    assert r.toffoli == 13 * (3032193 + 2 ** 16 + 768) == 40280461 and r.qubits == 6742
+    assert r.extra['pointadd'] == 3031380 and r.qubits == 6724
+    assert r.toffoli == 13 * (3031380 + 2 ** 16 + 768) == 40269892
     old = lg.ecdlp_prime_qoptct('p256', 'L3', kaliski='legacy')
-    assert old.toffoli == 40400425 and old.extra['pointadd'] == 3041421       # 4.04e7 of K_SUMMARY
-    assert old.toffoli - r.toffoli == 13 * 4 * 2307
+    assert old.toffoli == 40400425 and old.extra['pointadd'] == 3041421 and old.qubits == 6742   # 4.04e7 of K_SUMMARY
+    assert old.toffoli - r.toffoli == 13 * (3041421 - 3031380)
     l0 = lg.ecdlp_prime_qoptct('p256', 'L0')
-    assert l0.toffoli == 13 * (3284291 + 65536 + 768) and l0.qubits == 4368     # 4.37e7 -> 4.36e7
+    assert l0.toffoli == 13 * (3284271 + 65536 + 768) == 43557475 and l0.qubits == 4365      # 4.36e7
     k1 = lg.ecdlp_prime_qoptct('secp256k1', 'L3')
-    assert k1.extra['pointadd'] == 3033954 - 4 * 2307 and k1.qubits == 6934
+    assert k1.extra['pointadd'] == 3023913 and k1.qubits == 6916 and k1.toffoli == 40172821
+    assert lg.ecdlp_prime_qoptct('secp256k1', 'L0').qubits == 4557
     assert abs(r.extra['gain'] - 0.6314) < 5e-4
     assert lg.pointadd_ands('p256', 'L3', 'legacy') == 3041421
-    assert lg.pointadd_ands_with_mulsq('p256', 'L3') < r.extra['pointadd']       # optional estimate, small
+    # the former estimate (lab number - 4 x the Kaliski gain, with the lowered multiplier counts) was within 10 ANDs
+    assert lg.pointadd_ands('p256', 'L3', 'estimate') == 3041421 - 4 * 2307 == 3032193
+    assert abs(lg.pointadd_ands_with_mulsq('p256', 'L3') - r.extra['pointadd']) < 10
+    assert 'proved' in r.note and 'not proved' in old.note
 
 
 def test_ecdlp_gf2m_qoptct():
@@ -178,7 +183,7 @@ def test_attack_report_physical_link():
     assert 3.6 < q['physical']['expected_runtime_s'] / 86400 < 3.9            # K_SUMMARY: 5.02 -> 3.74 days
     assert q['physical']['physical_qubits'] < 0.95e6
     ec = lg.attack_report('ecdlp-p256', 'L0')
-    assert ec['rows'][1]['qubits'] == 4368 and ec['rows'][1]['physical']['model'] == 'litinski2023'
+    assert ec['rows'][1]['qubits'] == 4365 and ec['rows'][1]['physical']['model'] == 'litinski2023'
     aes = lg.attack_report('aes128', physical=True)
     assert aes['rows'][0]['physical'] is None
     assert len(lg.attack_report('ecdlp-b163', source='qoptct')['rows']) == 1
@@ -207,13 +212,13 @@ def test_cli_attack_text(capsys):
     assert 'published' in out and 'qoptct' in out and 'physical (gidney2025)' in out and '-24.3 %' in out
     assert main_estimate(['--attack', 'ecdlp-p256', '--variant', 'L0', '--source', 'qoptct']) == 0
     out = capsys.readouterr().out
-    assert '4368 logical qubits' in out and '\n  published' not in out
+    assert '4365 logical qubits' in out and '\n  published' not in out
 
 
 def test_cli_attack_json_and_list(capsys):
     assert main_estimate(['--attack', 'ecdlp-k1', '--json']) == 0
     d = json.loads(capsys.readouterr().out)
-    assert d['name'] == 'ecdlp-k1' and len(d['rows']) == 2 and d['rows'][1]['qubits'] == 6934
+    assert d['name'] == 'ecdlp-k1' and len(d['rows']) == 2 and d['rows'][1]['qubits'] == 6916
     assert main_estimate(['--list-attacks']) == 0
     assert 'ecdlp-b571' in capsys.readouterr().out
 
@@ -254,6 +259,19 @@ def test_rsa_loop2_constant_matches_residue():
 
 @pytest.mark.slow
 @pytest.mark.parametrize('name,curve', [('P-256', 'p256'), ('secp256k1', 'secp256k1')])
+@pytest.mark.parametrize('variant,levels', [('L3', 3), ('L2', 2), ('L0', 0)])
+def test_proved_pointadd_constants_equal_library_ec_point_add(name, curve, variant, levels):
+    """POINTADD_PROVED is the count of the real circuit qoptct.crypto.ecpoint.ec_point_add (default construction; at L3
+    this circuit is the one proved at n = 256 by verify.compose.ecadd).  About 20 s, 0.5 GB per case."""
+    from qoptct.crypto import ecpoint as E
+    cv = E.CURVES[name]
+    Q = E.find_point(cv['p'], cv['a'], cv['b'], random.Random(5))
+    c = E.ec_point_add(cv['p'], cv['a'], cv['b'], Q, karatsuba_levels=levels).counts()
+    assert (c['AND'], c['qubits']) == lg.POINTADD_PROVED[(curve, variant)]
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize('name,curve', [('P-256', 'p256'), ('secp256k1', 'secp256k1')])
 def test_lab_pointadd_constant_equals_library_ec_point_add(name, curve):
     """K4_POINTADD_LAB (L3) is the number of the real circuit qoptct.crypto.ecpoint.ec_point_add in its legacy (lab k4)
     construction (n = 256: ~20 s, 0.5 GB); the default construction is cheaper (3 031 380 / 3 023 913)."""
@@ -275,7 +293,7 @@ def test_ecdlp_physical_default_is_reaction_limited():
     assert abs(q['physical']['megaqubit_days'] - 0.122) < 0.002 and q['physical']['physical_qubits'] > 1.2e7
     assert abs(q['physical']['megaqubit_days'] / pub['physical']['megaqubit_days'] - 1 + 0.30) < 0.01
     l0 = lg.attack_report('ecdlp-p256', 'L0', source='qoptct')['rows'][0]
-    assert l0['qubits'] == 4368 and abs(l0['physical']['megaqubit_days'] - 0.086) < 0.002
+    assert l0['qubits'] == 4365 and abs(l0['physical']['megaqubit_days'] - 0.086) < 0.002
     assert abs(l0['physical']['megaqubit_days'] / pub['physical']['megaqubit_days'] - 1 + 0.51) < 0.01
     free = lg.attack_report('ecdlp-p256', reaction_limit=False)['rows'][1]
     assert free['physical']['megaqubit_days'] < 0.6 * q['physical']['megaqubit_days']       # the overstated gain

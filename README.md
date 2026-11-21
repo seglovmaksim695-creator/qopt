@@ -479,6 +479,15 @@ qoptct estimate --attack rsa2048-g25
 qoptct estimate --check-attacks        # compares with the published tables
 ```
 
+For ECDLP on P-256 and secp256k1 (Litinski 2023 framework) the point addition in the model is the real exact scheme
+of `ecpoint.ec_point_add`, proved at n = 256 (see above): P-256 / secp256k1, L3: 3 031 380 / 3 023 913 ANDs at
+6 724 / 6 916 logical qubits; L0: 3 284 271 / 3 276 804 ANDs at 4 365 / 4 557 qubits (the count of the circuit is
+compared with the constants in a test). With the 13 windows of 16 bits of the framework the total is 40 269 892 / 40 172 821
+Toffoli (L3) and 43 557 475 / 43 460 404 (L0); physical estimate (Litinski model, reaction-limited): P-256, L3 about
+13.0 million physical qubits and 0.121 megaqubit-days, L0 8.45 million and 0.085, against 0.175 for the published
+scheme. Only the point addition is a proved circuit; the rest of the ECDLP circuit (windows, lookups) is a model. This is
+an exact scheme: the approximate schemes of 2026 are cheaper and use fewer qubits.
+
 ## Hardware check (IBM Quantum)
 
 On `ibm_marrakesh`, the unitary `qopt` circuits returned the correct answer more often than the input circuits on all

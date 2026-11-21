@@ -98,6 +98,14 @@ K4_POINTADD_LAB = {
     ('p256', 'L3'): (3041421, 6742), ('p256', 'L2'): (3082199, 5730), ('p256', 'L0'): (3293519, 4368),
     ('secp256k1', 'L3'): (3033954, 6934), ('secp256k1', 'L2'): (3074732, 5730), ('secp256k1', 'L0'): (3286052, 4560),
 }
+# Full point addition of the PROVED scheme: qoptct.crypto.ecpoint.ec_point_add in its default construction (library
+# blocks: Kaliski core 12n^2 - 8n - 3, mulsq, fold; all exceptional cases; special prime).  Proved at n = 256 for
+# P-256 and secp256k1 (L3) by qoptct.verify.compose.ecadd (PROOF.md, part II).  (curve, Karatsuba levels) ->
+# (ANDs, logical qubits); tests/test_estimate_logical.py compares them with ec_point_add(...).counts().
+POINTADD_PROVED = {
+    ('p256', 'L3'): (3031380, 6724), ('p256', 'L2'): (3072707, 5532), ('p256', 'L0'): (3284271, 4365),
+    ('secp256k1', 'L3'): (3023913, 6916), ('secp256k1', 'L2'): (3065240, 5724), ('secp256k1', 'L0'): (3276804, 4557),
+}
 KALISKI_CALLS_PER_POINTADD = 4      # 2 divisions x (compute + uncompute), cf. Litinski Fig. 5 (4 inversions)
 
 
@@ -355,13 +363,13 @@ def litinski2023_ecdlp(n=256, k=1, w=16, reps=13):
 
 
 def pointadd_ands(curve='p256', variant='L3', kaliski='current'):
-    """ANDs of the lab's full point addition (k4).  The circuit was built with the 0.5.0rc Kaliski inversion
-    (12n^2 + n, 'legacy'); it calls the inversion 4 times, so the current Kaliski count of qoptct
-    (12n^2 - 8n - 3) changes it by exactly 4 x (legacy - current) = 4 x (9n + 3) = 9228 at n=256.
-    kaliski='current' (default) | 'legacy' (the number of the lab logs).  The multiplier/square counts of the library
-    were also lowered slightly after the logs (mul L3 37880 -> 37826, sq L3 22332 -> 22145); that is NOT applied
-    here (the number of times and the operand widths of those calls inside the point addition were not re-derived),
-    see ``pointadd_ands_with_mulsq``."""
+    """ANDs of the full point addition.
+    'current' (default): the real, PROVED scheme (``POINTADD_PROVED``: ec_point_add on the library blocks).
+    'legacy': the number of the lab logs (k4 construction, ``legacy=True``, 0.5.0rc Kaliski 12n^2 + n).
+    'estimate': the former estimate = lab number - 4 x (legacy - current Kaliski) = 4 x (9n + 3) = 9228 at n=256
+    (kept for comparison: the real scheme is within 10 ANDs of it, see ``pointadd_ands_with_mulsq``)."""
+    if kaliski == 'current':
+        return POINTADD_PROVED[(curve, variant)][0]
     pa, _ = K4_POINTADD_LAB[(curve, variant)]
     if kaliski == 'legacy':
         return pa
@@ -374,7 +382,7 @@ def pointadd_ands_with_mulsq(curve='p256', variant='L3', mul_sq_delta=None):
     point addition, Litinski Fig.5).  mul_sq_delta = (d_mul, d_sq) per call, default for Karatsuba levels 3 (n=256):
     (-54, -187) = (37826 - 37880, 22145 - 22332) [L2: (-18, -61), L0: (-2, -5)].  An ESTIMATE (upper bound on the gain)."""
     dm, ds = mul_sq_delta or {'L3': (-54, -187), 'L2': (-18, -61), 'L0': (-2, -5)}[variant]
-    return pointadd_ands(curve, variant) + 8 * dm + 2 * ds
+    return pointadd_ands(curve, variant, 'estimate') + 8 * dm + 2 * ds
 
 
 def _windowed_total(pa, w=16, reps=13):
@@ -383,25 +391,28 @@ def _windowed_total(pa, w=16, reps=13):
 
 
 def ecdlp_prime_qoptct(curve='p256', variant='L3', blocks=None, kaliski='current'):
-    """Litinski framework (13 windows of 16 bits, k=1) with the full point addition of the lab (all exceptional
-    cases, special prime: P-256 or secp256k1).  variant: Karatsuba levels 'L3' (6742 qubits, 4.03e7 Toffoli),
-    'L2', 'L0' (4368 qubits, 4.36e7).  NOT a record: the approximate point additions of 2026 (Haner et al.
-    2609.05625, Schrottenloher 2606.02235, Initio) are cheaper and use 3-5 times fewer qubits; the gain is against
-    Litinski's EXACT scheme.  The point addition is built classically-controlled (mixed addition, Q classical); in
-    the windowed scheme Q comes from the lookup (+O(n), about +0.1 %).  `blocks` may carry the Kaliski counts of
-    library_blocks()."""
+    """Litinski framework (13 windows of 16 bits, k=1) with the full exact point addition of qoptct (all exceptional
+    cases, special prime: P-256 or secp256k1): the real scheme ``ecpoint.ec_point_add`` (default construction), proved at
+    n = 256 by ``verify.compose.ecadd`` (classical Q and the window w = 4; the numbers of ``POINTADD_PROVED``).
+    variant: Karatsuba levels 'L3' (P-256: 6724 qubits, 4.03e7 Toffoli), 'L2', 'L0' (4365 qubits, 4.36e7).
+    kaliski='legacy': the lab k4 construction (``legacy=True``, not proved).  NOT a record: the approximate point
+    additions of 2026 (Haner et al. 2609.05625, Schrottenloher 2606.02235, Initio) are cheaper and use 3-5 times fewer
+    qubits; the gain is against Litinski's EXACT scheme.  The point addition is built classically-controlled (Q
+    classical); in the windowed scheme Q comes from the lookup (+O(n), about +0.1 %); the whole ECDLP circuit is not
+    assembled or proved, only the point addition.  `blocks` may carry the Kaliski counts of library_blocks()."""
     b = dict(BLOCKS, **(blocks or {}))
-    pa0, q = K4_POINTADD_LAB[(curve, variant)]
+    pa0, q0 = K4_POINTADD_LAB[(curve, variant)]
     if kaliski == 'legacy':
-        pa = pa0
+        pa, q = pa0, q0
     else:
-        pa = pa0 - KALISKI_CALLS_PER_POINTADD * (b['kaliski_special_legacy'][curve] - b['kaliski_special'][curve])
+        pa, q = POINTADD_PROVED[(curve, variant)]
     base = litinski2023_ecdlp(256)
     tot = _windowed_total(pa)
     return LogicalEstimate(
-        'ecdlp-%s' % curve, 'qoptct', tot, q, 'AND', 'qoptct', 'arXiv:2306.08585 framework; point addition: lab k4',
-        'full exact point addition %s (%d ANDs = %.1f n^2); built and checked at n=256 on 32 points, all P x Q at '
-        'n=4..8; end-to-end circuit not assembled; approximate schemes of 2026 are better' % (variant, pa, pa / 65536),
+        'ecdlp-%s' % curve, 'qoptct', tot, q, 'AND', 'qoptct', 'arXiv:2306.08585 framework; point addition: ec_point_add',
+        'full exact point addition %s (%d ANDs = %.1f n^2); %s; end-to-end circuit not assembled; approximate schemes '
+        'of 2026 are better' % (variant, pa, pa / 65536, 'lab k4 construction, not proved' if kaliski == 'legacy'
+                                else 'proved at n=256 for the classical Q and the window w=4 (compose.ecadd; L3)'),
         parts={'pointadd': 13 * pa, 'lookup': 13 * 2 ** 16, 'unlookup': 13 * 3 * 256},
         extra=dict(pointadd=pa, pointadd_legacy_kaliski=pa0, variant=variant, gain=1 - tot / base.toffoli,
                    kaliski_per_call=b['kaliski_special'][curve]))

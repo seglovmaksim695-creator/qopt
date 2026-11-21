@@ -66,6 +66,12 @@
 * **`qoptct.estimate.logical`** and `qoptct estimate --attack NAME [--variant L3|L2|L0] [--source ...] [--no-reaction-limit]`,
   `--list-attacks`, `--check-attacks`: models of RSA / ECDLP / AES-Grover from published algorithms and from checked
   qoptct blocks (statuses published / qoptct / estimate); not end-to-end circuits. Kaliski count 12n^2 - 8n - 3 is used.
+  For ECDLP on P-256 / secp256k1 the point addition is the real, proved scheme (`POINTADD_PROVED`: 3 031 380 / 3 023 913
+  ANDs at 6 724 / 6 916 logical qubits at L3, 3 284 271 / 3 276 804 at 4 365 / 4 557 at L0; a slow test compares the
+  constants with `ec_point_add(...).counts()`), instead of the former estimate (3 041 421 - 4 x 2307 = 3 032 193). Totals
+  (13 windows of 16 bits): P-256 L3 40 269 892 Toffoli (was 40 280 461), L0 43 557 475 (was 43 557 735); secp256k1 L3
+  40 172 821, L0 43 460 404; physical, P-256: L3 13.0 million qubits, 0.121 megaqubit-days (was 0.122), L0 8.45 million,
+  0.085. The lab numbers remain under `kaliski='legacy'`.
 
 ### Fixed (audit of the provers)
 * `verify.algebra`: (1) the mirror lemma of `clean=True` now requires that the copying part writes to no wire that the
