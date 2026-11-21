@@ -91,6 +91,7 @@ def point_add_full(C, X, Y, Q, cv, enc, generic, D=None):
     F = {'O': fO, 'Q': fQ, 'mQ': fmQ, 'm2Q': fm2Q}
     # --- 2) подстановка D
     for k in F: xor_const(C, F[k], XY, cat(E[k]) ^ cat(D))
+    if hasattr(C, 'mark'): C.mark('w_pre', fO=fO, fQ=fQ, fmQ=fmQ, fm2Q=fm2Q)
     # --- 3) общее сложение
     generic(C, X, Y, Q)
     # --- 4) исправление образов
@@ -114,4 +115,5 @@ def point_add_full(C, X, Y, Q, cv, enc, generic, D=None):
     t, und = eq_chain(C, Y, 0, upto=n - 1)
     lit_erase(C, fmQ, t, Y[n - 1], 0)              # Y == 0  <=> R == O  <=> f_mQ
     und()
+    if hasattr(C, 'mark'): C.mark('w_post')
     return dict(D=D)

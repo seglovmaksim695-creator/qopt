@@ -42,8 +42,20 @@
 * Subcommands `qoptct compose` and `qoptct dyn`; `PROOF.md` is shipped in the package.
 * **`qoptct.crypto.ecpoint`** (`ec_point_add`, `ec_point_add_window`; core in `qoptct/crypto/_ecp/`): exact complete addition
   of a classical point to a quantum point on a prime-field curve (also P = O, P = Q, P = -Q, P = -2Q), windowed form.
-  P-256 / secp256k1 at n = 256: 3 041 421 / 3 033 954 ANDs. An exact scheme, not the cheapest known one: the approximate schemes of
-  2026 are cheaper. Checked on small curves exhaustively and on edge points at n = 256; no machine proof of the whole circuit.
+  P-256 / secp256k1 at n = 256: 3 031 380 / 3 023 913 ANDs in the default construction on the library blocks (Kaliski core
+  12n^2 - 8n - 3, `mulsq`, `fold`; segment marks, `hints()`, `write_qasm()`); `legacy=True`: the lab construction,
+  3 041 421 / 3 033 954 ANDs. An exact scheme, not the cheapest known one: the approximate schemes of 2026 are cheaper.
+  Checked on small curves exhaustively and on edge points at n = 256.
+* **`qoptct.verify.compose.ecadd`** (`verify_ecadd`, `wec_test`; `qoptct compose ecgen | ecverify | ecwec`; `compose.ecmath`):
+  compositional proof of the point addition with a classical Q at n = 256 (secp256k1, P-256: PROVED, about 2 minutes and
+  1.7 GB each): ROBDD segments, algebra sub-goals (products, fold reductions), mirror segments (uncompute halves),
+  the Kaliski sub-walk; the word-level layer (chord formula, exceptional cases, safe point) by a written elementary
+  argument with machine-checked polynomial identities and enumeration over all curves with p <= 31 (`PROOF.md`, part
+  II). The windowed form (`ec_point_add_window`, also rebuilt on the library blocks: w = 4, 3 027 017 / 3 034 484 ANDs)
+  is proved for every index k by `verify_ecadd_window` (`--window W`). Canaries (thousands of
+  small mutants against exhaustive truth; full-size mutants). PROVED is valid for the default full check (chain plus the
+  final strict run of the circuit); without the final run (`--no-test`, `test_samples=0`) the result is never PROVED
+  (UNKNOWN, `chain_status`). Not proved: `legacy=True`.
 * **`qoptct.crypto.residue`** (accumulator compression modulo q, 106 / 138 / 148 ANDs against 682 by the formula of the
   paper; against the paper's exact circuit count 352-418 the gain is smaller; junction with the next step not checked on
   a whole circuit), **`qoptct.crypto.modadd`** (modular adders, 4n-2 ANDs), `lookup` option `fanout='gray'`
@@ -63,6 +75,13 @@
 * `verify.compose`: the lifter rejects negative indices `q[-j]`, indices beyond the register and classical bit numbers
   outside `bit[M]`; `verify_kaliski` checks the primality of p: a composite p gives ERROR, for p >= 2^64 outside the named
   curves PROVED carries the note "under the condition that p is prime (probabilistic test)" (key `p_primality`).
+* `verify.algebra`: (4) an erasure whose condition (wire xor correction) is the constant 1 (a global sign on the outcome-1
+  branch) is no longer accepted, only a proved 0 (`Engine.op_erase`, and the simulation pre-check). Before, a circuit with
+  such an erasure in the compute half of a "compute - copy - uncompute" form got a false PROVED from `aprove`, and the
+  chain of the point addition without its final run (`--no-test`) was fooled the same way (the mirror lemma assumes exact
+  erasures). Found by an independent audit; regression tests `tests/test_verify_const1.py`. `ECChain.seg_algebra` now
+  records the wires of algebra segments for the frame condition of the mirror lemma. `verify_ecadd` /
+  `verify_ecadd_window` with `test_samples=0` never answer PROVED.
 * An independent audit found false PROVED results on three classes of specially constructed circuits; they are closed.
   Regression tests on the audit examples: `tests/data/audit`. Some correct circuits with a virtual carry may now end in
   UNKNOWN.

@@ -1,13 +1,14 @@
 # SPDX-License-Identifier: Apache-2.0
 """ecpoint: EXACT (complete) mixed addition of an elliptic-curve point over a prime field, as a reversible circuit on
 logical ANDs (Gidney 2018: AND = 4 T + 3 CX, erased by an X-basis measurement with a Clifford correction, 0 T).
-Ported from the lab agent k4 (work/k4: padd_full / padd_k4 / padd_win), quantum-arithmetic building block for
-resource estimation and verification.
+A quantum-arithmetic building block for resource estimation and verification; the default construction is PROVED at
+n = 256 (P-256, secp256k1) by the compositional prover qoptct.verify.compose (see "Proof" below).
 
     from qoptct.crypto import ecpoint
     C = ecpoint.ec_point_add(p, a, b, Q=(xq, yq), karatsuba_levels=3)     # (P) -> (P + Q), Q classical
     C.counts()                    # {'AND': ..., 'CX': ..., 'T': ..., 'qubits': ..., ...}
     C.simulate([None, Q, (x, y)]) # exact classical bit-sliced run, every AND / erase checked, ancillas must end at 0
+    C.hints(); C.write_qasm(path) # certificate (segment marks) and streamed OpenQASM for qoptct.verify.compose
     W = ecpoint.ec_point_add_window(p, a, b, table, w)                      # (P, k) -> (P + T[k], k), k = w bits
     W.simulate([(P, k), ...])
 
@@ -17,24 +18,37 @@ circuit maps  P -> P + Q  for EVERY P (O included) and a classical Q != O of ord
 dropped (P = O, P = Q, P = -Q, P = -2Q are handled; the others are the generic chord formula). Because Q is classical,
 the answers on the exceptional set E = {O, Q, -Q, -2Q} are constants (Q, 2Q, O, -Q): flags are computed (about 6n
 ANDs), P is replaced by a safe point D = 3Q (CX only), the generic addition runs, the image is corrected (CX only) and
-the flags are erased from the result. The generic addition has two divisions (Kaliski inversion + multiplication,
-computed, applied, and uncomputed), 8 multiplications and 2 squarings in "compute-apply-uncompute" form, in the
-ordinary (non-Montgomery) representation; the divisions use x*2^(2n) mod p (sparse constant) and the Kaliski inverse
-with the "halfB" saving; products use conditionally inverted additions (signed digits 2y_i - 1; n^2 + 4n ANDs) with
-Karatsuba levels (garbage uncomputed by the reversal of the whole block) and the reduction of qoptct.crypto.fold
-(2 744 ANDs P-256, 2 175 secp256k1) for special primes.
+the flags are erased from the result. The generic addition has two divisions (inversion + multiplication, computed,
+applied, and uncomputed), 8 multiplications and 2 squarings in "compute-apply-uncompute" form, in the ordinary
+(non-Montgomery) representation; a division is x * 2^(2n) mod p (sparse constant, shift-and-add), the Kaliski
+inversion, a reduction and a product.
 
-Costs (n = 256; ANDs = Toffoli-equivalents, worst case, not average; CX = explicit CX + 3 per AND + 1 per erase):
+Two constructions of the generic addition (the wrapper is the same):
+  * default (legacy=False; _ecp/padd2.py): assembled from the library blocks that the provers of qoptct.verify handle:
+    the core of qoptct.crypto.kaliski (the 12n^2 - 8n - 3 construction without its final reduction), products and
+    squares of qoptct.crypto.mulsq (conditionally inverted additions, Karatsuba), reductions of qoptct.crypto.fold
+    (2 744 ANDs P-256, 2 175 secp256k1; primes without a one-fold reduction: the signed-term reduction of
+    qoptct.crypto.kaliski), modular additions of the engine of this package. It carries segment marks (C.hints()).
+  * legacy=True (_ecp/padd.py): the lab k4 circuit as ported (own multipliers, Kaliski with 12n^2 + n and the same
+    "halfB" saving), also with multiplier='school' / reduction='solinas'. Its numbers are those of the lab
+    (K_CLAIMS rows k4), reproduced exactly; it is NOT covered by the proof.
+The window variant has the same two constructions (legacy=False: padd2.generic_q; legacy=True: the lab circuit).
 
-    curve        karatsuba_levels   ANDs        ANDs/n^2   qubits (peak wires)
-    secp256k1    3                  3 033 954   46.3       6 934
-    secp256k1    2                  3 074 732   46.9       5 730
-    secp256k1    0                  3 286 052   50.1       4 560
-    P-256        3                  3 041 421   46.4       6 742   (T = 12.17 M, CX = 27.5 M)
-    P-256        2 / 0              3 082 199 / 3 293 519         5 538 / 4 368
-    multiplier='school' (partial-product ANDs) instead of 'sd': P-256 L3 3 257 745 (49.7 n^2; the older lab row 3 261 829 is an earlier build)
-    window (table lookup of Q, w = 4, field-lookups of 9 values + 4 flags) adds about 18 n ANDs and 9n qubits;
-    the lookup itself (2 * (2^w - 2) ANDs by minterms) is counted in the circuit.
+Costs (n = 256; ANDs = Toffoli-equivalents, worst case, not average; CX = explicit CX + 3 per AND + 1 per erase;
+qubits = all wires ever allocated):
+
+    curve        karatsuba_levels   ANDs default   qubits     ANDs legacy   qubits
+    secp256k1    3                  3 023 913      6 916      3 033 954     6 934
+    secp256k1    2                  3 065 240      5 724      3 074 732     5 730
+    secp256k1    0                  3 276 804      4 557      3 286 052     4 560
+    P-256        3                  3 031 380      6 724      3 041 421     6 742   (default: T = 12.13 M, CX = 27.45 M)
+    P-256        2                  3 072 707      5 532      3 082 199     5 538
+    P-256        0                  3 284 271      4 365      3 293 519     4 368
+    (default - legacy = -10 041 ANDs at L3: -36n - 12 from the Kaliski core, the rest from the multipliers)
+    legacy, multiplier='school' (partial-product ANDs): P-256 L3 3 257 745
+    window (table lookup of Q, w = 4, field-lookups of 9 values + 4 flags) adds about 18 n ANDs and 9n qubits; the
+    lookup itself (2 * (2^w - 2) ANDs by minterms) is counted in the circuit. L3, w = 4: secp256k1 3 027 017 ANDs /
+    9 225 qubits (legacy 3 037 058 / 9 243), P-256 3 034 484 / 9 033 (legacy 3 044 525 / 9 051).
 
 Honest comparison. Same cost model (logical AND = Toffoli equivalent, EXACT circuits, worst case): Litinski 2023
 (arXiv:2306.08585) / Qualtran (Papa 2025, arXiv:2506.03318) need about 126.5 n^2 (about 8.3 M ANDs) per exact
@@ -44,21 +58,30 @@ exceptional cases not handled), Schrottenloher arXiv:2606.02235 1.86 M ANDs at 1
 4.4 - 6.9 thousand qubits (depending on karatsuba_levels). Approximate and exact schemes must not be mixed in one
 table: p_fail > 0 versus an exact (error-free) map.
 
-Choice of construction (honest). The Kaliski inverse and the multipliers of this package are NOT the blocks of
-qoptct.crypto.kaliski / mulsq: the lab k4 circuit needs a "compute / apply / uncompute" builder with shared garbage
-wires and a specific halfB variant of the Kaliski step, which the stand-alone (own-engine) generators of the library do
-not expose as embeddable sub-circuits. The k4 core was therefore ported as is (subpackage _ecp, own engine from the lab
-modules arith / circk), and only the reduction of special primes is taken from the library (qoptct.crypto.fold, through
-an adapter). The library kaliski_inverse has 12 n^2 - 8 n - 3 ANDs against 12 n^2 + n here (4 passes: a saving of
-about 36 n = 9 thousand ANDs, 0.3 %, not applied). The numbers above are those of the lab (K_CLAIMS rows k4),
-reproduced exactly.
+Proof (default construction; qoptct.verify.compose.verify_ecadd / verify_ecadd_window, `qoptct compose ecgen /
+ecverify [--window W]`, compose/PROOF.md part II). For secp256k1 and P-256 at n = 256 (karatsuba_levels = 3; about 2
+minutes and 1.7 GB each; window w = 4: 2.1 GB) the status is PROVED: for every point P of the curve and for O (window:
+and every index k), and every string of measurement outcomes, the OpenQASM text maps |P>|0> to |P + Q>|0> (window:
+|P, k>|0> to |P + T[k], k>|0>) with no residual phase (P + Q = the textbook affine addition).
+  Machine, on the text, at full width, for all values: the text is a sequence of AND / erase gadgets; every segment
+    meets its contract -- ROBDD segments (flags and substitution of the wrapper, modular additions, shift-and-add
+    constant multiplication, the 2 x 510 Kaliski steps), algebra sub-goals (5 products / squares "out == x*y" and
+    9 fold reductions, qoptct.verify.algebra), 5 mirror segments (the uncompute halves are the syntactic inverses
+    of the compute halves and the apply parts do not touch their wires); all ancillas return to |0>.
+  Machine, in general: the Kaliski lemmas M1..M6 (Z3), three polynomial identities of the chord / tangent (exact).
+  Written reasoning (PROOF.md sections 8-10): the gadget, interface and mirror lemmas; Theorem T (the word-level
+    program computes the textbook sum; denominators are not 0; the flags are erased) -- elementary field algebra,
+    additionally executed on all curves / all Q / all points for p <= 31 and on sampled points at n = 256.
+  Assumptions: p prime (checked; certain for the named primes), the curve non-singular without a point of order 2
+    (odd group order; checked by a gcd), the order of Q greater than 4 (checked), the input is a point of the curve
+    or O (inputs outside the curve are outside the domain); window: every table entry of order > 4 and one point D
+    safe for all entries (checked). The provers themselves are not checked by an independent tool. NOT proved:
+    legacy=True, other karatsuba_levels at n = 256 (not run).
 
-Checks (tests/test_crypto_ecpoint.py): all P (O included) x all Q on curves of prime order n = 4..8 (two curves per
-n), every AND target and erase condition, ancillas clean; random and exceptional points n = 16..64; n = 256
-(secp256k1, P-256) 16+ points including O, Q, -Q, 2Q, -2Q; the window variant on all (P, k); phases: sparse
-quantum simulation of the emitted QASM on a superposition (n = 4) and mutants rejected. An exact proof of the whole
-circuit by qoptct.verify.kprove is out of reach (no independent reference of the whole point addition; the BDD of a
-multiplier already grows exponentially at n = 10): sub-blocks of this kind are proved in qoptct.crypto.mulsq / kaliski.
+Checks by simulation (tests/test_crypto_ecpoint.py): all P (O included) x all Q on curves of prime order n = 4..8
+(two curves per n), every AND target and erase condition, ancillas clean; random and exceptional points n = 16..64;
+n = 256 (secp256k1, P-256) 16+ points including O, Q, -Q, 2Q, -2Q; the window variant on all (P, k); phases: sparse
+quantum simulation of the emitted QASM on a superposition (n = 4) and mutants rejected.
 """
 import contextlib
 import random
@@ -67,6 +90,7 @@ from ._errors import CheckError
 from ._ecp import engine as _E
 from ._ecp import ec as _ec
 from ._ecp import padd as _padd
+from ._ecp import padd2 as _padd2
 from ._ecp import full as _full
 from ._ecp import win as _win
 from ._ecp import emit as _emit
@@ -215,8 +239,9 @@ class ECPointAddCircuit:
     w index wires, window only), window (bool).
     """
 
-    def __init__(s, p, a, b, n, Q, table, w, D, L, multiplier, reduction):
+    def __init__(s, p, a, b, n, Q, table, w, D, L, multiplier, reduction, legacy=True):
         s.p, s.a, s.b, s.n, s.Q, s.table, s.w, s.D = p, a, b, n, Q, table, w, D
+        s.legacy = bool(legacy)
         s.karatsuba_levels, s.multiplier, s.reduction = L, multiplier, reduction
         s.window = table is not None
         cv = dict(p=p, a=a, b=b)
@@ -224,10 +249,10 @@ class ECPointAddCircuit:
             C = _E.CircK(); X = C.reg('x', n); Y = C.reg('y', n)
             if s.window:
                 K = C.reg('k', w)
-                _win.point_add_window(C, X, Y, K, table, cv, D, L)
+                _win.point_add_window(C, X, Y, K, table, cv, D, L, generic=None if legacy else _padd2.generic_q)
                 s.K = K
             else:
-                generic = _padd.make(p, L)
+                generic = _padd.make(p, L) if legacy else _padd2.make(p, L)
                 info = _full.point_add_full(C, X, Y, Q, cv, lambda v: v % p, generic, D=D)
                 s.D = info['D']; s.K = []
         s.circ, s.X, s.Y = C, X, Y
@@ -292,6 +317,21 @@ class ECPointAddCircuit:
         Q2 = ec_add(Q, Q, s.p, s.a)
         return [None, Q, ec_neg(Q, s.p), Q2, ec_neg(Q2, s.p), s.D, ec_neg(s.D, s.p)]
 
+    # -- certificate / text
+    def hints(s):
+        """untrusted certificate for qoptct.verify.compose.verify_ecadd (segment marks: positions, wire names)."""
+        return dict(p=s.p, a=s.a, b=s.b, n=s.n, Q=list(s.Q) if s.Q else None, D=list(s.D), nqubits=s.circ.nw,
+                    X=list(s.X), Y=list(s.Y), K=list(s.K), w=s.w, table=[list(T) for T in s.table] if s.window else None,
+                    karatsuba_levels=s.karatsuba_levels, legacy=s.legacy,
+                    marks=[[pos, label, info] for pos, label, info in s.circ.marks])
+
+    def write_qasm(s, path):
+        """the text of qasm(), streamed to `path` (n = 256: about 1 GB; never held in memory)."""
+        from . import kaliski as _kal
+        if s.circ.counts()['CCX']:
+            raise ValueError('ccx operations are not written by the streamed writer')
+        _kal._write_qasm(s.circ.ops, s.circ.nw, path)
+
     # -- text / phase
     def qasm(s):
         """OpenQASM 3 text of the circuit (AND gadget of Gidney 2018 fig. 3, X-basis measurement erase)."""
@@ -310,15 +350,20 @@ class ECPointAddCircuit:
         return _emit.sparse_check(txt, pos, fun, list(points), K=K, trials=trials, seed=seed)
 
 
-def ec_point_add(p, a, b, Q, n=None, karatsuba_levels=3, reduction='fold', multiplier='sd', D=None):
+def ec_point_add(p, a, b, Q, n=None, karatsuba_levels=3, reduction='fold', multiplier='sd', D=None, legacy=False):
     """Build the exact mixed addition P -> P + Q (Q classical, Q != O of order > 4) on y^2 = x^3 + a x + b over F_p.
 
     p odd prime (n = bit length), the curve of odd group order (no point with y = 0). karatsuba_levels L (0..6; the
-    qubit/AND trade-off, see the module table). reduction: 'fold' (qoptct.crypto.fold for p = 2^n - c and P-256;
-    other primes fall back to the Solinas search of this package) or 'solinas'. multiplier: 'sd' (conditionally
-    inverted additions, default) or 'school' (partial products). D: the safe replacement point (default 3Q).
+    qubit/AND trade-off, see the module table). D: the safe replacement point (default 3Q).
+    legacy=False (default): the construction on the library blocks (Kaliski core 12n^2 - 8n - 3, mulsq, fold), with
+    segment marks; proved by qoptct.verify.compose.verify_ecadd (module docstring, "Proof").
+    legacy=True: the lab k4 construction (3 041 421 / 3 033 954 ANDs at n = 256); only there: reduction 'solinas'
+    (the Solinas search of this package instead of qoptct.crypto.fold) and multiplier 'school' (partial products).
     Returns an ECPointAddCircuit."""
     n = _check_args(p, a, b, n, karatsuba_levels, multiplier, reduction)
+    if not legacy and (multiplier != 'sd' or reduction != 'fold'):
+        raise ValueError("multiplier='school' and reduction='solinas' exist only in the legacy construction "
+                         "(pass legacy=True)")
     _check_point(Q, p, a, b, 'Q')
     if Q is None or Q[1] == 0:
         raise ValueError('Q must be a point other than O')
@@ -339,18 +384,22 @@ def ec_point_add(p, a, b, Q, n=None, karatsuba_levels=3, reduction='fold', multi
                     break
             else:
                 raise ValueError('no safe point D found; pass D explicitly')
-    return ECPointAddCircuit(p, a, b, n, Q, None, 0, D, karatsuba_levels, multiplier, reduction)
+    return ECPointAddCircuit(p, a, b, n, Q, None, 0, D, karatsuba_levels, multiplier, reduction, legacy=legacy)
 
 
 def ec_point_add_window(p, a, b, table, w, n=None, karatsuba_levels=3, reduction='fold', multiplier='sd', D=None,
-                        seed=1):
+                        seed=1, legacy=False):
     """Windowed exact addition (P, k) -> (P + table[k], k) for a w-bit quantum index k (Shor's algorithm window).
 
     table: the 2^w classical points T[k] != O (the offset T[k] = k G + R0 is accounted for classically by the
     caller). D: a classical point safe for ALL k (D not in {T, -T, -2T}, D + T not in {T, -T, O}); by default it is
     searched (random points; for tiny curves the table must leave enough points). Lookup by minterms (2^w - 2 ANDs each
-    way); the unlookup is a repeated XOR of the same table. Returns an ECPointAddCircuit (window = True)."""
+    way); the unlookup is a repeated XOR of the same table. legacy: as in ec_point_add (False: library blocks, proved
+    by qoptct.verify.compose.verify_ecadd_window; True: the lab circuit). Returns an ECPointAddCircuit (window = True)."""
     n = _check_args(p, a, b, n, karatsuba_levels, multiplier, reduction)
+    if not legacy and (multiplier != 'sd' or reduction != 'fold'):
+        raise ValueError("multiplier='school' and reduction='solinas' exist only in the legacy construction "
+                         "(pass legacy=True)")
     table = [tuple(T) for T in table]
     if len(table) != (1 << w) or w < 1:
         raise ValueError('table must have 2^w entries, w >= 1')
@@ -378,4 +427,5 @@ def ec_point_add_window(p, a, b, table, w, n=None, karatsuba_levels=3, reduction
             raise ValueError('no safe point D found; pass D explicitly')
     elif not safe(tuple(D)):
         raise ValueError('D is not safe for every table entry')
-    return ECPointAddCircuit(p, a, b, n, None, table, w, tuple(D), karatsuba_levels, multiplier, reduction)
+    return ECPointAddCircuit(p, a, b, n, None, table, w, tuple(D), karatsuba_levels, multiplier, reduction,
+                             legacy=legacy)

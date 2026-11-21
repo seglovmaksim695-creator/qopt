@@ -31,6 +31,8 @@ Install: pip install qoptct  (neural mode --net: pip install "qoptct[net]"). Pyt
       JSON specification such as "out == x*y" (qoptct.verify.algebra); also `qoptct kprove C.qasm SPEC.json --engine algebra`.
   qoptct compose gen|verify|pstd --prime P ...
       compositional exact proof of the Kaliski inversion at full width (qoptct.verify.compose); `qoptct compose --help`.
+  qoptct compose ecgen|ecverify|ecwec --curve secp256k1|p256|p,a,b ...
+      the same for the exact elliptic-curve point addition P -> P + Q (qoptct.crypto.ecpoint.ec_point_add).
   qoptct estimate --toffoli T --qubits Q [--model all|ge2019|gidney2025|litinski2023] [--json] | --check
       Physical (surface-code) cost from logical counts, formula models calibrated on published papers
       (qoptct.estimate); see `qoptct estimate --help`.

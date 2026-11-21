@@ -242,3 +242,194 @@ The theorem is for x in [1, p) and prime p; x = 0 and x >= p are not covered.
 * the glue arguments: Lemmas 1-3, and in section 5 the composition of the Z3-proved steps (Horner; fold rounds,
   whose numeric side conditions are checked by the walker with exact integers);
 * NOT trusted: the generator `qoptct.crypto.kaliski`, its docstring, the certificate, the OpenQASM writer.
+
+---
+
+# Part II. The exact elliptic-curve point addition P -> P + Q (`compose.ecadd`, `compose.ecmath`)
+
+Circuit: `qoptct.crypto.ecpoint.ec_point_add(p, a, b, Q)` (default construction, `legacy=False`): wires 0..n-1 hold
+x, n..2n-1 hold y, the point at infinity O is encoded (0, 0); Q is a classical point. Checker:
+`verify_ecadd(qasm, p, a, b, Q)` / `qoptct compose ecverify`.
+
+**Theorem (status PROVED).** Let p >= 5 be prime, E: y^2 = x^3 + a x + b non-singular over F_p with (H1) no point
+of order 2 (x^3 + a x + b has no root in F_p), Q = (xq, yq) in E with (H2) x(2Q) != xq (i.e. 2Q != +-Q; with H1:
+the order of Q is not 1, 2, 3, 4), and let the certificate name a point D in E with (H3) x_D != xq, D != -2Q,
+x(D + Q) != xq. Then for EVERY P in E(F_p) and for P = O, and for every string of measurement outcomes, the
+circuit maps |P>|0...0> to 2^(-m/2) |ec_add(P, Q)>|0...0>: every AND target was |0>, every measurement-based
+erasure is exact, no residual phase, every ancilla returns to |0>. `ec_add` is the textbook affine addition
+(`compose.ecadd.ec_add`); it is the specification. Inputs that are not points of the curve are outside the domain.
+H1, H2, H3, the primality of p (section 6) and the non-singularity are CHECKED by the verifier with exact integers
+(`check_parameters`; H1 by gcd(x^p - x, x^3 + a x + b) = 1); a violation gives status ERROR.
+
+## 8. Segments of the point addition
+
+The lifted circuit (section 1) is walked by `ecadd.ECChain`. Besides the ROBDD segments of section 2 there are:
+
+**Algebra segments** (products, squares, fold reductions). The slice of the real ops between two marks is handed to
+`qoptct.verify.algebra.prove_ops` with a word-level spec built by the walker: input words (free), output words,
+garbage wires, claims (`out == x*y`; `r + p*(...) == value`, `r <= p-1`). The walker first checks that every wire
+mentioned by the slice or named as output / garbage, other than the input words, is in Z (known |0>).
+
+*Lemma 4 (interface).* If these wires are |0> and the prover returns PROVED, then on every entry state every AND
+target of the slice is |0> and, for every erasure of the slice, the condition (wire xor correction) is **identically
+0** (the algebra prover accepts an erasure only when this is proved; since 20.11.2026 -- before, it also accepted
+the constant 1, a global sign on the outcome-1 branch, which the mirror lemma below cannot tolerate; this was found
+by an independent audit and is closed in `Engine.op_erase` and `_pre_sim`); the claims hold between the entry values
+of the input words and the exit values of the output words, the kept input wires are unchanged, garbage wires hold
+some classical function of the inputs, and every other wire of the slice ends at |0>. *This is the statement of the
+algebra prover* (its docstring; it does not look at wires outside the slice, and wires outside the slice are not
+touched). The strict erasure condition is exactly what Lemma 5 needs; the final strict run of the circuit on concrete
+points (`test_samples > 0`, the default) checks it once more, and a result obtained without that run
+(`test_samples=0`, `--no-test`) is NOT reported as PROVED (status UNKNOWN, `chain_status`). The
+walker then removes the output and garbage wires from Z and forgets every fact about them. In the ROBDD world the
+outputs get NO value: every later ROBDD segment is proved for all values of these wires; only the proved bound
+`r < p` is carried (fact `lt`). A claim `r + p*(integer expression) == V`, `r <= p-1` says r = V mod p whatever the
+expression is, so the spec needs no trust in the generator's formulas.
+
+**Mirror segments.** Every block "compute F / apply A / uncompute G" ends with a mirror segment.
+
+*Lemma 5 (mirror).* Let F = ops[s:e), A = ops[e:e'), G = ops[e':e'') where G is the op-by-op inverse of F in reverse
+order (x, cx: themselves; and(a,b -> t): erase of t against a*b; erase of t against a*b xor l: and(a,b -> t)
+followed by cx l -> t). Let sigma be a classical state on which F runs with every gadget precondition true (every AND target is 0 and
+every erasure condition is exactly 0 -- a constant 1 is NOT enough: the image of such an erasure would meet another
+state), ending in sigma'; let A run validly from sigma' to sigma'' with sigma''(w) = sigma'(w) for every wire w that F mentions
+in ANY role (control, target, operand, correction). Then G runs from sigma'' with every gadget precondition true
+and ends in tau with tau(w) = sigma(w) for the wires mentioned by F and tau(w) = sigma''(w) elsewhere.
+*Proof.* Induction over the ops of F from the last to the first; the ops of F and G read and write only wires
+mentioned by F. If F = F0 ; o and rho is the state before o in the run of F, the state before the image of o in G
+agrees with the state after o on these wires. o = x or cx: the same gate undoes it. o = and(a, b -> t): after o,
+t = a*b, so the erase condition of its image holds and t returns to 0 = rho(t). o = erase(t; a, b, l): rho(t) =
+rho(a)rho(b) xor rho(l) and t = 0 after o, so the target of the image AND is 0 and and + cx restore rho(t). []
+The walker checks (i) G is this inverse, op by op (integer comparison of the lifted ops); (ii) no contract of an
+apply segment has a post on a wire mentioned by F -- and each apply segment is a ROBDD segment, in which every
+touched wire without a post is PROVED to end with its entry value. This is the condition whose absence was hole 1
+of the v0.6 audit. Then Z and the facts are restored for the wires of F: the wires of F that were |0> before F are
+|0> again; facts of the state before F that do not speak about wires written by A hold again.
+With Lemma 1 (gadgets) the mirrored erasures have no phase.
+
+**Zero-length segments** carry a named assumption (precondition) on the current state.
+
+**The chain W_ec** (contracts; R + k etc. are mod p, registers < p are carried as `lt` facts):
+
+| step (marks) | contract | proved by |
+|---|---|---|
+| `w_pre` | flags f_O, f_Q, f_-Q, f_-2Q := [P = O, Q, -Q, -2Q]; (X, Y) := D if a flag is set | ROBDD, from fact `ecdom` |
+| `addc` x2 | X := X - xq, Y := Y - yq | ROBDD |
+| division 1 (compute) | `cm_*`: A := K + sum s 2^e X (shift-and-add, K = 0 mod p); reduction -> xs = 2^(2n) X mod p; **G1** xs != 0; Kaliski core -> r_ext (section 2-4); reduction -> K; product `mul` + reduction -> T = Y*K mod p | ROBDD; algebra; ROBDD + M1..M6; algebra |
+| apply | Lr := T (Lr was 0) | ROBDD |
+| mirror | Lemma 5 | syntactic |
+| product (Lr, X); apply Y := Y + T; mirror | | algebra; ROBDD; syntactic |
+| square Lr; apply X := -X, X := X + T; mirror | | algebra; ROBDD; syntactic |
+| `addc` | X := X - 3xq | ROBDD |
+| product (Lr, X); apply Y := Y + T; mirror | | |
+| `neg` | X := -X | ROBDD |
+| division 2; apply: **G2** T = Lr, Lr := 0; mirror | | |
+| `neg`, `addc` x2 | X := -X + xq, Y := Y - yq | ROBDD |
+| `w_post` | **G3** a flag is set -> (X, Y) = D + Q; **G4** no flag -> (X, Y) is in E, not Q, -Q, 2Q, O. Images of the flagged inputs (Q, 2Q, O, -Q), all four flags erased to 0 | ROBDD |
+| end | every wire except X, Y is in Z | bookkeeping |
+
+For a prime without a one-fold reduction (tests at small n) the reductions are the signed-term rounds of section 5
+(ROBDD); the bound of a product, (p-1)^2 + 1, is then admitted from `out == x*y` and x, y <= p-1.
+*Shift-and-add lemma* (as the fold lemma of section 5): the literal additions of X[: L-e] into A[e:] modulo
+2^(L-e) are A := A + s 2^e X modulo 2^L; with K >= sum_{s<0} xmax 2^e and K + sum_{s>0} xmax 2^e < 2^L (checked) the
+integer K + sum s 2^e X lies in [0, 2^L), so A holds it exactly; it is = 2^(2n) X mod p because K = 0 and
+sum s 2^e = 2^(2n) (mod p) (checked).
+
+## 9. What the walk proves, and the assumptions
+
+Machine-proved by the walk, at the real width, for all entry values of every segment: **the circuit refines W_ec**:
+on every input state on which the assumptions below hold along the run of W_ec, every gadget precondition holds and
+the wires follow W_ec; at the end only X, Y are non-zero. The assumptions (reported under `assumptions`):
+
+* `D-input` -- the domain: (x, y) is O = (0, 0) or a point of E. Used through its consequences `ecdom`: x, y < p;
+  y = 0 -> x = 0 (H1); x = xq and y != 0 -> y = +-yq; x = x(2Q) and y != 0 -> y = +-y(2Q) (y^2 is determined by x).
+* `G1` (twice) the Kaliski input is not 0; `G2` the second division returns the content of Lr; `G3`, `G4` as in
+  the table. They are discharged by Theorem T below.
+* `M1..M6` -- Kaliski (sections 4, 4.1; Z3 for all n, p, x in [1, p)). Their hypothesis x in [1, p) is G1 plus the
+  proved bound xs < p.
+
+## 10. Theorem T: W_ec computes ec_add(P, Q) and G1..G4 hold
+
+Notation: f(x) = x^3 + a x + b; for P = (x, y) in E with x != xq: lambda = (y - yq)/(x - xq) and
+chord(P, Q) = (x', y'), x' = lambda^2 - x - xq, y' = lambda (xq - x') - yq (= ec_add(P, Q) by definition, the two
+formulas for y' agree because lambda (x - xq) = y - yq). mu = (3 xq^2 + a)/(2 yq) (yq != 0 by H1), tangent line
+l(x) = mu (x - xq) + yq, 2Q = (xT, yT) with xT = mu^2 - 2 xq, yT = mu (xq - xT) - yq = -l(xT).
+Polynomial identities, checked by exact integer expansion (`ecmath.check_identities`; true over Z, hence in F_p):
+I1 (chord(P, Q) satisfies the curve equation, modulo y^2 = f(x)), I2 (4 yq^2 (f(x) - l(x)^2) =
+4 yq^2 (x - xq)^2 (x - xT)), I3 (modulo the curve: x' = xq is equivalent to y = l(x), after multiplying by
+(x - xq)^2 and 2 yq).
+
+(a) A point of E with abscissa xq is (xq, yq) or (xq, p - yq), and these have different parities of y (p odd,
+yq != 0); the same for 2Q. No point has y = 0 (H1). [-> `ecdom`]
+(b) chord(P, Q) is in E (I1).
+(c) If P in E, x != xq and x' = xq, then P = -2Q. *Proof.* By I3, y = l(x). Then 0 = f(x) - y^2 = f(x) - l(x)^2 =
+(x - xq)^2 (x - xT) by I2, so x = xT and y = l(xT) = -yT. []
+(d) If P in E, x != xq and chord(P, Q) = 2Q, then P = -2Q. *Proof.* y' = yT gives lambda (xq - xT) = mu (xq - xT);
+xT != xq (H2), so lambda = mu and y = yq + lambda (x - xq) = l(x); conclude as in (c). []
+(e) chord(-2Q, Q) = -Q: -2Q = (xT, l(xT)) lies on the tangent, so lambda = mu, x' = mu^2 - xT - xq = xq,
+y' = -yq.
+
+*Run of W_ec on P in E or O.*
+1. `w_pre` (machine, from `ecdom`): the flags are the indicators of P = O, Q, -Q, -2Q -- four different points
+   (yq != 0, H2) -- and P' = D if P is one of them, else P. So P' in E, x_P' != xq, P' != -2Q (H3, resp. (a)).
+2. dx = x_P' - xq != 0, so xs = 2^(2n) dx mod p is in [1, p): **G1**. By the Kaliski contract (sections 2-5)
+   r_ext = -xs^{-1} 2^(2n) = -dx^{-1} (mod p), hence Lr = -dy/dx = -lambda. Then Y = dy + Lr dx = 0;
+   X = Lr^2 - dx - 3 xq = x' - xq; Y = Lr (x' - xq) = lambda (xq - x') = y' + yq; X = xq - x'.
+3. xq - x' != 0: otherwise P' = -2Q by (c). **G1** (second). The second quotient is
+   -(y' + yq)/(xq - x') = -lambda (xq - x')/(xq - x') = -lambda = Lr: **G2**. Finally (X, Y) = (x', y') =
+   chord(P', Q).
+4. If a flag is set, P' = D and chord(D, Q) = D + Q (H3: x_D != xq): **G3**. Otherwise R = chord(P, Q) is in E (b),
+   R != O-code since y' != 0 (H1), x' != xq by (c) so R != +-Q, and R != 2Q by (d): **G4**.
+5. `w_post` (machine, from G3, G4): the result is Q, 2Q, O, -Q for P = O, Q, -Q, -2Q -- these are ec_add(P, Q) by
+   the definition of ec_add (for -2Q by (e)) -- and chord(P, Q) = ec_add(P, Q) otherwise; all flags are erased. []
+
+Evidence beyond the written proof (finite, not a proof): `ecmath.exhaustive_T` executes an independent field-level
+model of W_ec on every curve / Q / safe D / point for all primes p <= 31 (992 curves for p = 17..31 with D = 3Q,
+all safe D for p <= 13: 36 thousand cases, 0.9 million points, no violation); `wec_test` executes the contract
+chain itself (the code that the ROBDD proofs use) on all points of small curves and on 64 points at n = 256
+(exceptional points, D, D + Q, random) and compares the real circuit on the same points.
+
+## 11. Machine / paper / trusted, for the point addition
+
+* **Machine, on the given text, full width, all values:** lifting and gadget lemmas; every ROBDD segment (flags,
+  substitution, modular additions / negations, shift-and-add rounds, Kaliski steps, special reductions, images and
+  flag erasure); every algebra sub-goal (5 products / squares and 9 fold reductions at n = 256, forward halves);
+  the 5 mirror comparisons and their frame conditions; coverage of all ops; all ancillas in Z at the end; the
+  numeric side conditions (H1-H3, primality, fold / shift-and-add conditions).
+* **Machine, in general:** M1..M6 (Z3); I1..I3 (exact polynomial expansion).
+* **Paper:** Lemmas 1-3 (Part I), Lemma 4 (reading of the algebra prover's statement), Lemma 5, the shift-and-add
+  lemma, the case analysis of Theorem T (uses only I1..I3 and the field axioms; no appeal to the group law), and
+  that the contracts of `ecadd.py` are the program W_ec of section 10 (tested by `wec_test`).
+* **Trusted in addition to section 7:** `qoptct.verify.algebra` (word-level prover; audited in v0.6, not checked by
+  an independent tool), the client `compose.ecadd`, the 40-line polynomial arithmetic of `compose.ecmath`.
+* **Not trusted:** the generators (`qoptct.crypto.ecpoint`, `_ecp`, `kaliski`, `mulsq`, `fold`), the certificate
+  (marks, D), the OpenQASM writer.
+* **Not covered:** the legacy constructions (`legacy=True`), inputs outside the curve, curves with a point of
+  order 2, Q of order <= 4, other Karatsuba depths than 3 at n = 256 (not run).
+
+## 12. The windowed addition (P, k) -> (P + T[k], k) (`ecadd.ECWinChain`, `verify_ecadd_window`)
+
+Circuit: `ec_point_add_window(p, a, b, table, w)` (default construction): wires 2n..2n+w-1 hold the index k; the
+nine fields xq, yq, -yq, 3xq, x(2Q), y(2Q), -y(2Q), x(D+Q), y(D+Q) of Q = T[k] are looked up into registers, the
+wrapper and the generic addition use these registers, the lookup is undone. **Theorem:** as in Part II, for every P
+in E or O and EVERY k in [0, 2^w), with H2, H3 required (and checked) for every table entry with the one
+certificate point D. The walk is the chain of section 8 with these differences:
+
+* `lk` / `unlk` (ROBDD over the w index bits): the registers receive / lose the table values; fact
+  `tab`: "the registers hold the fields of T[k]".
+* The wrapper segments are proved with the looked-up registers SUBSTITUTED by their table values as functions of
+  k (the parametrised preconditions of section 2, justified by the fact `tab`), so all their ROBDDs are over
+  (x, y, flags, k) with k on top. To keep them linear in n the wrapper is cut into four segments with LITERAL
+  contracts: `w_flags` (flags := [P = E_j(k)], from `ecdomw` = `ecdom` for every k; facts `fimp`: flag j implies
+  P = E_j(k), `onehot0`), `w_pre` (the XOR substitution of D exactly as the circuit computes it; proved facts
+  x, y < p), `w_fix` (G3, G4 as assumptions, the XOR corrections as computed; proved facts `fiff`: flag j <->
+  R = image_j(k), and `ecdomw` of the result), `w_post` (the flags are erased, from `fiff` and `ecdomw`).
+  Per-k predicates are evaluated on the Shannon cofactors k = j of the bit functions (`_krestrict`; requires the
+  index bits to be the top ROBDD variables, checked).
+* `msub` / `madd` segments (register minus / plus looked-up register mod p) replace the constant additions.
+* A fact about wires without a post in a segment contract survives the segment (`ECChain.seg`): every touched
+  wire without a post is PROVED to end with its entry value, so a predicate over such wires stays true. This keeps
+  `tab` and the bounds of the looked-up registers alive while the generic addition only reads them.
+
+Theorem T is used for every k separately (Q = T[k]); the word-level program is the same. Evidence: `wec_test_window`
+on all pairs (P, k) of small curves and on 160 inputs at n = 256 (for every k: O, +-T[k], +-2T[k], D, -(D + T[k])).

@@ -23,6 +23,18 @@ at n = 256): the mathematical assumptions M1..M6 on Kaliski's algorithm (registe
 preconditions, the fold lemma of the special reduction, and that P_std returns -x^{-1} 2^{2n} mod p with u = 1, v = 0.
 Together: for every x in [1, p) the circuit maps |x>|0...> to the specified state for every measurement outcome,
 with no residual phase.
+
+SECOND CLIENT: the exact elliptic-curve point addition of qoptct.crypto.ecpoint (compose.ecadd, compose.ecmath;
+PROOF.md part II):
+    r = verify_ecadd(qasm, p, a, b, Q)                       # P -> P + Q, Q classical
+    r = verify_ecadd_window(qasm, p, a, b, table, w)         # (P, k) -> (P + table[k], k)
+    python -m qoptct.verify.compose ecgen | ecverify | ecwec --curve secp256k1|p256|p,a,b [--window W] ...
+The same walker with two more kinds of segments: algebra sub-goals (products, fold reductions: the real ops of the
+segment are proved by qoptct.verify.algebra against a word-level spec) and mirror segments (the uncompute half of a
+compute / apply / uncompute block is the syntactic inverse of the compute half, and the apply part does not change
+its wires); the Kaliski chain above is walked on the wires of the denominators. PROVED = the circuit refines the
+word-level program W_ec for every point of the curve and O, under named assumptions that Theorem T (elementary
+curve algebra, PROOF.md section 10) and the Kaliski lemmas discharge.
 """
 import random
 import time
@@ -315,3 +327,10 @@ def verify_kaliski(qasm, p, reduction='generic', clean=False, hints=None, lifted
     return done(status='PROVED', stage='done', proved_modulo='paper lemmas M1..M6 on the integer algorithm (and the fold '
                 'lemma for reduction=special), compose/PROOF.md sections 4-5; tested by pstd_test',
                 detail='every segment of the circuit is machine-proved against its contract at full width.' + note)
+
+
+from .ecadd import (verify_ecadd, wec_test, ecadd_hints, ECChain, lift_circuit,  # noqa: E402
+                    verify_ecadd_window, wec_test_window, ECWinChain)
+
+__all__ += ['verify_ecadd', 'wec_test', 'ecadd_hints', 'ECChain', 'lift_circuit', 'verify_ecadd_window',
+            'wec_test_window', 'ECWinChain']
