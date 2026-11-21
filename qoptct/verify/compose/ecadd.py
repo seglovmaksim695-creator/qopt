@@ -451,6 +451,8 @@ class ECChain(Chain):
         outw = set(w for ws in spec['outputs'].values() for w in ws) | set(spec.get('garbage', []))
         inset = set(ins)
         self.need(len(inset) == len(ins), 'internal: input words of %r overlap' % label)
+        if self._written is not None:      # frame condition of the mirror lemma: every wire of this segment counts as written
+            self._written.update(inset | outw)
         if not self.prove:
             runf(self._get, self._put)
             self.facts = {k for k in self.facts if outw.isdisjoint(fact_wires(k))}
@@ -462,6 +464,8 @@ class ECChain(Chain):
             return
         lo, hi = self.pos, pos
         sup, _ = self._support(lo, hi)
+        if self._written is not None:
+            self._written.update(sup)
         Z = self.Z
         for w in (sup | outw) - inset:
             if w not in Z:
@@ -1338,6 +1342,13 @@ def verify_ecadd(qasm, p, a, b, Q, hints=None, lifted=None, refute_samples=64, t
                             counterexample=t.get('circuit_counterexample'))
             return done(detail='an assumption of W_ec is violated on a concrete point: %r' % (t['violations'][:1],))
     note = '' if pv == 'prime' else ' PROVED under the condition that p is prime (only a probabilistic test was run).'
+    if not test_samples:
+        # strict: the chain alone is NOT a proof.  The chain relies on every erasure being exact; the final run of the
+        # circuit on concrete points checks that strictly (PROOF.md, lemma 4).  Without it: never PROVED.
+        return done(status='UNKNOWN', stage='chain_only', chain_status='PROVED',
+                    detail='the chain of segment proofs succeeded, but the final strict run of the circuit on concrete '
+                           'points was skipped (test_samples=0 / --no-test): this is NOT a proof; run without '
+                           '--no-test.' + note)
     return done(status='PROVED', stage='done',
                 proved_modulo='D-input (domain), G1..G4 (Theorem T, PROOF.md section 10: elementary curve algebra, '
                               'tested by wec_test) and the Kaliski lemmas M1..M6 (Z3, PROOF.md sections 4-5)',
@@ -1517,6 +1528,13 @@ def verify_ecadd_window(qasm, p, a, b, table, w, hints=None, lifted=None, refute
                             counterexample=t.get('circuit_counterexample'))
             return done(detail='an assumption of W_ec is violated on a concrete input: %r' % (t['violations'][:1],))
     note = '' if pv == 'prime' else ' PROVED under the condition that p is prime (only a probabilistic test was run).'
+    if not test_samples:
+        # strict: the chain alone is NOT a proof.  The chain relies on every erasure being exact; the final run of the
+        # circuit on concrete points checks that strictly (PROOF.md, lemma 4).  Without it: never PROVED.
+        return done(status='UNKNOWN', stage='chain_only', chain_status='PROVED',
+                    detail='the chain of segment proofs succeeded, but the final strict run of the circuit on concrete '
+                           'points was skipped (test_samples=0 / --no-test): this is NOT a proof; run without '
+                           '--no-test.' + note)
     return done(status='PROVED', stage='done',
                 proved_modulo='D-input (domain), G1..G4 (Theorem T for every table entry, PROOF.md section 10) and '
                               'the Kaliski lemmas M1..M6 (Z3, PROOF.md sections 4-5)',

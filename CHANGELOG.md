@@ -51,8 +51,10 @@
   the Kaliski sub-walk; the word-level layer (chord formula, exceptional cases, safe point) by a written elementary
   argument with machine-checked polynomial identities and enumeration over all curves with p <= 31 (`PROOF.md`, part
   II). The windowed form (`ec_point_add_window`, also rebuilt on the library blocks: w = 4, 3 027 017 / 3 034 484 ANDs)
-  is proved for every index k by `verify_ecadd_window` (`--window W`). Canaries: no wrong circuit proved (thousands of
-  small mutants against exhaustive truth; full-size mutants). Not proved: `legacy=True`.
+  is proved for every index k by `verify_ecadd_window` (`--window W`). Canaries (thousands of
+  small mutants against exhaustive truth; full-size mutants). PROVED is valid for the default full check (chain plus the
+  final strict run of the circuit); without the final run (`--no-test`, `test_samples=0`) the result is never PROVED
+  (UNKNOWN, `chain_status`). Not proved: `legacy=True`.
 * **`qoptct.crypto.residue`** (accumulator compression modulo q, 106 / 138 / 148 ANDs against 682 by the formula of the
   paper; against the paper's exact circuit count 352-418 the gain is smaller; junction with the next step not checked on
   a whole circuit), **`qoptct.crypto.modadd`** (modular adders, 4n-2 ANDs), `lookup` option `fanout='gray'`
@@ -72,6 +74,13 @@
 * `verify.compose`: the lifter rejects negative indices `q[-j]`, indices beyond the register and classical bit numbers
   outside `bit[M]`; `verify_kaliski` checks the primality of p: a composite p gives ERROR, for p >= 2^64 outside the named
   curves PROVED carries the note "under the condition that p is prime (probabilistic test)" (key `p_primality`).
+* `verify.algebra`: (4) an erasure whose condition (wire xor correction) is the constant 1 (a global sign on the outcome-1
+  branch) is no longer accepted, only a proved 0 (`Engine.op_erase`, and the simulation pre-check). Before, a circuit with
+  such an erasure in the compute half of a "compute - copy - uncompute" form got a false PROVED from `aprove`, and the
+  chain of the point addition without its final run (`--no-test`) was fooled the same way (the mirror lemma assumes exact
+  erasures). Found by an independent audit; regression tests `tests/test_verify_const1.py`. `ECChain.seg_algebra` now
+  records the wires of algebra segments for the frame condition of the mirror lemma. `verify_ecadd` /
+  `verify_ecadd_window` with `test_samples=0` never answer PROVED.
 * An independent audit found false PROVED results on three classes of specially constructed circuits; they are closed.
   Regression tests on the audit examples: `tests/data/audit`. Some correct circuits with a virtual carry may now end in
   UNKNOWN.

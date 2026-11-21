@@ -270,11 +270,17 @@ The lifted circuit (section 1) is walked by `ecadd.ECChain`. Besides the ROBDD s
 garbage wires, claims (`out == x*y`; `r + p*(...) == value`, `r <= p-1`). The walker first checks that every wire
 mentioned by the slice or named as output / garbage, other than the input words, is in Z (known |0>).
 
-*Lemma 4 (interface).* If these wires are |0> and the prover returns PROVED, then on every entry state the slice
-satisfies every gadget precondition, the claims hold between the entry values of the input words and the exit
-values of the output words, the kept input wires are unchanged, garbage wires hold some classical function of the
-inputs, and every other wire of the slice ends at |0>. *This is exactly the statement of the algebra prover*
-(its docstring; it does not look at wires outside the slice, and wires outside the slice are not touched). The
+*Lemma 4 (interface).* If these wires are |0> and the prover returns PROVED, then on every entry state every AND
+target of the slice is |0> and, for every erasure of the slice, the condition (wire xor correction) is **identically
+0** (the algebra prover accepts an erasure only when this is proved; since 20.11.2026 -- before, it also accepted
+the constant 1, a global sign on the outcome-1 branch, which the mirror lemma below cannot tolerate; this was found
+by an independent audit and is closed in `Engine.op_erase` and `_pre_sim`); the claims hold between the entry values
+of the input words and the exit values of the output words, the kept input wires are unchanged, garbage wires hold
+some classical function of the inputs, and every other wire of the slice ends at |0>. *This is the statement of the
+algebra prover* (its docstring; it does not look at wires outside the slice, and wires outside the slice are not
+touched). The strict erasure condition is exactly what Lemma 5 needs; the final strict run of the circuit on concrete
+points (`test_samples > 0`, the default) checks it once more, and a result obtained without that run
+(`test_samples=0`, `--no-test`) is NOT reported as PROVED (status UNKNOWN, `chain_status`). The
 walker then removes the output and garbage wires from Z and forgets every fact about them. In the ROBDD world the
 outputs get NO value: every later ROBDD segment is proved for all values of these wires; only the proved bound
 `r < p` is carried (fact `lt`). A claim `r + p*(integer expression) == V`, `r <= p-1` says r = V mod p whatever the
@@ -284,8 +290,9 @@ expression is, so the spec needs no trust in the generator's formulas.
 
 *Lemma 5 (mirror).* Let F = ops[s:e), A = ops[e:e'), G = ops[e':e'') where G is the op-by-op inverse of F in reverse
 order (x, cx: themselves; and(a,b -> t): erase of t against a*b; erase of t against a*b xor l: and(a,b -> t)
-followed by cx l -> t). Let sigma be a classical state on which F runs with every gadget precondition true, ending
-in sigma'; let A run validly from sigma' to sigma'' with sigma''(w) = sigma'(w) for every wire w that F mentions
+followed by cx l -> t). Let sigma be a classical state on which F runs with every gadget precondition true (every AND target is 0 and
+every erasure condition is exactly 0 -- a constant 1 is NOT enough: the image of such an erasure would meet another
+state), ending in sigma'; let A run validly from sigma' to sigma'' with sigma''(w) = sigma'(w) for every wire w that F mentions
 in ANY role (control, target, operand, correction). Then G runs from sigma'' with every gadget precondition true
 and ends in tau with tau(w) = sigma(w) for the wires mentioned by F and tau(w) = sigma''(w) elsewhere.
 *Proof.* Induction over the ops of F from the last to the first; the ops of F and G read and write only wires

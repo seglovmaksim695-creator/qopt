@@ -832,8 +832,11 @@ class Engine:
         self.opi += 1
         self.last_gate = self.opi
         self.stats['erases'] += 1
-        if D and not self.is_zero(D) and not self.is_zero(D ^ ONE):
-            raise Unknown('op %d: erasure of q[%d]: wire xor correction is not proved constant' % (self.opn, t))
+        # strict: the erasure is accepted ONLY if (wire xor correction) is proved to be 0.  A constant 1 (a global
+        # sign on the outcome-1 branch) is NOT accepted: the mirror lemma and the chain walker assume that every
+        # erasure is exact, and an erasure with constant 1 inside a compute half breaks the mirrored half.
+        if D and not self.is_zero(D):
+            raise Unknown('op %d: erasure of q[%d]: wire xor correction is not proved to be 0' % (self.opn, t))
         self.wires[t] = EMPTY
 
     def run(self, ops):
@@ -2102,7 +2105,9 @@ def _pre_sim(N, ops, sp, lanes=64, seed=11):
             d = v[t]
             for c in o[2]:
                 d ^= (v[c[1]] & v[c[2]]) if c[0] == 'cz' else v[c[1]]
-            if d != 0 and d != M:
+            if d == M:
+                return 'UNKNOWN', 'op %d: erasure of q[%d]: wire xor correction is the constant 1 (only 0 is accepted)' % (i, t)
+            if d != 0:
                 l1 = (d & -d).bit_length() - 1
                 l0 = ((~d & M) & -(~d & M)).bit_length() - 1
                 return 'REFUTED', 'op %d: erasure of q[%d]: the phase of the outcome-1 branch depends on the input ' \

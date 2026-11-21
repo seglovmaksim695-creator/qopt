@@ -79,7 +79,7 @@ def ec_main(argv):
             a.add_argument('qasm')
             a.add_argument('--hints')
             a.add_argument('--json', action='store_true')
-            a.add_argument('--no-test', action='store_true', help='skip the sampled execution of W_ec')
+            a.add_argument('--no-test', action='store_true', help='skip the final strict run of the circuit on concrete points: the result is then never PROVED (UNKNOWN, chain_status shows the chain verdict)')
             a.add_argument('--quiet', action='store_true')
         if name == 'ecwec':
             a.add_argument('--count', type=int, default=64)
@@ -141,7 +141,7 @@ def ec_main(argv):
             print('  T[0]: (%#x, %#x) ... %d entries' % (tuple(table[0]) + (len(table),)))
         else:
             print('  Q: (%#x, %#x)' % tuple(Q))
-        for k in ('detail', 'where', 'counterexample', 'proved_modulo', 'assumptions', 'segments', 'mirrors',
+        for k in ('chain_status', 'detail', 'where', 'counterexample', 'proved_modulo', 'assumptions', 'segments', 'mirrors',
                   'lemma_facts', 'bdd_nodes_max', 'wec_test'):
             if r.get(k) is not None:
                 print('  %s: %s' % (k, r[k]))

@@ -419,14 +419,19 @@ All counts are logical ANDs (= Toffoli) in the same model as above.
   blocks (Kaliski core, `mulsq`, `fold`); `legacy=True` keeps the lab construction (3 041 421 / 3 033 954 ANDs,
   6 742 / 6 934 qubits). This is an exact scheme, not the cheapest known one: the approximate schemes of 2026
   (arXiv:2609.05625, arXiv:2606.02235) are cheaper and use fewer qubits (they have a non-zero failure probability).
-  Checked exhaustively on small curves, on edge points at n = 256, phases by sparse simulation. The default
-  construction with a classical Q is **proved at n = 256** for both curves by `qoptct compose ecverify` (about 2 minutes
-  and 1.7 GB per curve): every segment of the OpenQASM text by machine (ROBDD segments, algebra sub-goals for the
-  products and reductions, syntactic mirror segments for the uncompute halves), the Kaliski lemmas by Z3, and a written
-  elementary argument (`PROOF.md`, part II: curve algebra, enumerated on all curves with p <= 31) for the word-level
-  program; for every point of the curve and O, assuming p prime, odd group order, order of Q above 4. The windowed
-  form (w = 4: 3 027 017 / 3 034 484 ANDs for secp256k1 / P-256, 9 225 / 9 033 qubits) is proved the same way for every
-  index k (`qoptct compose ecverify --window 4`, 2.1 GB). `legacy=True` is not proved.
+  Checked exhaustively on small curves, on edge points at n = 256, phases by sparse simulation.
+  **The full exact point addition is proved at n = 256** (P-256 and secp256k1; classical Q and the window w = 4) by
+  `qoptct compose ecverify` (about 2 minutes and 1.5-2.1 GB per run). What exactly is proved:
+  * PROVED is valid for the default full check: the chain of segment proofs plus the final strict run of the circuit on
+    concrete points. A run without that final run (`--no-test`, `test_samples=0`) is never reported as PROVED (status
+    UNKNOWN, field `chain_status`): an independent audit showed that the chain alone could be fooled (see CHANGELOG, Fixed).
+  * By machine: the circuit repeats the word-level program (every segment of the OpenQASM text: ROBDD segments, algebra
+    sub-goals for the products and reductions, syntactic mirror segments for the uncompute halves; the Kaliski lemmas by Z3).
+    That the word-level program equals P + Q is a written theorem (`PROOF.md`, part II) checked by enumeration over all
+    curves with p <= 31 and by runs at n = 256, not a machine proof.
+  * Domain: points of the curve and O; p prime; odd group order; order of Q above 4; Karatsuba L = 3; window w = 4
+    (every index k). `legacy=True` is not proved.
+  * Trusted in addition: the code of the provers (walker, ROBDD, algebra prover, Z3), not checked by an independent tool.
 * `residue.fold_accumulator(q, clen, nbits)`: compression of the accumulator modulo q (loop 2 of Gidney 2025):
   106 / 138 / 148 ANDs for q = 1 574 500 against 682 by the formula of the paper. Against the exact count of the
   paper's circuit (352-418) the gain is smaller; the junction with the next step (loop 3) was argued in words and not
