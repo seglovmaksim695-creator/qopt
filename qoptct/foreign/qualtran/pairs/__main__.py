@@ -2,11 +2,13 @@
 
     python -m qoptct.foreign.qualtran.pairs kaliski    --n 256 --p '2**255-19' [--full] [--out FILE]
     python -m qoptct.foreign.qualtran.pairs montgomery --n 256 --w 1 --p '2**255-19' [--full] [--out FILE]
+    (public commands: they call the API, which starts the right Qualtran variant; exit code 0 only for PROVED)
     python -m qoptct.foreign.qualtran.pairs canary-kaliski    --n 16 --p 65521 [--seed 1] [--only 0,3,7] [--out FILE]
     python -m qoptct.foreign.qualtran.pairs canary-montgomery --n 16 --w 1 --p 32749 [--seed 1] [--only ...] [--out FILE]
 
-``kaliski`` runs on the installed Qualtran 0.7.0; the Montgomery commands need the patched copy (kind ``'c'``), which the API
-of ``qoptct.foreign.qualtran.pairs`` and ``qoptct.foreign.qualtran.patches.run_with_patched_qualtran('c', ...)`` set up.
+The canary commands, and the internal ``run-kaliski`` / ``run-montgomery`` that the API starts, run on the Qualtran that is
+imported: Kaliski on the installed 0.7.0, Montgomery on the patched copy (kind ``'c'``, see
+``qoptct.foreign.qualtran.patches.run_with_patched_qualtran``).
 """
 import argparse
 import json
@@ -21,7 +23,7 @@ def _p(s):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(prog='python -m qoptct.foreign.qualtran.pairs')
-    ap.add_argument('cmd', choices=['kaliski', 'montgomery', 'canary-kaliski', 'canary-montgomery'])
+    ap.add_argument('cmd', choices=['kaliski', 'montgomery', 'run-kaliski', 'run-montgomery', 'canary-kaliski', 'canary-montgomery'])
     ap.add_argument('--n', type=int, required=True)
     ap.add_argument('--w', type=int, default=1)
     ap.add_argument('--p', required=True)
@@ -31,19 +33,28 @@ def main(argv=None):
     ap.add_argument('--out', default=None)
     a = ap.parse_args(argv)
     n, p = a.n, _p(a.p)
+    if a.cmd in ('kaliski', 'montgomery'):
+        from . import check_pair_kaliski, check_pair_montgomery
+        res = (check_pair_kaliski(n, p, compare_full=a.full or None) if a.cmd == 'kaliski'
+               else check_pair_montgomery(n, a.w, p, compare_full=a.full or None))
+        if a.out:
+            with open(a.out, 'w') as f:
+                json.dump(res, f, ensure_ascii=False, indent=1, default=str)
+        print(json.dumps({k: res.get(k) for k in ('api', 'n', 'status', 'mirror_ok', 'sec')}, default=str))
+        return 0 if res['status'] == 'PROVED' else 1
     from qoptct.foreign.qualtran._variant import detect_variant
     var = detect_variant()
     t0 = time.time()
     res = dict(cmd=a.cmd, qualtran_kind=var['kind'], qualtran_file=var['qualtran_file'], files_sha256_16=var['files_sha256_16'])
     try:
-        if a.cmd == 'kaliski':
+        if a.cmd == 'run-kaliski':
             from .pair_compose import check_pair, CErr
             try:
                 res.update(check_pair(n, p, compare_full=a.full))
             except CErr as e:
                 res.update(n=n, p=p, mirror_ok=False, error=str(e))
             res['p'] = str(p)
-        elif a.cmd == 'montgomery':
+        elif a.cmd == 'run-montgomery':
             from .mont_compose import check_pair_mont
             from .pair_compose import CErr
             try:
@@ -72,7 +83,7 @@ def main(argv=None):
             json.dump(res, f, ensure_ascii=False, indent=1, default=str)
     short = {k: res.get(k) for k in ('cmd', 'n', 'mirror_ok', 'status', 'false_pass', 'wall_seconds')}
     print(json.dumps(short, default=str))
-    return 0
+    return 0 if res.get('status') != 'ERROR' else 1
 
 
 if __name__ == '__main__':

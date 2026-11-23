@@ -42,7 +42,7 @@ def check_pair_kaliski(n, p, *, compare_full=None, timeout=None):
     """Mirror check of the Kaliski pair.  ``compare_full``: also compare with the full lowering (default: n <= 16)."""
     from .._variant import run_json
     full = (n <= 16) if compare_full is None else bool(compare_full)
-    args = ['kaliski', '--n', n, '--p', str(p)] + (['--full'] if full else [])
+    args = ['run-kaliski', '--n', n, '--p', str(p)] + (['--full'] if full else [])
     res = run_json(None, _PKG, args, timeout=timeout)
     if res.get('status') in ('ERROR', 'UNKNOWN'):
         return dict(res, api='check_pair_kaliski', n=n, p=str(p))
@@ -55,7 +55,7 @@ def check_pair_montgomery(n, w, p, *, compare_full=None, timeout=None):
     """Mirror check of the Montgomery multiplier pair (window ``w``).  ``compare_full``: default n <= 8."""
     from .._variant import run_json
     full = (n <= 8) if compare_full is None else bool(compare_full)
-    args = ['montgomery', '--n', n, '--w', w, '--p', str(p)] + (['--full'] if full else [])
+    args = ['run-montgomery', '--n', n, '--w', w, '--p', str(p)] + (['--full'] if full else [])
     res = run_json('c', _PKG, args, timeout=timeout)
     if res.get('status') in ('ERROR', 'UNKNOWN'):
         return dict(res, api='check_pair_montgomery', n=n, w=w, p=str(p))
