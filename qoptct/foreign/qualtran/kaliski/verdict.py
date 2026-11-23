@@ -90,9 +90,8 @@ def canaries_summary(can):
     for c in can.get('extra', []):
         if c.get('prove') == 'CHAIN_PROVED' and c.get('witness'):
             false_proved.append(c['name'] + ' (extra search)')
-    each = (can.get('manifest') or {}).get('src', {}).get('each', {})
-    mine = {'kaliski/' + f: _sha_file(f) for f in ('chain.py', 'lower.py', 'pq.py', 'run.py', 'lemmas_z3.py', 'canary.py')}
-    same_client = all(each.get(k) == v for k, v in mine.items())
+    from ._client import same_client as _same
+    same_client = _same(can.get('manifest'))      # the 6 client files, the whole bridge and qoptct/verify: all equal to the code judging now
     ok = cnt >= 20 and 2 * tcnt >= cnt and tcnt >= 10 and not false_proved and same_client and can.get('n') == 256
     return bool(ok), dict(total=len(rows), counted=cnt, targeted=tcnt, false_proved=false_proved, made_by_this_client=same_client)
 
@@ -104,6 +103,7 @@ def judge(rep, *, lemmas, prime, canaries=None, canaries_required=None, min_run=
     if 'error' in ru:                 # the execution mode failed (e.g. the wire flow): never PROVED
         ru = dict(violations=1, n_wrong_output=1, n_differs=1, n_pq_mismatch=1, pq_assumption_failures=[ru['error']],
                   iterations_traced=0, inputs=0)
+    from ._client import same_client as _same_client
     ch = client_hashes()
     each = (rep.get('manifest_before') or {}).get('src', {}).get('each', {})
     need_can = (n == 256) if canaries_required is None else canaries_required
@@ -117,7 +117,8 @@ def judge(rep, *, lemmas, prime, canaries=None, canaries_required=None, min_run=
             run=ru['violations'] == 0 and ru['n_wrong_output'] == 0 and ru['n_differs'] == 0 and ru['n_pq_mismatch'] == 0
             and not ru['pq_assumption_failures'] and ru['iterations_traced'] == 2 * n,
             flow=flow_ok(pr.get('flow'), n) and flow_ok(ru.get('flow'), n),
-            client_hash=each.get('kaliski/chain.py') == ch['chain_sha256'] and each.get('kaliski/lemmas_z3.py') == ch['lemmas_sha256'],
+            client_hash=each.get('kaliski/chain.py') == ch['chain_sha256'] and each.get('kaliski/lemmas_z3.py') == ch['lemmas_sha256']
+            and _same_client(rep.get('manifest_before')),
             sim=si.get('gadget_error') is None and si.get('dirty_wires') == 0 and si.get('n_mismatch') == 0 and si.get('inputs', 0) >= min_sim > 0,
             sources_unchanged=rep.get('sources_unchanged_during_run') is True,
             lemmas=lemmas_ok(lemmas),

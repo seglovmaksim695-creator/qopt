@@ -53,22 +53,14 @@ def word(store_or_vals, wires, j):
 
 def manifest():
     """SHA-256 of every source file the result depends on: this client, the bridge, the qoptct provers, Qualtran."""
-    import glob, qualtran
-    pkg = os.path.dirname(os.path.abspath(__file__))                 # .../qoptct/foreign/qualtran/kaliski
-    qoptct_root = os.path.dirname(os.path.dirname(os.path.dirname(pkg)))   # .../qoptct
+    import qualtran
+    from ._client import client_groups
     qroot = os.path.dirname(qualtran.__file__)
-    used = ('lower.py', 'chain.py', 'pq.py', 'run.py', 'lemmas_z3.py', 'canary.py')
-    groups = dict(src=(os.path.dirname(pkg), sorted(os.path.join(pkg, f) for f in used)),
-                  bridge=(os.path.dirname(pkg), sorted(glob.glob(os.path.join(os.path.dirname(pkg), 'bridge', '*.py')))),
-                  qoptct=(os.path.dirname(qoptct_root),
-                          sorted(glob.glob(os.path.join(qoptct_root, 'verify', '**', '*.py'), recursive=True))),
-                  qualtran=(qroot, sorted(glob.glob(os.path.join(qroot, '**', '*.py'), recursive=True))))
-    out = {}
-    for g, (root, files) in groups.items():
-        h = {os.path.relpath(f, root): hashlib.sha256(open(f, 'rb').read()).hexdigest() for f in files}
-        out[g] = dict(files=len(h), sha256=hashlib.sha256(json.dumps(h, sort_keys=True).encode()).hexdigest())
-        if g in ('src', 'qoptct'):
-            out[g]['each'] = h
+    out = client_groups()                                           # src, bridge, qoptct (see _client.py)
+    import glob
+    files = sorted(glob.glob(os.path.join(qroot, '**', '*.py'), recursive=True))
+    h = {os.path.relpath(f, qroot): hashlib.sha256(open(f, 'rb').read()).hexdigest() for f in files}
+    out['qualtran'] = dict(files=len(h), sha256=hashlib.sha256(json.dumps(h, sort_keys=True).encode()).hexdigest())
     out['qualtran_version'] = qualtran_version()
     out['mod_division_sha256'] = hashlib.sha256(open(os.path.join(qroot, 'bloqs', 'mod_arithmetic', 'mod_division.py'), 'rb').read()).hexdigest()
     return out
