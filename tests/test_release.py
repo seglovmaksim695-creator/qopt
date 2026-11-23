@@ -23,7 +23,7 @@ def test_no_absolute_project_paths():
 
 
 def test_version():
-    assert qoptct.__version__ == "0.6.0"
+    assert qoptct.__version__ == "0.7.0"
     from qoptct import qopt_core
     assert qopt_core.__version__ == qoptct.__version__
 

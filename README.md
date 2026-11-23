@@ -15,7 +15,7 @@ measurement-based output is proven equal by the exact prover `qoptct.verify` or,
 re-checked by independent simulators over many sampled inputs and measurement outcomes before it is written
 (the JSON report says which).
 
-Repository: <https://github.com/seglovmaksim695-creator/qopt>  · Version 0.6.0 (unreleased) · License Apache-2.0 (benchmark files: see `bench_qc/SOURCES.md`) · Author: Maksym Shchehlov
+Repository: <https://github.com/seglovmaksim695-creator/qopt>  · Version 0.7.0 (unreleased) · License Apache-2.0 (benchmark files: see `bench_qc/SOURCES.md`) · Author: Maksym Shchehlov
 
 ## Installation
 
@@ -23,6 +23,7 @@ Repository: <https://github.com/seglovmaksim695-creator/qopt>  · Version 0.6.0 
 pip install qoptct              # Python 3.11+, macOS or Linux; provides the `qoptct` command and the Qiskit plugin
 pip install "qoptct[net]"       # optional: + PyTorch for the neural mode --net
 pip install "qoptct[qcec]"      # optional: + MQT QCEC as an extra equivalence checker for unitary circuits
+pip install "qoptct[qualtran]"  # optional: + Qualtran 0.7.0 and z3-solver for `qoptct qualtran` (0.7)
 ```
 
 Dependencies: numpy, qiskit ≥ 2.0, pyzx. PyTorch is needed only for `--net`; without it every other mode works
@@ -487,6 +488,26 @@ Toffoli (L3) and 43 557 475 / 43 460 404 (L0); physical estimate (Litinski model
 13.0 million physical qubits and 0.121 megaqubit-days, L0 8.45 million and 0.085, against 0.175 for the published
 scheme. Only the point addition is a proved circuit; the rest of the ECDLP circuit (windows, lookups) is a model. This is
 an exact scheme: the approximate schemes of 2026 are cheaper and use fewer qubits.
+
+## Proofs about Qualtran blocks: `qoptct qualtran` (new in 0.7)
+
+Optional (`pip install "qoptct[qualtran]"`: Qualtran 0.7.0 and z3-solver).  qoptct lowers Qualtran blocks gate by gate with a
+strict bridge and proves them with its own unchanged provers.  Proved for the stated sizes and assumptions: the Kaliski modular
+inversion (n up to 256, three 256-bit primes), the Montgomery multiplier (n = 256, windows 1 and 2; n = 64, window 4; patched
+Qualtran), the point addition `ECAdd` and `ECWindowAddR` at n = 256 (patched Qualtran; the boxes of the multiplier and the inverse
+are taken with contracts that are themselves registry results), and the pairs "block + its `uncompute=True` twin = identity".
+
+```
+qoptct qualtran results                          # the table of the proved results (registry shipped with the package)
+qoptct qualtran prove montgomery --n 16 --w 1    # exit code 0 only for PROVED
+qoptct qualtran pair kaliski --n 16 --p 32749
+qoptct qualtran check "qualtran.bloqs.arithmetic.addition.Add(QUInt(3))"
+```
+
+Every result states its Qualtran variant (the proofs of the multiplier and of the point addition are made for patched copies; the
+installed Qualtran is never modified), its hashes, assumptions and the command that reproduces it.  The Kaliski proof at n = 256
+uses canary evidence shipped with the package and accepted only for exactly this client.  Details, table and assumptions:
+[`docs/QUALTRAN.md`](docs/QUALTRAN.md).
 
 ## Hardware check (IBM Quantum)
 

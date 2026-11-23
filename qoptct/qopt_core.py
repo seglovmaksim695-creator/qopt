@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""qoptct 0.6.0 (project "qopt") -- verified Clifford+T circuit optimizer.
+"""qoptct 0.7.0 (project "qopt") -- verified Clifford+T circuit optimizer.
 Install: pip install qoptct  (neural mode --net: pip install "qoptct[net]"). Python: import qoptct.
 
   qoptct optimize INPUT.qc [-o OUTPUT] [--mode cx|balanced|t] [--clean] [--meas] [--net] [--post] [--report r.json]
@@ -95,7 +95,7 @@ def limited(seconds, fn, *a):
             signal.setitimer(signal.ITIMER_REAL, max(0.001, _LIMITS[-1] - time.time()))
 from pathlib import Path
 
-__version__ = "0.6.0"
+__version__ = "0.7.0"
 TORCH_MSG = ('the neural mode (--net / net=True) needs PyTorch, which is an optional dependency of qoptct.\n'
              'Install it with:  pip install "qoptct[net]"   (or: pip install torch)')
 
@@ -1388,7 +1388,12 @@ def _main():
                   "(module qoptct.verify.compose; `qoptct compose --help`)")
     sp.add_parser("dyn", add_help=False, help="measurement-based erasure vs reverse computation on noisy hardware "
                   "(module qoptct.dyn; `qoptct dyn --help`)")
+    sp.add_parser("qualtran", add_help=False, help="proofs about Qualtran blocks: check, prove, pair, results "
+                  "(module qoptct.foreign.qualtran; needs the extra `qualtran`; `qoptct qualtran --help`)")
     sp.add_parser("version")
+    if sys.argv[1:2] == ["qualtran"]:
+        from .foreign.qualtran.cli import main as qualtran_main
+        sys.exit(qualtran_main(sys.argv[2:]))
     if sys.argv[1:2] == ["compose"]:
         from .verify.compose.__main__ import main as compose_main
         sys.exit(compose_main(sys.argv[2:]))

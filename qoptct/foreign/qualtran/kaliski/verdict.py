@@ -153,10 +153,14 @@ def default_canaries_path(n):
 
 
 def load_canaries(canaries, n):
-    """``canaries``: None / 'auto' (the cache file written by ``canary.py`` for n = 256, if there is one) / a path / a dict."""
+    """``canaries``: None / 'auto' (the cache file written by ``canary.py`` for n = 256, else the evidence shipped with the
+    package) / a path / a dict.  Whatever the source, the verdict accepts it only if this very client made it."""
     if isinstance(canaries, dict):
         return canaries
     path = default_canaries_path(n) if canaries in (None, 'auto') else canaries
+    if canaries in (None, 'auto') and n == 256 and not os.path.exists(path):
+        from ..registry import packaged_canaries      # evidence shipped with the package; judged by the same client-hash check
+        path = packaged_canaries()
     if path and os.path.exists(path):
         with open(path) as f:
             return json.load(f)

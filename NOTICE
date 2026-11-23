@@ -9,3 +9,15 @@ Third-party material:
   M. Amy, D. Maslov, M. Mosca and others (see bench_qc/SOURCES.md). These files are not covered by the
   Apache-2.0 license of this project; see bench_qc/SOURCES.md for provenance and checksums.
 * qopt/contrib/c12/mcx.py calls multi-controlled-X syntheses from Qiskit (Apache-2.0) at run time.
+* qoptct/foreign/qualtran/patches/src/*.py are modified copies of files of Qualtran 0.7.0
+  (https://github.com/quantumlib/Qualtran): ec_add.py, mod_multiplication_c.py, mod_multiplication_e.py,
+  qrom_base.py, select_swap_qrom.py. Licensed under the Apache License, Version 2.0; Copyright Google LLC
+  (the original copyright and license headers are kept in the files). The files were CHANGED by the qopt
+  authors: ec_add.py (fix of the flag logic of ECAdd, "E05"); mod_multiplication_c.py and
+  mod_multiplication_e.py (the final reduction of the Montgomery multiplier subtracts p instead of adding it,
+  as in Qualtran pull request 1997; the data tables are computed with exact Python integers instead of int64);
+  qrom_base.py and select_swap_qrom.py (data tables as exact Python integers instead of int64). The
+  differences are in qoptct/foreign/qualtran/patches/diff/*.diff and the SHA-256 of the original and the changed
+  files in qoptct/foreign/qualtran/patches/manifest.json. At run time the patched files are written into a copy
+  of the installed Qualtran in $QOPT_CACHE; Qualtran itself is not distributed with qoptct and the installed
+  Qualtran is not modified.

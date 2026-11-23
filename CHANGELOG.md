@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.7.0 — unreleased
+
+### Added
+* **`qoptct qualtran`** (`qoptct.foreign.qualtran`, optional extra `qoptct[qualtran]`: `qualtran==0.7.0`, `z3-solver`): exact
+  proofs about blocks of Google's Qualtran 0.7.0, gate by gate, with the unchanged qoptct provers. Subcommands `check` (a small
+  bloq against its `call_classically`), `prove kaliski|montgomery|ecadd|ecwindowaddr`, `pair kaliski|montgomery`, `results`;
+  exit code 0 only for PROVED. Without the extra qoptct installs and all earlier tests pass; the new tests are skipped.
+  * Strict bridge Qualtran -> qoptct (`bridge`, rules A1 controlled-And and C1 QROAMCleanAdjoint) and `check_bloq`
+    (PROVED / REFUTED with a witness / UNKNOWN).
+  * Kaliski inversion (`kaliski.prove_kaliski`), original Qualtran: n = 16 ... 256, three 256-bit primes; includes the
+    wire-flow check of the audit (every step reads the wires the previous one wrote; damaged wirings are not proved).
+  * Montgomery multiplication (`montgomery.prove_montgomery`), patched Qualtran: n = 256 windows 1 and 2, n = 64 window 4;
+    includes the coverage and freshness checks of the window pieces of the audit. The original Qualtran is not proved
+    (witness in `T_N >= p`).
+  * Point addition (`ecadd.prove_ecadd`, `prove_ecwindowaddr`): fixed `ECAdd` at n = 256, original `ECAdd` correct exactly
+    outside the groups G1-G3 of finding 05, `ECWindowAddR` with windows 1, 2, 4; the boxes of the multiplier and the inverse are
+    contracts stored as data (`ecadd/contracts.py`), each tied to a registry result, and every verdict says which are only assumed.
+  * Pairs "forward + `uncompute=True` = identity" (`pairs.check_pair_kaliski`, `check_pair_montgomery`) by a gate-level mirror check.
+  * Registry of the proved results (`qoptct qualtran results`, `qoptct.foreign.qualtran.registry`, data in the package):
+    block, Qualtran variant with the SHA-256 of the patch files, n, p, w, status, program hash, assumptions, command, source file.
+  * Qualtran patches (PR 1997 sign, tables without int64, flag fix of `ECAdd`) only as files with SHA-256
+    (`qoptct/foreign/qualtran/patches`), applied to a copy of Qualtran in `$QOPT_CACHE`; the installed Qualtran is never changed.
+  * Documentation: `docs/QUALTRAN.md` (overview, table, assumptions), `QUALTRAN_BRIDGE.md`, `QUALTRAN_KALISKI.md`,
+    `QUALTRAN_MONTGOMERY.md`, `QUALTRAN_ECADD.md`; `NOTICE` lists the modified Qualtran files (Apache-2.0).
+* The Kaliski pair and the Kaliski contract at n = 16, p = 32749 are now results (`pairs_kaliski_n16_p32749`,
+  `kaliski_n16_p32749`); the contract status of `ECAdd` at n = 16 no longer reports an assumption for them.
+
+### Changed
+* Kaliski lowering/macro-leaf routine, the child-process environment of the proof clients and the variant check are single
+  implementations shared by the Kaliski, Montgomery, point-addition and pair clients (behaviour unchanged; pair hashes and mirror
+  statistics are equal to the earlier results).
+* `qoptct/qopt_core.py`: the subcommand `qualtran`. `qoptct/verify/*` is unchanged.
+
 ## 0.6.0 — unreleased
 
 ### Added

@@ -47,12 +47,13 @@ def test_ecadd_fixed_n16_proved(ecadd16):
 
 
 @needs_z3
-def test_ecadd_verdict_names_assumed_contracts(ecadd16):
+def test_ecadd_verdict_names_contracts(ecadd16):
     cs = ecadd16["contracts_status"]
-    assert cs["MM"]["forward"]["status"] == "PROVED_FOR_THIS_INSTANCE"
-    # n=16, p=32749: the Kaliski contract and its pair are an assumption (goal D and H1 did 65521)
-    assert cs["KINV"]["forward"]["status"] == "ASSUMED_FOR_THIS_INSTANCE"
-    assert cs["KINV"]["pair"]["status"] == "ASSUMED_FOR_THIS_INSTANCE"
+    for box in ("MM", "KINV"):
+        for part in ("forward", "pair"):
+            assert cs[box][part]["status"] == "PROVED_FOR_THIS_INSTANCE" and cs[box][part]["evidence"]
+    assert cs["KINV"]["forward"]["evidence"] == "kaliski_inverse/kaliski_n16_p32749"
+    assert cs["KINV"]["pair"]["evidence"] == "pair_kaliski/pairs_kaliski_n16_p32749"
 
 
 @needs_z3
@@ -88,8 +89,15 @@ def test_ecwindowaddr_n16_proved(window):
 
 def test_contract_tables():
     assert instance_covered("MM", 256, P255) and instance_covered("MM", 16, P16)
-    assert instance_covered("KINV", 256, P255) and not instance_covered("KINV", 16, P16)
-    assert instance_covered("KINV", 16, 65521, "pair") and not instance_covered("KINV", 16, P16, "pair")
+    # n=16, p=32749: both the Kaliski contract and its pair are proved since 0.7 (kaliski_n16_p32749, pairs_kaliski_n16_p32749)
+    assert instance_covered("KINV", 256, P255) and instance_covered("KINV", 16, P16)
+    assert instance_covered("KINV", 16, 65521, "pair") and instance_covered("KINV", 16, P16, "pair")
+    # an instance without a result stays an assumption
+    assert not instance_covered("KINV", 32, 1000000009) and not instance_covered("MM", 32, 1000000009)
+    assert not instance_covered("KINV", 16, 65521) and not instance_covered("MM", 64, 18446744073709551557)
+    cs_ass = contracts_status(32, 1000000009)
+    assert cs_ass["KINV"]["forward"]["status"] == "ASSUMED_FOR_THIS_INSTANCE" and cs_ass["KINV"]["forward"]["evidence"] is None
+    assert cs_ass["MM"]["pair"]["status"] == "ASSUMED_FOR_THIS_INSTANCE"
     cs = contracts_status(256, P255)
     for box in ("MM", "KINV"):
         assert cs[box]["forward"]["status"] == "PROVED_FOR_THIS_INSTANCE"

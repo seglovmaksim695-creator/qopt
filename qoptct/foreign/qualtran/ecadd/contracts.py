@@ -2,8 +2,9 @@
 
 The step provers treat Montgomery multiplication and Kaliski inversion as black boxes with a stated contract; the
 glue (Z3) uses the arithmetic meaning.  A contract is only as good as the result that establishes it, so each
-entry names that result (``proved_by``, a key of the qoptct results registry, assembled by the release step) and
-lists the (n, p) instances for which that result exists.  For any other (n, p) the proof of the point addition is
+entry names that result (``forward_proved_by`` / ``pair_proved_by``: the name in the registry of ``qoptct.foreign.qualtran.registry``)
+and maps every (n, p) instance for which that result exists to its registry id (``forward_evidence`` / ``pair_evidence``;
+``tests/foreign_qualtran/test_registry.py`` checks that every id exists and is PROVED).  For any other (n, p) the proof of the point addition is
 CONDITIONAL on the contract: ``contracts_status`` in every verdict says so, and the verdict never hides it.
 
 Edit these tables only together with the result that backs the change.
@@ -12,6 +13,8 @@ Edit these tables only together with the result that backs the change.
 P255 = 2 ** 255 - 19
 SECP256K1 = 2 ** 256 - 2 ** 32 - 977
 P256 = 2 ** 256 - 2 ** 224 + 2 ** 192 + 2 ** 96 - 1
+P64M = 2 ** 63 - 25            # the prime of the Montgomery runs at n = 64
+P127 = 2 ** 127 - 1
 
 CONTRACTS = {
     'MM': dict(
@@ -23,8 +26,9 @@ CONTRACTS = {
         qualtran_kind='c',
         forward_proved_by='montgomery_mul',          # goal C: contract of the multiplier (task I3)
         pair_proved_by='pair_montgomery',            # goal H2: forward + inverse = identity (pairs.check_pair_montgomery)
-        forward_instances=[(16, 32749), (256, P255)],
-        pair_instances=[(16, 32749), (64, 2 ** 63 - 25), (128, 2 ** 127 - 1), (256, P255)],
+        forward_evidence={(16, 32749): 'montgomery_mul/montgomery_n16_w1', (256, P255): 'montgomery_mul/montgomery_n256_w1'},
+        pair_evidence={(16, 32749): 'pair_montgomery/pairs_montgomery_n16', (64, P64M): 'pair_montgomery/pairs_montgomery_n64',
+                       (128, P127): 'pair_montgomery/pairs_montgomery_n128', (256, P255): 'pair_montgomery/pairs_montgomery_n256'},
     ),
     'KINV': dict(
         box='KaliskiModInverse(bitsize=n, mod=p), forward and uncompute=True',
@@ -35,9 +39,12 @@ CONTRACTS = {
         qualtran_kind=None,
         forward_proved_by='kaliski_inverse',         # goal D: contract of the Kaliski inversion (task I2)
         pair_proved_by='pair_kaliski',               # goal H1: forward + inverse = identity (pairs.check_pair_kaliski)
-        forward_instances=[(256, P255)],             # goal D also did n=64, 128 (other primes); only what ECAdd uses here
-        pair_instances=[(16, 65521), (32, 1000000009), (64, 18446744073709551557), (128, 2 ** 127 - 1), (256, P255),
-                        (256, SECP256K1), (256, P256)],
+        forward_evidence={(16, 32749): 'kaliski_inverse/kaliski_n16_p32749',
+                          (256, P255): 'kaliski_inverse/kaliski_n256_p57896044618658097711785492504343953926634992332820282019728792003956564819949'},
+        pair_evidence={(16, 65521): 'pair_kaliski/pairs_kaliski_n16', (16, 32749): 'pair_kaliski/pairs_kaliski_n16_p32749',
+                       (32, 1000000009): 'pair_kaliski/pairs_kaliski_n32', (64, 18446744073709551557): 'pair_kaliski/pairs_kaliski_n64',
+                       (128, P127): 'pair_kaliski/pairs_kaliski_n128', (256, P255): 'pair_kaliski/pairs_kaliski_n256',
+                       (256, SECP256K1): 'pair_kaliski/pairs_kaliski_n256_secp256k1', (256, P256): 'pair_kaliski/pairs_kaliski_n256_p256'},
     ),
     'ECADD': dict(
         box='ECAdd(n, p, window_size=1), fixed version (flag patch E05)',
@@ -48,20 +55,25 @@ CONTRACTS = {
         qualtran_kind='e',
         forward_proved_by='ecadd',                   # this package: prove_ecadd(n, p, patched=True)
         pair_proved_by=None,
-        forward_instances=[(16, 32749), (256, P255)],
-        pair_instances=[],
+        forward_evidence={(16, 32749): 'ecadd/ecadd_n16', (256, P255): 'ecadd/ecadd_n256'},
+        pair_evidence={},
     ),
 }
 
 
+for _c in CONTRACTS.values():            # the plain instance lists (kept for callers that only need the (n, p) pairs)
+    _c['forward_instances'] = list(_c['forward_evidence'])
+    _c['pair_instances'] = list(_c['pair_evidence'])
+
+
+def evidence_id(box, n, p, which='forward'):
+    """Registry id of the result that covers this exact (n, p), or ``None``."""
+    return CONTRACTS[box]['forward_evidence' if which == 'forward' else 'pair_evidence'].get((n, p))
+
+
 def instance_covered(box, n, p, which='forward'):
     """True when the result named in ``CONTRACTS[box]`` exists for exactly this (n, p)."""
-    c = CONTRACTS[box]
-    inst = c['forward_instances' if which == 'forward' else 'pair_instances']
-    for n0, p0 in inst:
-        if n0 == n and (p0 is None or p0 == p):
-            return True
-    return False
+    return evidence_id(box, n, p, which) is not None
 
 
 def contracts_status(n, p, boxes=('MM', 'KINV')):
@@ -69,11 +81,12 @@ def contracts_status(n, p, boxes=('MM', 'KINV')):
     out = {}
     for b in boxes:
         c = CONTRACTS[b]
+        fe, pe = evidence_id(b, n, p), evidence_id(b, n, p, 'pair')
         out[b] = dict(
             box=c['box'], statement=c['statement'],
-            forward=dict(proved_by=c['forward_proved_by'],
-                         status='PROVED_FOR_THIS_INSTANCE' if instance_covered(b, n, p) else 'ASSUMED_FOR_THIS_INSTANCE'),
+            forward=dict(proved_by=c['forward_proved_by'], evidence=fe,
+                         status='PROVED_FOR_THIS_INSTANCE' if fe else 'ASSUMED_FOR_THIS_INSTANCE'),
             pair=(None if c['pair_proved_by'] is None else
-                  dict(proved_by=c['pair_proved_by'],
-                       status='PROVED_FOR_THIS_INSTANCE' if instance_covered(b, n, p, 'pair') else 'ASSUMED_FOR_THIS_INSTANCE')))
+                  dict(proved_by=c['pair_proved_by'], evidence=pe,
+                       status='PROVED_FOR_THIS_INSTANCE' if pe else 'ASSUMED_FOR_THIS_INSTANCE')))
     return out
