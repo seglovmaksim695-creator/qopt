@@ -1139,11 +1139,11 @@
   },
   {
    "file": "kaliski_canaries_n256_p25519.json",
-   "sha256": "e7a30c58a55e5e8ce35d0a78677777ecc9514069a2423c3444495bcab400c644"
+   "sha256": "fac9774ce5b7df14f8290dbb84ca75e80baf3bcde6c8c7f8b7cf46c978b780b2"
   },
   {
    "file": "kaliski_canaries_T8b_n256_p25519.json",
-   "sha256": "74c3fbede579414f797e7e8a5f8469d76befcb9a77f265a4e66c595c57426a4d"
+   "sha256": "b20a87bcf5566620a1a220cadfaaa53b55b84c93447febfd6e8d8e748c483eb2"
   },
   {
    "file": "kaliski_mutants_n256.json",

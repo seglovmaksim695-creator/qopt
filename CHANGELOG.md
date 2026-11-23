@@ -6,7 +6,7 @@
 * **`qoptct qualtran`** (`qoptct.foreign.qualtran`, optional extra `qoptct[qualtran]`: `qualtran==0.7.0`, `z3-solver`): exact
   proofs about blocks of Google's Qualtran 0.7.0, gate by gate, with the unchanged qoptct provers. Subcommands `check` (a small
   bloq against its `call_classically`), `prove kaliski|montgomery|ecadd|ecwindowaddr`, `pair kaliski|montgomery`, `results`;
-  exit code 0 only for PROVED. Without the extra qoptct installs and all earlier tests pass; the new tests are skipped.
+  exit code 0 only for PROVED (3: `PROVED_CONDITIONAL`; 4: usage error). Without the extra qoptct installs and all earlier tests pass; the new tests are skipped.
   * Strict bridge Qualtran -> qoptct (`bridge`, rules A1 controlled-And and C1 QROAMCleanAdjoint) and `check_bloq`
     (PROVED / REFUTED with a witness / UNKNOWN).
   * Kaliski inversion (`kaliski.prove_kaliski`), original Qualtran: n = 16 ... 256, three 256-bit primes; includes the
