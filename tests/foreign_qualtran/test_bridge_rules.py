@@ -15,8 +15,8 @@ import re
 import time
 import traceback
 
-from qoptct.qualtran.bridge.emit import emit_qasm
-from qoptct.qualtran.bridge.sim import SimulationError, run
+from qoptct.foreign.qualtran.bridge.emit import emit_qasm
+from qoptct.foreign.qualtran.bridge.sim import SimulationError, run
 
 TOLERANCE = 1e-10
 SEED = 20261120

@@ -16,7 +16,7 @@ import traceback
 
 import numpy as np
 
-from qoptct.qualtran.bridge.gf_measure import (
+from qoptct.foreign.qualtran.bridge.gf_measure import (
     GFMeasureError, basis_branch, emit_qasm, lower_mbuc, multiply_poly,
     parse_qasm, validate_ir, vector_branch,
 )

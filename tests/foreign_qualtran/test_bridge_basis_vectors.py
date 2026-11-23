@@ -26,14 +26,14 @@ import numpy as np
 from qualtran import Bloq, QBit, QUInt, Register, Side, Signature
 from qualtran.bloqs.basic_gates import IntState, IntEffect, ZeroState, OneState, ZeroEffect, OneEffect
 
-from qoptct.qualtran.bridge.basis_vectors import BasisVectorError, BasisVectorRules
-from qoptct.qualtran.bridge.domain_guard import check_domains
-from qoptct.qualtran.bridge.emit import emit_qasm
-from qoptct.qualtran.bridge.qualtran_layout import lower_bloqgraph
-from qoptct.qualtran.bridge.rules import translate
-from qoptct.qualtran.bridge.sim import run
-from qoptct.qualtran.bridge.sim_parse import parse_qasm
-from qoptct.qualtran.bridge.strict_proof import digest_json, prove_program
+from qoptct.foreign.qualtran.bridge.basis_vectors import BasisVectorError, BasisVectorRules
+from qoptct.foreign.qualtran.bridge.domain_guard import check_domains
+from qoptct.foreign.qualtran.bridge.emit import emit_qasm
+from qoptct.foreign.qualtran.bridge.qualtran_layout import lower_bloqgraph
+from qoptct.foreign.qualtran.bridge.rules import translate
+from qoptct.foreign.qualtran.bridge.sim import run
+from qoptct.foreign.qualtran.bridge.sim_parse import parse_qasm
+from qoptct.foreign.qualtran.bridge.strict_proof import digest_json, prove_program
 from test_bridge_rules import compare, dense_branch, random_state
 
 

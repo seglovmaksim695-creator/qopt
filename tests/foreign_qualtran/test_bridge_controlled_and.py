@@ -18,9 +18,9 @@ import sys
 import time
 import traceback
 
-from qoptct.qualtran.bridge.controlled_and import ControlledAndError, expand, match, match_gate, require_domain
-from qoptct.qualtran.bridge.emit import emit_qasm
-from qoptct.qualtran.bridge.sim import run
+from qoptct.foreign.qualtran.bridge.controlled_and import ControlledAndError, expand, match, match_gate, require_domain
+from qoptct.foreign.qualtran.bridge.emit import emit_qasm
+from qoptct.foreign.qualtran.bridge.sim import run
 from test_bridge_rules import basis, compare, dense_branch, random_state
 
 

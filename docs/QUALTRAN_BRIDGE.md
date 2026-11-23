@@ -1,11 +1,11 @@
-# Qualtran bridge (`qoptct.qualtran`)
+# Qualtran bridge (`qoptct.foreign.qualtran`)
 
 Qualtran is an optional dependency: `pip install "qoptct[qualtran]"` (Qualtran 0.7.0, z3-solver).
 Without it qoptct installs as before and the Qualtran tests are skipped.
 
 ## What it does
 
-`qoptct.qualtran.bridge` lowers a Qualtran bloq **gate by gate** (the actual `decompose_bloq` connections, no
+`qoptct.foreign.qualtran.bridge` lowers a Qualtran bloq **gate by gate** (the actual `decompose_bloq` connections, no
 optimizer, no re-synthesis) to the logical language of qoptct (`x`, `cx`, `and`, `erase`) and hands the result to
 the **unchanged** qoptct provers (`qoptct.verify.kprove`, BDD).  Every source gate has exactly one explicit rule;
 anything else is refused.
@@ -29,7 +29,7 @@ anything else is refused.
 ```python
 from qualtran import QUInt
 from qualtran.bloqs.arithmetic import Add
-from qoptct.qualtran import check_bloq
+from qoptct.foreign.qualtran import check_bloq
 
 r = check_bloq(Add(QUInt(4)))
 r['verdict']   # 'PROVED' | 'REFUTED' (r['witness']) | 'UNKNOWN'
@@ -44,11 +44,11 @@ is never a proof: unsupported gate, `call_classically` undefined on part of the 
 ## Patched Qualtran
 
 The proofs of Montgomery multiplication and point addition used Qualtran 0.7.0 with small fixes.
-`qoptct.qualtran.patches.patched_qualtran(kind)` (`'c'`, `'e'`, `'e4'`) builds a copy of the installed Qualtran in
+`qoptct.foreign.qualtran.patches.patched_qualtran(kind)` (`'c'`, `'e'`, `'e4'`) builds a copy of the installed Qualtran in
 `$QOPT_CACHE` (default `~/.cache/qopt`) with exactly these files; the installed package is never touched.
 Use `patched_env(kind)` / `run_with_patched_qualtran(kind, argv)` to run a fresh interpreter with it.
 See the module docstring for what each kind contains; `patches/diff/*.diff` shows the changes.
 
 ## Tests
 
-`pytest tests/qualtran` (seconds).  They skip without Qualtran (`pytest.importorskip`).
+`pytest tests/foreign_qualtran` (seconds).  They skip without Qualtran (`pytest.importorskip`).

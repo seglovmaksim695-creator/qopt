@@ -15,12 +15,12 @@ pytest.importorskip("cirq")
 from qualtran import QUInt
 from qualtran.bloqs.arithmetic import Add
 
-from qoptct.qualtran.bridge.domain_guard import check_domains
-from qoptct.qualtran.bridge.emit import emit_qasm
-from qoptct.qualtran.bridge.from_qualtran import lower_graph
-from qoptct.qualtran.bridge.rules import translate
-from qoptct.qualtran.bridge.strict_proof import digest_json, prove_program
-from qoptct.qualtran.bridge.targeted_canaries import generate
+from qoptct.foreign.qualtran.bridge.domain_guard import check_domains
+from qoptct.foreign.qualtran.bridge.emit import emit_qasm
+from qoptct.foreign.qualtran.bridge.from_qualtran import lower_graph
+from qoptct.foreign.qualtran.bridge.rules import translate
+from qoptct.foreign.qualtran.bridge.strict_proof import digest_json, prove_program
+from qoptct.foreign.qualtran.bridge.targeted_canaries import generate
 from qoptct.verify.bdd import ZERO
 
 N = 4

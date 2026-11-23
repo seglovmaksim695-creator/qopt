@@ -22,11 +22,11 @@ from qualtran.bloqs.basic_gates import CNOT, XGate
 from qualtran.bloqs.bookkeeping import Cast, Partition
 from qualtran.bloqs.mcmt import And
 
-from qoptct.qualtran.bridge.qualtran_layout import (ClassicalContract, LayoutError, expr, flatten_registers,
+from qoptct.foreign.qualtran.bridge.qualtran_layout import (ClassicalContract, LayoutError, expr, flatten_registers,
                               lower_bloqgraph, montgomery_junk_contract, ref,
                               require_cirq_thru_identity, controlled_and_atom_rule)
-from qoptct.qualtran.bridge.rules import translate
-from qoptct.qualtran.bridge.sim import run
+from qoptct.foreign.qualtran.bridge.rules import translate
+from qoptct.foreign.qualtran.bridge.sim import run
 from test_bridge_rules import dense_branch, random_state
 
 ROOT = Path(__file__).resolve().parents[1]

@@ -22,10 +22,10 @@ from qualtran.bloqs.gf_arithmetic import GF2Square
 from qualtran.bloqs.mcmt import And
 from qualtran.bloqs.mcmt.controlled_via_and import ControlledViaAnd
 
-from qoptct.qualtran.bridge.from_qualtran import lower, lower_graph
-from qoptct.qualtran.bridge.qualtran_layout import ClassicalContract, LayoutError, expr, ref
-from qoptct.qualtran.bridge.rules import translate
-from qoptct.qualtran.bridge.sim import run
+from qoptct.foreign.qualtran.bridge.from_qualtran import lower, lower_graph
+from qoptct.foreign.qualtran.bridge.qualtran_layout import ClassicalContract, LayoutError, expr, ref
+from qoptct.foreign.qualtran.bridge.rules import translate
+from qoptct.foreign.qualtran.bridge.sim import run
 from test_bridge_layout import _check_contract_basis, _native_vectors
 
 ROOT = Path(__file__).resolve().parents[1]

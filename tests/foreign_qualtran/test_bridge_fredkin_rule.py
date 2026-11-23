@@ -33,9 +33,9 @@ def need(condition, message):
 
 
 def _compile(source):
-    from qoptct.qualtran.bridge.fredkin_rule import FredkinRules
-    from qoptct.qualtran.bridge.qualtran_layout import lower_bloqgraph
-    from qoptct.qualtran.bridge.rules import translate
+    from qoptct.foreign.qualtran.bridge.fredkin_rule import FredkinRules
+    from qoptct.foreign.qualtran.bridge.qualtran_layout import lower_bloqgraph
+    from qoptct.foreign.qualtran.bridge.rules import translate
     book = FredkinRules()
     low = lower_bloqgraph(source, extra_atom_rule=book.chain_with_basis_and_a1)
     prog = translate(low, low['inputs'], low['outputs'])
@@ -108,9 +108,9 @@ def test_native_quantum_protocols():
 
 def _quantum_check(source, low, prog, binding, *, expected_atoms):
     import numpy as np
-    from qoptct.qualtran.bridge.domain_guard import check_domains
-    from qoptct.qualtran.bridge.sim import run
-    from qoptct.qualtran.bridge.sim_parse import parse_qasm
+    from qoptct.foreign.qualtran.bridge.domain_guard import check_domains
+    from qoptct.foreign.qualtran.bridge.sim import run
+    from qoptct.foreign.qualtran.bridge.sim_parse import parse_qasm
     from test_bridge_rules import dense_branch
     ins, outs = _wire_order(low, 'inputs'), _wire_order(low, 'outputs')
     nq, ops = parse_qasm(prog['qasm'])
@@ -164,7 +164,7 @@ def _quantum_check(source, low, prog, binding, *, expected_atoms):
 
 
 def test_atom_all_basis_and_tomography():
-    from qoptct.qualtran.bridge.rules import translate
+    from qoptct.foreign.qualtran.bridge.rules import translate
     from qualtran.bloqs.basic_gates import TwoBitCSwap
     source = TwoBitCSwap()
     low, prog, _, bound = _compile(source)
@@ -173,8 +173,8 @@ def test_atom_all_basis_and_tomography():
     # Invoke the exact source atom callback on that layout; no source gates
     # are altered and ctrl/x/y keep the native register ordering.
     import numpy as np
-    from qoptct.qualtran.bridge.fredkin_rule import FredkinRules
-    from qoptct.qualtran.bridge.qualtran_layout import flatten_registers
+    from qoptct.foreign.qualtran.bridge.fredkin_rule import FredkinRules
+    from qoptct.foreign.qualtran.bridge.qualtran_layout import flatten_registers
     book = FredkinRules()
     inputs = {name: np.asarray([q], dtype=object) for name, q in zip(('ctrl', 'x', 'y'), (4, 0, 2))}
     def forbidden_allocate(*args):
@@ -230,9 +230,9 @@ def test_external_entanglement_and_reuse():
 def test_strict_rejections_and_phase_canaries():
     import numpy as np
     from qualtran.bloqs.basic_gates import TwoBitCSwap, XGate
-    from qoptct.qualtran.bridge.fredkin_rule import FredkinRules, FredkinError, match
-    from qoptct.qualtran.bridge.emit import emit_qasm
-    from qoptct.qualtran.bridge.domain_guard import check_domains
+    from qoptct.foreign.qualtran.bridge.fredkin_rule import FredkinRules, FredkinError, match
+    from qoptct.foreign.qualtran.bridge.emit import emit_qasm
+    from qoptct.foreign.qualtran.bridge.domain_guard import check_domains
     from test_bridge_rules import dense_branch
     source = TwoBitCSwap()
     inputs = {name: np.asarray([q], object) for q, name in enumerate(('ctrl', 'x', 'y'))}

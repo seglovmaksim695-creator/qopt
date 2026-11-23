@@ -14,10 +14,10 @@ import pytest
 pytest.importorskip("qualtran")
 pytest.importorskip("cirq")
 
-from qoptct.qualtran.bridge.qroam_clean_adjoint import qroam_clean_adjoint_atom_rule, chained_atom_rule
-from qoptct.qualtran.bridge.qualtran_layout import lower_bloqgraph
-from qoptct.qualtran.bridge.rules import translate
-from qoptct.qualtran.bridge import sim
+from qoptct.foreign.qualtran.bridge.qroam_clean_adjoint import qroam_clean_adjoint_atom_rule, chained_atom_rule
+from qoptct.foreign.qualtran.bridge.qualtran_layout import lower_bloqgraph
+from qoptct.foreign.qualtran.bridge.rules import translate
+from qoptct.foreign.qualtran.bridge import sim
 from qualtran.bloqs.data_loading.qroam_clean import QROAMClean
 
 
@@ -55,7 +55,7 @@ def basis_test(adj, q, canary=None, name=''):
     sel_names = [r.name for r in adj.selection_registers]
     ctl_names = [r.name for r in adj.control_registers]
     tgt = [(r, e) for r in adj.target_registers for e in (np.ndindex(*r.shape) if r.shape else [()])]
-    from qoptct.qualtran.bridge.qualtran_layout import element_name
+    from qoptct.foreign.qualtran.bridge.qualtran_layout import element_name
     datas = adj.data_or_shape
     data_shape = tuple(adj.data_shape)
     b = {r.name: r.dtype.num_qubits for r in adj.target_registers}
@@ -117,7 +117,7 @@ def dense_test(adj, q, canary=None, name=''):
     low, tr = lower(adj, canary)
     nq, ops = tr['nq'], tr['ops']
     ins = low['inputs']
-    from qoptct.qualtran.bridge.qualtran_layout import element_name
+    from qoptct.foreign.qualtran.bridge.qualtran_layout import element_name
     sel_names = [r.name for r in adj.selection_registers]
     ctl_names = [r.name for r in adj.control_registers]
     assert len(sel_names) == 1

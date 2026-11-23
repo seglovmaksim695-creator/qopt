@@ -10,8 +10,8 @@ import pytest
 
 pytest.importorskip("qualtran")
 
-from qoptct.qualtran import patches
-from qoptct.qualtran.patches import KINDS, PatchError, patched_env, patched_qualtran, verify_copy
+from qoptct.foreign.qualtran import patches
+from qoptct.foreign.qualtran.patches import KINDS, PatchError, patched_env, patched_qualtran, verify_copy
 
 # SHA-256 of the patched files as they were proved (copied from the round directories C/qlocal, E/qlocal, E/qlocal4).
 EXPECTED = {

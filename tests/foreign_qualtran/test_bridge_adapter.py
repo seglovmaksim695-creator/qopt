@@ -15,7 +15,7 @@ from qiskit.circuit import Gate, Parameter
 from qiskit.circuit.library import CCXGate, CXGate
 from qiskit.quantum_info import Operator
 
-from qoptct.qualtran.bridge.from_qiskit import TranslationError, lower
+from qoptct.foreign.qualtran.bridge.from_qiskit import TranslationError, lower
 
 
 def selftest() -> dict:

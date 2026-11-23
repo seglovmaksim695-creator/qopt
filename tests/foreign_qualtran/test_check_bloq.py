@@ -10,7 +10,7 @@ from qualtran.bloqs.arithmetic import Add, LessThanConstant, LessThanEqual
 from qualtran.bloqs.basic_gates import CNOT, XGate
 from qualtran.bloqs.mod_arithmetic import ModAdd
 
-from qoptct.qualtran import check_bloq
+from qoptct.foreign.qualtran import check_bloq
 
 
 @pytest.mark.parametrize("n", [1, 2, 3, 4])
@@ -83,7 +83,7 @@ def test_enumeration_alone_never_gives_proved():
 
 
 def _spoil(monkeypatch, how):
-    from qoptct.qualtran.bridge import rules
+    from qoptct.foreign.qualtran.bridge import rules
     real = rules.translate
 
     def bad(lowered, inputs, outputs, **kw):
@@ -96,7 +96,7 @@ def _spoil(monkeypatch, how):
             ops.insert(len(ops) // 2, ("x", ops[-1][1] if ops[-1][0] == "x" else 0))
         elif how == "drop_phase":
             ops = [(op[0], op[1], ()) if op[0] == "erase" else op for op in ops]
-        from qoptct.qualtran.bridge.emit import emit_qasm
+        from qoptct.foreign.qualtran.bridge.emit import emit_qasm
         prog = dict(prog, ops=ops, qasm=emit_qasm(prog["nq"], ops))
         return prog
 

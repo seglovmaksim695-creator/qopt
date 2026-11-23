@@ -6,9 +6,9 @@ import pytest
 pytest.importorskip("qualtran")
 pytest.importorskip("cirq")
 
-from qoptct.qualtran.bridge.controlled_and import expand
-from qoptct.qualtran.bridge.domain_guard import check_domains
-from qoptct.qualtran.bridge.emit import emit_qasm
+from qoptct.foreign.qualtran.bridge.controlled_and import expand
+from qoptct.foreign.qualtran.bridge.domain_guard import check_domains
+from qoptct.foreign.qualtran.bridge.emit import emit_qasm
 from qoptct.verify.bdd import ZERO
 
 LAYOUT = dict(nq=5, inputs={'c': [0], 'a': [1], 'b': [2]}, outputs={'c': [0], 'a': [1], 'b': [2]},
