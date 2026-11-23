@@ -1,0 +1,2157 @@
+{
+ "ok": true,
+ "implications": 243,
+ "proved": 243,
+ "controls": 25,
+ "controls_ok": 25,
+ "rows": [
+  {
+   "i": 0,
+   "name": "NB: nb <= N",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.02,
+   "sha256": "a449cc7a06f1acdef7e5dd42c5d0f05cbb25ad2e1525b9c9486c47d5eef8d804"
+  },
+  {
+   "i": 1,
+   "name": "LEMMA L-half: 2h = X -> X*Z = 2*(h*Z)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "bc6113ad3013edce6b5f0b5ac60a91d148ff28aa13e94e60a982fff74dd33e36"
+  },
+  {
+   "i": 2,
+   "name": "LEMMA L-dist: a*(b+c) = a*b + a*c, (b+c)*a = b*a + c*a, the same with -",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "34d0e952977e38cbcbe88a64c22e994a9c1335d398583ff7acd6a60b70bb58f8"
+  },
+  {
+   "i": 3,
+   "name": "LEMMA L-one: a >= 1, b >= 1 -> a*b >= 1",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "512728b6fac406f6f05ae34f34c0d46cf15acfbdf5648c34c75fa4e5c514304c"
+  },
+  {
+   "i": 4,
+   "name": "LEMMA L-unit: a = 1 -> a*Z = Z",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "42f6a5f90106aeaf57d89a1d048f142905cdea35ed93ec17df496f1e704480d7"
+  },
+  {
+   "i": 5,
+   "name": "LEMMA L-mono c=0: a >= c, b >= 0 -> a*b >= c*b",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "bbbdc8577e741e58c471209ad00e58ead244fdfe6253e4c77d1e9d85267f2266"
+  },
+  {
+   "i": 6,
+   "name": "LEMMA L-mono c=1: a >= c, b >= 0 -> a*b >= c*b",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "ce01857115bbd978af8fc0d01a5682953df035d3ec5cac2aa0ebf736bb718234"
+  },
+  {
+   "i": 7,
+   "name": "LEMMA L-mono c=2: a >= c, b >= 0 -> a*b >= c*b",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "1ca1c7fb2c4a0e2f8a583bebba21a356e49987cf793ae66127b77f870eecf6a0"
+  },
+  {
+   "i": 8,
+   "name": "LEMMA L-mono c=3: a >= c, b >= 0 -> a*b >= c*b",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "0662bd4aec12028e735306023ee014daa531c73250ad144fd0dcd96cac6ef081"
+  },
+  {
+   "i": 9,
+   "name": "INIT: Inv(0) for (p, x, 0, 1, f=1)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "c1be5c8a6ceb2bdc95dfa4a2c180041bc64bfeba7ec9b09a8c75c483b1adbe8c"
+  },
+  {
+   "i": 10,
+   "name": "T0: the t bit of iteration 0 is [x = 0]",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "57e807cf3b2741f05bcf42bc1c37b40e8f73c5a3238c12bad6b0dd3b87f016a6"
+  },
+  {
+   "i": 11,
+   "name": "FINAL: M-end-vf (v = 0, f = 0)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "37a897c955dc2b7ebe4ffc1d7578b64f98ed259972a3430b5d5cbbe1b336b924"
+  },
+  {
+   "i": 12,
+   "name": "FINAL: M-end (x = 0 -> u = p, s = 1, r = 0; x > 0 -> u = 1, s = p)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "f2796341a51630d259f5faaca8327f7dfe1df3188d607369db23106293324845"
+  },
+  {
+   "i": 13,
+   "name": "FINAL: x > 0 -> out = p - r in [1, p-1] and x*out = 2^(2N) (mod p)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "1064fa59dbd5c03c2b9bbe6dbb0c99b399113895c787f974cdac5dc67deb99c9"
+  },
+  {
+   "i": 14,
+   "name": "STEP [ACT-B1 u even] M-dbl: 0 <= r4 < p",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.18,
+   "sha256": "561c40be54165a02eadcab773e0f12717e07ffbe99ce7c64230a41f16a93ae63"
+  },
+  {
+   "i": 15,
+   "name": "STEP [ACT-B1 u even] M-a: a3 -> 2 r4 < p",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.19,
+   "sha256": "9ded2286edfce29a77e8c59380438f47faa20b1f2a75ac7b13db086f7597793a"
+  },
+  {
+   "i": 16,
+   "name": "STEP [ACT-B1 u even] M-s: not a3 -> s5 odd",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "acde6779eba0e9753b4c250f600a729e1b74b00673668bd95bb207bc9ccf9a3c"
+  },
+  {
+   "i": 17,
+   "name": "STEP [ACT-B1 u even] M-carry: c5 -> s4 + r4 < 2^N",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "847112d49c0c735b8c6fe429b9168e68d915f655907b3d84b24d5a0cc1479f4a"
+  },
+  {
+   "i": 18,
+   "name": "STEP [ACT-B1 u even] X no borrow: c5 -> u4 <= v4",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "f513ab2acdef002477127ae4214b2c8a792cf2794f7307a14139b815f67d0d22"
+  },
+  {
+   "i": 19,
+   "name": "STEP [ACT-B1 u even] X v5 even when f1",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "0c54a4bd72aa39a72f80f5339c324517bd9cf1df9b9476c425fa15395e8be832"
+  },
+  {
+   "i": 20,
+   "name": "STEP [ACT-B1 u even] X b cleared",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "3b2f78024fb9341a96830c97a0654e40fa987e1f22e5010d27ba5943222958e6"
+  },
+  {
+   "i": 21,
+   "name": "STEP [ACT-B1 u even] X a cleared",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.31,
+   "sha256": "68adfe9c36362d1ad4d97b346fb9354a1254d6e71308334b32620215620a1ff7"
+  },
+  {
+   "i": 22,
+   "name": "STEP [ACT-B1 u even] X all words in [0, 2^N)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.13,
+   "sha256": "b052257edb9f834a9387ab169988ebc480b13892cd75553332620724cb493a37"
+  },
+  {
+   "i": 23,
+   "name": "STEP [ACT-B1 u even] CASE-VALUE: next state = (h, v, r, (* 2 s)), f = 1",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.15,
+   "sha256": "eaa6374a5692c8b7c2c1faa3502fafa4036bef1a9119fdffe69da6ca125fa70e"
+  },
+  {
+   "i": 24,
+   "name": "STEP [ACT-B1 u even] Inv(k+1) part 00: (<= 0 (+ k 1))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "67dbfc75d6f167e7db6fbc3448f0046c2b5be213a789f2c100ead79e718aa926"
+  },
+  {
+   "i": 25,
+   "name": "STEP [ACT-B1 u even] Inv(k+1) part 01: (<= (+ k 1) (* 2 N))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "5f122a564e96cd4f47ece636f39354be348c5ee0973cf103ee9c0322a4e0313b"
+  },
+  {
+   "i": 26,
+   "name": "STEP [ACT-B1 u even] Inv(k+1) part 02: (= (* 2 T) (pow2 (+ k 1)))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "fe1156677938517c0aa79f128adf141904b06d8103bd7adb42629e8d094f4f08"
+  },
+  {
+   "i": 27,
+   "name": "STEP [ACT-B1 u even] Inv(k+1) part 03: true",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "ab1ee7eb199ac9084a5c27da64d7adb4b970a7de8e8a02f983f5f9cde0040073"
+  },
+  {
+   "i": 28,
+   "name": "STEP [ACT-B1 u even] Inv(k+1) part 04: (>= x 1)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "29fc0dbf564f1ddd567ce06f0197095f58f989e97088ed468d142368505a135a"
+  },
+  {
+   "i": 29,
+   "name": "STEP [ACT-B1 u even] Inv(k+1) part 05: (>= h 1)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "4d231122ae082430b53992a8b92f56163f0e7d33c49faa1e4ffe62e812cd0101"
+  },
+  {
+   "i": 30,
+   "name": "STEP [ACT-B1 u even] Inv(k+1) part 06: (>= v 1)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "c3ba4f80c6707fd670da9d30269333b96d8fe1e4cc38337a452f4aec86eedeb6"
+  },
+  {
+   "i": 31,
+   "name": "STEP [ACT-B1 u even] Inv(k+1) part 07: (>= r 0)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "6f8073a568b5a5f535c6560fcedf8b0af3626e235d9cdbf5551b584428fb33e4"
+  },
+  {
+   "i": 32,
+   "name": "STEP [ACT-B1 u even] Inv(k+1) part 08: (>= (* 2 s) 1)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "da996ccdc8246f015e3904902fa97b330da7d59df8d1dab91e8f8906c2b84caa"
+  },
+  {
+   "i": 33,
+   "name": "STEP [ACT-B1 u even] Inv(k+1) part 09: (<= h p)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "6c442db2bb00eea9ee401a4100ba0015a83d91883e67ec915dd00795f0d2d171"
+  },
+  {
+   "i": 34,
+   "name": "STEP [ACT-B1 u even] Inv(k+1) part 10: (< v p)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "38871a93603dd5dfb62bfa92dbe0563da0cb9fa7d0d00a867bae7f5abeef27ce"
+  },
+  {
+   "i": 35,
+   "name": "STEP [ACT-B1 u even] Inv(k+1) part 11: (= (+ (* h (* 2 s)) (* v r)) p)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "568e106ea0d5f4561fd8a8cbff1f49d89735b2c44659a16d43036e627981dee9"
+  },
+  {
+   "i": 36,
+   "name": "STEP [ACT-B1 u even] Inv(k+1) part 12: (=> (= r 0) (and (= h p) (= (* 2 s) 1)))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "c47bbc01a6a24129e08e3ae114368512f960ea467b1971f155c05072ca900f6d"
+  },
+  {
+   "i": 37,
+   "name": "STEP [ACT-B1 u even] Inv(k+1) part 13: (= (+ (* x r) (* h (* 2 T))) (* p cR))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "f1817bf62add58e30ab612860c48c18cabcba69a55f1f8dd31096ae445980fbe"
+  },
+  {
+   "i": 38,
+   "name": "STEP [ACT-B1 u even] Inv(k+1) part 14: (= (- (* x (* 2 s)) (* v (* 2 T))) (* p (* 2 cS)))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "9b72c87cea0de68d86fffa5c66948e09531e7d2c3e648a2e8946d363f8e70e36"
+  },
+  {
+   "i": 39,
+   "name": "STEP [ACT-B1 u even] Inv(k+1) part 15: (<= 1 (- ga 1))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "79a9e8e5d15b05436a077b0c96248a7eaf4260b7599a25fb2af6e5c1aa91e4f1"
+  },
+  {
+   "i": 40,
+   "name": "STEP [ACT-B1 u even] Inv(k+1) part 16: (<= (- ga 1) nb)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "94826503c7a17cc10e8296cbfb3728b437816007b6099b0c11ac8a5d7d983f23"
+  },
+  {
+   "i": 41,
+   "name": "STEP [ACT-B1 u even] Inv(k+1) part 17: (<= 1 gb)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "6be7b537ae7a10dc4bcd71df9f7a38202f93712833645e69dea8d4f25ee44093"
+  },
+  {
+   "i": 42,
+   "name": "STEP [ACT-B1 u even] Inv(k+1) part 18: (<= gb nb)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "5e5d46b779d7fc2716ba49a97b6210f0c8e7ab30724e1cff51ad589d4d821a6e"
+  },
+  {
+   "i": 43,
+   "name": "STEP [ACT-B1 u even] Inv(k+1) part 19: (= (+ (- ga 1) gb) (- (* 2 nb) (+ k 1)))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "17bf789f916aab46b1f05a84cb120dda8c8508cfe39ac285afd679a8001350be"
+  },
+  {
+   "i": 44,
+   "name": "STEP [ACT-B1 u even] Inv(k+1) part 20: (< h (pow2 (- ga 1)))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "417e01e770931e10feb1623983f49802faf0291dc6cc47a7e8b3c475e9ffd4d4"
+  },
+  {
+   "i": 45,
+   "name": "STEP [ACT-B1 u even] Inv(k+1) part 21: (< v (pow2 gb))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "eab3d0d7b42511129d582a5b599c99d0e020c645d633629b446a849d010e4482"
+  },
+  {
+   "i": 46,
+   "name": "STEP [ACT-B1 u even] Inv(k+1) of the next state (U7, V7, R7, S7, F7): assembly from CASE-VALUE and the parts",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "85c2fcb1bd448135c4450f70d5e90f93cbd0368aef6af51b1b17d92cec148eaf"
+  },
+  {
+   "i": 47,
+   "name": "STEP [ACT-B2 u odd, v even] M-dbl: 0 <= r4 < p",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.77,
+   "sha256": "5ee1d4b9d6d42b8c7deac925495ff7f9bafab75d8d6699c143744f8e5c131ad6"
+  },
+  {
+   "i": 48,
+   "name": "STEP [ACT-B2 u odd, v even] M-a: a3 -> 2 r4 < p",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "9daf717186d3d8232020be0485781560d2d7a53c24625fe1f39418923555cd66"
+  },
+  {
+   "i": 49,
+   "name": "STEP [ACT-B2 u odd, v even] M-s: not a3 -> s5 odd",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.05,
+   "sha256": "2969d2556a29a363915d7cca05e3201c3493e6f162a9414093fb83ca080b225e"
+  },
+  {
+   "i": 50,
+   "name": "STEP [ACT-B2 u odd, v even] M-carry: c5 -> s4 + r4 < 2^N",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "e75dc64c92ee8f5bbed80ebf5f56adcf28615ad258057acc99b25b1dd3d8aec5"
+  },
+  {
+   "i": 51,
+   "name": "STEP [ACT-B2 u odd, v even] X no borrow: c5 -> u4 <= v4",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "f4998c70109d71b365731d13096d12d8f4fa3c15939433a309973e17f83756a7"
+  },
+  {
+   "i": 52,
+   "name": "STEP [ACT-B2 u odd, v even] X v5 even when f1",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "8569c51b9ab292836c9f21014c4f1699bd24cce81953a30f8b4e5c13baed0a23"
+  },
+  {
+   "i": 53,
+   "name": "STEP [ACT-B2 u odd, v even] X b cleared",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "bb6b484152100d9f6aa7ef20d63ad92ec6e8653f672a71a7db2b8186e7ea608b"
+  },
+  {
+   "i": 54,
+   "name": "STEP [ACT-B2 u odd, v even] X a cleared",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.05,
+   "sha256": "224291f238df5f17e5a71dc8646f455756b109cda7e8895736b0567c484ae449"
+  },
+  {
+   "i": 55,
+   "name": "STEP [ACT-B2 u odd, v even] X all words in [0, 2^N)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.4,
+   "sha256": "3e259abe5050c06c4e7750ea2cc50f9355e44c3608406ae23b665eab84bb1a3e"
+  },
+  {
+   "i": 56,
+   "name": "STEP [ACT-B2 u odd, v even] CASE-VALUE: next state = (u, h, (* 2 r), s), f = 1",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.64,
+   "sha256": "433c362fedbc019f61dcb1aa348e75d38199afb6dc8ed7300ce715b6d900f8d3"
+  },
+  {
+   "i": 57,
+   "name": "STEP [ACT-B2 u odd, v even] Inv(k+1) part 00: (<= 0 (+ k 1))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "115c782f935f3dc95f273f5975dd6b741bee822182610114a14a7e45a671ec69"
+  },
+  {
+   "i": 58,
+   "name": "STEP [ACT-B2 u odd, v even] Inv(k+1) part 01: (<= (+ k 1) (* 2 N))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "869c37524fb0c85475d1b480b01a989c5dceddc7736b7ac5dfbc5713d610b2a9"
+  },
+  {
+   "i": 59,
+   "name": "STEP [ACT-B2 u odd, v even] Inv(k+1) part 02: (= (* 2 T) (pow2 (+ k 1)))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "fa317ebab5e6ae7acebf03d3728ddddbc9750e2017a5b2c7ecdb50ecf68796ee"
+  },
+  {
+   "i": 60,
+   "name": "STEP [ACT-B2 u odd, v even] Inv(k+1) part 03: true",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "1a3e10db4c61db2f4ea2406c249939ead22a9bfcc4cea5a60561540ecf545b4d"
+  },
+  {
+   "i": 61,
+   "name": "STEP [ACT-B2 u odd, v even] Inv(k+1) part 04: (>= x 1)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "e2bb2e43c75b660ea8a1a64e846789df2b260eaebc4902869ea5313a9d49d8bc"
+  },
+  {
+   "i": 62,
+   "name": "STEP [ACT-B2 u odd, v even] Inv(k+1) part 05: (>= u 1)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "fdf465bdac1420fd51c1ce8ad2840766f3cce2035937dccf55083126df1d7716"
+  },
+  {
+   "i": 63,
+   "name": "STEP [ACT-B2 u odd, v even] Inv(k+1) part 06: (>= h 1)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "cc0eaf34174d891a47961f30f6b1e9774c5a37c4da97e4cac8385fcfe5ed6227"
+  },
+  {
+   "i": 64,
+   "name": "STEP [ACT-B2 u odd, v even] Inv(k+1) part 07: (>= (* 2 r) 0)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "d29f3c67dfe58aa4152d17b78752667f5b97b35f007b9e4eaa2dfa42964684da"
+  },
+  {
+   "i": 65,
+   "name": "STEP [ACT-B2 u odd, v even] Inv(k+1) part 08: (>= s 1)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "ab5ba7f8223aedc2cd398a64152c3a1f693807420ec67367c56e2302d8060a05"
+  },
+  {
+   "i": 66,
+   "name": "STEP [ACT-B2 u odd, v even] Inv(k+1) part 09: (<= u p)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "ee7efd1c09a579b624b3252ffc17d60425462e7002091d2f3e383af245ad65a5"
+  },
+  {
+   "i": 67,
+   "name": "STEP [ACT-B2 u odd, v even] Inv(k+1) part 10: (< h p)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "7e8d66855135c1cb0c8a7a57ba23f5c6b263313260f6ef56f4d0bfe2abb52203"
+  },
+  {
+   "i": 68,
+   "name": "STEP [ACT-B2 u odd, v even] Inv(k+1) part 11: (= (+ (* u s) (* h (* 2 r))) p)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "9d4897f81194372ce8e599816cfbd75f51e31405c32bfe5a3ff40ca2a2486107"
+  },
+  {
+   "i": 69,
+   "name": "STEP [ACT-B2 u odd, v even] Inv(k+1) part 12: (=> (= (* 2 r) 0) (and (= u p) (= s 1)))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "49be80d920233322733f9beadf62b829db9b62f14ab47ae0fbe116470cddfec3"
+  },
+  {
+   "i": 70,
+   "name": "STEP [ACT-B2 u odd, v even] Inv(k+1) part 13: (= (+ (* x (* 2 r)) (* u (* 2 T))) (* p (* 2 cR)))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "aa4d7640d2b081f47f421a9a3165fcad5c482a8add399a9aee00c3ab83bbd193"
+  },
+  {
+   "i": 71,
+   "name": "STEP [ACT-B2 u odd, v even] Inv(k+1) part 14: (= (- (* x s) (* h (* 2 T))) (* p cS))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "36f439c02f0612366df9ed62dbac71e068ac47c77f27dc4725131ac290ebccce"
+  },
+  {
+   "i": 72,
+   "name": "STEP [ACT-B2 u odd, v even] Inv(k+1) part 15: (<= 1 ga)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "d1a1c02c69593e4283299fe7f62fbc9ed3f0a891ac0ed1c5b7e008018461b6cb"
+  },
+  {
+   "i": 73,
+   "name": "STEP [ACT-B2 u odd, v even] Inv(k+1) part 16: (<= ga nb)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "75689bb4975377d89dd89be786acf7ca9cfef6f40f9c2158f7505680cbdefd39"
+  },
+  {
+   "i": 74,
+   "name": "STEP [ACT-B2 u odd, v even] Inv(k+1) part 17: (<= 1 (- gb 1))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "9958291b881f7e2c839361c49efb926dcf7c576dc827f29ef3ce71c3fe16c06e"
+  },
+  {
+   "i": 75,
+   "name": "STEP [ACT-B2 u odd, v even] Inv(k+1) part 18: (<= (- gb 1) nb)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "2f80761e7dc5d66e05f3873ff46c30588457889c66df0cc781774ad26e11bec6"
+  },
+  {
+   "i": 76,
+   "name": "STEP [ACT-B2 u odd, v even] Inv(k+1) part 19: (= (+ ga (- gb 1)) (- (* 2 nb) (+ k 1)))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "8e219f0d7a81d4bfe5bcd4d09d9dcfe63c3112b40e63edb2401bc468a44a8abd"
+  },
+  {
+   "i": 77,
+   "name": "STEP [ACT-B2 u odd, v even] Inv(k+1) part 20: (< u (pow2 ga))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "5cd81e64da35902ee04d21ee83122e272d71449ad1568b75e41def905a459475"
+  },
+  {
+   "i": 78,
+   "name": "STEP [ACT-B2 u odd, v even] Inv(k+1) part 21: (< h (pow2 (- gb 1)))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "f057d02af5452cb95d5fd6fcb5456199fd2f5e04121ac5592b826b7901336657"
+  },
+  {
+   "i": 79,
+   "name": "STEP [ACT-B2 u odd, v even] Inv(k+1) of the next state (U7, V7, R7, S7, F7): assembly from CASE-VALUE and the parts",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "1808c14b67f3ba8abc68c7d4f0f141df679c6b8dd0f934ca9a767dfb91b80e34"
+  },
+  {
+   "i": 80,
+   "name": "STEP [ACT-B3 both odd, u > v] M-dbl: 0 <= r4 < p",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "3e1d2784658e7956f19f3ae39d2f343adcefdd55edc9c9609cf3c0438762211f"
+  },
+  {
+   "i": 81,
+   "name": "STEP [ACT-B3 both odd, u > v] M-a: a3 -> 2 r4 < p",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.69,
+   "sha256": "b80a0a3654f221d5a24be1336a416456ffb596d24de14e48d2ad066da6f0630d"
+  },
+  {
+   "i": 82,
+   "name": "STEP [ACT-B3 both odd, u > v] M-s: not a3 -> s5 odd",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "1e6badbeb505dcda314ad05513e8e4d7d957a7ac0b15ec69b855a84ed133e6fb"
+  },
+  {
+   "i": 83,
+   "name": "STEP [ACT-B3 both odd, u > v] M-carry: c5 -> s4 + r4 < 2^N",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "0519325136dcafc8126879770498603ac62fcd06e5fc1abe85a87592f4a7aa17"
+  },
+  {
+   "i": 84,
+   "name": "STEP [ACT-B3 both odd, u > v] X no borrow: c5 -> u4 <= v4",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "17ed055abef9966bd7b2ad765a15234b84d4c0db3565032e5c958816c3b93b5d"
+  },
+  {
+   "i": 85,
+   "name": "STEP [ACT-B3 both odd, u > v] X v5 even when f1",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "cad58117b1af7bc8973aa16fe059b7cd8fdd3c7c51275bd3736ee527466c0642"
+  },
+  {
+   "i": 86,
+   "name": "STEP [ACT-B3 both odd, u > v] X b cleared",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "b7f01645ae4375e07c14ff80198dc4822497a449a2762013fb29521778c26345"
+  },
+  {
+   "i": 87,
+   "name": "STEP [ACT-B3 both odd, u > v] X a cleared",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.25,
+   "sha256": "70b3ecff86a4ac81c6b6cf7e141bbd49795177e21738313e0b62c73c6f62d90b"
+  },
+  {
+   "i": 88,
+   "name": "STEP [ACT-B3 both odd, u > v] X all words in [0, 2^N)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.03,
+   "sha256": "009ad8345d7188c756a53e480d377832e157419215cd80de82693372cf62ed1b"
+  },
+  {
+   "i": 89,
+   "name": "STEP [ACT-B3 both odd, u > v] CASE-VALUE: next state = (h, v, (+ r s), (* 2 s)), f = 1",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.17,
+   "sha256": "12871140824142a52b6890ed4bd3224993e7361a4206571b80045888934fdfe7"
+  },
+  {
+   "i": 90,
+   "name": "STEP [ACT-B3 both odd, u > v] Inv(k+1) part 00: (<= 0 (+ k 1))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "eda8d631015b1fe551765ddfc7ea1a9f47c3ee0c6078ea948161bde9f06a41dd"
+  },
+  {
+   "i": 91,
+   "name": "STEP [ACT-B3 both odd, u > v] Inv(k+1) part 01: (<= (+ k 1) (* 2 N))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "26815808c80ff4d45a8f2af56f246ec890207ace78e733a3cbfcfccf134641a8"
+  },
+  {
+   "i": 92,
+   "name": "STEP [ACT-B3 both odd, u > v] Inv(k+1) part 02: (= (* 2 T) (pow2 (+ k 1)))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "6de08de8b1705dad7c6c9cfd1c2fe2e12bfecff51ce1965c065eb04bf11898a8"
+  },
+  {
+   "i": 93,
+   "name": "STEP [ACT-B3 both odd, u > v] Inv(k+1) part 03: true",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "ef46e30ae1dd127cec030d8bc29fb5323b2b465fadd86d920953c6e47fc9e4b6"
+  },
+  {
+   "i": 94,
+   "name": "STEP [ACT-B3 both odd, u > v] Inv(k+1) part 04: (>= x 1)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "d72fb12146e3add81d67165161d5686c72fa9db3ee6ec60569d2d3e7d33811e7"
+  },
+  {
+   "i": 95,
+   "name": "STEP [ACT-B3 both odd, u > v] Inv(k+1) part 05: (>= h 1)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "0990ab7eacabaae4bb268ca61a523b0fe5b9342f2b16a34b3e3d523c3f002c5b"
+  },
+  {
+   "i": 96,
+   "name": "STEP [ACT-B3 both odd, u > v] Inv(k+1) part 06: (>= v 1)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "0210c2bd2edfc4a93c53caadf878ab2c26f1885746f29e9764fc615fdf3160db"
+  },
+  {
+   "i": 97,
+   "name": "STEP [ACT-B3 both odd, u > v] Inv(k+1) part 07: (>= (+ r s) 0)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "58cc042af0df69377afe79a023021bfd230b52ec528483a05b2539e868fc1489"
+  },
+  {
+   "i": 98,
+   "name": "STEP [ACT-B3 both odd, u > v] Inv(k+1) part 08: (>= (* 2 s) 1)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "61cd2021bb2765fe87cbb27fbf4941dd346a1c468f6f23f3d6f78f54e4207aa2"
+  },
+  {
+   "i": 99,
+   "name": "STEP [ACT-B3 both odd, u > v] Inv(k+1) part 09: (<= h p)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "a6e912607f1c83fbbe97ce0feb5609b81aae6fa3cd7266c4f30cc217124c2301"
+  },
+  {
+   "i": 100,
+   "name": "STEP [ACT-B3 both odd, u > v] Inv(k+1) part 10: (< v p)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "c8b7dda245313b31ac46c779eeb2741718362a4d17d0394242b8941d0b6b0276"
+  },
+  {
+   "i": 101,
+   "name": "STEP [ACT-B3 both odd, u > v] Inv(k+1) part 11: (= (+ (* h (* 2 s)) (* v (+ r s))) p)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "0852beb25c6c9a82c084f0aabff773cf2055830435fb88d97535e9816d45dc45"
+  },
+  {
+   "i": 102,
+   "name": "STEP [ACT-B3 both odd, u > v] Inv(k+1) part 12: (=> (= (+ r s) 0) (and (= h p) (= (* 2 s) 1)))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "b03beb53732b3eb1119f5c76160c3b35ba3ae650c5042a2c6dc87a55fb34baac"
+  },
+  {
+   "i": 103,
+   "name": "STEP [ACT-B3 both odd, u > v] Inv(k+1) part 13: (= (+ (* x (+ r s)) (* h (* 2 T))) (* p (+ cR cS)))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "a8aacf77cde290c031ac54e4fef9b94a1978ed7d810bdab71ae487c7e06ef558"
+  },
+  {
+   "i": 104,
+   "name": "STEP [ACT-B3 both odd, u > v] Inv(k+1) part 14: (= (- (* x (* 2 s)) (* v (* 2 T))) (* p (* 2 cS)))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "d71f68941dcee16004b6a0e630ab154f2be24dac08216f261595e8360c0bf068"
+  },
+  {
+   "i": 105,
+   "name": "STEP [ACT-B3 both odd, u > v] Inv(k+1) part 15: (<= 1 (- ga 1))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "27b9249e0f6f4b1b7d55a30d89de2b4e7dba6aad7e1a409052ace04ae4ca6715"
+  },
+  {
+   "i": 106,
+   "name": "STEP [ACT-B3 both odd, u > v] Inv(k+1) part 16: (<= (- ga 1) nb)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "e38eeb0d3766bd73cccacc3506db718623ca52c27beff773368904360159e202"
+  },
+  {
+   "i": 107,
+   "name": "STEP [ACT-B3 both odd, u > v] Inv(k+1) part 17: (<= 1 gb)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "6fa5efce653a3146745ae83bb1cc84ebc4993f014f6e37555174b4f41152cfae"
+  },
+  {
+   "i": 108,
+   "name": "STEP [ACT-B3 both odd, u > v] Inv(k+1) part 18: (<= gb nb)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "64b093e6219bc5af5ab71bc3fd26f4338f6cda766421e132454ad525de976a5e"
+  },
+  {
+   "i": 109,
+   "name": "STEP [ACT-B3 both odd, u > v] Inv(k+1) part 19: (= (+ (- ga 1) gb) (- (* 2 nb) (+ k 1)))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "9bc58a5d8b8d77cc5f5fe576a7fa47735a98029a5cba253d51974e29c39f9bf1"
+  },
+  {
+   "i": 110,
+   "name": "STEP [ACT-B3 both odd, u > v] Inv(k+1) part 20: (< h (pow2 (- ga 1)))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "35b65324a75f667dc03d38efab8b72c5b2a05d842d050b772550c17c846e13ef"
+  },
+  {
+   "i": 111,
+   "name": "STEP [ACT-B3 both odd, u > v] Inv(k+1) part 21: (< v (pow2 gb))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "4f7eed55d1c0895d1c9624252bcfbe2c62a2bf8dff963b8033913f9554fa778a"
+  },
+  {
+   "i": 112,
+   "name": "STEP [ACT-B3 both odd, u > v] Inv(k+1) of the next state (U7, V7, R7, S7, F7): assembly from CASE-VALUE and the parts",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "562bd0fe6912ca3fd143213b5b5558aa93ad2ca3923fc6b8710e7893f110705a"
+  },
+  {
+   "i": 113,
+   "name": "STEP [ACT-B4a both odd, u < v] M-dbl: 0 <= r4 < p",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.03,
+   "sha256": "ffaac0c2f791e4028f5bd33fc9d0f5d61f6dc2e86fdf5e7d9b615dfd94054b35"
+  },
+  {
+   "i": 114,
+   "name": "STEP [ACT-B4a both odd, u < v] M-a: a3 -> 2 r4 < p",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "d232ea36386987fb82662c9a26f7bff5059b8c9f743039a77cd62b675e92d13c"
+  },
+  {
+   "i": 115,
+   "name": "STEP [ACT-B4a both odd, u < v] M-s: not a3 -> s5 odd",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.05,
+   "sha256": "c43941073dd369045a431f518144691d50129eefc25c0107fdf521f63a61e968"
+  },
+  {
+   "i": 116,
+   "name": "STEP [ACT-B4a both odd, u < v] M-carry: c5 -> s4 + r4 < 2^N",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "5a73467c8e17878d52c495964bf0e5aa0a89267423faa6cfe7a40922a95c7fa6"
+  },
+  {
+   "i": 117,
+   "name": "STEP [ACT-B4a both odd, u < v] X no borrow: c5 -> u4 <= v4",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "c511158bfee81c21bcda0f5768311412fdcf2403b3a92eb6c78b00aba9911b65"
+  },
+  {
+   "i": 118,
+   "name": "STEP [ACT-B4a both odd, u < v] X v5 even when f1",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.05,
+   "sha256": "96cfc4a3fd6ddf90cae6009ca20c4348c91782eebf0e6b2b6203a8f8eb40caa3"
+  },
+  {
+   "i": 119,
+   "name": "STEP [ACT-B4a both odd, u < v] X b cleared",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "2067a9af4c55029d45e18ee9be98aaf07bb9b65f9fe8b0562ca7f491fca356b8"
+  },
+  {
+   "i": 120,
+   "name": "STEP [ACT-B4a both odd, u < v] X a cleared",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.04,
+   "sha256": "c9f0e2c743c161c77a749ddaf2ab1b65cfa7f60651795ffef631e368bb768fb5"
+  },
+  {
+   "i": 121,
+   "name": "STEP [ACT-B4a both odd, u < v] X all words in [0, 2^N)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.03,
+   "sha256": "ad7b44846a572d0bbc2cd4fe9dbf5e8ce93ccea6e265ff712ab251abfd9181e1"
+  },
+  {
+   "i": 122,
+   "name": "STEP [ACT-B4a both odd, u < v] CASE-VALUE: next state = (u, h, (* 2 r), (+ s r)), f = 1",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.9,
+   "sha256": "a2e2655681bd9339d9d55cfd6ff0a95475540ba738bcce08a9de110989000a43"
+  },
+  {
+   "i": 123,
+   "name": "STEP [ACT-B4a both odd, u < v] Inv(k+1) part 00: (<= 0 (+ k 1))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "dedce36790c6e6367c3a5c27f62f43a59bd770d1587eec028292cd1fda65bf0f"
+  },
+  {
+   "i": 124,
+   "name": "STEP [ACT-B4a both odd, u < v] Inv(k+1) part 01: (<= (+ k 1) (* 2 N))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "3df2178eac20024de7bea4992bab89173014d76221fe0635baff4445f45f1ce9"
+  },
+  {
+   "i": 125,
+   "name": "STEP [ACT-B4a both odd, u < v] Inv(k+1) part 02: (= (* 2 T) (pow2 (+ k 1)))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "b92d5a9e282e8e473497a3e342b650d84e53cc14491001b7ff56a7f7536079e4"
+  },
+  {
+   "i": 126,
+   "name": "STEP [ACT-B4a both odd, u < v] Inv(k+1) part 03: true",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "9832713ddc0ebd327191f4cb3cb1a6d7954fb1db48f6b322b40e50f4094be91a"
+  },
+  {
+   "i": 127,
+   "name": "STEP [ACT-B4a both odd, u < v] Inv(k+1) part 04: (>= x 1)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "d946e242abe740e14f08102bd31933b8182788493d2f4685dd9d898e5839e995"
+  },
+  {
+   "i": 128,
+   "name": "STEP [ACT-B4a both odd, u < v] Inv(k+1) part 05: (>= u 1)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "ef3c37cc14a7823e296b8e99152bf2131710a3befc13d33f5b8128452324b20e"
+  },
+  {
+   "i": 129,
+   "name": "STEP [ACT-B4a both odd, u < v] Inv(k+1) part 06: (>= h 1)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "9d61b951bbd261e746512aac4dad4bf9e07f525618a8536a6617b99623681077"
+  },
+  {
+   "i": 130,
+   "name": "STEP [ACT-B4a both odd, u < v] Inv(k+1) part 07: (>= (* 2 r) 0)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "f4804e9971874ff7fcd2284fbdd3b7c8f4ddfaea9816a115703c7c53aa7c52fc"
+  },
+  {
+   "i": 131,
+   "name": "STEP [ACT-B4a both odd, u < v] Inv(k+1) part 08: (>= (+ s r) 1)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "b8bfff31508b181b3e39a84848be67ce4e1d4416984ac933df505d75c1a1dddc"
+  },
+  {
+   "i": 132,
+   "name": "STEP [ACT-B4a both odd, u < v] Inv(k+1) part 09: (<= u p)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "8ffccf454251862eb5378d3320bb06f449aa686923e35e270cb8ec9d8540bb33"
+  },
+  {
+   "i": 133,
+   "name": "STEP [ACT-B4a both odd, u < v] Inv(k+1) part 10: (< h p)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "68d955aeb0125572f2204db601e353fccdd3603c04007263316aa202bdb69af7"
+  },
+  {
+   "i": 134,
+   "name": "STEP [ACT-B4a both odd, u < v] Inv(k+1) part 11: (= (+ (* u (+ s r)) (* h (* 2 r))) p)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "29a86d7fbd83c700c09800272a7866b755d27294eca55bcbf4c7dea8dcb61a9e"
+  },
+  {
+   "i": 135,
+   "name": "STEP [ACT-B4a both odd, u < v] Inv(k+1) part 12: (=> (= (* 2 r) 0) (and (= u p) (= (+ s r) 1)))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "e3f7e138c002efb557ba951897c3e8b1e6645c1abf29f1b4b85766fba5de7c01"
+  },
+  {
+   "i": 136,
+   "name": "STEP [ACT-B4a both odd, u < v] Inv(k+1) part 13: (= (+ (* x (* 2 r)) (* u (* 2 T))) (* p (* 2 cR)))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "f2377759e6fbefb4c9688395110bef96f64184155c4685a11ab699e78ff88983"
+  },
+  {
+   "i": 137,
+   "name": "STEP [ACT-B4a both odd, u < v] Inv(k+1) part 14: (= (- (* x (+ s r)) (* h (* 2 T))) (* p (+ cS cR)))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "e4b9ab001f95a2ada0ca23286fb6d2a1abe3c4231bc90649d5dcd369cb76fa73"
+  },
+  {
+   "i": 138,
+   "name": "STEP [ACT-B4a both odd, u < v] Inv(k+1) part 15: (<= 1 ga)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "8a5d8e04a59493e9a30179cbeb65bc5828b0f5216946d0199893e3e484d148da"
+  },
+  {
+   "i": 139,
+   "name": "STEP [ACT-B4a both odd, u < v] Inv(k+1) part 16: (<= ga nb)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "512fe1d19ce4a33e915a6a22c795a9e001871351421099c4b65e832319d016ee"
+  },
+  {
+   "i": 140,
+   "name": "STEP [ACT-B4a both odd, u < v] Inv(k+1) part 17: (<= 1 (- gb 1))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "6610bac44e5e82bc4089d0c90e261293832e50ba9479e1182844548724ccc969"
+  },
+  {
+   "i": 141,
+   "name": "STEP [ACT-B4a both odd, u < v] Inv(k+1) part 18: (<= (- gb 1) nb)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "efc002a96e07008533ad0076a1d50beebb82c077d041313ce6d319a56dda7966"
+  },
+  {
+   "i": 142,
+   "name": "STEP [ACT-B4a both odd, u < v] Inv(k+1) part 19: (= (+ ga (- gb 1)) (- (* 2 nb) (+ k 1)))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "34b7d08c986a8c854ee4bd4665020b400937d5e99192fbfafc03b027533c8e70"
+  },
+  {
+   "i": 143,
+   "name": "STEP [ACT-B4a both odd, u < v] Inv(k+1) part 20: (< u (pow2 ga))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "ae63af32e15e5a027466a40ab1db26988658b9cb157fa063349229a546d7955b"
+  },
+  {
+   "i": 144,
+   "name": "STEP [ACT-B4a both odd, u < v] Inv(k+1) part 21: (< h (pow2 (- gb 1)))",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "8c1a408d210200461b48d3dd1b2a3589695afa407fc77b46a6e8180864b0b34c"
+  },
+  {
+   "i": 145,
+   "name": "STEP [ACT-B4a both odd, u < v] Inv(k+1) of the next state (U7, V7, R7, S7, F7): assembly from CASE-VALUE and the parts",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "b829a72d6e4da698aa2b8ba8a3333962288d750fc45ad42d6a6ef084cdf44406"
+  },
+  {
+   "i": 146,
+   "name": "STEP [ACT-B4b u = v, 2r < p] M-dbl: 0 <= r4 < p",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "51675d9db1a3c245bd237304378fda0d66fb4cc8b67c67afeace4a26c3302a3b"
+  },
+  {
+   "i": 147,
+   "name": "STEP [ACT-B4b u = v, 2r < p] M-a: a3 -> 2 r4 < p",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "4542f9460b23c5fa90e4c90406d630486acc7492f4c3296db05d0baccee99431"
+  },
+  {
+   "i": 148,
+   "name": "STEP [ACT-B4b u = v, 2r < p] M-s: not a3 -> s5 odd",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.05,
+   "sha256": "c6f72142644e82496b353eb99fc22b2ad4679b56204405b7d5ad900c4c6dfd9e"
+  },
+  {
+   "i": 149,
+   "name": "STEP [ACT-B4b u = v, 2r < p] M-carry: c5 -> s4 + r4 < 2^N",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "9fe2437bf237b017bc1ae89025b5f31c5498a5248ca2dca999a3c87e0d3ac954"
+  },
+  {
+   "i": 150,
+   "name": "STEP [ACT-B4b u = v, 2r < p] X no borrow: c5 -> u4 <= v4",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "5bb5d787f3c5f2947588acd0dee74820afd4236c8c539604d1c2164033d1f973"
+  },
+  {
+   "i": 151,
+   "name": "STEP [ACT-B4b u = v, 2r < p] X v5 even when f1",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "051fd1c776d189a00d9a37833e9f4aa8dd858fe9619ab3e763de808bb7334ce8"
+  },
+  {
+   "i": 152,
+   "name": "STEP [ACT-B4b u = v, 2r < p] X b cleared",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "de597c1a76271869d4b1a50d3ca705f90af644b07cadd09adffa1b70240cac0d"
+  },
+  {
+   "i": 153,
+   "name": "STEP [ACT-B4b u = v, 2r < p] X a cleared",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.05,
+   "sha256": "fc401cf267c44272b7816559041842757d1cc298aefd007a7f25c4f3ebb1083b"
+  },
+  {
+   "i": 154,
+   "name": "STEP [ACT-B4b u = v, 2r < p] X all words in [0, 2^N)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.03,
+   "sha256": "0ee525ab1fa6e320a7094349a268136f1db683617c2e7c201ca36091196dc05c"
+  },
+  {
+   "i": 155,
+   "name": "STEP [ACT-B4b u = v, 2r < p] Inv(k+1)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.47,
+   "sha256": "1b6854086683326d7b85daf1317f8bf012bb6deab56048efefb9522cc548c508"
+  },
+  {
+   "i": 156,
+   "name": "STEP [ACT-B4b u = v, 2r >= p] M-dbl: 0 <= r4 < p",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "b2b38b99b228c6246eeab5c9b17ff2590b7293701d8a4c86a16a94791de5ea68"
+  },
+  {
+   "i": 157,
+   "name": "STEP [ACT-B4b u = v, 2r >= p] M-a: a3 -> 2 r4 < p",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "2a9812e23d8ef1e473d3b559ccb893c76ed494c029f1bdc9846175b49359c6a6"
+  },
+  {
+   "i": 158,
+   "name": "STEP [ACT-B4b u = v, 2r >= p] M-s: not a3 -> s5 odd",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.05,
+   "sha256": "8992e06735aafeaa6d28d5ab85597f784c118fe4a4016077f5f7376d68fbc683"
+  },
+  {
+   "i": 159,
+   "name": "STEP [ACT-B4b u = v, 2r >= p] M-carry: c5 -> s4 + r4 < 2^N",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "8b36df8ef8b54963aed5870c1247e675179af666277eea597826fea4ae0c9140"
+  },
+  {
+   "i": 160,
+   "name": "STEP [ACT-B4b u = v, 2r >= p] X no borrow: c5 -> u4 <= v4",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "f41004f50d0e381ed41e4732516966d48f087cfb4e391ee1866e9a25faad314e"
+  },
+  {
+   "i": 161,
+   "name": "STEP [ACT-B4b u = v, 2r >= p] X v5 even when f1",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "192de7539432cb598932d03d47fd549881a3301135101950066df06fe7a6b9ee"
+  },
+  {
+   "i": 162,
+   "name": "STEP [ACT-B4b u = v, 2r >= p] X b cleared",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "84411c70b4cdb9360985d30fd6335028670940b27a18c954da57cb3255001226"
+  },
+  {
+   "i": 163,
+   "name": "STEP [ACT-B4b u = v, 2r >= p] X a cleared",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.05,
+   "sha256": "d618be193d11b8e26d20c27202ae2f0db08bab74f6de1db2be7c372680b3205a"
+  },
+  {
+   "i": 164,
+   "name": "STEP [ACT-B4b u = v, 2r >= p] X all words in [0, 2^N)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.03,
+   "sha256": "ab0d92cea7c98f68ad6c69c936b97b6a4f5868681937bf6ad68fbd0cad0e2e94"
+  },
+  {
+   "i": 165,
+   "name": "STEP [ACT-B4b u = v, 2r >= p] Inv(k+1)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.55,
+   "sha256": "fcdcf41a4be0a9e36ba0d68e1cf3341a166c40535cc25b7779c8edd7c6bf7386"
+  },
+  {
+   "i": 166,
+   "name": "STEP [DET 2r < p] M-dbl: 0 <= r4 < p",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "aa5e60ce4e2b0676eed46f5f133eb33e7e4baf7ede0db2c0c5a176c9249df098"
+  },
+  {
+   "i": 167,
+   "name": "STEP [DET 2r < p] M-a: a3 -> 2 r4 < p",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "209de53776926ad20bd356647bcf2a16cf5e57db2932806e7754bdcb72854aa5"
+  },
+  {
+   "i": 168,
+   "name": "STEP [DET 2r < p] M-s: not a3 -> s5 odd",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.02,
+   "sha256": "6fbbadb59e2fe415b865861835f17595e3087a835f0fdb90aff0be44d9aad326"
+  },
+  {
+   "i": 169,
+   "name": "STEP [DET 2r < p] M-carry: c5 -> s4 + r4 < 2^N",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "7d36c721dcd0d46d7e267d590b1f2ffb9fdc134e6d4dec327d7a2118482b69b6"
+  },
+  {
+   "i": 170,
+   "name": "STEP [DET 2r < p] X no borrow: c5 -> u4 <= v4",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "000b8eb7a3925bdbc4ed11f35e4bd2ad9a9a64a6ddb93e764df8036be49d3b22"
+  },
+  {
+   "i": 171,
+   "name": "STEP [DET 2r < p] X v5 even when f1",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "0bfbc0bd94501a43656be74f37cd5579116f40ec555edadd3146fb31412e41d4"
+  },
+  {
+   "i": 172,
+   "name": "STEP [DET 2r < p] X b cleared",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "36000c10210a5bb5bdeef7f0ccc9d74a8f4fd40561fee49719d64f8ccfa70f0c"
+  },
+  {
+   "i": 173,
+   "name": "STEP [DET 2r < p] X a cleared",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.02,
+   "sha256": "3f7760c56bf62f6ec4ecf42d68f77c85e057db842c6151e10cd3fc71e6e951bf"
+  },
+  {
+   "i": 174,
+   "name": "STEP [DET 2r < p] X all words in [0, 2^N)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "16ed1529abd84aa72fd997ceb1321522a742e4917969068aa4a7018c29749af3"
+  },
+  {
+   "i": 175,
+   "name": "STEP [DET 2r < p] Inv(k+1)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "4145d3981b00c4c3dea8169f84e5605d4337b69a5a073b6b4607dd5501f50b57"
+  },
+  {
+   "i": 176,
+   "name": "STEP [DET 2r >= p] M-dbl: 0 <= r4 < p",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "ecd6450bec3dcce7d68a1a5d577bc2dcbdcb8ed9421af0c9493504887804647f"
+  },
+  {
+   "i": 177,
+   "name": "STEP [DET 2r >= p] M-a: a3 -> 2 r4 < p",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "df3861581e2c6a8f0cd3daba27fd9cbc5074a47c709aa832ca363847d2048b08"
+  },
+  {
+   "i": 178,
+   "name": "STEP [DET 2r >= p] M-s: not a3 -> s5 odd",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.02,
+   "sha256": "b064bdcadd9e28c60ce4fa0ff2123e7672c785150e3167cf5bc4722fabcdcc12"
+  },
+  {
+   "i": 179,
+   "name": "STEP [DET 2r >= p] M-carry: c5 -> s4 + r4 < 2^N",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "1afd31fac681261eb1e6a5115f01e0cb595ee28682b29d9a48682e75c5d92f5c"
+  },
+  {
+   "i": 180,
+   "name": "STEP [DET 2r >= p] X no borrow: c5 -> u4 <= v4",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "b7bdfd94c80b80db781135903a2852f371e27455e106b855b752f947dbd1afb6"
+  },
+  {
+   "i": 181,
+   "name": "STEP [DET 2r >= p] X v5 even when f1",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "57ee4398160e813be7c2ea7c400766354bc8d7b2778a91661f9bdd5a4e6be04b"
+  },
+  {
+   "i": 182,
+   "name": "STEP [DET 2r >= p] X b cleared",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "6b12d56cd63e7053db8ea5db9124fd13dbf175632c0392cb5a99246a48d3b0e6"
+  },
+  {
+   "i": 183,
+   "name": "STEP [DET 2r >= p] X a cleared",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.02,
+   "sha256": "ee53e1639b7a5d8b151d905a02c1ece7396c9d2b376fd593a27a42651e01b8ce"
+  },
+  {
+   "i": 184,
+   "name": "STEP [DET 2r >= p] X all words in [0, 2^N)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "5601781248c1800ca5b798cf205d8c512c90cc34da0de941d38825e50fe79181"
+  },
+  {
+   "i": 185,
+   "name": "STEP [DET 2r >= p] Inv(k+1)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "9a5d45ee8a0bf07ffdd7506c4cb0340d918cf5d6f7648085d03cef388db4c145"
+  },
+  {
+   "i": 186,
+   "name": "STEP [POST 2r < p] M-dbl: 0 <= r4 < p",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "65aaeeb85ddd1d3282754b173e56e68efde6717d3ca89ea36e5a104f272d5da6"
+  },
+  {
+   "i": 187,
+   "name": "STEP [POST 2r < p] M-a: a3 -> 2 r4 < p",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "c2e5bbd9087d572f951d579a8f9806e546026975aa10c425a38fef9b66c18403"
+  },
+  {
+   "i": 188,
+   "name": "STEP [POST 2r < p] M-s: not a3 -> s5 odd",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.02,
+   "sha256": "b321b6bc516274f8606140aea3b881bc8f59ea0e14704c95f2ae198cf900abb5"
+  },
+  {
+   "i": 189,
+   "name": "STEP [POST 2r < p] M-carry: c5 -> s4 + r4 < 2^N",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "47dc07ca346240c251943f2dba53ccdc0cbe3b31086ec00cadae6903a50d94a7"
+  },
+  {
+   "i": 190,
+   "name": "STEP [POST 2r < p] X no borrow: c5 -> u4 <= v4",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "522318307b50a1109691e4b055bc2587fec3cb5c553a73247be41faebfe6b6e4"
+  },
+  {
+   "i": 191,
+   "name": "STEP [POST 2r < p] X v5 even when f1",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "9bb1daadce1aa0a7c2e5d65bbf934594248a80175caeab1d86db1da9f4cb0ecf"
+  },
+  {
+   "i": 192,
+   "name": "STEP [POST 2r < p] X b cleared",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "09527921734fd05b4aeb47e2568c4bbecd7ff0848a1abdc4ad361dc24f30e9af"
+  },
+  {
+   "i": 193,
+   "name": "STEP [POST 2r < p] X a cleared",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.02,
+   "sha256": "921a8f0bbb13687e35a4e419a53ca66672115973d6ff123c07312afa4293fa63"
+  },
+  {
+   "i": 194,
+   "name": "STEP [POST 2r < p] X all words in [0, 2^N)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "fc1aa9b4b649d0b8c1cbceee942defd7465ca3e2dc9099d5a9fe30d028541900"
+  },
+  {
+   "i": 195,
+   "name": "STEP [POST 2r < p] Inv(k+1)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "8183b21f384d71a06aea417220ef3caeef2a7da441c5b957106283b59e76801c"
+  },
+  {
+   "i": 196,
+   "name": "STEP [POST 2r >= p] M-dbl: 0 <= r4 < p",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "d19c193c1dd7deeab610c42f00b2c5c024c0d420d3284a7d04a506c23a8680d7"
+  },
+  {
+   "i": 197,
+   "name": "STEP [POST 2r >= p] M-a: a3 -> 2 r4 < p",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "3a388d8d1684ac61bc9d33ef576698f4b207ce035709d3f96f00a0a7ac63dfe7"
+  },
+  {
+   "i": 198,
+   "name": "STEP [POST 2r >= p] M-s: not a3 -> s5 odd",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.02,
+   "sha256": "dfab840b966b7caedf7af0ae24727ad989a2cb96b21f11d92ba27443fbd8c61f"
+  },
+  {
+   "i": 199,
+   "name": "STEP [POST 2r >= p] M-carry: c5 -> s4 + r4 < 2^N",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "0d5f5a55d7817f6fb77b936e002d12f93fe4e779438db08ea26c35dce7e1684d"
+  },
+  {
+   "i": 200,
+   "name": "STEP [POST 2r >= p] X no borrow: c5 -> u4 <= v4",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "b241fba5a8bd2e4c0dd29aacc112c62953e1cb35be3e2374bfd4f99027972dd2"
+  },
+  {
+   "i": 201,
+   "name": "STEP [POST 2r >= p] X v5 even when f1",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "6e6ea7cf639a06127b9421af092c73a1fda2ae490d7d5b374238df383471dbea"
+  },
+  {
+   "i": 202,
+   "name": "STEP [POST 2r >= p] X b cleared",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "2315f326abbf16e41db1ba87d570f69f831c24bff7d5eb7d9206721fe82b9fc8"
+  },
+  {
+   "i": 203,
+   "name": "STEP [POST 2r >= p] X a cleared",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.02,
+   "sha256": "bbe9f8f3aeae656b53327544739000f54abb34dc40abffa8511e57170b2fe565"
+  },
+  {
+   "i": 204,
+   "name": "STEP [POST 2r >= p] X all words in [0, 2^N)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "812d711db5f34fd4f60bd857b94d87dd65ef5e1072c79b027aa1d2ddb22cf957"
+  },
+  {
+   "i": 205,
+   "name": "STEP [POST 2r >= p] Inv(k+1)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "2e7571d4ae876d83a65bf48a83b31f91377ee83a9dc2e9737547f21ea26176ae"
+  },
+  {
+   "i": 206,
+   "name": "STEP [ZERO x = 0] M-dbl: 0 <= r4 < p",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "714e7bbc66df39b738df950a39d22b59fe8bfcd42cedd1bcceef9207ef253370"
+  },
+  {
+   "i": 207,
+   "name": "STEP [ZERO x = 0] M-a: a3 -> 2 r4 < p",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "064a30472a19ddf109eb007c448f862d90593fd377d2763c6c731413f1f8e14b"
+  },
+  {
+   "i": 208,
+   "name": "STEP [ZERO x = 0] M-s: not a3 -> s5 odd",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "d1022e7f0b3947a5eee634a9b55f2b69f3b5a95c7c17db27e5c91341c7e8974f"
+  },
+  {
+   "i": 209,
+   "name": "STEP [ZERO x = 0] M-carry: c5 -> s4 + r4 < 2^N",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "9f99e9c53226f288817cd5c706b8eb80f3cb6bfe619b8efd4f24fe060da39e38"
+  },
+  {
+   "i": 210,
+   "name": "STEP [ZERO x = 0] X no borrow: c5 -> u4 <= v4",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "da41a1ddbe81cd6b162c03320dcb3f4d83168fa231e4159ed8d8e3494745af1b"
+  },
+  {
+   "i": 211,
+   "name": "STEP [ZERO x = 0] X v5 even when f1",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "d240aedbee3601ab1fa2df10290ddcfb501491128a43690dc088a423dc508d09"
+  },
+  {
+   "i": 212,
+   "name": "STEP [ZERO x = 0] X b cleared",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "bfc8fb0a4f434cfefb890632d2cc37907c582bc7794a868a33dca4efcf410f07"
+  },
+  {
+   "i": 213,
+   "name": "STEP [ZERO x = 0] X a cleared",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "c41668d6193065e277bd178f4540ef870c91714838760a318fc009b09b690a44"
+  },
+  {
+   "i": 214,
+   "name": "STEP [ZERO x = 0] X all words in [0, 2^N)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "bb82f39b9048eb6df09e845b15aff5dec1f21e8bc07c4f0c06228427bc2c11be"
+  },
+  {
+   "i": 215,
+   "name": "STEP [ZERO x = 0] Inv(k+1)",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "d8f27dca793c834e5ab8d58a253c7fc7c17b3608cd275756e6a54508cd08daf7"
+  },
+  {
+   "i": 216,
+   "name": "COVER: the cases cover every state",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "71889785000a815aa3541ea91e2717f8819275acf24a7e74f73189660e0c3746"
+  },
+  {
+   "i": 217,
+   "name": "CONCRETE Inv on all runs p=3 N=2",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "87b8a7f7fa15442507de0d8f7e5fd4b016ba4f25aa80f78a381841bdb204c855"
+  },
+  {
+   "i": 218,
+   "name": "CONCRETE step functions = qkal_pq.step, p=3 N=2",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "bebdfa797e360e34d12cc96b1fbbf1d6d18482348149009b7e6e6132f6b90ccc"
+  },
+  {
+   "i": 219,
+   "name": "CONCRETE Inv on all runs p=5 N=3",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "5268d692e3e03a7bf1c5a6d8cd25d27ff700baa7bb8e3322bfc9cdd323db515b"
+  },
+  {
+   "i": 220,
+   "name": "CONCRETE step functions = qkal_pq.step, p=5 N=3",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "5543b36c1299b518c095cf5b9c2168fa7c40373e9ea51b4833c12786902a42b0"
+  },
+  {
+   "i": 221,
+   "name": "CONCRETE Inv on all runs p=7 N=3",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "f3dfa043f2dae0bb617d0dd636b29f4d09d0ed97a75b427734c0892c065b81a5"
+  },
+  {
+   "i": 222,
+   "name": "CONCRETE step functions = qkal_pq.step, p=7 N=3",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "5165de39e0b35d1d9b6a543b7913d61be5da4f5b47497797a31635c85bafed7e"
+  },
+  {
+   "i": 223,
+   "name": "CONCRETE Inv on all runs p=7 N=4",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "8cb7e0003bb5035cae22e4c1a7b2f618a18971f8d0421535969260d4231f2da7"
+  },
+  {
+   "i": 224,
+   "name": "CONCRETE step functions = qkal_pq.step, p=7 N=4",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "de1b9494e00d005f18bf83c276ef3cbf62022e201027d786f4049e32cbcc279f"
+  },
+  {
+   "i": 225,
+   "name": "CONCRETE Inv on all runs p=11 N=4",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "c5eea40c07a2ff8f3a4d5e48b2b44a796f325bad0d7b0c5393889ec2cff094a7"
+  },
+  {
+   "i": 226,
+   "name": "CONCRETE step functions = qkal_pq.step, p=11 N=4",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "c975d72ff7a47870775db48c5176849946cfb10de9af5021ac995782dcc32aa8"
+  },
+  {
+   "i": 227,
+   "name": "CONCRETE Inv on all runs p=13 N=4",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "5a71897c20f1d2b44040fccbba0a94dde37b74c6ae0cf804196a8f1d7276f784"
+  },
+  {
+   "i": 228,
+   "name": "CONCRETE step functions = qkal_pq.step, p=13 N=4",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "faa4384a182e4b216c70f2d38f8fd6e3d11174ca9b68f57803af76c291c4cda2"
+  },
+  {
+   "i": 229,
+   "name": "CONCRETE Inv on all runs p=13 N=5",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "24e5bb39bfc2f273b52523cda647cfcce46fcaf9d898d460b4178b541ba40f77"
+  },
+  {
+   "i": 230,
+   "name": "CONCRETE step functions = qkal_pq.step, p=13 N=5",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "219637f50ca98f098aaf2bc7ad23eef6ed7087f51bb0f394621e2d4ea62effa3"
+  },
+  {
+   "i": 231,
+   "name": "CONCRETE Inv on all runs p=17 N=5",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "b25ea4a8a207fa08d4bacb132ead08cbe39441a630e29c7ffa7cad57f99ab335"
+  },
+  {
+   "i": 232,
+   "name": "CONCRETE step functions = qkal_pq.step, p=17 N=5",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "b9fc30ad37f1b0a76bd6b04589e6d91eb82dda2d0eb2ea419758630fbff4f036"
+  },
+  {
+   "i": 233,
+   "name": "CONCRETE Inv on all runs p=19 N=6",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "732eafcdd7e2dea069fc2d3b8b22058a9d508d902cfb5050870ea182e84f2e3c"
+  },
+  {
+   "i": 234,
+   "name": "CONCRETE step functions = qkal_pq.step, p=19 N=6",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "3193d96d13431ece138f37025f59eb512772f862119db9490bad1ad80adf330a"
+  },
+  {
+   "i": 235,
+   "name": "CONCRETE Inv on all runs p=23 N=5",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "0a14509b22d3865b17022695c6bd9d9d10871e54e524a2cfafbcc998c2afc736"
+  },
+  {
+   "i": 236,
+   "name": "CONCRETE step functions = qkal_pq.step, p=23 N=5",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "6b6b366a07d6ba055e7ae8cae8cc145e7679dd11a903cbdfccc5701698085332"
+  },
+  {
+   "i": 237,
+   "name": "CONCRETE Inv on all runs p=29 N=5",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "4c3749ea00d73e43067fa8377d62e9064c47049a8fac05b4891c8cb279d63dbe"
+  },
+  {
+   "i": 238,
+   "name": "CONCRETE step functions = qkal_pq.step, p=29 N=5",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "484f38a5b9b86a0f3a092a47c6d141ae8ca611bbcfce912938bbb55922195f1c"
+  },
+  {
+   "i": 239,
+   "name": "CONCRETE Inv on all runs p=31 N=5",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "71de09a5e40618a60937564653620ce5ed33bf915e36d9c2d6c5f2a4d9f73164"
+  },
+  {
+   "i": 240,
+   "name": "CONCRETE step functions = qkal_pq.step, p=31 N=5",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "981b2783fbac3e93966a9ee4cedfcf9bde0e4d651451087895f25a29dee3a392"
+  },
+  {
+   "i": 241,
+   "name": "CONCRETE Inv on all runs p=31 N=7",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "d954693741e4c58e31aca2f7217a0a99eb4303a6d21215bf100d58e340037596"
+  },
+  {
+   "i": 242,
+   "name": "CONCRETE step functions = qkal_pq.step, p=31 N=7",
+   "answer": "unsat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "67f2b8ea7c810206d6db7fdbe59b1ce996091b2619d374ad3ab9378e561901dc"
+  },
+  {
+   "i": 243,
+   "name": "CONTROL realizable [ACT-B1 u even] by p=7 N=4 x=3 k=1",
+   "answer": "sat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "b0a86ac5093995d53c410da1e7f073afd8a60b4e4eea257b36d39c060c5cb1b8"
+  },
+  {
+   "i": 244,
+   "name": "CONTROL realizable [ACT-B2 u odd, v even] by p=7 N=4 x=2 k=0",
+   "answer": "sat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "a6a373068f081b9250182c91d058c06b733f3ea3ab41d91f311255e8c9816f1d"
+  },
+  {
+   "i": 245,
+   "name": "CONTROL realizable [ACT-B3 both odd, u > v] by p=7 N=4 x=1 k=0",
+   "answer": "sat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "74bd165b44924b214d4cc10a53b2b38d7c07ff6376275680891462d92da8bec5"
+  },
+  {
+   "i": 246,
+   "name": "CONTROL realizable [ACT-B4a both odd, u < v] by p=7 N=4 x=3 k=2",
+   "answer": "sat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "37a596f3bed7e807aee7766447ef89d533a2f6bb8747fad989954567adf5d27c"
+  },
+  {
+   "i": 247,
+   "name": "CONTROL realizable [ACT-B4b u = v, 2r < p] by p=7 N=4 x=1 k=2",
+   "answer": "sat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "b0c36a5dfd3880c22515aa9e382f4b108d3cba2708e19de80860e2b1c51907fd"
+  },
+  {
+   "i": 248,
+   "name": "CONTROL realizable [ACT-B4b u = v, 2r >= p] by p=7 N=4 x=5 k=3",
+   "answer": "sat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "0b5267b9adc71c6daf4ee194ed3461d637a97b043671255103503d3d12ca9b09"
+  },
+  {
+   "i": 249,
+   "name": "CONTROL realizable [DET 2r < p] by p=7 N=4 x=5 k=4",
+   "answer": "sat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "815d34eeaec69c9825791748c3fa4abb439cd77019421058c38ec76fc496db29"
+  },
+  {
+   "i": 250,
+   "name": "CONTROL realizable [DET 2r >= p] by p=7 N=4 x=1 k=3",
+   "answer": "sat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "e35b92e1b7320f005c17934d5f0f8f20190492960163800e75d583fe596d0b63"
+  },
+  {
+   "i": 251,
+   "name": "CONTROL realizable [POST 2r < p] by p=7 N=4 x=1 k=5",
+   "answer": "sat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "ba1988fe499248ac155b0024a2d0e2153dd6f7035e0fbd23d01a34bfa7d39d11"
+  },
+  {
+   "i": 252,
+   "name": "CONTROL realizable [POST 2r >= p] by p=7 N=4 x=1 k=4",
+   "answer": "sat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "7ce9327056cd9b6a46fb075fb67ceaf1c5af510a0be05f0a84877f0047402347"
+  },
+  {
+   "i": 253,
+   "name": "CONTROL realizable [ZERO x = 0] by p=7 N=4 x=0 k=0",
+   "answer": "sat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "033d40019bdba9c75413c91b84edeaabbfac77b9db22815ec48d0d4cc6401379"
+  },
+  {
+   "i": 254,
+   "name": "CONTROL too strong [ACT-B1 u even] M-a with 4 r4 < p",
+   "answer": "timeout",
+   "ok": true,
+   "sec": 20.02,
+   "sha256": "d5b50c23eab0932baf0edd407e877f541531faad221287f2583e9e9b4fee315f"
+  },
+  {
+   "i": 255,
+   "name": "CONTROL too strong [ACT-B3 both odd, u > v] M-carry with 2^(N-1)",
+   "answer": "timeout",
+   "ok": true,
+   "sec": 20.02,
+   "sha256": "bc75c4ebf98e64435facc96cda12f00c4a429c17ea334fbf66f6cd495e3bcf6c"
+  },
+  {
+   "i": 256,
+   "name": "CONTROL too strong [POST 2r >= p] M-dbl with r4 < p - 1",
+   "answer": "timeout",
+   "ok": true,
+   "sec": 20.01,
+   "sha256": "6a6cdda99307ea4dfaf11664425b7082b607e791f3e02aa8b66183e283623535"
+  },
+  {
+   "i": 257,
+   "name": "CONTROL too strong [ACT-B2 u odd, v even] Inv(k+1) with the wrong ghost cR",
+   "answer": "timeout",
+   "ok": true,
+   "sec": 20.01,
+   "sha256": "b4b74bad7463122ccdb046a0db5a65f83ccaaec0ada0cc86a62e180cf7824058"
+  },
+  {
+   "i": 258,
+   "name": "CONTROL too strong [ACT-B4a both odd, u < v] v5 odd",
+   "answer": "timeout",
+   "ok": true,
+   "sec": 20.02,
+   "sha256": "9e4c9d20f0a9f383e32fe5529e22eae2176b5b432434c040eb1cd61f00c0964a"
+  },
+  {
+   "i": 259,
+   "name": "CONTROL realizable counterexample to the too strong claim [ACT-B1 u even] p=7 N=3 x=3 k=1",
+   "answer": "sat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "0566b9802df646d47b7c622ed0803cb08c31b51e71339b226f718c2639b7db48"
+  },
+  {
+   "i": 260,
+   "name": "CONTROL realizable counterexample to the too strong claim [ACT-B3 both odd, u > v] p=29 N=5 x=15 k=5",
+   "answer": "sat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "eb6120e9a668bfd58d93a50e3d2ab0716ad3c11247ea3175d1a61056d6e97459"
+  },
+  {
+   "i": 261,
+   "name": "CONTROL realizable counterexample to the too strong claim [POST 2r >= p] p=7 N=4 x=1 k=6",
+   "answer": "sat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "82cfa8bf17e905962532b407b4226a2671598d6d5d7dbd216c34442565227366"
+  },
+  {
+   "i": 262,
+   "name": "CONTROL realizable counterexample to the too strong claim [ACT-B2 u odd, v even] p=7 N=3 x=2 k=0",
+   "answer": "sat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "d61f44af5514d059eead2af102ca54f0fb320da16474b0e618ae29412cb18a9e"
+  },
+  {
+   "i": 263,
+   "name": "CONTROL realizable counterexample to the too strong claim [ACT-B4a both odd, u < v] p=7 N=3 x=3 k=2",
+   "answer": "sat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "4ad002ee2b3c4097b24ae5a30c2a4044bc4448a9fa69b05b874d30e1d2a58a8a"
+  },
+  {
+   "i": 264,
+   "name": "CONTROL [ACT-B4b u = v, 2r < p] Inv(k+1) without the primality instance",
+   "answer": "timeout",
+   "ok": true,
+   "sec": 20.01,
+   "sha256": "38a279ac285f21f0f7805e09034f752b3d66c3782780cc72780c4df3bfc0a6f3"
+  },
+  {
+   "i": 265,
+   "name": "CONTROL FINAL with 2^(2N-1)",
+   "answer": "timeout",
+   "ok": true,
+   "sec": 20.01,
+   "sha256": "d65453cf6bde8de960c1732d194ec93f3f063a14f40742c9d5401c90210e30cc"
+  },
+  {
+   "i": 266,
+   "name": "CONTROL CONCRETE header p=13 N=5 is consistent",
+   "answer": "sat",
+   "ok": true,
+   "sec": 0.01,
+   "sha256": "c87b2d7a88dbc49a1037b156e4575190a04a93da446cc4c21ff43d65e4ee33a5"
+  },
+  {
+   "i": 267,
+   "name": "CONTROL CONCRETE a wrong state (u+2) is detected",
+   "answer": "sat",
+   "ok": true,
+   "sec": 0.0,
+   "sha256": "a3ccaaae154d29caf955874668a4b6828375516f29b8e042138551ec0ee9ca16"
+  }
+ ],
+ "z3": "Z3 version 5.3.3 - 64 bit",
+ "source_sha256": "5ac2cc16e386947998d2880177d7ada12574f3ec64491e126aaab7273d389c06",
+ "sec": 148.2,
+ "finished": "2026-11-23T17:32:33Z"
+}
