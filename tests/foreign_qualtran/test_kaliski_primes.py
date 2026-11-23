@@ -19,6 +19,7 @@ def test_composites_refused(m):
 
 
 def test_large_named_primes():
+    pytest.importorskip("sympy")   # Pocklington factors p-1 with sympy (installed with the qualtran extra)
     assert certify_prime(2 ** 61 - 1)["verdict"] == "PROVEN PRIME"
     assert certify_prime(2 ** 64 - 59)["verdict"] == "PROVEN PRIME"
     assert lucas_lehmer(61) and lucas_lehmer(127) and not lucas_lehmer(67)
