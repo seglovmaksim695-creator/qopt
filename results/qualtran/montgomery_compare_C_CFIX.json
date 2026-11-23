@@ -1,0 +1,228 @@
+{
+ "n256_w1": {
+  "n": 256,
+  "w": 1,
+  "mine_verdict": "PROVED",
+  "C_file": "verify_bridge3/C/results/c4_n256_w1_prove/segments.json",
+  "cmp": {
+   "win0": {
+    "mine": "432ff5d07ce7465749b5b463eeb826ebf203a2231401f1a82c4ef87cb88f54b7",
+    "C": "432ff5d07ce7465749b5b463eeb826ebf203a2231401f1a82c4ef87cb88f54b7",
+    "same_qasm": true,
+    "same_contract": false,
+    "C_status": "PROVED",
+    "mine_status": "PROVED"
+   },
+   "lt": {
+    "mine": "0d2fefce4730dead80a65174f3569cac6bb10f22073a0c0b38fd33c87b7d3a6f",
+    "C": "0d2fefce4730dead80a65174f3569cac6bb10f22073a0c0b38fd33c87b7d3a6f",
+    "same_qasm": true,
+    "same_contract": false,
+    "C_status": "PROVED",
+    "mine_status": "PROVED"
+   },
+   "add": {
+    "mine": "fc5868031c44f10b6ec245ff807234e7cdcdc504b09ce138a68e8a731b135086",
+    "C": "fc5868031c44f10b6ec245ff807234e7cdcdc504b09ce138a68e8a731b135086",
+    "same_qasm": true,
+    "same_contract": false,
+    "C_status": "PROVED",
+    "mine_status": "PROVED"
+   },
+   "subnodes_vs_CFIX": {
+    "cadd0": {
+     "mine": "fddf9047230c412547097adb5043c7f48fe8ca60daef76fa4fd08921641aa744",
+     "CFIX": "fddf9047230c412547097adb5043c7f48fe8ca60daef76fa4fd08921641aa744",
+     "same": true,
+     "mine_status": "PROVED",
+     "CFIX_status": "PROVED"
+    },
+    "xor": {
+     "mine": "5aecac69cd7865e11d39ee8c63c29b7e2506caa6c31122349b58c3bca6323df1",
+     "CFIX": "5aecac69cd7865e11d39ee8c63c29b7e2506caa6c31122349b58c3bca6323df1",
+     "same": true,
+     "mine_status": "PROVED",
+     "CFIX_status": "PROVED"
+    },
+    "qaa": {
+     "mine": "cc53f796ce791cd974e634a06606fa100062362d98fd9bec3ec06a4d84c3c045",
+     "CFIX": "cc53f796ce791cd974e634a06606fa100062362d98fd9bec3ec06a4d84c3c045",
+     "same": true,
+     "mine_status": "PROVED",
+     "CFIX_status": "PROVED"
+    }
+   },
+   "CFIX_ok": true
+  },
+  "all_hashes_equal": true,
+  "n_compared": 6
+ },
+ "n256_w2": {
+  "n": 256,
+  "w": 2,
+  "mine_verdict": "PROVED",
+  "C_file": "verify_bridge3/C/results/c2_n256_w2_run09_win0_lt_add/segments.json",
+  "cmp": {
+   "win0": {
+    "mine": "4d2e077d33427bf2b2a0551af0060c22bab95eb861177a97083b38a87d203cc1",
+    "C": "4d2e077d33427bf2b2a0551af0060c22bab95eb861177a97083b38a87d203cc1",
+    "same_qasm": true,
+    "same_contract": false,
+    "C_status": "PROVED",
+    "mine_status": "PROVED"
+   },
+   "lt": {
+    "mine": "0d2fefce4730dead80a65174f3569cac6bb10f22073a0c0b38fd33c87b7d3a6f",
+    "C": "0d2fefce4730dead80a65174f3569cac6bb10f22073a0c0b38fd33c87b7d3a6f",
+    "same_qasm": true,
+    "same_contract": false,
+    "C_status": "PROVED",
+    "mine_status": "PROVED"
+   },
+   "add": {
+    "mine": "fc5868031c44f10b6ec245ff807234e7cdcdc504b09ce138a68e8a731b135086",
+    "C": "fc5868031c44f10b6ec245ff807234e7cdcdc504b09ce138a68e8a731b135086",
+    "same_qasm": true,
+    "same_contract": false,
+    "C_status": "PROVED",
+    "mine_status": "PROVED"
+   },
+   "subnodes_vs_CFIX": {
+    "cadd0": {
+     "mine": "fddf9047230c412547097adb5043c7f48fe8ca60daef76fa4fd08921641aa744",
+     "CFIX": "fddf9047230c412547097adb5043c7f48fe8ca60daef76fa4fd08921641aa744",
+     "same": true,
+     "mine_status": "PROVED",
+     "CFIX_status": "PROVED"
+    },
+    "cadd1": {
+     "mine": "fddf9047230c412547097adb5043c7f48fe8ca60daef76fa4fd08921641aa744",
+     "CFIX": "fddf9047230c412547097adb5043c7f48fe8ca60daef76fa4fd08921641aa744",
+     "same": true,
+     "mine_status": "PROVED",
+     "CFIX_status": "PROVED"
+    },
+    "xor": {
+     "mine": "bd53dcedfdbafe76f56cfcb090a0d28aad985395d30d2fdc503e986e4110d04c",
+     "CFIX": "bd53dcedfdbafe76f56cfcb090a0d28aad985395d30d2fdc503e986e4110d04c",
+     "same": true,
+     "mine_status": "PROVED",
+     "CFIX_status": "PROVED"
+    },
+    "qaa": {
+     "mine": "37c298a7d4638e015b1b3310a1b5903e8101c89ab44ff55daebb7c859dff21a3",
+     "CFIX": "37c298a7d4638e015b1b3310a1b5903e8101c89ab44ff55daebb7c859dff21a3",
+     "same": true,
+     "mine_status": "PROVED",
+     "CFIX_status": "PROVED"
+    }
+   },
+   "CFIX_ok": true
+  },
+  "all_hashes_equal": true,
+  "n_compared": 7
+ },
+ "n64_w4": {
+  "n": 64,
+  "w": 4,
+  "mine_verdict": "PROVED",
+  "C_file": "verify_bridge3/C/results/c4_n64_w4_prove/segments.json",
+  "cmp": {
+   "lt": {
+    "mine": "a6bb4a78e7e47ea06411dfa181d4bce76715b03425e85d387e14b15add8d8b33",
+    "C": "a6bb4a78e7e47ea06411dfa181d4bce76715b03425e85d387e14b15add8d8b33",
+    "same_qasm": true,
+    "same_contract": false,
+    "C_status": "PROVED",
+    "mine_status": "PROVED"
+   },
+   "add": {
+    "mine": "b99ecaba051ea121209b3d031b3f6d550deb2f23ab0840aa7fb596f57fa0512c",
+    "C": "b99ecaba051ea121209b3d031b3f6d550deb2f23ab0840aa7fb596f57fa0512c",
+    "same_qasm": true,
+    "same_contract": false,
+    "C_status": "PROVED",
+    "mine_status": "PROVED"
+   },
+   "subnodes_vs_CFIX": {
+    "cadd0": {
+     "mine": "9dd2bfe0c6447bd24b4bad6ca630fd66c4140f62ce529a755e73870ba40d6797",
+     "CFIX": "9dd2bfe0c6447bd24b4bad6ca630fd66c4140f62ce529a755e73870ba40d6797",
+     "same": true,
+     "mine_status": "PROVED",
+     "CFIX_status": "PROVED"
+    },
+    "cadd1": {
+     "mine": "9dd2bfe0c6447bd24b4bad6ca630fd66c4140f62ce529a755e73870ba40d6797",
+     "CFIX": "9dd2bfe0c6447bd24b4bad6ca630fd66c4140f62ce529a755e73870ba40d6797",
+     "same": true,
+     "mine_status": "PROVED",
+     "CFIX_status": "PROVED"
+    },
+    "cadd2": {
+     "mine": "9dd2bfe0c6447bd24b4bad6ca630fd66c4140f62ce529a755e73870ba40d6797",
+     "CFIX": "9dd2bfe0c6447bd24b4bad6ca630fd66c4140f62ce529a755e73870ba40d6797",
+     "same": true,
+     "mine_status": "PROVED",
+     "CFIX_status": "PROVED"
+    },
+    "cadd3": {
+     "mine": "9dd2bfe0c6447bd24b4bad6ca630fd66c4140f62ce529a755e73870ba40d6797",
+     "CFIX": "9dd2bfe0c6447bd24b4bad6ca630fd66c4140f62ce529a755e73870ba40d6797",
+     "same": true,
+     "mine_status": "PROVED",
+     "CFIX_status": "PROVED"
+    },
+    "xor": {
+     "mine": "2eef126defcd8336361bc924bc77c159fe8be163019c4844f7312e153e6970c6",
+     "CFIX": "2eef126defcd8336361bc924bc77c159fe8be163019c4844f7312e153e6970c6",
+     "same": true,
+     "mine_status": "PROVED",
+     "CFIX_status": "PROVED"
+    },
+    "qaa": {
+     "mine": "76b117148a940dcb711ee4f94418491c7de2edb5b1afd54eac75cb074ab116c0",
+     "CFIX": "76b117148a940dcb711ee4f94418491c7de2edb5b1afd54eac75cb074ab116c0",
+     "same": true,
+     "mine_status": "PROVED",
+     "CFIX_status": "PROVED"
+    }
+   },
+   "CFIX_ok": true,
+   "win0_subnodes_vs_CFIX": {
+    "win0_cadd0": {
+     "mine": "9dd2bfe0c6447bd24b4bad6ca630fd66c4140f62ce529a755e73870ba40d6797",
+     "CFIX": "9dd2bfe0c6447bd24b4bad6ca630fd66c4140f62ce529a755e73870ba40d6797",
+     "same": true
+    },
+    "win0_cadd1": {
+     "mine": "9dd2bfe0c6447bd24b4bad6ca630fd66c4140f62ce529a755e73870ba40d6797",
+     "CFIX": "9dd2bfe0c6447bd24b4bad6ca630fd66c4140f62ce529a755e73870ba40d6797",
+     "same": true
+    },
+    "win0_cadd2": {
+     "mine": "9dd2bfe0c6447bd24b4bad6ca630fd66c4140f62ce529a755e73870ba40d6797",
+     "CFIX": "9dd2bfe0c6447bd24b4bad6ca630fd66c4140f62ce529a755e73870ba40d6797",
+     "same": true
+    },
+    "win0_cadd3": {
+     "mine": "9dd2bfe0c6447bd24b4bad6ca630fd66c4140f62ce529a755e73870ba40d6797",
+     "CFIX": "9dd2bfe0c6447bd24b4bad6ca630fd66c4140f62ce529a755e73870ba40d6797",
+     "same": true
+    },
+    "win0_xor": {
+     "mine": "2eef126defcd8336361bc924bc77c159fe8be163019c4844f7312e153e6970c6",
+     "CFIX": "2eef126defcd8336361bc924bc77c159fe8be163019c4844f7312e153e6970c6",
+     "same": true
+    },
+    "win0_qaa": {
+     "mine": "76b117148a940dcb711ee4f94418491c7de2edb5b1afd54eac75cb074ab116c0",
+     "CFIX": "76b117148a940dcb711ee4f94418491c7de2edb5b1afd54eac75cb074ab116c0",
+     "same": true
+    }
+   }
+  },
+  "all_hashes_equal": true,
+  "n_compared": 14
+ }
+}
