@@ -7,16 +7,19 @@ Public API
     Kaliski inverse as boxes with contracts) + gluing of the six step contracts in Z3, with the wiring between
     the steps read from the real ``ECAdd.decompose_bloq()``.  ``patched=True`` is the fixed scheme (Qualtran 0.7.0 +
     flag fix E05 + PR 1997 + exact-integer table; applied to a COPY of Qualtran, never to the installed one) and
-    must come out as the point sum.  ``patched=False`` is the original 0.7.0 scheme: it is proved correct exactly
-    outside the groups G1-G3 of finding 05 (status ``PROVED_OUTSIDE_G1_G3``).
+    must come out as the point sum.  ``patched=False`` is the original 0.7.0 scheme: it is proved correct outside
+    the groups G1-G3 of finding 05 (status ``PROVED_OUTSIDE_G1_G3``).
 ``prove_ecwindowaddr(n, p, window=1)``
     ``ECWindowAddR`` (fixed scheme): ``(c, Q) -> (c, Q + c*R)``; the table lookup and its removal are proved gate by
     gate, the ``ECAdd`` box is taken with the contract of ``prove_ecadd``.
 ``contracts_status(n, p)``
     For which (n, p) the contracts of the multiplier and the inverse are proved, for which only assumed.
 
-Every verdict is a dict with ``status`` (``PROVED`` / ``NOT_PROVED``), the per-part results, the Qualtran variant, the
-Z3 version, and ``contracts_status``.  A verdict is only ``PROVED`` when every part is ``PROVED``.
+Every verdict is a dict with ``status`` (``PROVED`` / ``PROVED_CONDITIONAL`` / ``NOT_PROVED``), the per-part results, the
+Qualtran variant, the Z3 version, and ``contracts_status``.  A verdict is only ``PROVED`` when every part is ``PROVED`` AND
+every box contract is proved for exactly this (n, p) (registry result, or ``prove_boxes=True``); when only the box contracts
+are assumed the status is ``PROVED_CONDITIONAL`` (``conditional_on`` lists them).  Outside the domain of p (odd prime, 2p <= 2^n)
+the status is ``NOT_PROVED``.
 Heavy parts run in child processes against the patched copy of Qualtran (``qoptct.foreign.qualtran.patches``).
 """
 from __future__ import annotations

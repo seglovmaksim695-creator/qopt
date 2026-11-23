@@ -103,6 +103,8 @@ def build():
     es = []
 
     def add(name, fn, d, *, n, p, w, status, kind, z3, prog, cmd, extra_assume=(), claim_extra=''):
+        # the registry holds fully proved instances only: PROVED_CONDITIONAL (a box contract only assumed) is never stored
+        assert status in ('PROVED', 'PROVED_OUTSIDE_G1_G3'), (fn, status)
         es.append(dict(
             id='%s/%s' % (name, os.path.splitext(fn)[0]), name=name, block=BLOCK[name], claim=CLAIM[name] + claim_extra,
             status=status, n=n, p=pstr(p), w=w, qualtran=patch_info(kind, manifest), z3=z3, program=prog,
@@ -154,10 +156,10 @@ def build():
                     if st.get(part) and st[part]['status'] != 'PROVED_FOR_THIS_INSTANCE':
                         extra.append('contract of the box %s (%s, %s) is ASSUMED for this instance' % (box, part, st[part]['proved_by']))
             if orig:
-                extra.append('the original Qualtran 0.7.0 scheme: the point addition holds exactly outside the groups G1-G3 of finding 05')
+                extra.append('the original Qualtran 0.7.0 scheme: the point addition holds outside the groups G1-G3 of finding 05; that the scheme is dirty on G1-G3 was shown in round 3 (finding 05), not by this package')
             add('ecadd', fn, d, n=n, p=p, w=None, status=d['status'], kind=d['qualtran_kind'], z3=d.get('z3'),
                 prog=dict(name='steps_stats_sha256', value=canon_sha(steps)), cmd=cmd, extra_assume=extra,
-                claim_extra=' (original scheme: correct exactly outside G1-G3)' if orig else '')
+                claim_extra=' (original scheme: correct outside G1-G3)' if orig else '')
     support = []
     for fn in ('kaliski_lemmas.json', 'kaliski_canaries_n256_p25519.json', 'kaliski_canaries_T8b_n256_p25519.json', 'kaliski_mutants_n256.json',
                'montgomery_regression.json', 'montgomery_compare_C_CFIX.json'):

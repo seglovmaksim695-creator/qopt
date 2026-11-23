@@ -184,9 +184,15 @@ def prove_kaliski(n, p, *, run_inputs=256, sim_inputs=127, lemmas=None, canaries
     from . import lemmas_z3
     from .primes import certify_prime
     from .run import run_pair
+    from ..domain import check_domain
     t0 = time.time()
+    dom = check_domain('kaliski', n, p)
+    if not dom['ok']:           # a modulus outside the domain (not an odd prime below 2^n - 1): nothing is run
+        return dict(status='NOT PROVED (domain)', n=n, p=p, checks=dict(domain=False), domain=dom,
+                    detail='outside the domain of the proof: ' + '; '.join(dom['problems']), sec=round(time.time() - t0, 1))
     if prime is None:
-        prime = certify_prime(p)
+        from ..domain import _prime_row           # the same (cached) certificate the domain check made
+        prime = _prime_row(p)
     if lemmas is None:
         try:
             lemmas = lemmas_z3.ensure_lemmas(verbose=verbose)

@@ -8,7 +8,7 @@ verdict is `PROVED` or it is not, and "skipped" or "unknown" is never a proof.
 | API | claim | where it is proved |
 |---|---|---|
 | `ecadd.prove_ecadd(n, p)` | the fixed `ECAdd(n, p, 1)` is the point addition of the Montgomery form (all cases: generic, doubling, `P = -Q`, `P = O`, `Q = O`), `a`, `b`, `lam_r` unchanged, every other wire clean, for all inputs with every word `< p` | six steps by the ROBDD prover (`ecadd.core`, qoptct's own `bdd`/`lift`/gadget lemmas) + glue in Z3 |
-| `ecadd.prove_ecadd(n, p, patched=False)` | the original Qualtran 0.7.0 scheme is the point addition exactly outside the groups G1-G3 of finding 05 (status `PROVED_OUTSIDE_G1_G3`) | same, glue mode `E3` |
+| `ecadd.prove_ecadd(n, p, patched=False)` | the original Qualtran 0.7.0 scheme is the point addition outside the groups G1-G3 of finding 05 (status `PROVED_OUTSIDE_G1_G3`); that the scheme leaves a dirty flag ON the groups was shown in round 3 (finding 05), not by this package | same, glue mode `E3` |
 | `ecadd.prove_ecwindowaddr(n, p, window)` | `ECWindowAddR` (fixed): `(c, Q) -> (c, Q + c*R)`, lookup and its removal gate by gate (rule C1), inner `ECAdd` as a box with the contract above | `ecadd.e4` |
 | `pairs.check_pair_kaliski(n, p)` | `KaliskiModInverse` followed by its `uncompute=True` twin is the identity on all wires (exact phase, all measurement outcomes) | gate mirror (`pairs.mirror`, `pair_compose`) |
 | `pairs.check_pair_montgomery(n, w, p)` | the same for `DirtyOutOfPlaceMontgomeryModMul` (fixed Qualtran, kind `'c'`) | gate mirror with `LD`/`CLR` abstraction of the table blocks (`mont_compose`) |
@@ -16,8 +16,24 @@ verdict is `PROVED` or it is not, and "skipped" or "unknown" is never a proof.
 The steps use the multiplier and the Kaliski inverse as **boxes with contracts**
 (`ecadd.contracts.CONTRACTS`: statement, the registry result that proves it, and the (n, p) instances for which
 that result exists).  `contracts_status(n, p)` is part of every verdict: for an instance without a proved
-contract the point-addition proof is conditional on it, and the verdict says so.  Known gap: at n=16, p=32749 the
-Kaliski contract and its pair are assumed (the proofs of the inverse were made for p=65521).
+contract the point-addition proof is conditional on it, and the verdict says so.  For n=16, p=32749 and for n=256,
+p=2^255-19 every contract (multiplier, inverse, and the pair of each) is proved by a registry result.
+
+### Status of a point-addition verdict
+
+* `PROVED` (exit code 0): the six steps and their glue are proved AND every box contract is proved for exactly this (n, p, w=1):
+  by a registry result, or, with `--prove-boxes` (API: `prove_boxes=True`), by a proof made in the same run.
+* `PROVED_CONDITIONAL` (exit code 3): the steps and the glue are proved, but at least one box contract is only assumed for this
+  (n, p).  The verdict lists them (`conditional_on`, e.g. `MM forward`, `KINV pair`).  It is NOT a proof of the point addition and
+  is never stored in the registry.  `ecwindowaddr` is conditional the same way on the result for `ECAdd` for the same (n, p).
+* `NOT_PROVED` (exit code 1): anything else, including a modulus outside the domain (below).
+
+### Domain of p
+
+Checked before any work (`qoptct.foreign.qualtran.domain`); outside it the status is `NOT_PROVED` with the reason, for `prove` and
+`pair` alike.  Montgomery (and its pair): p odd, 2p <= 2^n, p < 2^n - 1 (primality is not needed).  Kaliski: p an odd prime
+(certificate, or a named standard prime) with p < 2^n - 1.  Pair of the inverse: p odd with p < 2^n - 1 (the mirror does not use
+primality).  `ecadd`, `ecwindowaddr`: all of these together (an odd prime p with 2p <= 2^n), because the glue divides modulo p.
 
 ## Qualtran variants
 

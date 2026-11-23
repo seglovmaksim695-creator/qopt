@@ -41,6 +41,11 @@ def _verdict(res, kind, extra_required=()):
 def check_pair_kaliski(n, p, *, compare_full=None, timeout=None):
     """Mirror check of the Kaliski pair.  ``compare_full``: also compare with the full lowering (default: n <= 16)."""
     from .._variant import run_json
+    from ..domain import check_domain
+    dom = check_domain('pair-kaliski', n, p)
+    if not dom['ok']:
+        return dict(status='NOT_PROVED', api='check_pair_kaliski', n=n, p=str(p), domain=dom,
+                    detail='outside the domain of the proof: ' + '; '.join(dom['problems']))
     full = (n <= 16) if compare_full is None else bool(compare_full)
     args = ['run-kaliski', '--n', n, '--p', str(p)] + (['--full'] if full else [])
     res = run_json(None, _PKG, args, timeout=timeout)
@@ -54,6 +59,11 @@ def check_pair_kaliski(n, p, *, compare_full=None, timeout=None):
 def check_pair_montgomery(n, w, p, *, compare_full=None, timeout=None):
     """Mirror check of the Montgomery multiplier pair (window ``w``).  ``compare_full``: default n <= 8."""
     from .._variant import run_json
+    from ..domain import check_domain
+    dom = check_domain('pair-montgomery', n, p)
+    if not dom['ok']:
+        return dict(status='NOT_PROVED', api='check_pair_montgomery', n=n, w=w, p=str(p), domain=dom,
+                    detail='outside the domain of the proof: ' + '; '.join(dom['problems']))
     full = (n <= 8) if compare_full is None else bool(compare_full)
     args = ['run-montgomery', '--n', n, '--w', w, '--p', str(p)] + (['--full'] if full else [])
     res = run_json('c', _PKG, args, timeout=timeout)

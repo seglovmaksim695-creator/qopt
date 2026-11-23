@@ -843,7 +843,7 @@
    "id": "ecadd/ecadd_original_n16",
    "name": "ecadd",
    "block": "ECAdd",
-   "claim": "ECAdd(n, p, 1) is the point addition in Montgomery form (all special cases), a, b, lam_r unchanged, other wires clean (original scheme: correct exactly outside G1-G3)",
+   "claim": "ECAdd(n, p, 1) is the point addition in Montgomery form (all special cases), a, b, lam_r unchanged, other wires clean (original scheme: correct outside G1-G3)",
    "status": "PROVED_OUTSIDE_G1_G3",
    "n": 16,
    "p": "32749",
@@ -865,7 +865,7 @@
     "the three records of the step formulas (BDD, Z3, integer) agree on sample points only, not by proof",
     "lemmas about the curve (MM0, K0, C1, C2, EC_DBL, EC_TAN, EC_RNOTO, EC_RNOTP) are used in Z3 glue; checked by brute force for p <= 23, not proved for p = 2^255-19",
     "primality of the modulus; Z3 as the solver of the glue",
-    "the original Qualtran 0.7.0 scheme: the point addition holds exactly outside the groups G1-G3 of finding 05"
+    "the original Qualtran 0.7.0 scheme: the point addition holds outside the groups G1-G3 of finding 05; that the scheme is dirty on G1-G3 was shown in round 3 (finding 05), not by this package"
    ],
    "reproduce": "qoptct qualtran prove ecadd --n 16 --p 32749 --original",
    "source": {

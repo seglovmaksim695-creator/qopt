@@ -6,7 +6,9 @@
     qoptct qualtran results [--name NAME] [--n N] [--long] [--json]
 
 Exit code 0 only when the verdict is PROVED (``check``: PROVED; ``results``: the registry was printed).  1: not proved or
-refuted (the status says which part failed), 2: UNKNOWN (``check``), 3: usage error or a missing optional dependency.
+refuted (the status says which part failed; also a p outside the domain of the proof), 2: UNKNOWN (``check``),
+3: PROVED_CONDITIONAL (ecadd / ecwindowaddr: the point addition is proved, but a box contract is only assumed for this (n, p);
+``--prove-boxes`` proves the missing ones), 4: usage error or a missing optional dependency.
 Heavy sizes (n = 256) take minutes to an hour and up to 3 GB; start them under a memory limit.  Nothing is sent anywhere.
 """
 from __future__ import annotations
@@ -19,7 +21,7 @@ import sys
 __all__ = ['main']
 
 P255 = 2 ** 255 - 19
-EXIT_OK, EXIT_NOT_PROVED, EXIT_UNKNOWN, EXIT_USAGE = 0, 1, 2, 3
+EXIT_OK, EXIT_NOT_PROVED, EXIT_UNKNOWN, EXIT_CONDITIONAL, EXIT_USAGE = 0, 1, 2, 3, 4
 DEFAULT_P = {'kaliski': {16: 32749, 256: P255}, 'ecadd': {16: 32749, 256: P255}, 'ecwindowaddr': {16: 32749, 256: P255},
              'pair-kaliski': {16: 32749, 256: P255}}
 
@@ -65,7 +67,18 @@ def _write(path, obj):
             f.write('\n')
 
 
-def _report(title, status, ok, lines, as_json, res):
+def _refuse_domain(kind, n, p, title, as_json, out=None):
+    """Outside the domain of the proof: print NOT_PROVED with the reasons (exit 1); ``None`` when the domain holds."""
+    from .domain import check_domain
+    d = check_domain(kind, n, p)
+    if d['ok']:
+        return None
+    res = dict(status='NOT_PROVED', detail='outside the domain of the proof: ' + '; '.join(d['problems']), domain=d, n=n, p=str(p))
+    _write(out, res)
+    return _report(title, 'NOT_PROVED', False, ['outside the domain of the proof:'] + ['- ' + x for x in d['problems']], as_json, res)
+
+
+def _report(title, status, ok, lines, as_json, res, code=None):
     if as_json:
         print(json.dumps(res, ensure_ascii=False, default=str))
     else:
@@ -73,6 +86,8 @@ def _report(title, status, ok, lines, as_json, res):
         for ln in lines:
             if ln:
                 print('  ' + ln)
+    if code is not None:
+        return code
     return EXIT_OK if ok else EXIT_NOT_PROVED
 
 
@@ -120,6 +135,9 @@ def cmd_prove(a):
     n = a.n
     if kind == 'kaliski':
         p = _modulus(a, 'kaliski')
+        r = _refuse_domain('kaliski', n, p, f'KaliskiModInverse n={n} p={p}', a.json, a.out)
+        if r is not None:
+            return r
         from .kaliski import prove_kaliski
         v = prove_kaliski(n, p, lemmas=a.lemmas, canaries=a.canaries, out=a.out, verbose=a.verbose)
         ok = v['status'] == 'PROVED'
@@ -130,6 +148,9 @@ def cmd_prove(a):
                         f"Qualtran {v.get('qualtran')}, Z3 {(v.get('lemmas') or {}).get('z3')}"], a.json, v)
     if kind == 'montgomery':
         p = _modulus(a, 'montgomery')
+        r = _refuse_domain('montgomery', n, p, f'Montgomery multiplier n={n} w={a.w} p={p}', a.json, a.out)
+        if r is not None:
+            return r
         from .montgomery import prove_montgomery
         v = prove_montgomery(n, a.w, p, patched=not a.original, out=a.out)
         ok = v['verdict'] == 'PROVED'
@@ -139,21 +160,26 @@ def cmd_prove(a):
                         f"Qualtran {(v.get('qualtran') or {}).get('version')} patch kind {(v.get('qualtran') or {}).get('patch_kind')}, "
                         f"Z3 {(v.get('versions') or {}).get('z3')}"], a.json, v)
     p = _modulus(a, kind)
+    title = (f"ECAdd n={n} p={p}{' (original scheme)' if a.original else ''}" if kind == 'ecadd'
+             else f'ECWindowAddR n={n} p={p} window={a.window}')
+    r = _refuse_domain(kind, n, p, title, a.json, a.out)
+    if r is not None:
+        return r
     from . import ecadd
     if kind == 'ecadd':
-        v = ecadd.prove_ecadd(n, p, patched=not a.original)
-        title = f"ECAdd n={n} p={p}{' (original scheme)' if a.original else ''}"
+        v = ecadd.prove_ecadd(n, p, patched=not a.original, prove_boxes=a.prove_boxes)
     else:
-        v = ecadd.prove_ecwindowaddr(n, p, a.window)
-        title = f'ECWindowAddR n={n} p={p} window={a.window}'
+        v = ecadd.prove_ecwindowaddr(n, p, a.window, prove_boxes=a.prove_boxes)
     _write(a.out, v)
-    ok = v['status'] == 'PROVED'            # PROVED_OUTSIDE_G1_G3 (original scheme) is a different statement: not PROVED
-    cs = v.get('contracts_status') or {}
-    assumed = [f'{b} {part}' for b, st in cs.items() for part in ('forward', 'pair')
-               if st.get(part) and st[part]['status'] != 'PROVED_FOR_THIS_INSTANCE']
-    return _report(title, v['status'], ok, [f"claim: {v.get('claim')}",
-                                          ('contracts ASSUMED for this instance: ' + ', '.join(assumed)) if assumed else '',
-                                          f"Qualtran variant {v.get('qualtran_kind')}, Z3 {v.get('z3')}"], a.json, v)
+    # PROVED_OUTSIDE_G1_G3 (original scheme) is a different statement: not PROVED.  PROVED_CONDITIONAL: exit 3.
+    ok = v['status'] == 'PROVED'
+    assumed = v.get('conditional_on') or []
+    lines = [f"claim: {v.get('claim')}",
+             ('CONDITIONAL on box contracts that are not proved for this (n, p, w=1): ' + ', '.join(assumed)
+              + ' (run with --prove-boxes to prove them here)') if assumed else '',
+             f"detail: {v['detail']}" if v.get('detail') and v['status'] == 'NOT_PROVED' else '',
+             f"Qualtran variant {v.get('qualtran_kind')}, Z3 {v.get('z3')}"]
+    return _report(title, v['status'], ok, lines, a.json, v, code=EXIT_CONDITIONAL if v['status'] == 'PROVED_CONDITIONAL' else None)
 
 
 def cmd_pair(a):
@@ -162,14 +188,20 @@ def cmd_pair(a):
     n = a.n
     if a.block == 'kaliski':
         p = _modulus(a, 'pair-kaliski')
+        r = _refuse_domain('pair-kaliski', n, p, f'pair KaliskiModInverse + uncompute n={n} p={p}', a.json, a.out)
+        if r is not None:
+            return r
         v = pairs.check_pair_kaliski(n, p)
         title = f'pair KaliskiModInverse + uncompute n={n} p={p}'
     else:
         p = _modulus(a, 'montgomery')
+        r = _refuse_domain('pair-montgomery', n, p, f'pair Montgomery multiplier + uncompute n={n} w={a.w} p={p}', a.json, a.out)
+        if r is not None:
+            return r
         v = pairs.check_pair_montgomery(n, a.w, p)
         title = f'pair Montgomery multiplier + uncompute n={n} w={a.w} p={p}'
     _write(a.out, v)
-    ok = v['status'] == 'PASS' or v['status'] == 'PROVED'
+    ok = v['status'] == 'PROVED'
     return _report(title, v['status'], ok, [f"mirror_ok: {v.get('mirror_ok')}", f"detail: {v.get('detail')}" if v.get('detail') else '',
                                           f"Qualtran variant {v.get('qualtran_kind')}"], a.json, v)
 
@@ -208,6 +240,9 @@ def build_parser():
     pr.add_argument('--w', type=int, default=1, help='montgomery: window size')
     pr.add_argument('--window', type=int, default=1, help='ecwindowaddr: window size')
     pr.add_argument('--original', action='store_true', help='montgomery / ecadd: the unpatched Qualtran 0.7.0 (it is not proved correct)')
+    pr.add_argument('--prove-boxes', action='store_true',
+                    help='ecadd / ecwindowaddr: also prove here the box contracts (multiplier, inverse, pairs) that no registry result covers; '
+                         'without it a missing contract gives PROVED_CONDITIONAL (exit 3)')
     pr.add_argument('--lemmas', help='kaliski: Z3 lemma result file (default: computed once, cached in $QOPT_CACHE)')
     pr.add_argument('--canaries', default='auto', help='kaliski n=256: canary evidence file (default: cache, else the file shipped with the package)')
     pr.add_argument('--out', help='write the full result as JSON')

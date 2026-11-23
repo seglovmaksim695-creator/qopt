@@ -25,13 +25,15 @@ verdict of the clients below is `PROVED`; the Z3 version is written into every r
 
 ```
 qoptct qualtran check "qualtran.bloqs.arithmetic.addition.Add(QUInt(3))"
-qoptct qualtran prove kaliski|montgomery|ecadd|ecwindowaddr --n N [--p P] [--w W | --window W] [--original] [--out FILE]
+qoptct qualtran prove kaliski|montgomery|ecadd|ecwindowaddr --n N [--p P] [--w W | --window W] [--original] [--prove-boxes] [--out FILE]
 qoptct qualtran pair kaliski|montgomery --n N [--p P] [--w W] [--out FILE]
 qoptct qualtran results [--name NAME] [--n N] [--long] [--json]
 ```
 
-The exit code is 0 only for `PROVED` (and `results` after printing).  1: not proved, refuted, or (for `ecadd --original`) the
-different statement `PROVED_OUTSIDE_G1_G3`; 2: `check` returned `UNKNOWN`; 3: usage error or Qualtran missing.
+The exit code is 0 only for `PROVED` (and `results` after printing).  1: not proved, refuted, a modulus outside the domain of the
+proof (see `QUALTRAN_ECADD.md`), or (for `ecadd --original`) the different statement `PROVED_OUTSIDE_G1_G3`; 2: `check` returned
+`UNKNOWN`; 3: `PROVED_CONDITIONAL` (`ecadd`, `ecwindowaddr`: proved, but a box contract is only assumed for this n, p; `--prove-boxes`
+proves the missing ones in the same run); 4: usage error or Qualtran missing (this was 3 in the first build of 0.7).
 `--p` defaults: 32749 at n = 16, 2^255 - 19 at n = 256 (Montgomery: the largest prime <= 2^(n-1)); other n need `--p`.
 The modules keep their own `python -m qoptct.foreign.qualtran.<module>` command lines (flags in each document).
 Heavy sizes (n = 256) take minutes up to an hour and about 3 GB; run them one at a time.  Work files and the patched copies
@@ -79,8 +81,9 @@ Stated as checked facts, with the reproduction in the code and the tests.
 2. **Tables of the Montgomery window.**  The data tables are computed in `int64`, which overflows above 63 bits; the patch uses
    exact integers.
 3. **`ECAdd` flags (finding 05).**  On three groups of inputs (G1-G3; predicates in `ecadd/glue.py`, `groups`) the original
-   scheme leaves a flag wire non-zero.  The original scheme is proved correct exactly outside these groups
-   (`ecadd --original`: `PROVED_OUTSIDE_G1_G3`).  The patch costs about 5n Toffoli gates.  In `ECWindowAddR` the table row for
+   scheme leaves a flag wire non-zero.  The original scheme is proved correct outside these groups
+   (`ecadd --original`: `PROVED_OUTSIDE_G1_G3`; that the scheme is dirty on the groups was shown in round 3, finding 05, and is not
+   re-checked by the package).  The patch costs about 5n Toffoli gates.  In `ECWindowAddR` the table row for
    window value 0 is (0, 0, 0), i.e. the point at infinity, which belongs to group G3.
 
 Neither the findings nor the patches were sent to the developers of Qualtran.
@@ -100,8 +103,9 @@ unchanged), and Z3 (5.3.3 in the registry).  Per block (the registry lists them 
   (interval arithmetic) for n > 192 and w >= 4.  For w >= 4 the composition of the sub-nodes is by wire positions, interval
   arithmetic and integer runs, not by BDD.
 * **Point addition**: the multiplier (window 1) and the Kaliski inverse are boxes with contracts, listed as data in
-  `ecadd/contracts.py` together with the registry result for each (n, p).  For an instance without a result the verdict says
-  `ASSUMED_FOR_THIS_INSTANCE`.  With 0.7 the n = 16, p = 32749 instance is covered for both boxes and their pairs.  The three
+  `ecadd/contracts.py` together with the registry result for each (n, p).  For an instance without a result the contract is
+  `ASSUMED_FOR_THIS_INSTANCE` and the verdict is `PROVED_CONDITIONAL` (exit code 3), not `PROVED`, unless `--prove-boxes` proves the
+  missing contracts in the same run.  With 0.7 the n = 16, p = 32749 instance is covered for both boxes and their pairs.  The three
   records of the step formulas (BDD, Z3, integer) agree on sample points only (n = 16: 3000 per step, n = 256: 600 per
   step); the curve lemmas used by the glue were checked by brute force for p <= 23 and are not proved for 2^255 - 19.
   `ECWindowAddR` uses the contract of `ECAdd` for the same n, p, rule C1 and `QROAMClean` with K = 1, window sizes 1, 2, 4,
@@ -114,10 +118,27 @@ unchanged), and Z3 (5.3.3 in the registry).  Per block (the registry lists them 
 The verdict at n = 256 requires evidence that the client rejects damaged copies of the real circuit (canaries; about 45 minutes
 to produce).  The evidence file is shipped in the package (`qoptct/foreign/qualtran/data/kaliski_canaries_n256.json`) and used
 when no file is given and `$QOPT_CACHE/kaliski/canaries_n256.json` does not exist.  It is accepted only if it was made by exactly
-the installed client: the verdict compares the SHA-256 of the six client source files stored in the file with the installed
-ones, so a changed client gives `NOT PROVED (canaries)` until the canaries are regenerated
+the installed client: the verdict compares the SHA-256 of the seven client source files (`kaliski/`), of the whole bridge
+(`bridge/*.py`) and of the qoptct provers (`qoptct/verify`) stored in the file with the installed ones, so a changed client, bridge or prover gives `NOT PROVED (canaries)` until the canaries are regenerated
 (`python -m qoptct.foreign.qualtran.kaliski canaries --n 256 --p '2**255-19' --out FILE`).  The Z3 lemmas are not shipped: they
 are recomputed once (about 150 s) and cached.
+
+### Known limitations (from the independent audit of 0.7)
+
+* Kaliski canaries: the packaged evidence contains the run of 27 candidates (13 targeted + 12 random + the rerun of T8b); the wide
+  search for a witness beyond the standard sample inputs (the `extra` field, supported by the verdict) was done in round 3 and is not
+  repeated by the package.  The counting rule is the same as in round 3.
+* `prove montgomery --original`: the installed Qualtran is only recorded (`installed original`), its being the unmodified 0.7.0 is
+  not checked by hash.  There is no PROVED result for the original scheme.
+* Montgomery: the work-cache key uses the first 16 hex digits of p; another p with the same start gets `NOT_PROVED` ("cache does not
+  belong to this request") and the command has no `--fresh` (use a new `$QOPT_CACHE`).  Window 0 for w <= 2 is proved whole; when that
+  returns UNKNOWN (budget), it is proved by sub-nodes with the analytic glue (a path tested by `test_f7_montgomery_fallback.py`;
+  structural checks alone do not see a damage in window 0, the proof of the sub-node does).
+* Kaliski does not compare the installed Qualtran version with 0.7.0 (it is recorded in the result); Montgomery and point addition do.
+* A damaged input that the bridge cannot lower (a pair whose half is not a mirror, a wire layout the bridge refuses) is reported as
+  status `ERROR` by the API (not PROVED, exit code non-zero), not as a verdict with a reason.
+* The curve lemmas of the glue were checked by brute force for small p only; the three records of the step formulas agree on sample
+  points (see Assumptions).
 
 ## Reproduce
 
