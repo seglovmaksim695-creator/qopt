@@ -1,0 +1,197 @@
+{
+ "api": "prove_ecadd",
+ "n": 16,
+ "p": "32749",
+ "patched": false,
+ "qualtran_kind": "original",
+ "z3": "Z3 version 5.3.3 - 64 bit (binary)",
+ "contracts_status": {
+  "MM": {
+   "box": "DirtyOutOfPlaceMontgomeryModMul(bitsize=n, window_size=1, mod=p), forward and uncompute=True",
+   "statement": "x, y < p  =>  target < p and target = x*y*2^-n (mod p); the garbage registers (qrom_indices, reduced) are arbitrary; the uncompute box returns exactly the registers of its forward box to zero (pair identity)",
+   "forward": {
+    "proved_by": "montgomery_mul",
+    "status": "PROVED_FOR_THIS_INSTANCE"
+   },
+   "pair": {
+    "proved_by": "pair_montgomery",
+    "status": "PROVED_FOR_THIS_INSTANCE"
+   }
+  },
+  "KINV": {
+   "box": "KaliskiModInverse(bitsize=n, mod=p), forward and uncompute=True",
+   "statement": "0 <= x < p  =>  x_out < p and x_out = x^-1 * 2^(2n) (mod p) for x != 0, x_out = 0 for x = 0; the junk register is arbitrary; the uncompute box returns exactly the registers of its forward box to zero (pair identity)",
+   "forward": {
+    "proved_by": "kaliski_inverse",
+    "status": "ASSUMED_FOR_THIS_INSTANCE"
+   },
+   "pair": {
+    "proved_by": "pair_kaliski",
+    "status": "ASSUMED_FOR_THIS_INSTANCE"
+   }
+  }
+ },
+ "steps": {
+  "1": {
+   "status": "PROVED",
+   "wall_seconds": 0.28,
+   "peak_rss_mb": 217.7,
+   "kind": "original",
+   "logical_ops": 1385,
+   "stats": {
+    "ops": 1385,
+    "ands": 184,
+    "erases": 184,
+    "checks_nontrivial": 378,
+    "gc": 0,
+    "max_bdd_nodes": 4624,
+    "cases": 1,
+    "vacuous": 0,
+    "seconds": 0.01,
+    "nvars": 64,
+    "nq": 287
+   }
+  },
+  "2": {
+   "status": "PROVED",
+   "wall_seconds": 0.8,
+   "peak_rss_mb": 235.5,
+   "kind": "original",
+   "logical_ops": 2592,
+   "stats": {
+    "ops": 31056,
+    "ands": 4152,
+    "erases": 4152,
+    "checks_nontrivial": 6280,
+    "gc": 0,
+    "max_bdd_nodes": 43715,
+    "cases": 12,
+    "vacuous": 0,
+    "seconds": 0.38,
+    "nvars": 195,
+    "nq": 649
+   }
+  },
+  "3": {
+   "status": "PROVED",
+   "wall_seconds": 1.77,
+   "peak_rss_mb": 244.3,
+   "kind": "original",
+   "logical_ops": 3508,
+   "stats": {
+    "ops": 70120,
+    "ands": 7680,
+    "erases": 7680,
+    "checks_nontrivial": 22007,
+    "gc": 0,
+    "max_bdd_nodes": 64566,
+    "cases": 20,
+    "vacuous": 0,
+    "seconds": 1.22,
+    "nvars": 146,
+    "nq": 768
+   }
+  },
+  "4": {
+   "status": "PROVED",
+   "wall_seconds": 0.24,
+   "peak_rss_mb": 219.6,
+   "kind": "original",
+   "logical_ops": 937,
+   "stats": {
+    "ops": 933,
+    "ands": 93,
+    "erases": 93,
+    "checks_nontrivial": 281,
+    "gc": 0,
+    "max_bdd_nodes": 14486,
+    "cases": 1,
+    "vacuous": 0,
+    "seconds": 0.03,
+    "nvars": 114,
+    "nq": 292
+   }
+  },
+  "5": {
+   "status": "PROVED",
+   "wall_seconds": 0.55,
+   "peak_rss_mb": 231.1,
+   "kind": "original",
+   "logical_ops": 2161,
+   "stats": {
+    "ops": 19413,
+    "ands": 2412,
+    "erases": 2412,
+    "checks_nontrivial": 4012,
+    "gc": 0,
+    "max_bdd_nodes": 41670,
+    "cases": 9,
+    "vacuous": 0,
+    "seconds": 0.21,
+    "nvars": 210,
+    "nq": 570
+   }
+  },
+  "6": {
+   "status": "PROVED",
+   "wall_seconds": 1.11,
+   "peak_rss_mb": 233.3,
+   "kind": "original",
+   "logical_ops": 3654,
+   "stats": {
+    "ops": 69426,
+    "ands": 9709,
+    "erases": 9709,
+    "checks_nontrivial": 16903,
+    "gc": 0,
+    "max_bdd_nodes": 50644,
+    "cases": 338,
+    "vacuous": 319,
+    "seconds": 0.62,
+    "nvars": 69,
+    "nq": 653
+   }
+  }
+ },
+ "wiring": {
+  "status": "OK",
+  "kind": "original",
+  "connections": 41,
+  "order": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6
+  ],
+  "detail": null
+ },
+ "glue": {
+  "status": "PROVED",
+  "mode": "E3",
+  "checks": 49,
+  "answers": {
+   "unsat": 49
+  },
+  "failed": [],
+  "z3_seconds": 0.1,
+  "z3_version": "Z3 version 5.3.3 - 64 bit (binary)",
+  "wiring_source": "live ECAdd.decompose_bloq()",
+  "wiring_equals_reference": true,
+  "lemmas": [
+   "MM0",
+   "K0",
+   "C1",
+   "C2",
+   "EC_DBL",
+   "EC_TAN",
+   "EC_RNOTO",
+   "EC_RNOTP"
+  ],
+  "detail": null
+ },
+ "status": "PROVED_OUTSIDE_G1_G3",
+ "claim": "ECAdd (original 0.7.0) = point addition outside the groups G1-G3 of finding 05",
+ "wall_seconds": 11.6
+}
