@@ -51,6 +51,8 @@ def test_registry_matches_result_files():
 
 @needs_results
 def test_registry_is_up_to_date():
+    if not (REPO / "qoptct" / "foreign" / "qualtran" / "patches" / "manifest.json").exists():
+        pytest.skip("the source tree is not here (tests run against an installed wheel)")
     spec = importlib.util.spec_from_file_location("build_qualtran_registry", REPO / "scripts" / "build_qualtran_registry.py")
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
