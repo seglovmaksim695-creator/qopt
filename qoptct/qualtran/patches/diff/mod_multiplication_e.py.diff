@@ -1,0 +1,44 @@
+--- a/qualtran/bloqs/mod_arithmetic/mod_multiplication.py
++++ b/qualtran/bloqs/mod_arithmetic/mod_multiplication.py
+@@ -340,8 +340,8 @@
+             )
+         inv_mod = pow(self.mod, 2 ** (self.window_size - 1) - 1, 2**self.window_size)
+         N = 2**self.window_size
+-        data = (-np.arange(N) * inv_mod) % N
+-        data *= self.mod
++        # E patch (int64, finding 04): exact Python integers instead of numpy int64.
++        data = np.array([((-i * inv_mod) % N) * self.mod for i in range(N)], dtype=object)
+         return QROAMClean(
+             [data],
+             selection_bitsizes=(self.window_size,),
+@@ -524,7 +524,8 @@
+         reduced = bb.add(XGate(), q=reduced)
+         target, reduced = bb.add(LessThanConstant(self.bitsize, self.mod), x=target, target=reduced)
+         reduced, target = bb.add(
+-            AddK(QUInt(self.bitsize), self.mod).controlled(), ctrl=reduced, x=target
++            # E patch (PR 1997): the final reduction subtracts p (was +p).
++            AddK(QUInt(self.bitsize), -self.mod).controlled(), ctrl=reduced, x=target
+         )
+ 
+         return {'x': x, 'y': y, 'target': target, 'qrom_indices': qrom_indices, 'reduced': reduced}
+@@ -532,7 +533,7 @@
+     def build_call_graph(self, ssa: 'SympySymbolAllocator') -> BloqCountDictT:
+         num_windows = (self.bitsize + self.window_size - 1) // self.window_size
+         return {
+-            AddK(QUInt(self.bitsize), self.mod).controlled(): 1,
++            AddK(QUInt(self.bitsize), -self.mod).controlled(): 1,
+             LessThanConstant(bitsize=self.bitsize, less_than_val=self.mod): 1,
+             XGate(): 1,
+             self._window: num_windows,
+@@ -618,9 +619,8 @@
+     def _inversion_data(self) -> np.typing.NDArray:
+         inv_mod = pow(self.mod, 2 ** (self.window_size - 1) - 1, 2**self.window_size)
+         N = 2**self.window_size
+-        data = (-np.arange(N) * inv_mod) % N
+-        data *= self.mod
+-        return data
++        # E patch (int64, finding 04): exact Python integers instead of numpy int64.
++        return np.array([((-i * inv_mod) % N) * self.mod for i in range(N)], dtype=object)
+ 
+     def _classical_action_window(
+         self,

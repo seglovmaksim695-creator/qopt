@@ -1,0 +1,35 @@
+--- a/qualtran/bloqs/data_loading/qrom_base.py
++++ b/qualtran/bloqs/data_loading/qrom_base.py
+@@ -32,6 +32,14 @@
+ 
+ def _data_or_shape_to_tuple(data_or_shape: Tuple[Union[NDArray, Shaped], ...]) -> Tuple:
+     return tuple(tuple(d.flatten()) if isinstance(d, np.ndarray) else d for d in data_or_shape)
++
++
++def _as_int_array(d):
++    """LOCAL PATCH (verify_bridge3 C2): целые Python без переполнения int64 (object-массив, если не влезает)."""
++    try:
++        return np.array(d, dtype=int)
++    except OverflowError:
++        return np.array(d, dtype=object)
+ 
+ 
+ @attrs.frozen
+@@ -224,7 +232,7 @@
+         target_shapes: Tuple[Tuple[SymbolicInt, ...], ...] = (),
+         num_controls: SymbolicInt = 0,
+     ) -> QROM_T:
+-        _data = [np.array(d, dtype=int) for d in data]
++        _data = [_as_int_array(d) for d in data]
+         if target_bitsizes is None:
+             target_bitsizes = tuple(max(int(np.max(d)).bit_length(), 1) for d in data)
+         assert isinstance(target_bitsizes, tuple)  # Make mypy happy.
+@@ -241,7 +249,7 @@
+         )
+ 
+     def with_data(self: QROM_T, *data: ArrayLike) -> QROM_T:
+-        _data = tuple([np.array(d, dtype=int) for d in data])
++        _data = tuple([_as_int_array(d) for d in data])
+         assert all(shape(d1) == shape(d2) for d1, d2 in zip(_data, self.data_or_shape))
+         assert len(_data) == len(self.target_bitsizes)
+         assert all(t >= int(np.max(d)).bit_length() for t, d in zip(self.target_bitsizes, _data))

@@ -44,6 +44,7 @@ qcec = ["mqt.qcec>=3.0"]
 hw = ["qiskit-ibm-runtime>=0.40", "qiskit-aer>=0.17"]
 dyn = ["qiskit-ibm-runtime>=0.40", "qiskit-aer>=0.17"]
 z3 = ["z3-solver>=4.12"]
+qualtran = ["qualtran==0.7.0", "z3-solver>=4.12"]
 test = ["pytest>=8", "qiskit-qasm3-import>=0.5"]
 
 [project.scripts]
@@ -59,7 +60,7 @@ qoptct = "qoptct.qiskit_qopt:QoptInitPlugin"
 include = ["qoptct*"]
 
 [tool.setuptools.package-data]
-qoptct = ["models/*.pt", "contrib/c1/best_clean/*.qasm", "contrib/c1/best_clean/*.json", "contrib/eng1/ours/*.json", "contrib/gf2m/data/*.json", "verify/compose/PROOF.md"]
+qoptct = ["models/*.pt", "contrib/c1/best_clean/*.qasm", "contrib/c1/best_clean/*.json", "contrib/eng1/ours/*.json", "contrib/gf2m/data/*.json", "verify/compose/PROOF.md", "qualtran/patches/manifest.json", "qualtran/patches/src/*.py", "qualtran/patches/diff/*.diff"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

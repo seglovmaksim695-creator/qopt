@@ -1,0 +1,11 @@
+--- a/qualtran/bloqs/data_loading/select_swap_qrom.py
++++ b/qualtran/bloqs/data_loading/select_swap_qrom.py
+@@ -248,7 +248,7 @@
+         #
+         # For data[N1][N2] with block sizes (k1, k2), you load batches of size `(k1, k2)` at once.
+         # Thus, you load batch[N1/k1][N2/k2] where batch[i][j] = data[i*k1:(i + 1)*k1][j*k2:(j + 1)*k2]
+-        batched_data = [np.zeros(self.batched_data_shape, dtype=int) for _ in self.target_bitsizes]
++        batched_data = [np.zeros(self.batched_data_shape, dtype=(object if d.dtype == object else int)) for d in self.padded_data]  # LOCAL PATCH int64
+         block_slices = [slice(0, k) for k in self.block_sizes]
+         for i, data in enumerate(self.padded_data):
+             for batch_idx in np.ndindex(cast(Tuple[int, ...], self.batched_qrom_shape)):

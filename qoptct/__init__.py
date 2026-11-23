@@ -23,6 +23,26 @@ _PKG = _os.path.dirname(_os.path.abspath(__file__))
 if _PKG not in _sys.path:
     _sys.path.insert(0, _PKG)
 
+
+
+class _TopLevelNameGuard:
+    """Keep the optional dependency ``qualtran`` importable.
+
+    The package directory is on sys.path (see above), so the sub-package ``qoptct/qualtran`` would otherwise
+    answer ``import qualtran``.  For the top-level name ``qualtran`` only, search sys.path without it.
+    """
+
+    @staticmethod
+    def find_spec(name, path=None, target=None):
+        if name != "qualtran" or path is not None:
+            return None
+        import importlib.machinery as _m
+        return _m.PathFinder.find_spec(name, [p for p in _sys.path if _os.path.abspath(p or ".") != _PKG])
+
+
+if _TopLevelNameGuard not in _sys.meta_path:
+    _sys.meta_path.insert(0, _TopLevelNameGuard)
+
 from . import qopt_core as _core  # noqa: E402
 
 globals().update({k: v for k, v in vars(_core).items() if not k.startswith("__") and k not in ("_os", "_sys")})

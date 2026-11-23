@@ -1,0 +1,59 @@
+{
+ "files": {
+  "ec_add.py": {
+   "sha256_original": "71a3efc0368f7fcaf107c45c23bf48002b39dbac0244edca5bcf34e11d8dce95",
+   "sha256_patched": "73bdcb891a4bae73a3b978d713e66a1d0d8825add323febff0af6e0d02c89cc2",
+   "target": "bloqs/cryptography/ecc/ec_add.py"
+  },
+  "mod_multiplication_c.py": {
+   "sha256_original": "3873115b5cf6fd31a5c983c26a2471efc3314d3215ddc3cb548193c42ff2dfc9",
+   "sha256_patched": "c648332760a6f7c114ecedfa9415cfecfc6acae28a901fdb86fe5343461b7432",
+   "target": "bloqs/mod_arithmetic/mod_multiplication.py"
+  },
+  "mod_multiplication_e.py": {
+   "sha256_original": "3873115b5cf6fd31a5c983c26a2471efc3314d3215ddc3cb548193c42ff2dfc9",
+   "sha256_patched": "bc489ab85232a20fe83c78650b8bed36c7dc0ff1208baddbcab03b25d986296b",
+   "target": "bloqs/mod_arithmetic/mod_multiplication.py"
+  },
+  "qrom_base.py": {
+   "sha256_original": "5837d39f0c301dfc0be0c29f666832ff03a8470c83157075f3e2888879027e28",
+   "sha256_patched": "fa02bc765c0aea68538fc2bb383d363bdc4dbfd111b9ff46fea8d0999f173f9e",
+   "target": "bloqs/data_loading/qrom_base.py"
+  },
+  "select_swap_qrom.py": {
+   "sha256_original": "1dd5d2aee856779c85fc1720329e4167c0d7716809c5951e8cc0ad288f9e3950",
+   "sha256_patched": "6ff73893944bdfd58c0ae150d5a65ebede6ee4ce1430ae0d52133de4ada1c116",
+   "target": "bloqs/data_loading/select_swap_qrom.py"
+  }
+ },
+ "kinds": {
+  "c": {
+   "files": [
+    "qrom_base.py",
+    "select_swap_qrom.py",
+    "mod_multiplication_c.py"
+   ],
+   "meaning": "PR1997 (final reduction subtracts p) + QROM/Montgomery tables as exact Python integers (no int64); proofs of Montgomery multiplication (C, CFIX). Env QLOCAL_ORIG_SIGN=1 restores the original +p sign.",
+   "round_dir": "verify_bridge3/C/qlocal"
+  },
+  "e": {
+   "files": [
+    "ec_add.py",
+    "mod_multiplication_e.py"
+   ],
+   "meaning": "ECAdd flag fix (E05) + PR1997 + exact-integer Montgomery table; proofs of point addition ECAdd (E) at n=16.",
+   "round_dir": "verify_bridge3/E/qlocal"
+  },
+  "e4": {
+   "files": [
+    "ec_add.py",
+    "mod_multiplication_e.py",
+    "qrom_base.py",
+    "select_swap_qrom.py"
+   ],
+   "meaning": "kind e plus the int64-free QROM files of kind c; used by E at n=256 (E/qlocal4).",
+   "round_dir": "verify_bridge3/E/qlocal4"
+  }
+ },
+ "qualtran_version": "0.7.0"
+}

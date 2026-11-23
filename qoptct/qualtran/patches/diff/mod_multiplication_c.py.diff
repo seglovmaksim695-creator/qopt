@@ -1,0 +1,56 @@
+--- a/qualtran/bloqs/mod_arithmetic/mod_multiplication.py
++++ b/qualtran/bloqs/mod_arithmetic/mod_multiplication.py
+@@ -55,6 +55,12 @@
+     from qualtran.symbolics import SymbolicInt
+ 
+ 
++import os as _os
++def _FINAL_K(mod):
++    """LOCAL PATCH: -mod (исправление PR1997); при QLOCAL_ORIG_SIGN=1 -- исходное поведение (+mod), остальные правки (таблицы без int64) сохраняются."""
++    return mod if _os.environ.get('QLOCAL_ORIG_SIGN') == '1' else -mod
++
++
+ @frozen
+ class ModDbl(Bloq):
+     r"""An n-bit modular doubling gate.
+@@ -340,8 +346,8 @@
+             )
+         inv_mod = pow(self.mod, 2 ** (self.window_size - 1) - 1, 2**self.window_size)
+         N = 2**self.window_size
+-        data = (-np.arange(N) * inv_mod) % N
+-        data *= self.mod
++        # LOCAL PATCH (verify_bridge3 C2): точные целые Python (object), без переполнения int64
++        data = np.array([((-i * inv_mod) % N) * int(self.mod) for i in range(N)], dtype=object)
+         return QROAMClean(
+             [data],
+             selection_bitsizes=(self.window_size,),
+@@ -524,7 +530,7 @@
+         reduced = bb.add(XGate(), q=reduced)
+         target, reduced = bb.add(LessThanConstant(self.bitsize, self.mod), x=target, target=reduced)
+         reduced, target = bb.add(
+-            AddK(QUInt(self.bitsize), self.mod).controlled(), ctrl=reduced, x=target
++            AddK(QUInt(self.bitsize), _FINAL_K(self.mod)).controlled(), ctrl=reduced, x=target  # LOCAL PATCH PR1997: вычитать p, а не прибавлять
+         )
+ 
+         return {'x': x, 'y': y, 'target': target, 'qrom_indices': qrom_indices, 'reduced': reduced}
+@@ -532,7 +538,7 @@
+     def build_call_graph(self, ssa: 'SympySymbolAllocator') -> BloqCountDictT:
+         num_windows = (self.bitsize + self.window_size - 1) // self.window_size
+         return {
+-            AddK(QUInt(self.bitsize), self.mod).controlled(): 1,
++            AddK(QUInt(self.bitsize), _FINAL_K(self.mod)).controlled(): 1,
+             LessThanConstant(bitsize=self.bitsize, less_than_val=self.mod): 1,
+             XGate(): 1,
+             self._window: num_windows,
+@@ -618,9 +624,8 @@
+     def _inversion_data(self) -> np.typing.NDArray:
+         inv_mod = pow(self.mod, 2 ** (self.window_size - 1) - 1, 2**self.window_size)
+         N = 2**self.window_size
+-        data = (-np.arange(N) * inv_mod) % N
+-        data *= self.mod
+-        return data
++        # LOCAL PATCH (verify_bridge3 C2): object-массив точных целых (был int64-переполнение)
++        return np.array([((-i * inv_mod) % N) * int(self.mod) for i in range(N)], dtype=object)
+ 
+     def _classical_action_window(
+         self,
