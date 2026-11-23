@@ -208,7 +208,7 @@ def prove_montgomery(n, w, p=None, *, patched=True, mutant=None, budget=3600, ma
             'invariant T_i < y + p of the generic window: BDD for first window / small n, interval arithmetic where BDD does not fit in memory',
             'w >= 4: composition of the sub-nodes by wire positions + interval arithmetic + exact integer runs (not BDD)',
         ],
-        stages=stages, source_sha256=src, lower_cache_sha256=Path(str(lower_p) + '.sha256').read_text().strip(), work_dir=str(wd),
+        stages=stages, source_sha256=src, lower_cache_sha256=Path(str(lower_p) + '.sha256').read_text().strip(), work_dir=('$QOPT_CACHE/montgomery/' + wd.name) if not work_dir else wd.name,
         seconds=round(time.time() - t_all, 1))
     if out:
         Path(out).parent.mkdir(parents=True, exist_ok=True)

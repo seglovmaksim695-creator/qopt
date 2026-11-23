@@ -1,0 +1,95 @@
+{
+ "mutants": {
+  "mut_n16_w4_M5": {
+   "verdict": "NOT_PROVED",
+   "n": 16,
+   "w": 4,
+   "mutant": "M5",
+   "first_reason": "X(reduced) before window 0: [\"prefix ops before window 0 are not exactly [X(reduced)]: [('x', 15)]\"]",
+   "source_sha256": "787d508a37400120bc6380a264b45aa71993c6d82bc242af9a1285eeeebdff83"
+  },
+  "mut_n64_w1_H1": {
+   "verdict": "NOT_PROVED",
+   "n": 64,
+   "w": 1,
+   "mutant": "H1",
+   "first_reason": "coverage/freshness of sub-node wires failed in windows ['75:SingleWindowModMul', '77:SingleWindowModMul', '79:SingleWindowModMul', '81:SingleWindowModMul'] first notes: ['qaa: non-input (assumed zero) wires of sub-node are window inputs or ",
+   "source_sha256": "787d508a37400120bc6380a264b45aa71993c6d82bc242af9a1285eeeebdff83"
+  },
+  "mut_n64_w1_H2": {
+   "verdict": "NOT_PROVED",
+   "n": 64,
+   "w": 1,
+   "mutant": "H2",
+   "first_reason": "coverage/freshness of sub-node wires failed in windows ['75:SingleWindowModMul', '77:SingleWindowModMul', '79:SingleWindowModMul', '81:SingleWindowModMul'] first notes: ['window ops 1399 (off 1399) != span 1399..2797', 'children: gap/overla",
+   "source_sha256": "787d508a37400120bc6380a264b45aa71993c6d82bc242af9a1285eeeebdff83"
+  },
+  "mut_n64_w1_M1": {
+   "verdict": "NOT_PROVED",
+   "n": 64,
+   "w": 1,
+   "mutant": "M1",
+   "first_reason": "coverage/freshness of sub-node wires failed in windows ['75:SingleWindowModMul', '77:SingleWindowModMul', '79:SingleWindowModMul', '81:SingleWindowModMul'] first notes: ['window ops 1399 (off 1399) != span 1399..2797', 'children: gap/overla",
+   "source_sha256": "787d508a37400120bc6380a264b45aa71993c6d82bc242af9a1285eeeebdff83"
+  },
+  "mut_n64_w1_M1b": {
+   "verdict": "NOT_PROVED",
+   "n": 64,
+   "w": 1,
+   "mutant": "M1b",
+   "first_reason": "coverage/freshness of sub-node wires failed in windows ['75:SingleWindowModMul', '77:SingleWindowModMul', '79:SingleWindowModMul', '81:SingleWindowModMul'] first notes: ['window ops 1399 (off 1399) != span 1399..2797']",
+   "source_sha256": "787d508a37400120bc6380a264b45aa71993c6d82bc242af9a1285eeeebdff83"
+  },
+  "mut_n64_w1_M2": {
+   "verdict": "NOT_PROVED",
+   "n": 64,
+   "w": 1,
+   "mutant": "M2",
+   "first_reason": "coverage/freshness of sub-node wires failed in windows ['75:SingleWindowModMul', '77:SingleWindowModMul', '79:SingleWindowModMul', '81:SingleWindowModMul'] first notes: ['qaa: non-input (assumed zero) wires of sub-node are window inputs or ",
+   "source_sha256": "787d508a37400120bc6380a264b45aa71993c6d82bc242af9a1285eeeebdff83"
+  },
+  "mut_n64_w1_M3": {
+   "verdict": "NOT_PROVED",
+   "n": 64,
+   "w": 1,
+   "mutant": "M3",
+   "first_reason": "coverage/freshness of sub-node wires failed in windows ['75:SingleWindowModMul', '77:SingleWindowModMul', '79:SingleWindowModMul', '81:SingleWindowModMul'] first notes: ['qaa: non-input (assumed zero) wires of sub-node are window inputs or ",
+   "source_sha256": "787d508a37400120bc6380a264b45aa71993c6d82bc242af9a1285eeeebdff83"
+  },
+  "mut_n64_w1_M4": {
+   "verdict": "NOT_PROVED",
+   "n": 64,
+   "w": 1,
+   "mutant": "M4",
+   "first_reason": "coverage/freshness of sub-node wires failed in windows ['75:SingleWindowModMul', '77:SingleWindowModMul', '79:SingleWindowModMul', '81:SingleWindowModMul'] first notes: ['children: gap/overlap before Xor at 2034 (expected 2035)', '1 window ",
+   "source_sha256": "787d508a37400120bc6380a264b45aa71993c6d82bc242af9a1285eeeebdff83"
+  }
+ },
+ "canaries": {
+  "canaries_n16_w4": {
+   "n": 16,
+   "w": 4,
+   "seed": 11,
+   "count": 16,
+   "targeted": 10,
+   "false_proved": 0
+  },
+  "canaries_n64_w1": {
+   "n": 64,
+   "w": 1,
+   "seed": 11,
+   "count": 16,
+   "targeted": 10,
+   "false_proved": 0
+  },
+  "canaries_n64_w2": {
+   "n": 64,
+   "w": 2,
+   "seed": 11,
+   "count": 16,
+   "targeted": 10,
+   "false_proved": 0
+  }
+ },
+ "all_not_proved": true
+}
