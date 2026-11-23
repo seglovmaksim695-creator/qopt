@@ -16,17 +16,17 @@ def extract(n, p, window_size=1):
     for bi in cb.bloq_instances:
         nm = type(bi.bloq).__name__
         if nm not in NAMES:
-            raise SystemExit(f'неожиданный блок в ECAdd: {nm}')
+            raise SystemExit(f'unexpected block in ECAdd: {nm}')
         k = NAMES[nm]
         if k in kinds.values():
-            raise SystemExit(f'шаг {k} встречается дважды')
+            raise SystemExit(f'step {k} occurs twice')
         kinds[bi] = k
     if sorted(kinds.values()) != [1, 2, 3, 4, 5, 6]:
-        raise SystemExit(f'не все шаги: {sorted(kinds.values())}')
+        raise SystemExit(f'not all steps: {sorted(kinds.values())}')
 
     def end(soq, side):
         if soq.idx != ():
-            raise SystemExit(f'регистр с индексом {soq.idx} — схема рассчитана на целые регистры')
+            raise SystemExit(f'register with index {soq.idx}: the scheme expects whole registers')
         if soq.binst is (LeftDangle if side == 'L' else RightDangle):
             return ['in' if side == 'L' else 'out', soq.reg.name]
         return [kinds[soq.binst], soq.reg.name]
@@ -35,29 +35,29 @@ def extract(n, p, window_size=1):
     for c in cb.connections:
         s, d = end(c.left, 'L'), end(c.right, 'R')
         if s[0] == 'out' or d[0] == 'in':
-            raise SystemExit(f'странное соединение {s} -> {d}')
+            raise SystemExit(f'strange connection {s} -> {d}')
         if tuple(s) in used:
-            raise SystemExit(f'выход {s} использован дважды')
+            raise SystemExit(f'output {s} is used twice')
         used.add(tuple(s))
         if d[0] == 'out':
             out[d[1]] = s
         else:
             if d[1] in steps[str(d[0])]:
-                raise SystemExit(f'вход {d} подключён дважды')
+                raise SystemExit(f'input {d} is connected twice')
             steps[str(d[0])][d[1]] = s
-    # каждый шаг получает все свои входы, порядок шагов — топологический
+    # every step gets all its inputs, the order of the steps is topological
     order = []
     for bi, k in sorted(kinds.items(), key=lambda t: t[1]):
         lefts = {r.name for r in bi.bloq.signature.lefts()}
         if lefts != set(steps[str(k)]):
-            raise SystemExit(f'шаг {k}: входы {sorted(lefts)} != подключённые {sorted(steps[str(k)])}')
+            raise SystemExit(f'step {k}: inputs {sorted(lefts)} != connected {sorted(steps[str(k)])}')
         for r, s in steps[str(k)].items():
             if s[0] != 'in' and s[0] >= k:
-                raise SystemExit(f'шаг {k} берёт {r} у шага {s[0]} (не раньше)')
+                raise SystemExit(f'step {k} takes {r} from step {s[0]} (not an earlier one)')
         order.append(k)
     rights = {r.name for r in ECAdd(n, p, window_size).signature.rights()}
     if rights != set(out):
-        raise SystemExit(f'выходы ECAdd {sorted(rights)} != {sorted(out)}')
+        raise SystemExit(f'outputs of ECAdd {sorted(rights)} != {sorted(out)}')
     from qoptct.foreign.qualtran._variant import detect_variant
     var = detect_variant()
     if var['kind'] not in ('original', 'e', 'e4'):

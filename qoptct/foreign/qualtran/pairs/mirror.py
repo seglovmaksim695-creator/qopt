@@ -14,7 +14,7 @@ This is enough for the identity of the pair: classical values on the wires of ev
 from collections import deque
 
 K_X, K_CX, K_AND, K_ERASE = 0, 1, 2, 3
-K_LD, K_CLR = 10, 11     # абстрактные: загрузка таблицы QROM (t ^= b0^s*(b0^b1)) и её снятие; код (b0,b1) в поле t
+K_LD, K_CLR = 10, 11     # abstract: loading of the QROM table (t ^= b0^s*(b0^b1)) and its removal; the code (b0,b1) is in the field t
 
 
 def roles(op):
@@ -77,8 +77,8 @@ def mirror_prog(ops):
 
 def fingerprints(prog, rounds=80, anchors=None):
     anchors = anchors or {}
-    """провод -> цвет: инвариант перенумерации и коммутации (уточнение Вейсфейлера-Лемана по мультимножествам);
-    только подсказка для выбора пары, на корректность проверки не влияет (проверяется каждая операция)."""
+    """wire -> colour: an invariant of renumbering and commutation (Weisfeiler-Leman refinement over multisets);
+    only a hint for choosing the pair, it does not affect the soundness of the check (every operation is checked)."""
     inc = {}
     for op in prog:
         rl = roles(op)
@@ -106,9 +106,9 @@ def fingerprints(prog, rounds=80, anchors=None):
 
 
 def build_items(prog, scratch=()):
-    """список элементов: одиночная операция или БЛОК на проводе-scratch моста (AND ...->t ... ERASE t, все операции между
-    ними). Блок возвращает scratch в 0 и действует только на прочие провода; роли блока: 'r' если провод только читается,
-    'x' если только xor-мишень, иначе 'm' (не коммутирует). Элемент = (ops(tuple), roles(dict))."""
+    """list of elements: a single operation or a BLOCK on the scratch wire of the bridge (AND ...->t ... ERASE t, all operations between
+    them). The block returns scratch to 0 and acts only on the other wires; roles of the block: 'r' if the wire is only read,
+    'x' if only an xor target, otherwise 'm' (does not commute). Element = (ops(tuple), roles(dict))."""
     scr = set(scratch)
     items, i, N = [], 0, len(prog)
     while i < N:
@@ -118,10 +118,10 @@ def build_items(prog, scratch=()):
             j = i + 1
             while j < N and not (prog[j][0] == K_ERASE and prog[j][3] == t):
                 if prog[j][0] in (K_AND, K_ERASE) and prog[j][3] == t:
-                    raise ValueError('вложенный AND на scratch в позиции %d' % j)
+                    raise ValueError('nested AND on scratch at position %d' % j)
                 j += 1
             if j == N:
-                raise ValueError('AND на scratch без erase, позиция %d' % i)
+                raise ValueError('AND on scratch without erase, position %d' % i)
             blk = tuple(prog[i:j + 1])
             rl = {}
             for o in blk:
@@ -148,17 +148,17 @@ def commute_items(r1, r2):
 
 
 def match(fwd, bwd, join, window=4096, pi0=None, scratch=(), scratch_b=None):
-    """join: провода с pi = id (стык). pi0: дополнительные заданные пары (прямой провод -> обратный).
-    scratch / scratch_b: провод(а) scratch моста в прямой / обратной программе (pi между ними задаётся автоматически)."""
+    """join: wires with pi = id (the joint). pi0: additional given pairs (forward wire -> backward wire).
+    scratch / scratch_b: scratch wire(s) of the bridge in the forward / backward program (pi between them is set automatically)."""
     sb = list(scratch if scratch_b is None else scratch_b)
     return match_items(build_items(mirror_prog(fwd), scratch), build_items(list(bwd), sb), join, window, pi0, scratch, sb)
 
 
 def match_items(mir_items, bwd_items, join, window=4096, pi0=None, scratch=(), scratch_b=()):
-    """-> dict(ok, pi, msg, stats). join: провода стыка (pi = id на них). Блоки сопоставляются поэлементно по порядку внутри."""
+    """-> dict(ok, pi, msg, stats). join: wires of the joint (pi = id on them). Blocks are matched element by element in the order inside."""
     st = dict(nb=len(bwd_items), seeded=0, reordered=0, ab_swaps=0, max_window=0, blocks=sum(1 for it in bwd_items if len(it[0]) > 1))
     if len(mir_items) != len(bwd_items):
-        return dict(ok=False, pi=None, msg='число элементов: зеркало %d, обратная %d' % (len(mir_items), len(bwd_items)), stats=st)
+        return dict(ok=False, pi=None, msg='number of elements: mirror %d, backward %d' % (len(mir_items), len(bwd_items)), stats=st)
     mir_ops = [o for it in mir_items for o in it[0]]
     bwd_ops = [o for it in bwd_items for o in it[0]]
     pi = {q: q for q in join}
@@ -167,11 +167,11 @@ def match_items(mir_items, bwd_items, join, window=4096, pi0=None, scratch=(), s
     for a, b in zip(scratch, scratch_b):
         pi[a] = b
     inv = {v: u for u, v in pi.items()}
-    assert len(inv) == len(pi), 'заданная перенумерация не инъективна'
+    assert len(inv) == len(pi), 'the given renumbering is not injective'
     am = {u: ('s', u) for u in pi}
     ab = {v: ('s', u) for u, v in pi.items()}
     fm, fb = fingerprints(mir_ops, anchors=am), fingerprints(bwd_ops, anchors=ab)
-    # провода с единственным цветом в обеих программах: пара определена однозначно (подсказка; итог всё равно проверяется поэлементно)
+    # wires with a unique colour in both programs: the pair is determined uniquely (a hint; the result is still checked element by element)
     cm, cb = {}, {}
     for w, c in fm.items():
         cm.setdefault(c, []).append(w)
@@ -186,7 +186,7 @@ def match_items(mir_items, bwd_items, join, window=4096, pi0=None, scratch=(), s
             nseed += 1
 
     def fits_ops(mo, bo, newmap, use_fp=True):
-        """операции mo (зеркало) и bo (обратная) согласуются с pi + newmap; допускается a<->b у AND/ERASE."""
+        """the operations mo (mirror) and bo (backward) agree with pi + newmap; a<->b is allowed for AND/ERASE."""
         if mo[0] != bo[0]:
             return None
         if mo[0] >= K_LD and mo[3] != bo[3]:
@@ -248,7 +248,7 @@ def match_items(mir_items, bwd_items, join, window=4096, pi0=None, scratch=(), s
         if found is not None and not used:
             st['fp_overrides'] = st.get('fp_overrides', 0) + 1
         if found is None:
-            return dict(ok=False, pi=None, msg='нет пары для элемента %d: %r' % (i, bops[:2]), stats=st, dbg=(pi, inv, list(pend), bit, fm, fb))
+            return dict(ok=False, pi=None, msg='no pair for element %d: %r' % (i, bops[:2]), stats=st, dbg=(pi, inv, list(pend), bit, fm, fb))
         j, newmap, newmap_inv, swc = found
         if j:
             st['reordered'] += 1

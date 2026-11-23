@@ -14,14 +14,14 @@ def clone_piece(P, ops):
 
 
 def piece_canaries(ops, rng, nwires):
-    """-> список (имя, ожидание, новая программа куска). ожидание: 'FAIL' (должно быть не PASS) или 'EQUIV' (равносильно)."""
+    """-> list of (name, expectation, new program of the piece). expectation: 'FAIL' (must not be PASS) or 'EQUIV' (equivalent)."""
     out = []
     N = len(ops)
     wires = sorted({w for o in ops for w in M.wires(o)})
 
     def pick(kind):
         idx = [i for i, o in enumerate(ops) if o[0] == kind]
-        if not idx:  # в абстрактном куске Монтгомери нет вентилей этого вида: берём cx (название строки может говорить «x»)
+        if not idx:  # the abstract Montgomery piece has no gates of this kind: take cx (the name of the row may say "x")
             idx = [i for i, o in enumerate(ops) if o[0] == K_CX]
         return rng.choice(idx)
     # 1 drop gate (cx)
@@ -30,7 +30,7 @@ def piece_canaries(ops, rng, nwires):
     i = pick(K_X); o = ops[:]; del o[i]; out.append(('piece: drop x #%d' % i, 'FAIL', o))
     # 3 drop AND
     i = pick(K_AND); o = ops[:]; del o[i]; out.append(('piece: drop AND #%d' % i, 'FAIL', o))
-    # 4 переставить два несоседних некоммутирующих вентиля
+    # 4 swap two non-adjacent non-commuting gates
     for tries in range(2):
         for _ in range(2000):
             i = rng.randrange(N - 3)
@@ -47,17 +47,17 @@ def piece_canaries(ops, rng, nwires):
         na = rng.choice([w for w in wires if w not in (a, b)])
         o = ops[:]; o[i] = (k, na, b, t, l)
         out.append(('piece: change control wire of cx #%d (%d->%d)' % (i, a, na), 'FAIL', o))
-    # 6 испортить erase: сменить control a
+    # 6 corrupt erase: change control a
     for tries in range(2):
         i = pick(K_ERASE)
         k, a, b, t, l = ops[i]
         na = rng.choice([w for w in wires if w not in (a, b, t)])
         o = ops[:]; o[i] = (k, na, b, t, l)
         out.append(('piece: erase #%d control a %d->%d (correction)' % (i, a, na), 'FAIL', o))
-    # 7 AND -> ERASE той же формы (подмена вида)
+    # 7 AND -> ERASE of the same shape (kind substitution)
     i = pick(K_AND); k, a, b, t, l = ops[i]; o = ops[:]; o[i] = (K_ERASE, a, b, t, -1)
     out.append(('piece: AND #%d replace by erase' % i, 'FAIL', o))
-    # 8 target AND на другой провод
+    # 8 target of AND on another wire
     i = pick(K_AND); k, a, b, t, l = ops[i]
     nt = rng.choice([w for w in wires if w not in (a, b, t)])
     o = ops[:]; o[i] = (k, a, b, nt, l)
@@ -65,9 +65,9 @@ def piece_canaries(ops, rng, nwires):
     # 9 reverse cx
     i = pick(K_CX); k, a, b, t, l = ops[i]; o = ops[:]; o[i] = (k, b, a, t, l)
     out.append(('piece: reverse cx #%d' % i, 'FAIL', o))
-    # 10 extra gate (дубль x)
+    # 10 extra gate (duplicate x)
     i = pick(K_X); o = ops[:]; o.insert(i, ops[i]); out.append(('piece: extra x #%d' % i, 'FAIL', o))
-    # равносильные: соседние коммутирующие
+    # equivalent: adjacent commuting gates
     cnt = 0
     for _ in range(5000):
         i = rng.randrange(N - 1)
@@ -77,7 +77,7 @@ def piece_canaries(ops, rng, nwires):
             cnt += 1
             if cnt == 2:
                 break
-    # AND: поменять местами контроли a,b
+    # AND: swap the controls a,b
     i = pick(K_AND); k, a, b, t, l = ops[i]; o = ops[:]; o[i] = (k, b, a, t, l)
     out.append(('piece: EQUIVALENT: controls a,b of AND #%d' % i, 'EQUIV', o))
     return out
@@ -95,7 +95,7 @@ def macro_canaries(C, rng):
         fn(ms)
         return ms
 
-    # 11 сдвиг провода на стыке итераций: у обратного макро-узла j подменить глобальный провод входа of register на провод соседа
+    # 11 shift of a wire at the joint of iterations: in the backward macro node j replace the global wire of the input of register by the wire of the neighbour
     for tries in range(2):
         j = rng.choice(bidx)
         reg = rng.choice([r for r in inw if len(inw[r]) >= 2])
@@ -104,7 +104,7 @@ def macro_canaries(C, rng):
         def f(ms, j=j, w1=w1, w2=w2):
             m = dict(ms[j]); g = dict(m['g']); g[w1], g[w2] = g[w2], g[w1]; m['g'] = g; ms[j] = m
         out.append(('macro: joint, backward node #%d: swap wires %d,%d of register %s' % (j, w1, w2, reg), 'FAIL', mutated(f)))
-    # 12 перестановка бит junk: у двух соседних обратных узлов поменять провод of register m
+    # 12 permutation of junk bits: in two neighbouring backward nodes swap the wire of register m
     for tries in range(2):
         k = rng.randrange(len(bidx) - 1)
         j1, j2 = bidx[k], bidx[k + 1]
@@ -115,7 +115,7 @@ def macro_canaries(C, rng):
             a, b = dict(ms[j1]), dict(ms[j2]); ga, gb = dict(a['g']), dict(b['g'])
             ga[w], gb[w] = gb[w], ga[w]; a['g'], b['g'] = ga, gb; ms[j1], ms[j2] = a, b
         out.append(('macro: junk, nodes #%d,#%d: swap bit %s' % (j1, j2, reg), 'FAIL', mutated(f)))
-    # 13 порядок макро-узлов: поменять два соседних обратных узла местами
+    # 13 order of the macro nodes: swap two neighbouring backward nodes
     k = rng.randrange(len(bidx) - 1)
     j1, j2 = bidx[k], bidx[k + 1]
 

@@ -26,7 +26,7 @@ def token_canaries(ops, rng):
 
 
 def macro_canaries2(C, rng):
-    """как pair_canary.macro_canaries, но junk-канарейка берёт провод, РЕАЛЬНО различный у двух соседних узлов (иначе мутация пустая)"""
+    """like pair_canary.macro_canaries, but the junk canary takes a wire that REALLY differs between two neighbouring nodes (otherwise the mutation is empty)"""
     out = [c for c in PK.macro_canaries(C, rng) if 'junk' not in c[0]]
     bidx = [i for i, m in enumerate(C.macros) if m['kind'] == 'b']
     Pb = C.Pb

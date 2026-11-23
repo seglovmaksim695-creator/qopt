@@ -10,22 +10,12 @@ import sys, json, time, hashlib
 import numpy as np
 from qoptct.foreign.qualtran.bridge.from_qualtran import lower_graph
 from qoptct.foreign.qualtran.bridge.fredkin_rule import FredkinRules
-from qoptct.foreign.qualtran.bridge.qualtran_layout import AtomExpansion
 from qoptct.foreign.qualtran.bridge.rules import translate
 from qoptct.verify.compose.lift import lift
+from qoptct.foreign.qualtran.kaliski.lower import (BIG, LowerError as CErr, need, lower_full, piece_interface,
+                                                   macro_leaf)
 from . import mirror as M
 from .pair_kal import pair_bloq, ops_list, join_wires, lift_pair
-
-BIG = 10 ** 9
-
-
-class CErr(Exception):
-    pass
-
-
-def need(c, msg):
-    if not c:
-        raise CErr(msg)
 
 
 class PieceG:
@@ -34,18 +24,10 @@ class PieceG:
         self.n, self.p, self.adjoint = n, p, adjoint
         b = _KaliskiIteration(n, p)
         self.bloq = b.adjoint() if adjoint else b
-        book = FredkinRules()
-        self.low = low = lower_graph(self.bloq, max_leaves=BIG, max_nodes=BIG, extra_atom_rule=book.chain_with_basis_and_a1)
-        self.prog = prog = translate(low, low['inputs'], low['outputs'])
-        book.bind(low, prog)
-        self.L = L = lift(prog['qasm'])
-        self.ops = ops_list(L)
-        self.nsrc = low['nq']
-        self.scratch = prog['layout']['bridge_scratch']
-        need(self.scratch in ([], [self.nsrc]), 'unexpected scratch layout')
-        self.nin = sum(len(e['wires_msb']) for d in low['registers']['inputs'] for e in d['elements'])
-        need(sorted(q for d in low['registers']['inputs'] for e in d['elements'] for q in e['wires_msb']) == list(range(self.nin)),
-             'inputs are not wires 0..nin-1')
+        self.L, self.low, self.prog, _binding = lower_full(self.bloq)
+        self.ops = ops_list(self.L)
+        self.nsrc, self.scratch, self.nin = piece_interface(self.low, self.prog)
+        low, prog = self.low, self.prog
         self.ins = {d['name']: [q for e in d['elements'] for q in e['wires_msb']] for d in low['registers']['inputs']}
         self.outs = {d['name']: [q for e in d['elements'] for q in e['wires_msb']] for d in low['registers']['outputs']}
         self.sha = hashlib.sha256(prog['qasm'].encode()).hexdigest()
@@ -53,7 +35,7 @@ class PieceG:
 
 class PairComposed:
     def __init__(self, n, p, pieces=None):
-        from qualtran import Register, QAny, Adjoint
+        from qualtran import Adjoint
         from qualtran.bloqs.mod_arithmetic.mod_division import _KaliskiIteration
         self.n, self.p = n, p
         self.Pf, self.Pb = pieces or (PieceG(n, p, False), PieceG(n, p, True))
@@ -71,25 +53,7 @@ class PairComposed:
                 need(bloq == Pb.bloq, 'adjoint iteration differs')
             if P is None:
                 return book.chain_with_basis_and_a1(bloq, inputs, allocate, path)
-            reg_in = P.low['registers']['inputs']
-            nanc = P.nsrc - P.nin
-            anc = allocate([Register('anc', QAny(nanc))], path + '/macro')['anc'].ravel() if nanc else []
-            g = {}
-            for d in reg_in:
-                loc = d['elements'][0]['wires_msb']
-                glob = [int(q) for q in inputs[d['name']].flat]
-                need(len(loc) == len(glob), 'macro: register width')
-                g.update(zip(loc, glob))
-            for j in range(nanc):
-                g[P.nin + j] = int(anc[j])
-            need(len(g) == P.nsrc and len(set(g.values())) == P.nsrc, 'macro: map not injective')
-            outs = {}
-            for d in P.low['registers']['outputs']:
-                loc = d['elements'][0]['wires_msb']
-                outs[d['name']] = np.asarray([g[w] for w in loc], dtype=object).reshape(inputs[d['name']].shape)
-            macros.append(dict(path=path, g=g, kind=kind))
-            leaf = dict(name='macro', qubits=sorted(g.values()), path=path, macro=len(macros) - 1)
-            return AtomExpansion(outs, [leaf], tuple(g[w] for w in P.low['retired_wires']))
+            return macro_leaf(P, inputs, allocate, path, macros, kind=kind)
         self.bloq = pair_bloq(n, p)
         self.top = top = lower_graph(self.bloq, max_leaves=BIG, max_nodes=BIG, extra_atom_rule=rule)
         need(len(macros) == 4 * n, 'expected 4n iteration nodes, got %d' % len(macros))
@@ -114,7 +78,7 @@ class PairComposed:
         self.top_ops = ops_list(TL)
         self.top_cut = [starts[i] for i, _ in mpos]
         self.macros = macros
-        # какая половина: трасса верхнего уровня
+        # which half: the trace of the top level
         halves = [row['leaf']['path'].split('/')[1].split(':')[0] for row in tprog['trace']]
         need(set(halves) <= {'0', '1'}, 'halves')
         first_b = next((i for i, h in enumerate(halves) if h == '1'), len(halves))
@@ -124,7 +88,7 @@ class PairComposed:
         for m in macros:
             m['half'] = 'f' if m['path'].split('/')[1].split(':')[0] == '0' else 'b'
             need((m['half'] == 'f') == (m['kind'] == 'f'), 'half/kind mismatch')
-            # глобальный провод scratch куска
+            # global scratch wire of the piece
         self.nmac = len(macros)
 
     def gfull(self, m):
@@ -156,27 +120,27 @@ class PairComposed:
 
 
 def piece_pi(Pf, Pb):
-    """зеркало куска: pi_p (прямой локальный провод -> обратный локальный), интерфейс задан."""
+    """mirror of the piece: pi_p (forward local wire -> backward local wire), the interface is given."""
     seed = {}
     for r, wf in Pf.outs.items():
         wb = Pb.ins[r]
-        need(len(wf) == len(wb), 'ширина регистра %s' % r)
+        need(len(wf) == len(wb), 'width of register %s' % r)
         for a, b in zip(wf, wb):
             seed[a] = b
     for r, wf in Pf.ins.items():
         wb = Pb.outs[r]
-        need(len(wf) == len(wb), 'ширина регистра %s' % r)
+        need(len(wf) == len(wb), 'width of register %s' % r)
         for a, b in zip(wf, wb):
-            need(seed.get(a, b) == b, 'интерфейс: провод %d сопоставлен двум' % a)
+            need(seed.get(a, b) == b, 'interface: wire %d is matched to two' % a)
             seed[a] = b
-    need(len(set(seed.values())) == len(seed), 'интерфейс не инъективен')
+    need(len(set(seed.values())) == len(seed), 'the interface is not injective')
     res = M.match(Pf.ops, Pb.ops, [], pi0=seed, scratch=list(Pf.scratch), scratch_b=list(Pb.scratch))
     return res, seed
 
 
 def check_composed(C, Pb=None, macros=None, T=None, piece_res=None, quick=False):
-    """Pb: (возможно испорченная) обратная итерация; macros: (возможно испорченный) список макро-узлов; T: верхние операции.
-    piece_res: готовый результат сопоставления куска (для канареек, не меняющих кусок)."""
+    """Pb: (possibly corrupted) backward iteration; macros: (possibly corrupted) list of macro nodes; T: top operations.
+    piece_res: ready result of matching the piece (for canaries that do not change the piece)."""
     n = C.n
     Pb = Pb or C.Pb
     macros = macros if macros is not None else C.macros
@@ -200,29 +164,29 @@ def check_composed(C, Pb=None, macros=None, T=None, piece_res=None, quick=False)
     def put(u, v, where):
         a, b = int(pi[u]), int(inv[v])
         if (a != -1 and a != v) or (b != -1 and b != u):
-            raise CErr('конфликт перенумерации (%s): %d -> %d, было %r / обр. %r' % (where, u, v, a, b))
+            raise CErr('renumbering conflict (%s): %d -> %d, was %r / inverse %r' % (where, u, v, a, b))
         if a == -1:
             npi[0] += 1
         pi[u] = v
         inv[v] = u
     try:
         nw = getattr(C, 'nwin', 2 * n)
-        need(len(fm) == len(bm) == nw, 'число макро-узлов')
+        need(len(fm) == len(bm) == nw, 'number of macro nodes')
         for k in range(nw):
             mf, mb = fm[k], bm[nw - 1 - k]
             for w, v in pip.items():
                 if w in mf['g'] and v in mb['g']:
-                    put(mf['g'][w], mb['g'][v], 'макро %d' % k)
+                    put(mf['g'][w], mb['g'][v], 'macro %d' % k)
         for q in C.scratch:
             put(q, q, 'scratch')
         r['pi_macro_size'] = npi[0]
         cf = {C.top_cut[i] for i, m in enumerate(macros) if m['kind'] == 'f'}
         cb = {C.top_cut[i] for i, m in enumerate(macros) if m['kind'] == 'b'}
-        need(len(cf) == 1 and len(cb) == 1, 'макро-узлы не подряд')
+        need(len(cf) == 1 and len(cb) == 1, 'macro nodes are not consecutive')
         cf, cb = cf.pop(), cb.pop()
         Fe = C.F_end
         F_pre, F_post, B_pre, B_post = T[:cf], T[cf:Fe], T[Fe:cb], T[cb:]
-        # операции перед прямыми макро-узлами, не трогающие их провода, коммутируют с ними: переносим в начало F_post
+        # operations before the forward macro nodes that do not touch their wires commute with them: move them to the start of F_post
         if all('tw' in m for m in fm):
             twf = set().union(*[m['tw'] for m in fm])
             k = len(F_pre)
@@ -233,7 +197,7 @@ def check_composed(C, Pb=None, macros=None, T=None, piece_res=None, quick=False)
         r['top_parts'] = dict(F_pre=len(F_pre), F_post=len(F_post), B_pre=len(B_pre), B_post=len(B_post))
         J = join_wires(C.top_low)
         for q in J:
-            put(q, q, 'стык')
+            put(q, q, 'joint')
         scr = list(C.scratch)
         touched = {w for part in (F_pre, F_post, B_pre, B_post) for o in part for w in M.wires(o)}
         seed_top = {u: int(pi[u]) for u in touched if pi[u] != -1}
@@ -251,7 +215,7 @@ def check_composed(C, Pb=None, macros=None, T=None, piece_res=None, quick=False)
         if ok_all:
             r['pi_id_on_join'] = all(int(pi[q]) == q for q in J)
             r['pi_xin_is_xout'] = all([int(pi[q]) for q in C.top_low['inputs'][k]] == list(C.top_low['outputs'][k]) for k in C.top_low['inputs'])
-            r['pi_injective'] = True  # инъективность проверяется на каждом put (массив inv)
+            r['pi_injective'] = True  # injectivity is checked at every put (array inv)
         r['mirror_ok'] = bool(res['ok'] and ok_all and r.get('pi_id_on_join') and r.get('pi_xin_is_xout') and r.get('pi_injective'))
     except CErr as e:
         r['mirror_ok'] = False

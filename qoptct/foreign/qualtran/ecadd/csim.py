@@ -14,7 +14,7 @@ def setw(vals, ws, v):
 
 
 def simulate(prog, inputs, n, p, opaque_values=None, orc=None, post=None):
-    """inputs: имя -> int. opaque_values: список dict для прямых ящиков (по порядку) или None (тогда orc)."""
+    """inputs: name -> int. opaque_values: list of dicts for the forward boxes (in order) or None (then orc)."""
     N = prog['N']
     vals = [0] * N
     for name, ws in prog['inputs'].items():

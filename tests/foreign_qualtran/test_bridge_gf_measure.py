@@ -50,11 +50,11 @@ def local_instruments():
     from qualtran import CBit, CtrlSpec
     from qualtran.bloqs.basic_gates import CZ, MeasureX
 
-    # Нативный MeasureX задаёт проекторы как tensor[q_ket,q_bra,c].
+    # The native MeasureX gives the projectors as tensor[q_ket,q_bra,c].
     native_tensor = next(t for t in MeasureX().my_tensors(
         incoming={'q': 'input_q'}, outgoing={'c': 'output_c'}) if hasattr(t, 'data'))
     data = np.asarray(native_tensor.data)
-    require(data.shape == (2, 2, 2), 'Изменилась форма исходного тензора MeasureX')
+    require(data.shape == (2, 2, 2), 'The shape of the source tensor of MeasureX changed')
     states, branches, max_error = 0, 0, 0.0
     for cv in (None, 0, 1):
         ops = [('measure_x', 2, 0)]
@@ -80,19 +80,19 @@ def local_instruments():
                 expected = diagonal * (psi[0] + (-1)**m * psi[1]) / np.sqrt(2)
                 actual_full = vector_branch(qasm, state, (m,))
                 max_error = max(max_error, close(actual_full[:4], expected, 'MeasureX/reset relative phase'))
-                close(actual_full[4:], np.zeros(4), 'Измеренный провод обязан стать |0>')
+                close(actual_full[4:], np.zeros(4), 'The measured wire must become |0>')
                 source_rho = np.einsum('ta,ub,tu->ab', psi, psi.conj(), data[:, :, m])
                 source_rho = diagonal[:, None] * source_rho * diagonal.conj()[None, :]
                 target_rho = np.outer(actual_full[:4], actual_full[:4].conj())
-                close(source_rho, target_rho, 'Нативный инструмент MeasureX и классический CZ')
+                close(source_rho, target_rho, 'The native instrument MeasureX and the classical CZ')
                 probability = float(np.vdot(actual_full, actual_full).real)
-                close(probability, np.trace(source_rho).real, 'Вероятность ветви')
+                close(probability, np.trace(source_rho).real, 'Probability of the branch')
                 total_probability += probability
                 reduced_channel += target_rho
                 native_channel += source_rho
                 branches += 1
-            close(total_probability, 1.0, 'Нормировка после Discard classical outcome')
-            close(reduced_channel, native_channel, 'Discard суммирует плотности, не амплитуды')
+            close(total_probability, 1.0, 'Normalisation after Discard classical outcome')
+            close(reduced_channel, native_channel, 'Discard sums densities, not amplitudes')
     return {'status': 'PASS', 'states': states, 'branches': branches,
             'max_vector_error': max_error, 'source_tensor_checked': True,
             'scope': 'MeasureX/reset; classically controlled CZ with cv=0,1; classical Discard'}
@@ -105,9 +105,9 @@ def parity_rules():
     for width in range(5):
         for values in itertools.product((0, 1), repeat=width):
             actual = Parity(width).on_classical_vals(x=np.asarray(values, dtype=np.uint8))
-            require(np.array_equal(actual['x'], values), 'Parity изменил сохраняемые классические входы')
+            require(np.array_equal(actual['x'], values), 'Parity changed the preserved classical inputs')
             parity = sum(values) % 2
-            require(int(actual['parity']) == parity, 'Нативный Parity расходится с XOR')
+            require(int(actual['parity']) == parity, 'The native Parity differs from XOR')
             tables += 1
             for cv in (0, 1):
                 ops = [('measure_x', 2 + j, j) for j in range(width)]
@@ -145,7 +145,7 @@ def malformed_rejections():
         except GFMeasureError:
             rejected.append(label)
         else:
-            raise AssertionError('Ошибочная раскладка принята: ' + label)
+            raise AssertionError('A wrong layout was accepted: ' + label)
     header = 'OPENQASM 3;\ninclude "stdgates.inc";\nqubit[3] q;\nbit[1] c;\n'
     for text in ('if (c[0]) {cz q[0], q[1];}', 'h q[-1];',
                  'c[0] = measure q[2];\nif (c[0] || 1) {x q[1];}', 'reset q[0];'):
@@ -154,7 +154,7 @@ def malformed_rejections():
         except GFMeasureError:
             rejected.append(text)
         else:
-            raise AssertionError('Parser принял текст вне A2 языка: ' + text)
+            raise AssertionError('The parser accepted text outside the A2 language: ' + text)
     return {'status': 'PASS', 'count': len(rejected), 'cases': rejected}
 
 
@@ -172,8 +172,8 @@ def source_mbuc(n):
     qasm = emit_qasm(program)
     ins, outs = program['layout']['inputs'], program['layout']['outputs']
     measure_entries = [entry for entry in program['trace'] if entry['rule'] == 'measure_x_reset_consumed_wire']
-    require(len(measure_entries) == n, 'Ровно n исходных X-измерений')
-    require([entry['binst_i'] for entry in program['trace']] == sorted(entry['binst_i'] for entry in program['trace']), 'Порядок bb.add изменён')
+    require(len(measure_entries) == n, 'Exactly n source X-measurements')
+    require([entry['binst_i'] for entry in program['trace']] == sorted(entry['binst_i'] for entry in program['trace']), 'The order of bb.add changed')
     outcomes_list = list(itertools.product((0, 1), repeat=n))
     native_phases = np.empty((len(outcomes_list), 1 << program['nq']), dtype=np.int8)
     native_output = np.empty(1 << program['nq'], dtype=np.int64)
@@ -187,15 +187,15 @@ def source_mbuc(n):
             fixed = {entry['binst_i']: value for entry, value in zip(measure_entries, outcomes)}
             native = PhasedClassicalSimState.from_cbloq(program['_source'], field_values, fixed_random_vals=fixed)
             result = native.simulate()
-            require(set(result) == {'x', 'y'}, 'Измеренный результат не должен быть source output')
+            require(set(result) == {'x', 'y'}, 'The measured result must not be a source output')
             actual_values = {key: int(value) for key, value in result.items()}
-            require(actual_values == {'x': x, 'y': y}, 'Исходный блок изменил операнды')
+            require(actual_values == {'x': x, 'y': y}, 'The source block changed the operands')
             expected_bits = _encode(actual_values, outs)
             bits, sign, count = basis_branch(program, initial, outcomes)
-            require(bits == expected_bits and count == n, 'IR изменил базисное действие источника')
-            close(sign, native.phase, 'IR и нативная фаза исходной ветви')
+            require(bits == expected_bits and count == n, 'The IR changed the basis action of the source')
+            close(sign, native.phase, 'IR and the native phase of the source branch')
             if product_register == independent_product:
-                close(sign, 1, 'Верное произведение должно сниматься без зависимой фазы')
+                close(sign, 1, 'A correct product must be removed without a dependent phase')
             native_phases[branch, initial] = sign
             native_output[initial] = expected_bits
             if n <= 3:
@@ -203,16 +203,16 @@ def source_mbuc(n):
                 state[initial] = 1
                 expected = np.zeros_like(state)
                 expected[expected_bits] = sign / np.sqrt(1 << n)
-                close(vector_branch(qasm, state, outcomes), expected, 'Фактический QASM и исходная базисная ветвь')
+                close(vector_branch(qasm, state, outcomes), expected, 'The actual QASM and the source basis branch')
                 raw_basis += 1
             cases += 1
 
     rng = np.random.default_rng(20261121 + n)
     vector_cases = []
     for supported in (False, True):
-        # Две независимые комплексные суперпозиции: произвольный result и
-        # обещанная область result=x*y. В первом случае вероятности ветвей
-        # вообще не обязаны быть равными.
+        # Two independent complex superpositions: an arbitrary result and
+        # the promised domain result=x*y. In the first case the probabilities of the branches
+        # need not be equal at all.
         state = rng.normal(size=1 << program['nq']) + 1j * rng.normal(size=1 << program['nq'])
         if supported:
             valid = np.zeros_like(state)
@@ -227,13 +227,13 @@ def source_mbuc(n):
             expected = np.zeros_like(state)
             np.add.at(expected, native_output, state * native_phases[branch] / np.sqrt(1 << n))
             actual = vector_branch(qasm, state, outcomes)
-            close(actual, expected, 'Нативная линейная суперпозиция и QASM, включая фазу')
+            close(actual, expected, 'The native linear superposition and QASM, including the phase')
             probability = float(np.vdot(actual, actual).real)
             if supported:
-                close(probability, 1 / (1 << n), 'Вероятность на обещанной области result=x*y')
+                close(probability, 1 / (1 << n), 'Probability on the promised domain result=x*y')
             total += probability
             vector_cases.append({'result_equals_product': supported, 'outcomes': outcomes, 'probability': probability})
-        close(total, 1.0, 'Сумма вероятностей всех ветвей')
+        close(total, 1.0, 'Sum of the probabilities of all branches')
 
     return {'status': 'PASS', 'n': n, 'field_poly': program['field_poly'],
             'source_basis_branches': cases, 'actual_qasm_basis_branches': raw_basis,

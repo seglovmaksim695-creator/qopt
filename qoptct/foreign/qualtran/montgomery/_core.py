@@ -39,7 +39,7 @@ def is_prime(n):
 
 
 def prime_for(n):
-    """n=256: 2^255-19; иначе наибольшее простое p <= 2^(n-1) (тогда 2p-1 < 2^n)"""
+    """n=256: 2^255-19; otherwise the largest prime p <= 2^(n-1) (then 2p-1 < 2^n)"""
     if n == 256: return 2 ** 255 - 19
     p = 2 ** (n - 1)
     while not is_prime(p): p -= 1
@@ -58,7 +58,7 @@ def lower_translate(bloq):
 
 
 def reference(n, w, p, x, y):
-    """точная рекуррентность Монтгомери (правильная версия: вычитание p). -> dict outputs"""
+    """exact Montgomery recurrence (the correct version: subtraction of p). -> dict outputs"""
     N = 1 << w
     inv = pow(p, 2 ** (w - 1) - 1, N)
     T = 0; hist = 0
@@ -73,7 +73,7 @@ def reference(n, w, p, x, y):
 
 
 def reference_orig(n, w, p, x, y):
-    """неисправленная версия: при T>=p прибавляется +p (по модулю 2^n)"""
+    """unfixed version: for T>=p, +p is added (modulo 2^n)"""
     r = reference(n, w, p, x, y)
     t = r['T'] + p if r['reduced'] else r['T']
     r['target'] = t % (1 << n)
@@ -102,7 +102,7 @@ def compact(ops, words_in, words_out):
     def add(q):
         if q not in seen:
             seen.add(q); order.append(q)
-    for d in (words_in, words_out):          # КАНОНИЧЕСКАЯ нумерация: сначала слова контракта, потом по первому появлению в операциях
+    for d in (words_in, words_out):          # CANONICAL numbering: first the words of the contract, then by first appearance in the operations
         for ws in d.values():
             for q in ws: add(q)
     for o in ops:
@@ -138,7 +138,7 @@ class Params:
         s.N = 1 << w
         s.inv = pow(p, 2 ** (w - 1) - 1, s.N)
         s.c = [(-m * s.inv) % s.N for m in range(s.N)]
-        for m in range(s.N):   # целочисленный факт: p*c(m)+m = 0 mod 2^w
+        for m in range(s.N):   # integer fact: p*c(m)+m = 0 mod 2^w
             assert (p * s.c[m] + m) % s.N == 0
         s.table = [s.c[m] * p for m in range(s.N)]
 
@@ -209,7 +209,7 @@ def bits_set(val, wires):
 
 
 def sim_check(kind, P, nq, ops, wi, wo, first, rng, count):
-    """независимая симуляция bridge.sim; ожидаемое считает отдельный целочисленный код"""
+    """independent simulation of bridge.sim; the expected value is computed by separate integer code"""
     n, w, p = P.n, P.w, P.p
     cases = []
     if kind == 'win':
@@ -316,7 +316,7 @@ def support(ops, wi, wo):
 
 
 def bookkeeping(segs, low, n, w):
-    """G5: учёт живых проводов. Вход сегмента обязан быть живым; не-входные провода сегмента обязаны быть свежими (никто раньше не трогал)."""
+    """G5: accounting of live wires. The input of a segment must be live; the non-input wires of a segment must be fresh (nobody touched them before)."""
     res = dict(ok=True, notes=[])
     prog_in = {q for k in ('x', 'y') for q in low['inputs'][k]}
     live = set(prog_in); touched = set(prog_in) & set()
@@ -324,30 +324,30 @@ def bookkeeping(segs, low, n, w):
     for label, kind, sops, wi, wo, first in segs:
         ins = {q for v in wi.values() for q in v}; outs = {q for v in wo.values() for q in v}
         sup = support(sops, wi, wo)
-        if not ins <= live: res['ok'] = False; res['notes'].append(f'{label}: вход не живой {sorted(ins - live)[:5]}')
+        if not ins <= live: res['ok'] = False; res['notes'].append(f'{label}: input is not live {sorted(ins - live)[:5]}')
         bad_fresh = (sup - ins) & (touched | seen_prog_in)
-        if bad_fresh: res['ok'] = False; res['notes'].append(f'{label}: не-входные провода не свежие {sorted(bad_fresh)[:5]}')
+        if bad_fresh: res['ok'] = False; res['notes'].append(f'{label}: non-input wires are not fresh {sorted(bad_fresh)[:5]}')
         live = (live - ins) | outs
         touched |= sup
     outw = {q for k in ('x', 'y', 'target', 'qrom_indices', 'reduced') for q in low['outputs'][k]}
     lastT = segs[len(segs) - 3][4]['T']
     extra = live - outw
-    if extra != set(lastT[n:]): res['ok'] = False; res['notes'].append(f'живые провода в конце != выходы + старшие w провода T: {sorted(extra)[:6]}')
-    if not outw <= live: res['ok'] = False; res['notes'].append('не все выходные провода живы в конце')
+    if extra != set(lastT[n:]): res['ok'] = False; res['notes'].append(f'live wires at the end != outputs + the high w wires of T: {sorted(extra)[:6]}')
+    if not outw <= live: res['ok'] = False; res['notes'].append('not all output wires are live at the end')
     res['final_high_T_wires_must_be_zero'] = sorted(extra)
     return res
 
 
 def invariant_checks(P, cases=(True, False)):
-    """BDD: (1) pre => T'<y+p (инвариант окна), T'<2^n; (2) первое окно (T=0) => то же; (3) Z mod 2^w = 0 (целочисленный факт таблицы)"""
+    """BDD: (1) pre => T'<y+p (window invariant), T'<2^n; (2) first window (T=0) => the same; (3) Z mod 2^w = 0 (integer fact of the table)"""
     from qoptct.verify.bdd import BDD, ZERO, ONE
     from qoptct.verify.ksym import SymInt, lookup
     n, w, p = P.n, P.w, P.p
     out = {}
     for first in cases:
         if ((not first) and n > 192) or w >= 4:
-            # BDD-проверка generic-окна при n=256 не помещается в 3 ГБ; даём точное целочисленное доказательство (интервальная арифметика):
-            # T<y+p, y<p, x<2^w, c(m)<2^w  =>  Z=T+x*y+c*p <= 2^w*(y+p)-1  =>  (Z делится на 2^w)  T'=Z/2^w < y+p < 2p <= 2^n.
+            # the BDD check of the generic window at n=256 does not fit in 3 GB; we give an exact integer proof (interval arithmetic):
+            # T<y+p, y<p, x<2^w, c(m)<2^w  =>  Z=T+x*y+c*p <= 2^w*(y+p)-1  =>  (Z is divisible by 2^w)  T'=Z/2^w < y+p < 2p <= 2^n.
             N_ = 1 << w
             tab_ok = all(0 <= P.c[m] < N_ for m in range(N_))
             low_ok = all((m + P.c[m] * p) % N_ == 0 for m in range(N_))   # (T+x*y) mod 2^w = m  =>  Z mod 2^w = 0
@@ -357,7 +357,7 @@ def invariant_checks(P, cases=(True, False)):
         B = BDD()
         mk = lambda k: SymInt(B, [B.new_var()[1] for _ in range(k)])
         xs = mk(w)
-        # порядок как у спецификации: биты слов чередуются; здесь свои переменные (порядок для проверки импликации)
+        # order as in the specification: the bits of the words are interleaved; here own variables (the order for checking the implication)
         y = SymInt(B, []); T = SymInt(B, [])
         yb, Tb = [], []
         for i in range(n + w):
@@ -390,7 +390,7 @@ def invariant_checks(P, cases=(True, False)):
 
 
 def telescoping(n, w):
-    """точная символьная проверка: 2^n*T_N = x*y + p*sum c_i 2^(w i), T_{i+1}=(T_i+x_i*y+c_i*p)/2^w, T_0=0 (дроби, мономы x_i*y и c_i*p)"""
+    """exact symbolic check: 2^n*T_N = x*y + p*sum c_i 2^(w i), T_{i+1}=(T_i+x_i*y+c_i*p)/2^w, T_0=0 (fractions, monomials x_i*y and c_i*p)"""
     from fractions import Fraction
     N = n // w
     T = {}

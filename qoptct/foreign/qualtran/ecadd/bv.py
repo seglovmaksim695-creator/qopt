@@ -2,8 +2,8 @@
 This is the language of the SPECIFICATIONS: the scheme takes no part here."""
 from qoptct.verify.bdd import ONE, ZERO
 
-# Упрощение под допущением: исполнитель на время доказательства ставит SIMP(f) -> константа, если f постоянна
-# при текущем допущении A (иначе f). Значения формул при этом не меняются на A — проверки идут под A.
+# Simplification under an assumption: during the proof the executor makes SIMP(f) a constant if f is constant
+# under the current assumption A (else f). The values of the formulas do not change on A: the checks run under A.
 SIMP = None
 
 
@@ -31,7 +31,7 @@ def ite(B, c, X, Y):
 
 
 def add(B, X, Y):
-    """X+Y, ширина w+1 (точная сумма)."""
+    """X+Y, width w+1 (exact sum)."""
     assert len(X) == len(Y)
     out, c = [], ZERO
     for x, y in zip(X, Y):
@@ -82,7 +82,7 @@ def all_of(B, *fs):
 
 
 def modadd(B, X, Y, p):
-    """(X+Y) mod p при X,Y<p."""
+    """(X+Y) mod p for X,Y<p."""
     w = len(X)
     S = add(B, X, Y)
     D, br = sub(B, S, const(p, w + 1))
@@ -90,7 +90,7 @@ def modadd(B, X, Y, p):
 
 
 def modsub(B, X, Y, p):
-    """(X-Y) mod p при X,Y<p."""
+    """(X-Y) mod p for X,Y<p."""
     w = len(X)
     D, br = sub(B, X, Y)
     E = add(B, D, const(p, w))[:w]

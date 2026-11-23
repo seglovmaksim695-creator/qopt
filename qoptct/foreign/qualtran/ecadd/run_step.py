@@ -41,11 +41,11 @@ def main(argv=None):
     ap.add_argument('--p', type=str, required=True)
     ap.add_argument('--out', default=None)
     ap.add_argument('--nolift', action='store_true')
-    ap.add_argument('--observe', action='store_true', help='шаги 5,6: без P5/P6, конечные значения освобождаемых проводов = формулам')
+    ap.add_argument('--observe', action='store_true', help='steps 5,6: without P5/P6, final values of the released wires = the formulas')
     ap.add_argument('--only-flags', default=None,
-                    help='ограничить наборы флагов, напр. "f1=0,f2=1,f3=0,f4=0,ctrl=0;f1=1,..." (утверждение только для них)')
+                    help='restrict the flag sets, e.g. "f1=0,f2=1,f3=0,f4=0,ctrl=0;f1=1,..." (the claim holds only for them)')
     a = ap.parse_args(argv)
-    p = eval(a.p, {}, {})  # допускает 2**255-19
+    p = eval(a.p, {}, {})  # allows 2**255-19
     from qoptct.foreign.qualtran.ecadd.core import build_program, Run, Fail
     from qoptct.foreign.qualtran.ecadd.specs import STEPS
     vi = version_info()

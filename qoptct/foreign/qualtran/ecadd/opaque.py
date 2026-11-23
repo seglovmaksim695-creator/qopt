@@ -17,7 +17,7 @@ def opaque_kind(bloq):
 
 
 def state_atom(bloq, inputs, allocate, path):
-    """ZeroState / IntState: свежие нулевые провода (+ x на единичных битах val). MSB-first."""
+    """ZeroState / IntState: fresh zero wires (+ x on the one bits of val). MSB-first."""
     from qualtran.bloqs.basic_gates import ZeroState, IntState
     t = type(bloq)
     if t not in (ZeroState, IntState):

@@ -12,7 +12,7 @@ from . import ec
 
 
 def _wrap_and(ops, i):
-    """and(a,b,t) и её erase -> обе с инверсией a (согласованно): меняется только предикат лестницы."""
+    """and(a,b,t) and its erase -> both with a inverted (consistently): only the predicate of the ladder changes."""
     _, a, b, t = ops[i]
     j = next(j for j in range(i + 1, len(ops)) if ops[j][0] == 'erase' and ops[j][1] == t)
     out = ops[:i] + [('x', a), ops[i], ('x', a)] + ops[i + 1:j] + [('x', a), ops[j], ('x', a)] + ops[j + 1:]
@@ -35,7 +35,7 @@ def make_mutations(k, tr, low, rnd, count):
                 idx.extend(range(lo, hi))
         return idx
 
-    # --- целевые: стыки с ящиками
+    # --- targeted: joints with the boxes
     for li, leaf in enumerate(low['leaves']):
         if leaf['name'] != 'opaque':
             continue
@@ -54,11 +54,11 @@ def make_mutations(k, tr, low, rnd, count):
         else:
             def fn(tr, low, li=li):
                 L = list(low['leaves']); L[li] = copy.deepcopy(L[li]); w = L[li]['regs_in']['x']
-                L[li]['regs_out']['x'] = w  # THRU: тот же список
+                L[li]['regs_out']['x'] = w  # THRU: the same list
                 w[-1], w[-2] = w[-2], w[-1]
                 return tr['ops'], L
             add(f'joint:{kind}#{li}:swap-low-bits-x', True, fn)
-    # --- целевые: поправки стираний в важных областях
+    # --- targeted: erasure corrections in the important regions
     erases = [i for i, op in enumerate(ops) if op[0] == 'erase']
     hot = {1: r'^(20|21|22|23):', 2: r'ControlledViaAnd|ModSub|CModSub', 3: r'CModSub|ModDbl|CModAdd',
            4: r'ModSub', 5: r'ControlledViaAnd|CModNeg|ModAdd|CModSub', 6: r'^(0|1):|CModSub|CModAdd|Equals|MultiAnd'}[k]
@@ -70,12 +70,12 @@ def make_mutations(k, tr, low, rnd, count):
             c = next(q for q in live_in if q not in (a, b, t))
             o[i] = ('erase', t, (('cz', a, c),)); return o, low['leaves']
         add(f'erase-correction:op{i}', True, fn)
-    # --- целевые: редкие входы (проверка на ноль / равенство: инверсия одного управления лестницы)
+    # --- targeted: rare inputs (test for zero / equality: inversion of one control of the ladder)
     zero_regions = in_region(r'MultiControlX|Equals|ModNeg|ControlledViaAnd|Controlled$|MultiAnd')
     ands = [i for i in zero_regions if ops[i][0] == 'and']
     for i in rnd.sample(ands, min(6, len(ands))):
         add(f'rare-input:flip-ladder-control-op{i}', True, lambda tr, low, i=i: (_wrap_and(tr['ops'], i), low['leaves']))
-    # --- целевые: перенос через все биты (последние cx/and сумматоров)
+    # --- targeted: carry through all bits (last cx/and of the adders)
     add_regions = [key for key in reg if re.search(r'ModSub|ModAdd|CModSub|CModAdd|ModDbl|ModNeg|CModNeg|Adjoint', key)]
     for key in add_regions[:5]:
         lo, hi, _ = reg[key]
@@ -83,7 +83,7 @@ def make_mutations(k, tr, low, rnd, count):
         if cand:
             i = cand[len(cand) // 2]
             add(f'carry:drop-cx-mid-of-{key}', True, lambda tr, low, i=i: (tr['ops'][:i] + tr['ops'][i + 1:], low['leaves']))
-    # --- случайные
+    # --- random
     while len(muts) < count + 8:
         i = rnd.randrange(len(ops))
         kind = rnd.choice(['drop', 'xins', 'retarget'])
@@ -103,7 +103,7 @@ def make_mutations(k, tr, low, rnd, count):
 
 
 def random_witness(prog, k, n, p, patched, rnd, trials=60):
-    """Конкретное исполнение испорченной программы на случайных входах из области (ящики — случайные значения <p)."""
+    """Concrete execution of the corrupted program on random inputs from the domain (boxes: random values < p)."""
     fwd = [it[1]['kind'] for it in prog['items'] if it[0] == 'opaque' and it[1]['kind'] in ('MM', 'KINV')]
     for _ in range(trials):
         ins = {nm: (rnd.randrange(2) if len(ws) == 1 else rnd.randrange(p)) for nm, ws in prog['inputs'].items()}
@@ -118,8 +118,8 @@ def random_witness(prog, k, n, p, patched, rnd, trials=60):
 
 
 def neutral_or_hole(prog, k, n, p, patched, rnd, trials=300):
-    """Конкретная проверка PROVED-порчи на входах ИЗ области предусловия: случайные (фильтр ispecs.pre) и входы
-    шага из цепочки на точках кривых (ящики — смысловые MM/KINV). Нарушение => ложное PROVED."""
+    """Concrete check of a PROVED corruption on inputs FROM the precondition domain: random ones (filter ispecs.pre) and inputs
+    of the step from the chain at points of the curves (boxes: meaningful MM/KINV). A violation => false PROVED."""
     from .lemmas_check import semantic
     from .indep import chain
     MM, KINV = semantic(n, p)
@@ -171,7 +171,7 @@ def main(argv=None):
     ap.add_argument('--count', type=int, default=24)
     ap.add_argument('--seed', type=int, default=7)
     ap.add_argument('--out', default=None)
-    ap.add_argument('--only', default=None, help='только порчи с этими номерами (через запятую): по одной на процесс при n=256')
+    ap.add_argument('--only', default=None, help='only corruptions with these numbers (comma separated): one per process at n=256')
     a = ap.parse_args(argv)
     n, p = a.n, eval(a.p, {}, {})
     only = {int(t) for t in a.only.split(',')} if a.only else None
@@ -193,7 +193,7 @@ def main(argv=None):
             R = Run(prog, STEPS[a.step](n, p, patched), n, p)
             try:
                 row['status'] = R.run()
-                # PROVED у порчи: это либо порча, не меняющая смысла на области предусловия, либо ДЫРА доказателя.
+                # PROVED for a corruption: either it does not change the meaning on the precondition domain, or it is a HOLE in the prover.
                 v = neutral_or_hole(prog, a.step, n, p, patched, rnd)
                 row['neutral_check'] = v
                 if v['violations']:
@@ -207,7 +207,7 @@ def main(argv=None):
                 row['why'] = str(e)
                 cex = e.detail.get('counterexample')
                 if (getattr(R, 'viol', None) not in (None, ZERO) and getattr(R, 'A_d', None) is not None
-                        and n <= 64):                       # при n=256 подсчёт долей слишком дорог по памяти
+                        and n <= 64):                       # at n=256 counting the fractions needs too much memory
                     B = R.B
                     bad = B.AND(R.A_d, R.viol)
                     lv = range(B.nvars)
@@ -220,7 +220,7 @@ def main(argv=None):
                     row['witness'] = bool(viol)
                     row['witness_kind'] = viol[0][0] if viol else None
                     row['cex'] = {k2: str(v) for k2, v in ins.items()}
-                if not row.get('witness'):          # нет контрпримера (напр. отказ пары ящиков) — ищем случайно
+                if not row.get('witness'):          # no counterexample (e.g. a refused pair of boxes): search at random
                     w = random_witness(prog, a.step, n, p, patched, rnd)
                     row['witness'], row['witness_kind'] = bool(w), (w[0][0] if w else None)
                     row['witness_by'] = 'random search (csim)'
@@ -229,7 +229,7 @@ def main(argv=None):
             row['why'] = f'{type(e).__name__}: {str(e)[:200]}'
         rows.append(row)
         print(json.dumps({k2: v for k2, v in row.items() if k2 != 'cex'}, ensure_ascii=False), flush=True)
-        R = prog = None                                     # освободить BDD порчи до следующей
+        R = prog = None                                     # free the BDD of the corruption before the next one
         import gc as _gc; _gc.collect()
         if row['status'] == 'HOLE':
             break

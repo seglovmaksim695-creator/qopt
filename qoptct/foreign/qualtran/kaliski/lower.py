@@ -41,6 +41,51 @@ def _top_child(path):
     return parts[1] if len(parts) > 1 else None
 
 
+def lower_full(bloq):
+    """Full expansion of a bloq by the bridge (rules A1 / Fredkin / basis states): ``(lifted, lowered, translated, rule binding)``."""
+    book = FredkinRules()
+    low = lower_graph(bloq, max_leaves=BIG, max_nodes=BIG, extra_atom_rule=book.chain_with_basis_and_a1)
+    prog = translate(low, low['inputs'], low['outputs'])
+    binding = book.bind(low, prog)
+    return lift(prog['qasm']), low, prog, binding
+
+
+def piece_interface(low, prog):
+    """``(nsrc, scratch, nin)`` of a lowered iteration; checks that the inputs are the wires ``0..nin-1``."""
+    nsrc = low['nq']                            # source wires; scratch (if any) = nsrc
+    scratch = prog['layout']['bridge_scratch']
+    need(scratch in ([], [nsrc]), 'unexpected scratch layout')
+    nin = sum(len(e['wires_msb']) for d in low['registers']['inputs'] for e in d['elements'])
+    need(sorted(q for d in low['registers']['inputs'] for e in d['elements'] for q in e['wires_msb'])
+         == list(range(nin)), 'inputs are not wires 0..nin-1')
+    return nsrc, scratch, nin
+
+
+def macro_leaf(P, inputs, allocate, path, macros, **extra):
+    """Replace one iteration node by a macro leaf: allocate the ancillas of the piece ``P`` in the same order as the
+    full expansion would, map the local wires of the piece to global ones and hand the outputs out by the real wire map.
+    Appends ``dict(path=..., g=..., **extra)`` to ``macros``; returns the ``AtomExpansion``."""
+    from qualtran import Register, QAny
+    nanc = P.nsrc - P.nin
+    anc = allocate([Register('anc', QAny(nanc))], path + '/macro')['anc'].ravel() if nanc else []
+    g = {}
+    for d in P.low['registers']['inputs']:
+        loc = d['elements'][0]['wires_msb']
+        glob = [int(q) for q in inputs[d['name']].flat]
+        need(len(loc) == len(glob), 'macro: register width')
+        g.update(zip(loc, glob))
+    for j in range(nanc):
+        g[P.nin + j] = int(anc[j])
+    need(len(g) == P.nsrc and len(set(g.values())) == P.nsrc, 'macro: map not injective')
+    outs = {}
+    for d in P.low['registers']['outputs']:
+        loc = d['elements'][0]['wires_msb']
+        outs[d['name']] = np.asarray([g[w] for w in loc], dtype=object).reshape(inputs[d['name']].shape)
+    macros.append(dict(path=path, g=g, **extra))
+    leaf = dict(name='macro', qubits=sorted(g.values()), path=path, macro=len(macros) - 1)
+    return AtomExpansion(outs, [leaf], tuple(g[w] for w in P.low['retired_wires']))
+
+
 class Piece:
     """one iteration: expansion, translation, lift; the map of the steps in local numbering."""
 
@@ -48,19 +93,11 @@ class Piece:
         from qualtran.bloqs.mod_arithmetic.mod_division import _KaliskiIteration
         self.n, self.p = n, p
         self.bloq = _KaliskiIteration(n, p)
-        book = FredkinRules()
-        self.low = low = lower_graph(self.bloq, max_leaves=BIG, max_nodes=BIG, extra_atom_rule=book.chain_with_basis_and_a1)
-        self.prog = prog = translate(low, low['inputs'], low['outputs'])
-        self.binding = book.bind(low, prog)
+        self.L, self.low, self.prog, self.binding = lower_full(self.bloq)
+        low, prog, L = self.low, self.prog, self.L
         self.qasm_sha256 = hashlib.sha256(prog['qasm'].encode()).hexdigest()
-        self.L = L = lift(prog['qasm'])
         need(L.n == len(prog['ops']) and L.nq == prog['nq'], 'lift differs from translate')
-        self.nsrc = low['nq']                       # source wires; scratch (if any) = nsrc
-        self.scratch = prog['layout']['bridge_scratch']
-        need(self.scratch in ([], [self.nsrc]), 'unexpected scratch layout')
-        self.nin = sum(len(e['wires_msb']) for d in low['registers']['inputs'] for e in d['elements'])
-        need(sorted(q for d in low['registers']['inputs'] for e in d['elements'] for q in e['wires_msb'])
-             == list(range(self.nin)), 'inputs are not wires 0..nin-1')
+        self.nsrc, self.scratch, self.nin = piece_interface(low, prog)
         # op ranges of the six steps (contiguous, in order)
         rng = []
         for row in prog['trace']:
@@ -92,35 +129,16 @@ class Composed:
     """the composed program: nq, ops (lazy view), n; plus the map of the segments in global numbering."""
 
     def __init__(self, n, p, piece=None, keep_full_leaves=False):
-        from qualtran import Register, QAny
         from qualtran.bloqs.mod_arithmetic.mod_division import KaliskiModInverse, _KaliskiIteration
         self.n, self.p = n, p
         self.piece = P = piece or Piece(n, p)
-        nanc = P.nsrc - P.nin
         macros = []
         book = FredkinRules()
-        reg_in = P.low['registers']['inputs']
 
         def rule(bloq, inputs, allocate, path):
             if type(bloq) is _KaliskiIteration:
                 need(bloq == P.bloq, 'iteration bloq differs from the lowered piece')
-                anc = allocate([Register('anc', QAny(nanc))], path + '/macro')['anc'].ravel() if nanc else []
-                g = {}
-                for d in reg_in:
-                    loc = d['elements'][0]['wires_msb']
-                    glob = [int(q) for q in inputs[d['name']].flat]
-                    need(len(loc) == len(glob), 'macro: register width')
-                    g.update(zip(loc, glob))
-                for j in range(nanc):
-                    g[P.nin + j] = int(anc[j])
-                need(len(g) == P.nsrc and len(set(g.values())) == P.nsrc, 'macro: map not injective')
-                outs = {}
-                for d in P.low['registers']['outputs']:
-                    loc = d['elements'][0]['wires_msb']
-                    outs[d['name']] = np.asarray([g[w] for w in loc], dtype=object).reshape(inputs[d['name']].shape)
-                macros.append(dict(path=path, g=g))
-                leaf = dict(name='macro', qubits=sorted(g.values()), path=path, macro=len(macros) - 1)
-                return AtomExpansion(outs, [leaf], tuple(g[w] for w in P.low['retired_wires']))
+                return macro_leaf(P, inputs, allocate, path, macros)
             return book.chain_with_basis_and_a1(bloq, inputs, allocate, path)
         self.bloq = KaliskiModInverse(n, p)
         self.top = top = lower_graph(self.bloq, max_leaves=BIG, max_nodes=BIG, extra_atom_rule=rule)
@@ -259,11 +277,8 @@ class OpsView:
 def full_lift(n, p):
     """full expansion by the bridge (small N only): (lifted, lowered)."""
     from qualtran.bloqs.mod_arithmetic.mod_division import KaliskiModInverse
-    book = FredkinRules()
-    low = lower_graph(KaliskiModInverse(n, p), max_leaves=BIG, max_nodes=BIG, extra_atom_rule=book.chain_with_basis_and_a1)
-    prog = translate(low, low['inputs'], low['outputs'])
-    book.bind(low, prog)
-    return lift(prog['qasm']), low
+    L, low, _prog, _binding = lower_full(KaliskiModInverse(n, p))
+    return L, low
 
 
 def check_against_full(n, p):

@@ -94,28 +94,28 @@ def source_erase_branch(gate, vector, outcome):
         if type(op) is cirq.ClassicallyControlledOperation:
             conditions = tuple(op.classical_controls)
             if len(conditions) != 1 or type(conditions[0]) is not cirq.KeyCondition or str(conditions[0].key) != "target":
-                raise ValueError("Неожиданное source классическое условие")
+                raise ValueError("Unexpected source classical condition")
             if not measured:
-                raise ValueError("Source читает измерение до его выполнения")
+                raise ValueError("Source reads a measurement before it is made")
             if not outcome:
                 continue
             op = op.without_classical_controls()
         if type(op.gate) is cirq.MeasurementGate:
             if measured or op.qubits != (t,) or cirq.measurement_key_name(op) != "target" or any(op.gate.invert_mask):
-                raise ValueError("Неожиданное source измерение")
+                raise ValueError("Unexpected source measurement")
             state = np.asarray([amp if ((i >> 2) & 1) == outcome else 0 for i, amp in enumerate(state)])
             measured = True
         elif type(op.gate) is cirq.ResetChannel:
             if not measured or op.qubits != (t,):
-                raise ValueError("Неожиданный source reset")
+                raise ValueError("Unexpected source reset")
             matrix = cirq.kraus(op.gate)[outcome]
-            # t — старший разряд в order=[t,b,a]. Kraus-оператор не унитарен:
-            # нельзя оборачивать его в MatrixGate или нормировать эту ветвь.
+            # t is the high bit in order=[t,b,a]. The Kraus operator is not unitary:
+            # it must not be wrapped in a MatrixGate and this branch must not be normalised.
             state = (matrix @ state.reshape(2, 4)).reshape(8)
         else:
             state = cirq.Circuit(op).unitary(qubit_order=order) @ state
     if not measured:
-        raise ValueError("Source And† не содержит измерения")
+        raise ValueError("Source And† contains no measurement")
     return state
 
 
@@ -132,7 +132,7 @@ def test_domains_and_recognition():
             gate = And(cv1, cv2, uncompute=inverse).controlled(control_values=[cv])
             leaf = match(gate.on(*q), path="source")
             if leaf is None or leaf["controls"] != list(cvs) or leaf["name"] != ("controlled_erase" if inverse else "controlled_and"):
-                raise AssertionError("Официальный controlled-And не распознан точно")
+                raise AssertionError("The official controlled-And is not recognised exactly")
             leaf["qubits"] = [0, 1, 2, 3]
             for physical in range(32):
                 values = {w: (physical >> w) & 1 for w in range(5)}
@@ -145,7 +145,7 @@ def test_domains_and_recognition():
                         raise
                 else:
                     if not valid:
-                        raise AssertionError("Принята неверная область физического входа")
+                        raise AssertionError("A wrong domain of the physical input was accepted")
                 checks += 1
             values = {w: sum(((i >> w) & 1) << i for i in range(8)) for w in range(3)}
             values[3] = sum(int(tuple((i >> w) & 1 for w in range(3)) == cvs) << i for i in range(8)) if inverse else 0
@@ -158,9 +158,9 @@ def test_domains_and_recognition():
         except ControlledAndError:
             pass
         else:
-            raise AssertionError("Не отклонена неподдержанная форма управления")
+            raise AssertionError("An unsupported form of control was not rejected")
     if match_gate(cirq.X, [0], "not-And") is not None:
-        raise AssertionError("Принят другой вентиль")
+        raise AssertionError("A different gate was accepted")
     for leaf, kwargs in (
         (make_leaf((1, 1, 1)), dict(ancilla=4, nq=4, known_zero=[])),
         (make_leaf((1, 1, 1)), dict(ancilla=4, nq=5, known_zero=[3])),
@@ -171,7 +171,7 @@ def test_domains_and_recognition():
         except ControlledAndError:
             pass
         else:
-            raise AssertionError("expand принял неподтверждённую чистоту/совпадение проводов")
+            raise AssertionError("expand accepted an unconfirmed purity / wire coincidence")
     return dict(physical_inputs_checked=checks, exact_truth_mask_domains=16,
                 symbolic_or_multi_control_rejected=True)
 
@@ -182,9 +182,9 @@ def test_source_and_all_branches():
     from qualtran.bloqs.mcmt import And
     from qoptct.verify.compose.lift import check_gadget_lemmas
     if not __debug__:
-        raise ValueError("Python -O запрещён для точных qoptct gadget lemmas")
+        raise ValueError("Python -O is forbidden for the exact qoptct gadget lemmas")
     if check_gadget_lemmas() is not True:
-        raise AssertionError("Точные базовые фазовые леммы не прошли")
+        raise AssertionError("The exact basic phase lemmas failed")
     rng = random.Random(20261121)
     errors, native_limits = [], []
     branches = 0
@@ -194,16 +194,16 @@ def test_source_and_all_branches():
         tensor = np.asarray(and_gate.tensor_contract())
         dagger = np.asarray(and_gate.adjoint().tensor_contract())
         if tensor.shape != (8, 4) or dagger.shape != (4, 8):
-            raise AssertionError("Неожиданная форма source And tensor")
+            raise AssertionError("Unexpected form of the source And tensor")
         errors.append(compare(dagger.ravel(), tensor.conj().T.ravel()))
         compute = expand(make_leaf(cvs), ancilla=4, nq=4, known_zero=[3])
         erase = expand(make_leaf(cvs, True), ancilla=4, nq=5, known_zero=[4])
         source_controlled = and_gate.controlled(control_values=[cv])
         q = cirq.LineQubit.range(4)
         source_matrix = cirq.Circuit(source_controlled.on(*q)).unitary(qubit_order=list(reversed(q)))
-        # qoptct.bdd повышает общий recursionlimit до 1<<20. Native Cirq
-        # protocol может рекурсивно возвращаться к Controlled(And†); эта
-        # дополнительная проба доступности не должна расходовать гигабайты.
+        # qoptct.bdd raises the global recursion limit to 1<<20. The native Cirq
+        # protocol may recurse back to Controlled(And†); this
+        # additional availability probe must not consume gigabytes.
         previous_recursion_limit = sys.getrecursionlimit()
         native_recursion_limit = min(previous_recursion_limit, 1500)
         try:
@@ -243,10 +243,10 @@ def test_source_and_all_branches():
         for index in range(8):
             expected = index | (int(tuple((index >> w) & 1 for w in range(3)) == cvs) << 3)
             if run(5, compute["ops"], index) != (expected, [0]):
-                raise AssertionError("Логическое compute/phase certificate нарушено")
+                raise AssertionError("The logical compute/phase certificate is violated")
             if run(5, erase["ops"], expected) != (index, [0, 0]):
-                raise AssertionError("Логическое erase/phase certificate нарушено")
-        # Реальный неконтролируемый And† source: отдельно все его ветви.
+                raise AssertionError("The logical erase/phase certificate is violated")
+        # The real uncontrolled And† source: all its branches separately.
         for vector in [basis(4, i) for i in range(4)] + [random_state(4, rng) for _ in range(3)]:
             source_input = [0j] * 8
             for a, b in itertools.product((0, 1), repeat=2):
@@ -285,14 +285,14 @@ def test_twenty_phase_canaries():
             seen.add(fingerprint)
             phase_vectors = {tuple(run(5, mutated, index)[1]) for index in range(8)}
             if len(phase_vectors) < 2:
-                raise AssertionError("Мутант не показал входозависимую фазу")
+                raise AssertionError("The mutant did not show an input-dependent phase")
             got = dense_branch(text, vector, (1, 1, 1))
             error = max(abs(a - b / math.sqrt(8)) for a, b in zip(got, vector))
             if error <= TOLERANCE:
-                raise AssertionError("Удаление фазовой поправки не поймано")
+                raise AssertionError("Removal of the phase correction was not caught")
             witnesses.append(dict(controls=list(cvs), operation=pos, sha256=fingerprint,
                                   defect="removed_CZ_in_measurement_correction", max_vector_error=float(error),
                                   phase_patterns=[list(x) for x in sorted(phase_vectors)]))
             if len(witnesses) == 20:
                 return dict(count=20, targeted_measurement_canaries=20, witnesses=witnesses)
-    raise AssertionError(f"Получено только {len(witnesses)} различных канареек")
+    raise AssertionError(f"Only {len(witnesses)} distinct canaries obtained")

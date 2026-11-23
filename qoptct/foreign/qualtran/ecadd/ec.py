@@ -57,7 +57,7 @@ def enc(P, n, p):
 
 
 def lam_r(P, A, n, p):
-    """Montgomery-форма наклона касательной в P; для O и y=0 — 0 (как ECWindowAddR)."""
+    """Montgomery form of the slope of the tangent at P; 0 for O and y=0 (as ECWindowAddR)."""
     if P is None or P[1] == 0:
         return 0
     return mont((3 * P[0] * P[0] + A) * inv(2 * P[1], p) % p, n, p)
@@ -80,20 +80,20 @@ def random_point(A, B, p, rnd):
 
 
 def scenarios(p, rnd, count):
-    """Список (имя, A, B, P, Q) — точки на общей кривой; O = None."""
+    """List of (name, A, B, P, Q): points on a common curve; O = None."""
     out = []
     kinds = ['generic', 'double', 'neg', 'Pzero', 'Qzero', 'both_zero', 'minus2P', 'G1', 'G2', 'G3like']
     while len(out) < count:
         k = kinds[len(out) % len(kinds)]
         a, b = rnd.randrange(1, p), rnd.randrange(1, p)
-        if k == 'G1':                       # противоположные y при разных x
+        if k == 'G1':                       # opposite y at different x
             x2 = rnd.randrange(p)
             if x2 == a:
                 continue
             A = (-(a * a + a * x2 + x2 * x2)) % p
             B = curve_through((a, b), A, p)
             P, Q = (a, b), (x2, (-b) % p)
-        elif k == 'G2':                     # удвоение с нулевым наклоном
+        elif k == 'G2':                     # doubling with zero slope
             A = (-3 * a * a) % p
             B = curve_through((a, b), A, p)
             P = Q = (a, b)

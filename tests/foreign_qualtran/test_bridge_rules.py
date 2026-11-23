@@ -26,7 +26,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def _gate(statement):
     match = re.fullmatch(r'([a-z]+)\s+(q\[\d+\](?:\s*,\s*q\[\d+\])*)', statement.strip())
     if match is None:
-        raise ValueError('Неподдержанное векторным симулятором выражение: ' + statement)
+        raise ValueError('Expression not supported by the vector simulator: ' + statement)
     return match.group(1), tuple(int(q) for q in re.findall(r'q\[(\d+)\]', match.group(2)))
 
 
@@ -41,7 +41,7 @@ def parse_qasm(text):
             continue
         if match := re.fullmatch(r'qubit\[(\d+)\] q;', line):
             if nq is not None:
-                raise ValueError('Повторное объявление квантового регистра')
+                raise ValueError('Repeated declaration of a quantum register')
             nq = int(match.group(1))
             continue
         if match := re.fullmatch(r'bit\[(\d+)\] c;', line):
@@ -50,21 +50,21 @@ def parse_qasm(text):
         if match := re.fullmatch(r'c\[(\d+)\] = measure q\[(\d+)\];', line):
             k, q = map(int, match.groups())
             if not 0 <= k < nb:
-                raise ValueError('Измерение вне классического регистра')
+                raise ValueError('Measurement outside the classical register')
             program.append(('measure', q, k))
             continue
         if match := re.fullmatch(r'if \(c\[(\d+)\]\) \{(.*)\}', line):
             k, body = int(match.group(1)), match.group(2)
             statements = body.split(';')
             if statements[-1].strip():
-                raise ValueError('Нет ; в условном блоке')
+                raise ValueError('No ; in the conditional block')
             program.append(('if', k, [_gate(s) for s in statements[:-1] if s.strip()]))
             continue
         if not line.endswith(';'):
-            raise ValueError('Нет ;: ' + line)
+            raise ValueError('No ;: ' + line)
         program.append(('gate', *_gate(line[:-1])))
     if nq is None:
-        raise ValueError('Нет объявления квантовых проводов')
+        raise ValueError('No declaration of the quantum wires')
     return nq, program
 
 
@@ -74,9 +74,9 @@ def apply_gate(state, name, qs):
     nq = size.bit_length() - 1
     arities = {'x': 1, 'z': 1, 'h': 1, 's': 1, 'sdg': 1, 't': 1, 'tdg': 1, 'cx': 2, 'cz': 2}
     if name not in arities or len(qs) != arities[name] or len(set(qs)) != len(qs):
-        raise ValueError('Неподдержанный вентиль: %r' % ((name, qs),))
+        raise ValueError('Unsupported gate: %r' % ((name, qs),))
     if any(not 0 <= q < nq for q in qs):
-        raise ValueError('Индекс провода вне диапазона')
+        raise ValueError('Wire index out of range')
     result = [0j] * size
     phases = {'z': -1, 's': 1j, 'sdg': -1j,
               't': cmath.exp(1j * math.pi / 4), 'tdg': cmath.exp(-1j * math.pi / 4)}
@@ -100,7 +100,7 @@ def dense_branch(text, state, outcomes=()):
     """Unnormalized vector of the given branch; keeps the global phase."""
     nq, program = parse_qasm(text)
     if len(state) != 1 << nq:
-        raise ValueError('Неверный размер вектора')
+        raise ValueError('Wrong size of the vector')
     state = list(state)
     cbits = {}
     measurements = 0
@@ -110,19 +110,19 @@ def dense_branch(text, state, outcomes=()):
         elif op[0] == 'measure':
             q, k = op[1:]
             if measurements >= len(outcomes) or outcomes[measurements] not in (0, 1):
-                raise ValueError('Нет допустимого исхода измерения')
+                raise ValueError('No admissible measurement outcome')
             outcome = outcomes[measurements]
             measurements += 1
             cbits[k] = outcome
             state = [a if (i >> q) & 1 == outcome else 0j for i, a in enumerate(state)]
         else:
             if op[1] not in cbits:
-                raise ValueError('Условие читает ещё не измеренный бит')
+                raise ValueError('The condition reads a bit that is not measured yet')
             if cbits[op[1]]:
                 for name, qs in op[2]:
                     state = apply_gate(state, name, qs)
     if measurements != len(outcomes):
-        raise ValueError('Лишние исходы измерения')
+        raise ValueError('Extra measurement outcomes')
     return state
 
 
@@ -139,7 +139,7 @@ def random_state(size, rng):
 def compare(got, expected):
     error = max((abs(a - b) for a, b in zip(got, expected)), default=0.0)
     if len(got) != len(expected) or error > TOLERANCE:
-        raise AssertionError('Вектор/фаза не совпали: максимальная ошибка %.16g' % error)
+        raise AssertionError('Vector/phase differ: maximal error %.16g' % error)
     return error
 
 
@@ -201,7 +201,7 @@ def test_and_and_erase():
     except SimulationError:
         pass
     else:
-        raise AssertionError('Классический симулятор принял грязную цель И')
+        raise AssertionError('The classical simulator accepted a dirty AND target')
     return {'control_patterns': 4, 'vectors_and_branches': checked,
             'clean_target_only': True, 'max_error': max(errors)}
 
@@ -225,7 +225,7 @@ def test_ccx_arbitrary_target():
 
 
 def test_linear_correction_and_all_branches():
-    # Два стирания: первое t=ab XOR l, второе u=ab. Перебираются все 4 ветви.
+    # Two erasures: the first t=ab XOR l, the second u=ab. All 4 branches are tried.
     ops = [('and', 0, 1, 3), ('cx', 2, 3),
            ('erase', 3, (('cz', 0, 1), ('z', 2))),
            ('and', 0, 1, 4), ('erase', 4, (('cz', 0, 1),))]
@@ -239,7 +239,7 @@ def test_linear_correction_and_all_branches():
             errors.append(compare(dense_branch(text, extended, outcomes), [x / 2 for x in extended]))
     for i in range(8):
         assert run(5, ops, i) == (i, [0, 0])
-    # Удалённая CZ должна давать входозависимый коэффициент фазы, а не исчезнуть.
+    # A removed CZ must give an input-dependent phase coefficient, not vanish.
     broken = [('and', 0, 1, 3), ('cx', 3, 2), ('erase', 3, ())]
     assert run(4, broken, 0)[1] == [0]
     assert run(4, broken, 3)[1] == [1]

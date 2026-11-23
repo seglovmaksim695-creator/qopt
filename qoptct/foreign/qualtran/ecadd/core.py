@@ -16,7 +16,7 @@ from . import bv
 KIND = {'x': 0, 'cx': 1, 'and': 2, 'erase': 3}
 import os as _os
 MEMLOG = bool(_os.environ.get('EW_MEMLOG'))
-MSB_ROOT = _os.environ.get('EW_LSB_ROOT') is None      # порядок переменных (по умолчанию старшие биты у корня)
+MSB_ROOT = _os.environ.get('EW_LSB_ROOT') is None      # variable order (by default the high bits are at the root)
 
 
 class Fail(Exception):
@@ -30,7 +30,7 @@ def lsb(ws):
 
 
 def disjoint(B, f, g):
-    """True <=> f AND g == ZERO; без создания узлов (обход пар с ранним выходом)."""
+    """True <=> f AND g == ZERO; without creating nodes (walk over pairs with an early exit)."""
     if f == ZERO or g == ZERO:
         return True
     var, hi, lo = B.var, B.hi, B.lo
@@ -80,7 +80,7 @@ def lower_step(step_bloq):
 
 
 def build_program(step_bloq, use_lift=True, mutate=None, lowered=None, keep_ops=True):
-    """mutate(tr, low) -> (ops, leaves): только для канареек (порча настоящей программы)."""
+    """mutate(tr, low) -> (ops, leaves): only for canaries (corruption of the real program)."""
     low, tr = lowered if lowered is not None else lower_step(step_bloq)
     N = tr['nq']
     ops_all, leaves = tr['ops'], low['leaves']
@@ -95,7 +95,7 @@ def build_program(step_bloq, use_lift=True, mutate=None, lowered=None, keep_ops=
             L = lift(emit_qasm(N, run))
             ops = L.ops
             if L.n != len(run):
-                raise Fail('lift: число операций не совпало')
+                raise Fail('lift: the number of operations differs')
             for j, op in enumerate(run):
                 if op[0] == 'erase':
                     (cz, a, b), = op[2]
@@ -107,7 +107,7 @@ def build_program(step_bloq, use_lift=True, mutate=None, lowered=None, keep_ops=
                 else:
                     want = (0, op[1], 0, 0, -1)
                 if tuple(ops[5 * j:5 * j + 5]) != want:
-                    raise Fail('lift: операция не совпала с переводом', j=j, op=op)
+                    raise Fail('lift: an operation differs from the translation', j=j, op=op)
             items.append(('lifted', ops, gstart[0]))
         else:
             items.append(('ops', list(run), gstart[0]))
@@ -138,35 +138,35 @@ def build_program(step_bloq, use_lift=True, mutate=None, lowered=None, keep_ops=
 
 
 def region_end(prog, type_name, occurrence=0):
-    """Индекс (в переведённых операциях) сразу после occurrence-го верхнеуровневого блока данного типа."""
+    """Index (in the translated operations) right after the occurrence-th top-level block of the given type."""
     hits = [hi for key, lo, hi in prog['regions'] if key.split(':', 1)[1] == type_name]
     if len(hits) <= occurrence:
-        raise Fail(f'нет блока {type_name}#{occurrence}')
+        raise Fail(f'no block {type_name}#{occurrence}')
     return hits[occurrence] - 1
 
 
 def region_outputs(prog, type_name, occurrence, reg):
-    """Провода (LSB первым) выходного регистра reg у occurrence-го верхнеуровневого блока типа type_name
-    (по настоящему графу соединений Qualtran: учитывает перестановки проводов внутри блока, напр. ModDbl)."""
+    """Wires (LSB first) of the output register reg of the occurrence-th top-level block of type type_name
+    (by the real connection graph of Qualtran: accounts for wire permutations inside the block, e.g. ModDbl)."""
     hits = [ev for ev in prog['top_events'] if ev['key'].split(':', 1)[1] == type_name]
     if len(hits) <= occurrence or reg not in hits[occurrence]['outputs']:
-        raise Fail(f'нет выхода {reg} у блока {type_name}#{occurrence}')
+        raise Fail(f'no output {reg} at block {type_name}#{occurrence}')
     return hits[occurrence]['outputs'][reg]
 
 
 def copy_targets(prog, src_wires):
-    """Цели первой верхнеуровневой копии CNOT(src_i -> t_i) (в порядке src, LSB первым)."""
+    """Targets of the first top-level copy CNOT(src_i -> t_i) (in the order of src, LSB first)."""
     m = {}
     for key, c, t in prog['top_cx']:
         if c in src_wires and c not in m:
             m[c] = t
     if any(w not in m for w in src_wires):
-        raise Fail('копия регистра не найдена')
+        raise Fail('register copy not found')
     return [m[w] for w in src_wires]
 
 
 class Run:
-    """Одно доказательство шага. spec: объект с методами words(), pre(), calls(), post() (см. specs.py)."""
+    """One proof of a step. spec: an object with the methods words(), pre(), calls(), post() (see specs.py)."""
 
     def __init__(self, prog, spec, n, p, gc_nodes=900_000, log=print, max_nodes=60_000_000):
         self.prog, self.spec, self.n, self.p = prog, spec, n, p
@@ -194,15 +194,15 @@ class Run:
                 arith.append(('op', (c, 'x'), n))
                 garbage.append(('op', (c, 'junk'), len(leaf['regs_out']['junk'])))
         words = {}
-        for kind, key, w in garbage:            # самый низ
+        for kind, key, w in garbage:            # the very bottom
             words[(kind, key)] = [B.new_var()[1] for _ in range(w)]
         cols = {(kind, key): [None] * n for kind, key, w in arith}
         order = range(n) if MSB_ROOT else reversed(range(n))
-        for i in order:                          # MSB_ROOT: младшие биты внизу, старшие — у корня (общие цепочки переносов)
+        for i in order:                          # MSB_ROOT: low bits at the bottom, high bits at the root (shared carry chains)
             for kind, key, w in arith:
                 cols[(kind, key)][i] = B.new_var()[1]
         words.update(cols)
-        for kind, key, w in flags:              # флаги у корня
+        for kind, key, w in flags:              # flags at the root
             words[(kind, key)] = [B.new_var()[1]]
         self.W = {key: words[('in', key)] for kind, key, w in arith + garbage + flags if kind == 'in'}
         self.O = [dict() for _ in fwd]
@@ -215,9 +215,9 @@ class Run:
 
     # ---------------------------------------------------------------- helpers
     def holds(self, d):
-        """d == ZERO при допущении A (конъюнкция частей). Части добавляются «слоями» по общим переменным с d:
-        если d несовместно уже с частью условий — несовместно и со всем A (достаточное условие, корректно);
-        если не хватило всей связной компоненты — это настоящее нарушение (остальные части от d не зависят)."""
+        """d == ZERO under the assumption A (conjunction of parts). The parts are added in "layers" by the variables shared with d:
+        if d is already incompatible with some of the conditions, it is incompatible with all of A (sufficient condition, sound);
+        if the whole connected component is not enough, this is a real violation (the other parts do not depend on d)."""
         if d == ZERO:
             return True
         self.stats['checks_nontrivial' if 'checks_nontrivial' in self.stats else 'checks'] += 1
@@ -253,7 +253,7 @@ class Run:
         return A
 
     def components(self, sup):
-        """Разбить части A на связную компоненту носителя sup и остальные компоненты (по общим переменным)."""
+        """Split the parts of A into the connected component of the support sup and the other components (by shared variables)."""
         rest = list(range(len(self.conj)))
         comps = []
         seeds = [set(sup)]
@@ -275,7 +275,7 @@ class Run:
         return A
 
     def counterexample(self, d):
-        """Выполняющий набор для (A и d) без построения полного A: компонента d + по набору на каждую прочую."""
+        """A satisfying assignment for (A and d) without building the full A: the component of d + one assignment per other component."""
         B = self.B
         comps = self.components(B.support(d))
         Ad = self.component_and(comps[0]) if comps else ONE
@@ -306,7 +306,7 @@ class Run:
 
     def maybe_gc(self, force=False):
         B = self.B
-        if len(B.c_and) + len(B.c_xor) > 2_000_000:      # кэши операций растут быстрее узлов
+        if len(B.c_and) + len(B.c_xor) > 2_000_000:      # the operation caches grow faster than the nodes
             B.c_and, B.c_xor = {}, {}
         limit = max(self.gc_nodes, getattr(self, 'gc_limit', 0))
         if not force and B.nodes() < limit:
@@ -328,8 +328,8 @@ class Run:
         f = B.gc(roots)
         if MEMLOG:
             import resource
-            self.log(f'    [gc] узлов {nb} -> {B.nodes()}, кэш conj {len(self.conj_cache)}, '
-                     f'rss_max {resource.getrusage(resource.RUSAGE_SELF).ru_maxrss // 1000000} МБ, оп {self.stats["ops"]}',
+            self.log(f'    [gc] nodes {nb} -> {B.nodes()}, conj cache {len(self.conj_cache)}, '
+                     f'rss_max {resource.getrusage(resource.RUSAGE_SELF).ru_maxrss // 1000000} MB, op {self.stats["ops"]}',
                      flush=True)
         self.val = [f(e) for e in self.val]
         self.A = f(self.A) if self.A is not None else None
@@ -345,14 +345,14 @@ class Run:
         self.preds = [(nm, f(e)) for nm, e in getattr(self, 'preds', [])]
         self.stack_saved = [[f(e) for e in w] for w in getattr(self, 'stack_saved', [])]
         self.stats['gc'] += 1
-        self.gc_limit = 2 * B.nodes()            # следующая сборка — когда узлов станет вдвое больше живых
+        self.gc_limit = 2 * B.nodes()            # next collection when the node count is twice the live nodes
         if B.nodes() > self.max_nodes:
             raise MemoryError(f'BDD nodes {B.nodes()} > {self.max_nodes}')
 
     # ---------------------------------------------------------------- main
     def run(self, split_flags=True, only_flags=None):
-        """Разбор по значениям однобитных входов (флагов): для каждого набора — отдельное доказательство
-        с константами вместо флагов (свой менеджер BDD). Наборы покрывают все входы; пустые — «vacuous»."""
+        """Case split by the values of the one-bit inputs (flags): a separate proof for each assignment
+        with constants instead of the flags (own BDD manager). The assignments cover all inputs; empty ones are "vacuous"."""
         t0 = time.time()
         if check_gadget_lemmas() is not True:
             raise Fail('gadget lemmas failed')
@@ -360,19 +360,19 @@ class Run:
         self.cases = []
         tot = dict(ops=0, ands=0, erases=0, checks_nontrivial=0, gc=0, max_bdd_nodes=0)
         masks = range(1 << len(flags))
-        if _os.environ.get('EW_REVERSE_CASES'):      # для канареек: сначала ветви с ctrl=1 (порча чаще видна там)
+        if _os.environ.get('EW_REVERSE_CASES'):      # for canaries: branches with ctrl=1 first (a corruption is more often visible there)
             masks = reversed(masks)
         for mask in masks:
             asg = {f: (mask >> i) & 1 for i, f in enumerate(flags)}
             if only_flags is not None and asg not in only_flags:
-                continue                       # ограниченный прогон: только перечисленные наборы флагов (это сужает утверждение)
+                continue                       # restricted run: only the listed flag assignments (this narrows the claim)
             self.B = BDD()
             self.stats = dict(ops=0, ands=0, erases=0, opaque=0, gc=0, checks_nontrivial=0, simp=0)
             try:
                 for st, sp in self._run_case(asg):
                     self.cases.append(dict(flags=asg, splits=sp, status=st, seconds=round(time.time() - t0, 1),
                                            bdd_nodes=self.B.nodes()))
-                    self.log(f'  случай {asg} {sp}: {st} ({round(time.time() - t0, 1)} с, узлов {self.B.nodes()})',
+                    self.log(f'  case {asg} {sp}: {st} ({round(time.time() - t0, 1)} s, nodes {self.B.nodes()})',
                              flush=True)
             finally:
                 bv.SIMP = None
@@ -380,13 +380,13 @@ class Run:
                 tot[k] += self.stats[k]
             tot['max_bdd_nodes'] = max(tot['max_bdd_nodes'], self.B.nodes())
         if all(c['status'] == 'vacuous' for c in self.cases):
-            raise Fail('все случаи пусты (доказательство было бы пустым)')
+            raise Fail('all cases are empty (the proof would be vacuous)')
         self.stats = dict(tot, cases=len(self.cases), vacuous=sum(c['status'] == 'vacuous' for c in self.cases),
                           seconds=round(time.time() - t0, 2), nvars=self.nvars, nq=self.prog['N'])
         return 'PROVED'
 
     def simp(self, f):
-        """f постоянна при текущем A? -> константа, иначе f (замена значения, равного на A)."""
+        """is f constant under the current A? -> the constant, else f (replacement of a value equal on A)."""
         if f == ONE or f == ZERO:
             return f
         self.stats['simp'] += 1
@@ -401,16 +401,16 @@ class Run:
         self._alloc()
         for f, v in asg.items():
             self.W[f] = [ONE if v else ZERO]
-        # сначала только диапазоны входных слов и выходов ящиков; полное предусловие — в листе разбиения (с SIMP)
+        # first only the ranges of the input words and the box outputs; the full precondition is in the split leaf (with SIMP)
         conj = [bv.lt_const(B, w, p) for name, w in self.W.items() if len(w) == n and name in self.spec_range_words()]
-        for c, leaf in enumerate(self.fwd_leaves):     # диапазоны выходов ящиков (контракт C/D)
+        for c, leaf in enumerate(self.fwd_leaves):     # ranges of the box outputs (contract C/D)
             key = 'target' if leaf['kind'] == 'MM' else 'x'
             conj.append(bv.lt_const(B, self.O[c][key], p))
         fp = getattr(self.spec, 'flag_prune', None)
         if fp is not None and fp(B, self.W) == ZERO:
             yield 'vacuous', {}
             return
-        self.A = None                      # полное A не строится (дорого); при отказе — лениво (full_A)
+        self.A = None                      # the full A is not built (expensive); on a refusal, lazily (full_A)
         self.conj = [(e, frozenset(B.support(e))) for e in conj if e != ONE]
         self.conj_cache = {}
         splits = getattr(self.spec, 'splits', None)
@@ -421,8 +421,8 @@ class Run:
         yield from self._split(0, {})
 
     def _split(self, i, chosen):
-        """Разбиение по предикатам спецификации: f=0 и f=1 (если f не постоянна при A). Всё состояние — в self,
-        чтобы сборка мусора BDD переименовывала его (A, части, предикаты, стек)."""
+        """Split by the predicates of the specification: f=0 and f=1 (if f is not constant under A). All state is in self,
+        so that the BDD garbage collection renames it (A, parts, predicates, stack)."""
         B = self.B
         if i == len(self.preds):
             yield self._exec_case(), dict(chosen)
@@ -430,22 +430,22 @@ class Run:
         bv.SIMP = self.simp
         entry = self.pred_thunks[i]
         nm, th = entry[0], entry[1]
-        subst = entry[2] if len(entry) > 2 else None    # слово, которое в ветви «=1» заменяется нулями (оно = 0)
-        self.preds[i] = (nm, th(B, self.W, self.O) if callable(th) else th)   # вычисляется при уже выбранных ветвях
+        subst = entry[2] if len(entry) > 2 else None    # a word that is replaced by zeros in the branch "=1" (it is = 0)
+        self.preds[i] = (nm, th(B, self.W, self.O) if callable(th) else th)   # computed with the branches already chosen
         for cval in (0, 1):
             f = self.simp(self.preds[i][1])
             if f in (ONE, ZERO) and (f == ONE) != bool(cval):
                 continue
             pushed = False
             if subst and cval == 1:
-                self.stack_saved.append(self.W[subst])       # переименовывается сборкой мусора
+                self.stack_saved.append(self.W[subst])       # renamed by the garbage collection
                 self.W[subst] = [ZERO] * len(self.W[subst])
                 pushed = True
             c = ONE if cval else ZERO
             mark = len(self.conj)
             e = B.XOR(f, c) ^ 1
             label = dict(chosen, **{self.preds[i][0]: cval})
-            if e == ZERO or (e != ONE and self.holds(e)):      # ветвь несовместна с уже принятыми условиями
+            if e == ZERO or (e != ONE and self.holds(e)):      # the branch is incompatible with the conditions already accepted
                 if pushed:
                     self.W[subst] = self.stack_saved.pop()
                 yield 'vacuous', label
@@ -467,7 +467,7 @@ class Run:
         bv.SIMP = self.simp
         self.val, self.calls_rec, self.expected = [], [], []
         self.maybe_gc()
-        pre = self.spec.pre(B, self.W, self.O)            # полное предусловие (при выбранных ветвях разбиения)
+        pre = self.spec.pre(B, self.W, self.O)            # full precondition (with the chosen split branches)
         mark0 = len(self.conj)
         try:
             for e in (list(pre) if isinstance(pre, (list, tuple)) else [pre]):
@@ -490,7 +490,7 @@ class Run:
         for name, ws in self.prog['inputs'].items():
             for q, e in zip(ws, self.W[name]):
                 self.val[q] = e
-        self.internal = bytearray(N)    # провода-кандидаты на упрощение: внутренние и однобитные регистры
+        self.internal = bytearray(N)    # candidate wires for simplification: internal and one-bit registers
         io = {q for ws in list(self.prog['inputs'].values()) + list(self.prog['outputs'].values())
               if len(ws) > 1 for q in ws}
         for q in range(N):
@@ -498,7 +498,7 @@ class Run:
                 self.internal[q] = 1
         self.expected = self.spec.calls(B, self.W, self.O)
         if [k for k, _ in self.expected] != [l['kind'] for l in self.fwd_leaves]:
-            raise Fail('список прямых ящиков не совпал со спецификацией',
+            raise Fail('the list of forward boxes differs from the specification',
                        got=[l['kind'] for l in self.fwd_leaves], want=[k for k, _ in self.expected])
         self.calls_rec, fwd_i = [], 0
         val = self.val
@@ -508,7 +508,7 @@ class Run:
             cps.setdefault(pos, []).append((wires, fn, name))
         for item in self.prog['items']:
             if item[0] == 'opaque' and item[2] in cps:
-                raise Fail('контрольная точка на ящике не поддержана')
+                raise Fail('a checkpoint on a box is not supported')
             if item[0] == 'lifted':
                 ops, g0 = item[1], item[2]
                 for j in range(0, len(ops), 5):
@@ -527,7 +527,7 @@ class Run:
                         if internal[b] and val[b] > 1:
                             val[b] = self.simp(val[b])
                         if not self.holds(val[t]):
-                            self.fail('and: цель не 0', val[t], op=self.stats['ops'], wire=t)
+                            self.fail('and: target is not 0', val[t], op=self.stats['ops'], wire=t)
                         val[t] = B.AND(val[a], val[b])
                     else:
                         self.stats['erases'] += 1
@@ -536,7 +536,7 @@ class Run:
                             ab = B.XOR(ab, val[l])
                         d = B.XOR(val[t], ab)
                         if not self.holds(d):
-                            self.fail('erase: цель не равна a*b', d, op=self.stats['ops'], wire=t)
+                            self.fail('erase: target is not equal to a*b', d, op=self.stats['ops'], wire=t)
                         val[t] = ZERO
                     self.stats['ops'] += 1
                     if (self.stats['ops'] & 63) == 0:
@@ -554,52 +554,52 @@ class Run:
             if (self.stats['ops'] & 0xFFFF) == 0:
                 pass
         if cps:
-            raise Fail('контрольные точки не достигнуты', left=sorted(cps))
-        # выходы и нули
+            raise Fail('checkpoints not reached', left=sorted(cps))
+        # outputs and zeros
         outs = self.prog['outputs']
         post = self.spec.post(B, self.W, self.O)
         if set(post) != set(outs):
-            raise Fail('выходы спецификации не совпали с сигнатурой', got=sorted(outs), want=sorted(post))
+            raise Fail('the outputs of the specification differ from the signature', got=sorted(outs), want=sorted(post))
         for name, ws in outs.items():
             if len(post[name]) != len(ws):
-                raise Fail('ширина выхода', name=name)
+                raise Fail('output width', name=name)
             for i, (q, e) in enumerate(zip(ws, post[name])):
                 d = B.XOR(self.val[q], e)
                 if not self.holds(d):
-                    self.fail(f'выход {name}[{i}] не равен спецификации', d, wire=q)
+                    self.fail(f'output {name}[{i}] is not equal to the specification', d, wire=q)
         outw = {q for ws in outs.values() for q in ws}
         obs = self.spec.observe(B, self.W, self.O) if getattr(self.spec, 'observe_on', False) else {}
         for name, exp in obs.items():
             ws = self.prog['inputs'][name]
             if set(ws) & outw or len(ws) != len(exp):
-                raise Fail('observe: провода не освобождаемый вход', name=name)
+                raise Fail('observe: the wires are not a released input', name=name)
             for i, (q, e) in enumerate(zip(ws, exp)):
                 d = B.XOR(self.val[q], e)
                 if not self.holds(d):
-                    self.fail(f'observe {name}[{i}] не равен формуле', d, wire=q)
+                    self.fail(f'observe {name}[{i}] is not equal to the formula', d, wire=q)
             outw = outw | set(ws)
         for q in range(N):
             if q not in outw and not self.holds(self.val[q]):
-                self.fail('провод вне выходов не 0', self.val[q], wire=q)
+                self.fail('a wire outside the outputs is not 0', self.val[q], wire=q)
         if any(not r['consumed'] for r in self.calls_rec):
-            raise Fail('прямой ящик без парного обратного')
+            raise Fail('forward box without a paired inverse')
         return 'PROVED'
 
     def _checkpoint(self, lst):
-        """Контрольная точка спецификации: провода регистра = формуле (доказывается под A); затем значение заменяется
-        именованным словом (определение T == формула добавляется к A: свежие переменные, допущение не сужается)
-        или самой формулой. Держит BDD «мелкими» (без вложенных приведений)."""
+        """Checkpoint of the specification: the wires of the register = the formula (proved under A); then the value is replaced
+        by a named word (the definition T == formula is added to A: fresh variables, the assumption is not narrowed)
+        or by the formula itself. Keeps the BDDs "small" (no nested reductions)."""
         B = self.B
         for wires, fn, name in lst:
             expr = fn(B, self.W, self.O, self.N)
             if len(expr) != len(wires):
-                raise Fail('ширина контрольной точки')
+                raise Fail('checkpoint width')
             for i, (q, e) in enumerate(zip(wires, expr)):
                 d = B.XOR(self.val[q], e)
                 if not self.holds(d):
-                    self.fail(f'контрольная точка {name or "expect"}[{i}]: провод не равен формуле', d, wire=q)
+                    self.fail(f'checkpoint {name or "expect"}[{i}]: the wire is not equal to the formula', d, wire=q)
             if name:
-                c = bv.eq(B, self.N[name], expr)         # одно определение T == формула (одна часть A)
+                c = bv.eq(B, self.N[name], expr)         # one definition T == formula (one part of A)
                 self.conj.append((c, frozenset(B.support(c))))
                 for q, t in zip(wires, self.N[name]):
                     self.val[q] = t
@@ -619,37 +619,37 @@ class Run:
             c = fwd_i
             ekind, exp = self.expected[c]
             if ekind != kind or self.fwd_leaves[c] is not leaf:
-                raise Fail('порядок ящиков', c=c)
+                raise Fail('order of the boxes', c=c)
             argregs = ('x', 'y') if kind == 'MM' else ('x',)
             if set(exp) != set(argregs):
-                raise Fail('спецификация ящика: неверные аргументы', c=c)
-            for r in argregs:                       # входы = заявленным и в области
+                raise Fail('box specification: wrong arguments', c=c)
+            for r in argregs:                       # inputs = the declared ones and in the domain
                 if not self.word_eq_holds(cur[r], exp[r]):
-                    self.fail(f'ящик {c} ({kind}): вход {r} не равен заявленному', bv.eq(B, cur[r], exp[r]) ^ 1, c=c)
+                    self.fail(f'box {c} ({kind}): input {r} is not equal to the declared one', bv.eq(B, cur[r], exp[r]) ^ 1, c=c)
                 lt = bv.lt_const(B, cur[r], p)
                 if not self.holds(lt ^ 1):
-                    self.fail(f'ящик {c} ({kind}): вход {r} вне области <p', lt ^ 1, c=c)
+                    self.fail(f'box {c} ({kind}): input {r} is outside the domain <p', lt ^ 1, c=c)
             O = self.O[c]
             if kind == 'MM':
                 if rout['x'] != rin['x'] or rout['y'] != rin['y']:
-                    raise Fail('MM: x,y должны быть THRU')
+                    raise Fail('MM: x,y must be THRU')
                 for r in ('target', 'qrom_indices', 'reduced'):
                     if any(val[q] != ZERO for q in rout[r]):
-                        raise Fail('MM: новый провод не ноль')
+                        raise Fail('MM: a new wire is not zero')
                     for q, e in zip(rout[r], O[r]):
                         val[q] = e
             else:
                 if rout['x'] != rin['x']:
-                    raise Fail('KINV: x должен быть THRU')
+                    raise Fail('KINV: x must be THRU')
                 for q, e in zip(rout['x'], O['x']):
                     val[q] = e
                 for q, e in zip(rout['junk'], O['junk']):
                     if val[q] != ZERO:
-                        raise Fail('KINV: новый провод не ноль')
+                        raise Fail('KINV: a new wire is not zero')
                     val[q] = e
             self.calls_rec.append(dict(kind=kind, c=c, consumed=False, **{'in': {r: cur[r] for r in argregs}}))
             return fwd_i + 1
-        # обратные ящики: ровно выходы парного прямого вызова
+        # inverse boxes: exactly the outputs of the paired forward call
         fk = kind[:-4]
         cands = [r for r in self.calls_rec if r['kind'] == fk and not r['consumed']]
         for rec in reversed(cands):
@@ -662,17 +662,17 @@ class Run:
             if ok:
                 break
         else:
-            raise Fail(f'{kind}: нет парного прямого вызова с теми же значениями', n_candidates=len(cands))
+            raise Fail(f'{kind}: no paired forward call with the same values', n_candidates=len(cands))
         rec['consumed'] = True
         if fk == 'MM':
             if rout['x'] != rin['x'] or rout['y'] != rin['y'] or set(rout) != {'x', 'y'}:
-                raise Fail('MM_adj: сигнатура')
+                raise Fail('MM_adj: signature')
             for r in ('target', 'qrom_indices', 'reduced'):
                 for q in rin[r]:
                     val[q] = ZERO
         else:
             if rout['x'] != rin['x'] or set(rout) != {'x'}:
-                raise Fail('KINV_adj: сигнатура')
+                raise Fail('KINV_adj: signature')
             for q, e in zip(rin['x'], rec['in']['x']):
                 val[q] = e
             for q in rin['junk']:

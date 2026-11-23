@@ -49,7 +49,7 @@ class SmtOps:
     def ite(self, c, t, e):
         st = self.sorts.get(t, 'Int') if isinstance(t, str) else 'Int'
         se = self.sorts.get(e, 'Int') if isinstance(e, str) else 'Int'
-        assert st == se == 'Int', ('ite только над словами', t, e)
+        assert st == se == 'Int', ('ite only over words', t, e)
         return self._new('Int', f'(ite {c} {t} {e})')
     def modadd(self, x, y):
         s = self._new('Int', f'(+ {x} {y})')

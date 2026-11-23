@@ -9,13 +9,13 @@ from .bv import (const, xor, mask, ite, lt_const, eq, is_zero, all_of, modadd, m
 
 
 class _Base:
-    range_words = ('a', 'b', 'x', 'y', 'lam', 'lam_r')   # диапазоны, известные до разбиения (подмножество pre)
+    range_words = ('a', 'b', 'x', 'y', 'lam', 'lam_r')   # ranges known before the split (a subset of pre)
 
     def __init__(self, n, p, patched=True, observe=False):
         self.n, self.p, self.patched, self.observe_on = n, p, patched, observe
 
     def rng(self, B, *words):
-        """Список частей предусловия (по одной на слово) — для проверок по связным частям."""
+        """List of the parts of the precondition (one per word), for checks by connected parts."""
         return [lt_const(B, w, self.p) for w in words]
 
     def calls(self, B, W, O):
@@ -60,7 +60,7 @@ class Step2(_Base):
         return [('KINV', {'x': x2}), ('MM', {'x': O[0]['x'], 'y': y2})]
 
     def splits(self, B, W, O):
-        """Разбиение случаев (для памяти при n=256): исходы сравнений внутри ModSub/CModSub."""
+        """Case split (to save memory at n=256): outcomes of the comparisons inside ModSub/CModSub."""
         out = [('x<a', lt(B, W['x'], W['a']))]
         if W['ctrl'][0] != ZERO:
             out.append(('y<b', lt(B, W['y'], W['b'])))
@@ -89,7 +89,7 @@ class Step3(_Base):
         return [('MM', {'x': W['x'], 'y': W['lam']})]
 
     def splits(self, B, W, O):
-        """Исходы трёх приведений по модулю: 2a>=p; a+(2a mod p)>=p; x+(3a mod p)>=p; и y<Z1 (CModSub)."""
+        """Outcomes of the three reductions modulo p: 2a>=p; a+(2a mod p)>=p; x+(3a mod p)>=p; and y<Z1 (CModSub)."""
         p, a, x = self.p, W['a'], W['x']
         P = lambda w: const(p, w)
         k1 = lambda B, W, O: lt(B, add(B, a, a), P(self.n + 1)) ^ 1
@@ -97,15 +97,15 @@ class Step3(_Base):
         k3 = lambda B, W, O: lt(B, add(B, x, self.N['T2']), P(self.n + 1)) ^ 1          # x + T2 >= p
         k4 = lambda B, W, O: lt(B, W['y'], O[0]['target'])
         out = [('2a>=p', k1), ('a+2a>=p', k2)]
-        if W['ctrl'][0] != ZERO:        # при ctrl=0 управляемые сложения тождественны: делить незачем
+        if W['ctrl'][0] != ZERO:        # at ctrl=0 the controlled additions are the identity: no need to split
             out += [('x+3a>=p', k3), ('y<Z1', k4)]
         return out
 
-    # Именованные промежуточные слова (определения — в контрольных точках): T1 = 2a mod p, T2 = (a + T1) mod p = 3a mod p.
+    # Named intermediate words (definitions are in the checkpoints): T1 = 2a mod p, T2 = (a + T1) mod p = 3a mod p.
     named = ('T1', 'T2')
 
     def definitions(self, B, W):
-        """Определения именованных слов (те же формулы, что в контрольных точках)."""
+        """Definitions of the named words (the same formulas as in the checkpoints)."""
         T1 = moddbl(B, W['a'], self.p)
         return dict(T1=T1, T2=modadd(B, W['a'], T1, self.p))
 
@@ -122,7 +122,7 @@ class Step3(_Base):
         p, ctrl, a = self.p, W['ctrl'][0], W['a']
         Z1 = O[0]['target']
         y3 = ite(B, ctrl, modsub(B, W['y'], Z1, p), W['y'])
-        # x3 = (x + 3a mod p) mod p, где 3a mod p = T2 (определение T2 доказано в контрольной точке)
+        # x3 = (x + 3a mod p) mod p, where 3a mod p = T2 (the definition of T2 is proved at the checkpoint)
         x3 = ite(B, ctrl, modadd(B, W['x'], self.N['T2'], p), W['x'])
         return dict(ctrl=[ctrl], a=a, b=W['b'], x=x3, y=y3, lam=W['lam'])
 
@@ -144,8 +144,8 @@ class Step4(_Base):
 
 
 class Step5(_Base):
-    """Предусловие P5 (освобождение lam): lam = ctrl*(Z xor [K=0]*lam_r), K = KINV(x), Z = MM(K, y).
-    Его выполнение доказывается на уровне ECAdd (E2)."""
+    """Precondition P5 (release of lam): lam = ctrl*(Z xor [K=0]*lam_r), K = KINV(x), Z = MM(K, y).
+    Its validity is proved at the level of ECAdd (E2)."""
     name = 'step5'
     range_words = ('a', 'b', 'x', 'y', 'lam_r')
 
@@ -157,7 +157,7 @@ class Step5(_Base):
         return r if self.observe_on else r + [p5]
 
     def observe(self, B, W, O):
-        """Вариант без P5: конечное значение проводов lam (их освобождает Free) = буквальная формула."""
+        """Variant without P5: the final value of the wires lam (released by Free) = the literal formula."""
         ctrl, lam_r, K, Z = W['ctrl'][0], W['lam_r'], O[0]['x'], O[1]['target']
         return dict(lam=xor(B, W['lam'], mask(B, ctrl, xor(B, Z, mask(B, is_zero(B, K), lam_r)))))
 
@@ -183,8 +183,8 @@ class Step5(_Base):
 
 class Step6(_Base):
     range_words = ('a', 'b')
-    """Буквальное предусловие P6: все пять флагов в конце = 0 и аргументы CModSub/CModAdd < p.
-    Его выполнение доказывается на уровне ECAdd (E2)."""
+    """Literal precondition P6: all five flags are 0 at the end and the arguments of CModSub/CModAdd are < p.
+    Its validity is proved at the level of ECAdd (E2)."""
     name = 'step6'
 
     def literal(self, B, W):
@@ -211,7 +211,7 @@ class Step6(_Base):
         return dict(x1=x1, y1=y1, x2=x2, y2=y2, anc=anc, flags=(ctrl1, f1b, f2b, f3a, f4a))
 
     def flag_prune(self, B, W):
-        """Условие ctrl=0 в конце зависит только от флагов: если при данных флагах оно ложно — случай пуст."""
+        """The condition ctrl=0 at the end depends only on the flags: if it is false for the given flags, the case is empty."""
         f1, f2, f3, f4, ctrl = (W[k][0] for k in ('f1', 'f2', 'f3', 'f4', 'ctrl'))
         if self.patched:
             nn = B.AND(f3 ^ 1, f4 ^ 1)
@@ -221,12 +221,12 @@ class Step6(_Base):
         return ctrl1 ^ 1 if not self.observe_on else ONE
 
     def splits(self, B, W, O):
-        """Нули слов (управляют флагами и anc) и исходы приведений в CModSub/CModAdd."""
+        """Zeros of the words (they control the flags and anc) and the outcomes of the reductions in CModSub/CModAdd."""
         p = self.p
-        out = [(f'{k}=0', is_zero(B, W[k]), k) for k in ('a', 'b', 'x', 'y')]   # при «=1» слово заменяется нулями
+        out = [(f'{k}=0', is_zero(B, W[k]), k) for k in ('a', 'b', 'x', 'y')]   # at "=1" the word is replaced by zeros
         def k5(B, W, O):
             L = self.literal(B, W)
-            return ZERO if L['anc'] == ZERO else lt(B, L['x1'], W['a'])          # без CModSub делить незачем
+            return ZERO if L['anc'] == ZERO else lt(B, L['x1'], W['a'])          # without CModSub there is nothing to split
         def k6(B, W, O):
             L = self.literal(B, W)
             return ZERO if L['anc'] == ZERO else lt(B, add(B, L['y1'], W['b']), const(p, self.n + 1)) ^ 1
@@ -240,7 +240,7 @@ class Step6(_Base):
         return r if self.observe_on else r + [f ^ 1 for f in L['flags']]
 
     def observe(self, B, W, O):
-        """Вариант без условия на флаги: конечные значения пяти флагов (их освобождает Free) = буквальные формулы."""
+        """Variant without the condition on the flags: the final values of the five flags (released by Free) = the literal formulas."""
         ctrl1, f1b, f2b, f3a, f4a = self.literal(B, W)['flags']
         return dict(ctrl=[ctrl1], f1=[f1b], f2=[f2b], f3=[f3a], f4=[f4a])
 

@@ -33,7 +33,7 @@ def expected(spec, v, orc):
 
 
 def chain(n, p, patched, P, Q, lr, orc, keep=None):
-    """Шесть int-спецификаций подряд. Возвращает (входы шагов, итог)."""
+    """The six int specifications in a row. Returns (inputs of the steps, result)."""
     a, b = ec.enc(P, n, p)
     x, y = ec.enc(Q, n, p)
     S = {k: ISTEPS[k](n, p, patched) for k in ISTEPS}
@@ -72,8 +72,8 @@ def main(argv=None):
     ap.add_argument('--seed', type=int, default=1)
     ap.add_argument('--out', default=None)
     ap.add_argument('--semantic-oracle', action='store_true',
-                    help='значения ящиков — по формулам (MM=u*v*R^-1, KINV=u^-1*R^2), а не классикой Qualtran '
-                         '(нужно для исходной 0.7.0 при n=256: её классика умножителя падает, находка 04)')
+                    help='box values by the formulas (MM=u*v*R^-1, KINV=u^-1*R^2), not by the Qualtran classical simulation '
+                         '(needed for the original 0.7.0 at n=256: its classical simulation of the multiplier fails, finding 04)')
     a = ap.parse_args(argv)
     n, p = a.n, eval(a.p, {}, {})
     from qoptct.foreign.qualtran.ecadd.run_step import version_info
@@ -89,7 +89,7 @@ def main(argv=None):
     t0 = time.time()
     res = dict(n=n, p=str(p), **vi, method='Qualtran classical simulation of flattened step vs ispecs', steps={},
                semantic_oracle=a.semantic_oracle)
-    # 1) цепочка на сценариях: входы шагов + проверка итогового сложения
+    # 1) the chain on scenarios: inputs of the steps + check of the final addition
     samples = {k: [] for k in range(1, 7)}
     chain_rows = []
     for kind, A, B, P, Q in ec.scenarios(p, rnd, a.scen):
@@ -103,7 +103,7 @@ def main(argv=None):
             samples[k].append(('chain:' + kind, ins[k]))
     res['chain'] = dict(total=len(chain_rows), ok=sum(r['ok'] for r in chain_rows),
                         bad=sorted({r['kind'] for r in chain_rows if not r['ok']}))
-    # 2) случайные входы (с редкими значениями) — для шагов 1-5
+    # 2) random inputs (with rare values) for steps 1-5
     special = [0, 1, p - 1, p - 2, (p - 1) // 2, (p + 1) // 2]
     for k in (1, 2, 3, 4, 5):
         spec = ISTEPS[k](n, p, patched)
@@ -142,7 +142,7 @@ def main(argv=None):
                 stat['errors'] += 1
                 if len(stat['examples']) < 3:
                     stat['examples'].append(dict(tag=tag, error=f'{type(e).__name__}: {str(e)[:200]}'))
-                # запасной независимый путь: конкретный исполнитель переведённой программы (ew/csim) с ящиками Qualtran
+                # independent fallback path: concrete executor of the translated program (ew/csim) with the Qualtran boxes
                 try:
                     if k not in csim_prog:
                         from qoptct.foreign.qualtran.ecadd.core import build_program

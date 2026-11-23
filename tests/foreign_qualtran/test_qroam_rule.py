@@ -75,7 +75,7 @@ def basis_test(adj, q, canary=None, name=''):
                 di = list(adj.target_registers).index(r)
                 return int(datas[di][tuple(sel) + e]) if (active and inrange) else 0
             good = {(r.name, e): expect(r, e) for r, e in tgt}
-            # входы: правильный, и набор неправильных (все, если мало)
+            # inputs: the right one and a set of wrong ones (all of them if there are few)
             cands = [good]
             if tgt_bits <= 7:
                 for vals in itertools.product(*[range(1 << b[r.name]) for r, e in tgt]):
@@ -145,7 +145,7 @@ def dense_test(adj, q, canary=None, name=''):
                 idx2 |= set_bits(v, ins[element_name(r.name, e)])
             init[idx2 | full_ref] += amp
             ideal[idx | full_ref] += amp
-    # проверим порядок бит: индекс = sum bit<<wire
+    # check the bit order: index = sum bit<<wire
     E = sum(1 for o in ops if o[0] == 'erase')
     branches = [(init, 1.0)]
     for op in ops:
@@ -169,7 +169,7 @@ def dense_test(adj, q, canary=None, name=''):
             elif op[0] == 'erase':
                 t, corr = op[1:]
                 idx = np.arange(1 << N)
-                # H на t
+                # H on t
                 lo = idx & ~(1 << t)
                 hi = lo | (1 << t)
                 bit = (idx >> t) & 1
@@ -185,7 +185,7 @@ def dense_test(adj, q, canary=None, name=''):
                             else:
                                 sign *= 1 - 2 * (((idx >> c[1]) & 1) & ((idx >> c[2]) & 1))
                         ph = ph * sign
-                        ph = ph[idx ^ (1 << t)]   # X на t
+                        ph = ph[idx ^ (1 << t)]   # X on t
                     new.append((ph, w))
             else:
                 raise ValueError(op)

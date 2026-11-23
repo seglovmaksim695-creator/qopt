@@ -12,7 +12,7 @@ from . import ec
 def sympy_check():
     import sympy as sp
     xP, yP, xQ, A, X = sp.symbols('xP yP xQ A X')
-    # B через P; yQ свободна, но лежит на кривой: yQ^2 = xQ^3 + A xQ + B
+    # B through P; yQ is free but lies on the curve: yQ^2 = xQ^3 + A xQ + B
     B = yP**2 - xP**3 - A * xP
     yQ = sp.symbols('yQ')
     lam = (yQ - yP) / (xQ - xP)
@@ -21,10 +21,10 @@ def sympy_check():
     target = (X - xP) * (X - xQ) * (X - xR)
     diff = sp.together(sp.expand(c - target))
     num = sp.numer(diff)
-    # приведение по уравнению кривой для Q
+    # reduction by the curve equation for Q
     num_red = sp.rem(sp.Poly(sp.expand(num), yQ), sp.Poly(yQ**2 - (xQ**3 + A * xQ + B), yQ))
     ok1 = sp.simplify(num_red.as_expr()) == 0
-    # производная в xP: c'(xP) = 3xP^2 + A - 2 lam yP ; и (из разложения) c'(xP) = (xP-xQ)(xP-xR)
+    # derivative at xP: c'(xP) = 3xP^2 + A - 2 lam yP ; and (from the factorisation) c'(xP) = (xP-xQ)(xP-xR)
     d1 = sp.diff(c, X).subs(X, xP)
     ok2 = sp.simplify(d1 - (3 * xP**2 + A - 2 * lam * yP)) == 0
     return dict(cubic_factorization=bool(ok1), derivative_formula=bool(ok2))
@@ -39,7 +39,7 @@ def semantic(n, p):
 
 
 def chain(n, p, patched, a, b, x, y, lr, MM, KINV):
-    """Шесть контрактов (zspecs.IntOps); ящики — смысловые функции. -> (итог, флаги-обязательства, инстансы лемм)."""
+    """The six contracts (zspecs.IntOps); the boxes are the meaningful functions. -> (result, flag obligations, lemma instances)."""
     o = IntOps(n, p)
     v = {}
     pre_ok = True
@@ -79,7 +79,7 @@ def exhaustive(primes, max_seconds=600):
         MM, KINV = semantic(n, p)
         R = pow(2, n, p)
         mont = lambda t: t * R % p
-        # леммы MM0, K0, C1, C2 — полный перебор аргументов
+        # lemmas MM0, K0, C1, C2: exhaustive search over the arguments
         for u in range(p):
             if (KINV(u) == 0) != (u == 0):
                 out['lemma_bad'] += 1
@@ -115,11 +115,11 @@ def exhaustive(primes, max_seconds=600):
                             good0 = res0 == want and ok0
                             if g1 or g2 or g3:
                                 out['groups'][0 if g1 else 1 if g2 else 2] += 1
-                                if ok0:          # на группе обязано нарушаться освобождение
+                                if ok0:          # on the group the release must fail
                                     out['orig_ok_inside'] += 1
                             elif not good0:
                                 out['orig_bad_outside'] += 1
-                            # инстансы EC-лемм (обычная ветвь, привязка выполнена в исправленной цепочке)
+                            # instances of the EC lemmas (ordinary branch, binding done in the fixed chain)
                             gen = not e3 and not e4 and not (e1 and e2)
                             if gen:
                                 Lam = lr if e1 else info['Z2']

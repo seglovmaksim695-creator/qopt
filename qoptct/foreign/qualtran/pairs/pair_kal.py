@@ -4,12 +4,7 @@ Mirror check: the second half of the program == the pi-renamed mirror of the fir
   pi is built during matching (injective both ways); required: pi = id on the wires that carry data at the joint
   (output x and junk of the forward block), and pi(input wires of x) = output wires of x of the pair."""
 import sys, json, time
-from qoptct.foreign.qualtran.bridge.from_qualtran import lower_graph
-from qoptct.foreign.qualtran.bridge.fredkin_rule import FredkinRules
-from qoptct.foreign.qualtran.bridge.rules import translate
 from qoptct.verify.compose.lift import lift, K_X, K_CX, K_AND, K_ERASE
-
-BIG = 10 ** 9
 
 
 def pair_bloq(n, p, bwd_uncompute=True):
@@ -23,11 +18,10 @@ def pair_bloq(n, p, bwd_uncompute=True):
 
 
 def lift_pair(n, p, bloq=None):
-    book = FredkinRules()
-    low = lower_graph(bloq or pair_bloq(n, p), max_leaves=BIG, max_nodes=BIG, extra_atom_rule=book.chain_with_basis_and_a1)
-    prog = translate(low, low['inputs'], low['outputs'])
-    book.bind(low, prog)
-    return lift(prog['qasm']), low, prog
+    """Full expansion of the pair by the bridge (the one lowering routine of the Kaliski client): ``(lifted, low, prog)``."""
+    from ..kaliski.lower import lower_full
+    L, low, prog, _binding = lower_full(bloq or pair_bloq(n, p))
+    return L, low, prog
 
 
 def ops_list(L):
@@ -66,11 +60,11 @@ def mirror_prog(ops):
 
 
 def match(fwd, bwd):
-    """сопоставить bwd с зеркалом fwd -> (ok, pi, msg, nswap). Порядок проводов должен совпасть (контроли a,b AND/ERASE
-    симметричны по смыслу вентиля; подмена a<->b допускается и считается в nswap)."""
+    """match bwd with the mirror of fwd -> (ok, pi, msg, nswap). The order of the wires must agree (the controls a,b of AND/ERASE
+    are symmetric by the meaning of the gate; a<->b substitution is allowed and counted in nswap)."""
     mir = mirror_prog(fwd)
     if len(mir) != len(bwd):
-        return False, None, 'длины: зеркало %d, обратная %d' % (len(mir), len(bwd)), 0
+        return False, None, 'lengths: mirror %d, backward %d' % (len(mir), len(bwd)), 0
     pi, inv = {}, {}
     nswap = 0
 
@@ -78,7 +72,7 @@ def match(fwd, bwd):
         return all(pi.get(u, v) == v and inv.get(v, u) == u for u, v in zip(wm, wb))
     for i, (m, b) in enumerate(zip(mir, bwd)):
         if m[0] != b[0]:
-            return False, None, 'вид вентиля, позиция %d: %r против %r' % (i, m, b), nswap
+            return False, None, 'kind of gate, position %d: %r versus %r' % (i, m, b), nswap
         wm, wb = wires(m), wires(b)
         if m[0] in (K_AND, K_ERASE) and not fits(wm, wb):
             wm2 = (wm[1], wm[0]) + wm[2:]
@@ -86,7 +80,7 @@ def match(fwd, bwd):
                 wm = wm2
                 nswap += 1
         if not fits(wm, wb):
-            return False, None, 'конфликт перенумерации, позиция %d: %r против %r' % (i, m, b), nswap
+            return False, None, 'renumbering conflict, position %d: %r versus %r' % (i, m, b), nswap
         for u, v in zip(wm, wb):
             pi[u] = v
             inv[v] = u

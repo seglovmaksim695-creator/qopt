@@ -13,10 +13,10 @@ from qoptct.verify.bdd import ONE, ZERO
 from . import bv
 from .core import Run, Fail, lsb, build_program, MSB_ROOT
 
-CURVE_A, CURVE_B = 2, 3            # y^2 = x^3 + 2x + 3 (B != 0: (0,0) не на кривой), выбор произвольный
+CURVE_A, CURVE_B = 2, 3            # y^2 = x^3 + 2x + 3 (B != 0: (0,0) is not on the curve), an arbitrary choice
 
 
-# ------------------------------------------------------------------ независимая арифметика точек (None = O)
+# ------------------------------------------------------------------ independent arithmetic of the points (None = O)
 def sqrt_mod(a, p):
     a %= p
     if a == 0:
@@ -74,7 +74,7 @@ def base_point(p, w, start=5):
         if y:
             R = (x, min(y, p - y))
             mults = [pt_mul(c, R, p) for c in range(1, 2 ** w)]
-            if all(M is not None and M[1] != 0 for M in mults):   # c·R != O, нет 2-кручения в таблице
+            if all(M is not None and M[1] != 0 for M in mults):   # c·R != O, no 2-torsion in the table
                 return R
         x += 1
 
@@ -91,7 +91,7 @@ def table(n, p, w, R):
     return Ta, Tb, Tl
 
 
-# ------------------------------------------------------------------ Qualtran-блок и разложение
+# ------------------------------------------------------------------ Qualtran block and its decomposition
 def win_bloq(n, p, w, R):
     from qualtran.bloqs.cryptography.ecc.ec_add_r import ECWindowAddR
     from qualtran.bloqs.cryptography.ecc.ec_point import ECPoint
@@ -112,7 +112,7 @@ def make_rule():
             return st
         if type(bloq) is ECAdd:
             if any(r.side != Side.THRU for r in bloq.signature) or bloq.window_size != 1:
-                raise ValueError('ECAdd: ожидались THRU-регистры и window_size=1')
+                raise ValueError('ECAdd: THRU registers and window_size=1 expected')
             regs = {name: [int(q) for q in arr.flat] for name, arr in inputs.items()}
             qubits = sorted({q for w in regs.values() for q in w})
             leaf = dict(name='opaque', kind='ECADD', regs_in=regs, regs_out={k: list(v) for k, v in regs.items()},
@@ -127,7 +127,7 @@ def lower_e4(bloq):
     from .translate_ew import translate_ew
     q = bloq.qrom
     if any(int(k) != 0 for k in q.log_block_sizes):
-        raise Fail('QROAMClean с K>1 (SwapWithZero мостом не переводится)', log_block_sizes=str(q.log_block_sizes))
+        raise Fail('QROAMClean with K>1 (SwapWithZero is not translated by the bridge)', log_block_sizes=str(q.log_block_sizes))
     low = lower_bloqgraph(bloq, extra_atom_rule=make_rule(), max_leaves=5_000_000, max_nodes=20_000_000)
     tr = translate_ew(low)
     for key in ('wire_names', 'graph_events', 'source_wire_names'):
@@ -136,17 +136,17 @@ def lower_e4(bloq):
     return low, tr
 
 
-# ------------------------------------------------------------------ спецификация и прогон
+# ------------------------------------------------------------------ specification and run
 class E4Spec:
     name = 'e4'
     range_words = ('x', 'y')
 
     def __init__(self, n, p, T, w):
         self.n, self.p, self.T, self.w = n, p, T, w
-        self.cnames = [f'ctrl[{i}]' for i in range(w)]       # мост раскладывает массив ctrl на ctrl[0..w-1]
+        self.cnames = [f'ctrl[{i}]' for i in range(w)]       # the bridge splits the array ctrl into ctrl[0..w-1]
 
     def sel(self, W):
-        # bb.join: ctrl[0] — старший бит; слово LSB-first: [ctrl[w-1], ..., ctrl[0]]
+        # bb.join: ctrl[0] is the high bit; LSB-first word: [ctrl[w-1], ..., ctrl[0]]
         return [W[f'ctrl[{self.w - 1 - j}]'][0] for j in range(self.w)]
 
     def lookup(self, B, sel, data):
@@ -174,12 +174,12 @@ class RunE4(Run):
         ins = self.prog['inputs']
         fwd = [it[1] for it in self.prog['items'] if it[0] == 'opaque']
         if [l['kind'] for l in fwd] != ['ECADD']:
-            raise Fail('ожидался ровно один ящик ECADD', got=[l['kind'] for l in fwd])
+            raise Fail('exactly one ECADD box expected', got=[l['kind'] for l in fwd])
         cn = self.spec.cnames
         if set(ins) != set(cn) | {'x', 'y'} or len(ins['x']) != n or len(ins['y']) != n or any(len(ins[k]) != 1 for k in cn):
-            raise Fail('сигнатура ECWindowAddR', got={k: len(v) for k, v in ins.items()})
+            raise Fail('signature of ECWindowAddR', got={k: len(v) for k, v in ins.items()})
         self.fwd_leaves = fwd
-        ctrl = {k: [B.new_var()[1]] for k in cn}             # самый низ (при прогоне — разбор по значениям ctrl)
+        ctrl = {k: [B.new_var()[1]] for k in cn}             # the very bottom (in the run: case split by the values of ctrl)
         cols = {k: [None] * n for k in ('x', 'y', 'X', 'Y')}
         for i in (range(n) if MSB_ROOT else reversed(range(n))):
             for k in ('x', 'y', 'X', 'Y'):
@@ -193,21 +193,21 @@ class RunE4(Run):
     def _opaque(self, leaf, fwd_i):
         B, p, val = self.B, self.p, self.val
         if leaf['kind'] != 'ECADD' or fwd_i != 0 or self.fwd_leaves[0] is not leaf:
-            raise Fail('неожиданный ящик', kind=leaf['kind'])
+            raise Fail('unexpected box', kind=leaf['kind'])
         rin = {r: lsb(ws) for r, ws in leaf['regs_in'].items()}
         rout = {r: lsb(ws) for r, ws in leaf['regs_out'].items()}
         regs = ('a', 'b', 'x', 'y', 'lam_r')
         if set(rin) != set(regs) or rin != rout:
-            raise Fail('ECADD: сигнатура (все регистры THRU)')
+            raise Fail('ECADD: signature (all registers THRU)')
         cur = {r: [val[q] for q in ws] for r, ws in rin.items()}
         ekind, exp = self.expected[0]
         for r in regs:
             if not self.word_eq_holds(cur[r], exp[r]):
-                self.fail(f'ящик ECADD: вход {r} не равен заявленному', bv.eq(B, cur[r], exp[r]) ^ 1)
+                self.fail(f'ECADD box: input {r} is not equal to the declared one', bv.eq(B, cur[r], exp[r]) ^ 1)
             lt = bv.lt_const(B, cur[r], p)
             if not self.holds(lt ^ 1):
-                self.fail(f'ящик ECADD: вход {r} вне области <p', lt ^ 1)
-        for r in ('x', 'y'):                       # контракт E2: a, b, lam_r не меняются; x, y — результат ящика
+                self.fail(f'ECADD box: input {r} is outside the domain <p', lt ^ 1)
+        for r in ('x', 'y'):                       # contract E2: a, b, lam_r are unchanged; x, y are the result of the box
             for q, e in zip(rout[r], self.O[0][r]):
                 val[q] = e
         return 1
@@ -242,7 +242,7 @@ def prove(n, p, w, lowered=None, mutate=None, log=print, setup_=None):
     return run.run(), run, prog
 
 
-# ------------------------------------------------------------------ конкретное исполнение (свидетель для канареек)
+# ------------------------------------------------------------------ concrete execution (witness for canaries)
 def exec_concrete(ops, leaves, N, low, T, n, p, w, ctrl, x, y, X, Y):
     v = bytearray(N)
     put = lambda ws, val: [v.__setitem__(q, (val >> j) & 1) for j, q in enumerate(ws)]
@@ -300,7 +300,7 @@ def mutations(tr, low, rnd, count):
     muts = []
     add = lambda name, targeted, fn: muts.append((name, targeted, fn))
     li = next(i for i, l in enumerate(low['leaves']) if l['name'] == 'opaque')
-    for r in ('a', 'b', 'lam_r', 'x', 'y'):                       # стыки с ящиком
+    for r in ('a', 'b', 'lam_r', 'x', 'y'):                       # joints with the box
         def fn(tr, low, r=r):
             L = list(low['leaves']); L[li] = copy.deepcopy(L[li]); ws = L[li]['regs_in'][r]
             ws[-1], ws[-2] = ws[-2], ws[-1]; L[li]['regs_out'][r] = ws
@@ -310,21 +310,21 @@ def mutations(tr, low, rnd, count):
     adj_idx = [i for k in keys if 'Adjoint' in k for i in range(reg[k][0], reg[k][1])]
     fwd_idx = [i for k in keys if 'Adjoint' not in k and 'QROAM' in k for i in range(reg[k][0], reg[k][1])]
     er = [i for i in adj_idx if ops[i][0] == 'erase']
-    for i in rnd.sample(er, min(7, len(er))):                       # поправки стираний снятия выборки
+    for i in rnd.sample(er, min(7, len(er))):                       # erasure corrections of the lookup removal
         def fn(tr, low, i=i):
             o = list(tr['ops']); t, ((cz, a, b),) = o[i][1], o[i][2]
             c = next(q for q in live_in if q not in (a, b, t))
             o[i] = ('erase', t, (('cz', a, c),)); return o, low['leaves']
         add(f'erase-correction:op{i}', True, fn)
     ands = [i for i in fwd_idx if ops[i][0] == 'and']
-    for i in rnd.sample(ands, min(4, len(ands))):                   # редкие входы: одна ветка лестницы выборки
+    for i in rnd.sample(ands, min(4, len(ands))):                   # rare inputs: one branch of the lookup ladder
         def fn(tr, low, i=i):
             o = tr['ops']; _, a, b, t = o[i]
             j = next(j for j in range(i + 1, len(o)) if o[j][0] == 'erase' and o[j][1] == t)
             return o[:i] + [('x', a), o[i], ('x', a)] + o[i + 1:j] + [('x', a), o[j], ('x', a)] + o[j + 1:], low['leaves']
         add(f'rare-input:flip-ladder-control-op{i}', True, fn)
     cxs = [i for i in fwd_idx if ops[i][0] == 'cx']
-    for i in rnd.sample(cxs, min(3, len(cxs))):                     # один бит таблицы
+    for i in rnd.sample(cxs, min(3, len(cxs))):                     # one bit of the table
         add(f'table-bit:drop-cx-op{i}', True, lambda tr, low, i=i: (tr['ops'][:i] + tr['ops'][i + 1:], low['leaves']))
     while len(muts) < count:
         i = rnd.randrange(len(ops))
@@ -344,15 +344,15 @@ def mutations(tr, low, rnd, count):
     return muts[:max(count, len(muts))]
 
 
-# ------------------------------------------------------------------ независимая проверка средствами Qualtran
+# ------------------------------------------------------------------ independent check with Qualtran means
 def indep(n, p, w, seed=11, rand=12):
     import numpy as np
     from qualtran import QMontgomeryUInt
     R, T, bloq = setup(n, p, w)
     rows = []
     q = bloq.qrom
-    data = [list(map(int, np.asarray(d).ravel())) for d in q.data]   # таблица Qualtran
-    rows.append(dict(check='table == независимая (c·R, Монтгомери)', ok=data == [list(t) for t in T]))
+    data = [list(map(int, np.asarray(d).ravel())) for d in q.data]   # the Qualtran table
+    rows.append(dict(check='table == independent (c·R, Montgomery)', ok=data == [list(t) for t in T]))
     dt = QMontgomeryUInt(n, p)
     mont = lambda t: t * (1 << n) % p
     rows.append(dict(check='uint_to_montgomery == t·2^n mod p', ok=all(int(dt.uint_to_montgomery(t)) == mont(t)
@@ -361,7 +361,7 @@ def indep(n, p, w, seed=11, rand=12):
     pts = [None, R, pt_mul(2, R, p)]
     for c in range(1, 2 ** w):
         P = pt_mul(c, R, p)
-        pts += [P, (P[0], (-P[1]) % p)]               # Q = c·R (удвоение) и Q = -c·R (результат O)
+        pts += [P, (P[0], (-P[1]) % p)]               # Q = c·R (doubling) and Q = -c·R (result O)
     while len(pts) < 2 ** w * 2 + 3 + rand:
         xx = rnd.randrange(p)
         yy = sqrt_mod(xx ** 3 + CURVE_A * xx + CURVE_B, p)
@@ -372,7 +372,7 @@ def indep(n, p, w, seed=11, rand=12):
     for i, Q in enumerate(pts):
         c = (i * 7 + 3) % (2 ** w) if i >= 3 else i % (2 ** w)
         if Q is not None and i >= 3 and i < 3 + 2 * (2 ** w - 1):
-            c = (i - 3) // 2 + 1                                   # точно c, дающее удвоение / O
+            c = (i - 3) // 2 + 1                                   # exactly the c that gives doubling / O
         want = pt_add(Q, pt_mul(c, R, p), p)
         xm, ym = (0, 0) if Q is None else (mont(Q[0]), mont(Q[1]))
         wx, wy = (0, 0) if want is None else (mont(want[0]), mont(want[1]))
@@ -388,7 +388,7 @@ def indep(n, p, w, seed=11, rand=12):
             n_ok += 1
         elif ok is False:
             bad.append(dict(c=c, Q=str(Q), got=str(got)))
-    rows.append(dict(check='разложение ECWindowAddR (Qualtran call_classically) == Q + c·R', total=len(pts), ok_count=n_ok,
+    rows.append(dict(check='decomposition of ECWindowAddR (Qualtran call_classically) == Q + c·R', total=len(pts), ok_count=n_ok,
                      bad=bad[:5], errors=sorted(set(errs))[:3]))
     return dict(R=[str(R[0]), str(R[1])], curve=dict(a=CURVE_A, b=CURVE_B), rows=rows)
 
@@ -406,8 +406,8 @@ def main(argv=None):
     n, p, w = a.n, eval(a.p, {}, {}), a.w
     t0 = time.time()
     res = dict(cmd=a.cmd, n=n, p=str(p), w=w, mul_window_size=1, curve=f'y^2=x^3+{CURVE_A}x+{CURVE_B}', **version_info(),
-               assumptions=['E2: ECAdd(n,p,1) исправленная = сложение точек, a,b,lam_r не меняются, остальное чисто',
-                            'C1 правило QROAMCleanAdjoint (A1-A4 цели C)', 'QROAMClean K=1 раскрыт мостом (как у C)'])
+               assumptions=['E2: ECAdd(n,p,1) fixed = point addition, a,b,lam_r unchanged, everything else clean',
+                            'C1 rule QROAMCleanAdjoint (A1-A4 of goal C)', 'QROAMClean K=1 expanded by the bridge (as in C)'])
     try:
         if a.cmd == 'prove':
             from .regions import regions

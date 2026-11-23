@@ -44,7 +44,7 @@ def children_info(low, tr, top, wins, order):
 
 
 def build_sub(P, ch_list, ops):
-    """ch_list: дети окна. -> список сегментов: (label, kind, ops, wi, wo, descr)"""
+    """ch_list: children of the window. -> list of segments: (label, kind, ops, wi, wo, descr)"""
     segs = []
     c = ch_list
     names = [x['name'] for x in c if x['name'] not in ('Join', 'Split')]
@@ -68,7 +68,7 @@ def build_sub(P, ch_list, ops):
 
 
 def sub_ranges(win):
-    """CFIX: диапазоны операций подузлов окна (глобальные индексы): CAdd*w, Xor, [QROAMClean..Adjoint]"""
+    """CFIX: operation ranges of the sub-nodes of the window (global indices): CAdd*w, Xor, [QROAMClean..Adjoint]"""
     real = [x for x in win['children'] if x['name'] not in ('Join', 'Split')]
     w_ = sum(1 for x in real if x['name'] == 'CAdd')
     rs = [('cadd%d' % i, real[i]['a'], real[i]['b']) for i in range(w_)]
@@ -78,7 +78,7 @@ def sub_ranges(win):
 
 
 def tile_info(win):
-    """CFIX: дети окна (включая нулевые Join/Split) покрывают отрезок окна ровно: без дыр, пересечений и выходов за границы"""
+    """CFIX: the children of the window (including the zero Join/Split) cover the segment of the window exactly: no holes, no overlaps, nothing outside the bounds"""
     notes = []
     a0, b0 = win['span']
     for x in win['children']:
@@ -94,11 +94,11 @@ def tile_info(win):
 
 
 def window_checks(P, win, wops, off, segs):
-    """CFIX (закрытие дыры AUD-C-01), вызывается после build_sub:
-    (1) покрытие: длина операций окна == его отрезок; дети тайлят отрезок; отрезки подузлов тайлят отрезок;
-        каждая операция окна принадлежит РОВНО ОДНОМУ подузлу; операции каждого подузла (после среза) — ровно его диапазон;
-    (2) свежесть: идём по подузлам в порядке операций; НЕвходные провода подузла (он их считает нулевыми) не входы окна
-        (ни один ключ wins_in) и не тронуты ранее (ни окном, ни прежними подузлами)."""
+    """CFIX (closes hole AUD-C-01), called after build_sub:
+    (1) coverage: the length of the operations of the window == its segment; the children tile the segment; the segments of the sub-nodes tile the segment;
+        every operation of the window belongs to EXACTLY ONE sub-node; the operations of every sub-node (after slicing) are exactly its range;
+    (2) freshness: go over the sub-nodes in the order of the operations; the NON-input wires of a sub-node (it takes them as zero) are not inputs of the window
+        (no key of wins_in) and were not touched earlier (neither by the window nor by earlier sub-nodes)."""
     notes = []
     a0, b0 = win['span']
     if len(wops) != b0 - a0 or off != a0: notes.append('window ops %d (off %d) != span %d..%d' % (len(wops), off, a0, b0))
@@ -130,7 +130,7 @@ def window_checks(P, win, wops, off, segs):
 
 
 def apply_sub(P, kind, S_B, rd, wi, wo):
-    """возвращает {wire: edge} выходов по входным регистрам (rd(wires)->SymInt); для spec сегмента и композиции"""
+    """returns {wire: edge} of the outputs by the input registers (rd(wires)->SymInt); for the spec of a segment and for the composition"""
     B = S_B
     out = {}
     if kind == 'cadd':
@@ -200,7 +200,7 @@ def run_sub(label, kind, P, ops_g, wi_g, wo_g, rng, budget, max_mb, tag, cache):
 
 
 def compose_check(P, win, subs_w):
-    """BDD: при pre окна композиция подконтрактов == контракт окна (по всем выходным проводам x,y,T,m)"""
+    """BDD: under the pre of the window the composition of the sub-contracts == the contract of the window (over all output wires x,y,T,m)"""
     n, w, p = P.n, P.w, P.p
     wi = {'x': win['wins_in']['x'], 'y': win['wins_in']['y'][::-1], 'T': win['wins_in']['target'][::-1]}
     wo = {'x': wi['x'], 'y': wi['y'], 'T': win['wins_out']['target'][::-1], 'm': win['wins_out']['qrom_index'][::-1]}
@@ -221,7 +221,7 @@ def compose_check(P, win, subs_w):
     prec = pre(S); dbg('pre'); want = spec(S); dbg('want')
     state = dict(edge)
 
-    def squeeze():   # сборка мусора BDD (экономия памяти), корни: state, want, prec
+    def squeeze():   # BDD garbage collection (saves memory), roots: state, want, prec
         nonlocal prec, want, state
         rm = B.gc([prec] + list(want.values()) + list(state.values()))
         prec = rm(prec); want = {q: rm(e) for q, e in want.items()}; state = {q: rm(e) for q, e in state.items()}
@@ -240,8 +240,8 @@ def compose_check(P, win, subs_w):
 
 
 def compose_analytic(P, win, subs_w, rng, first=False):
-    """w>=4: BDD-композиция не помещается в 3 ГБ. Вместо неё: (1) проверка кодом положения проводов (срезы T, y, x, m), (2) точная целочисленная
-    проверка отсутствия переполнения срезов (интервальная арифметика на pre: y<p, T<y+p), (3) прогон композиции подконтрактов на целых числах против контракта окна."""
+    """w>=4: the BDD composition does not fit in 3 GB. Instead: (1) a code check of the position of the wires (slices T, y, x, m), (2) an exact integer
+    check that the slices do not overflow (interval arithmetic on pre: y<p, T<y+p), (3) a run of the composition of the sub-contracts on integers against the contract of the window."""
     n, w, p = P.n, P.w, P.p
     notes = []
     Tw = win['wins_in']['target'][::-1]; yw = win['wins_in']['y'][::-1]; xw = win['wins_in']['x']
@@ -261,14 +261,14 @@ def compose_analytic(P, win, subs_w, rng, first=False):
     if swi['b'] != Tw[:n + w] or swo['b'] != Tw[:n + w]: notes.append('qaa: b != T[:n+w]')
     if wo_T[:n] != Tw[w:n + w]: notes.append('window out T[:n] != T[w:]')
     if wo_T[n:] != Tw[:w]: notes.append('window out T high wires != old low wires T[:w] (cyclic shift)')
-    # (2) границы без переполнения срезов
+    # (2) bounds without overflow of the slices
     N_ = 1 << w
-    Tmax = 0 if first else 2 * p - 2   # T <= y+p-1 <= 2p-2 (первое окно: T=0)
+    Tmax = 0 if first else 2 * p - 2   # T <= y+p-1 <= 2p-2 (first window: T=0)
     for k in range(w):
         Tk = Tmax + (2 ** (k + 1) - 1) * (p - 1)
         if not Tk < 2 ** (n + k + 1): notes.append(f'overflow possible in cadd{k}')
     if not Tmax + (N_ - 1) * (p - 1) + max(P.table) < 2 ** (n + w): notes.append('overflow possible in qaa')
-    # (3) целочисленная композиция против контракта окна
+    # (3) integer composition against the contract of the window
     cases = 0
     for _ in range(3000):
         y = rng.choice([0, 1, p - 1, rng.randrange(p)]); T = 0 if first else rng.choice([0, y + p - 1, p, rng.randrange(y + p)]); xd = rng.choice([0, N_ - 1, rng.randrange(N_)])

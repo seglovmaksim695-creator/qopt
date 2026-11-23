@@ -32,7 +32,6 @@ __all__ = ['prove_montgomery', 'prime_for', 'exhaustive_small', 'SCHEMA']
 SCHEMA = 'qoptct.montgomery/1'
 _HERE = Path(__file__).resolve().parent
 _PKG = _HERE.parent
-_ROOT = _PKG.parents[1]          # the directory that contains the ``qoptct`` package
 
 
 def prime_for(n):
@@ -68,10 +67,8 @@ def _versions():
 
 
 def _env(patched):
-    from ..patches import patched_env
-    env = patched_env('c') if patched else dict(os.environ)
-    old = env.get('PYTHONPATH')
-    env['PYTHONPATH'] = str(_ROOT) + (os.pathsep + old if old else '')
+    from .._variant import child_env      # the one place that builds the environment of a child process
+    env = child_env('c' if patched else None)
     env['PYTHONDONTWRITEBYTECODE'] = '1'
     env.setdefault('BRIDGE_SKIP_QASM', '1')
     env.setdefault('BRIDGE_DOMAIN_MAX_NODES', '12000000')   # resource knob of the exact domain guard (default 700000)

@@ -33,7 +33,7 @@ def classify(path):
 
 
 def token_ranges(prog):
-    """непрерывные диапазоны операций блоков QC/QA по трассе: [(lo, hi, kind, ключ)]"""
+    """contiguous operation ranges of the QC/QA blocks along the trace: [(lo, hi, kind, key)]"""
     out = []
     for row in prog['trace']:
         kind = classify(row['leaf']['path'])
@@ -43,24 +43,24 @@ def token_ranges(prog):
         if out and out[-1][3] == key and out[-1][1] == row['logical_start']:
             out[-1][1] = row['logical_end']
         else:
-            need(all(o[3] != key for o in out), 'блок %s встречается дважды' % key)
+            need(all(o[3] != key for o in out), 'block %s occurs twice' % key)
             out.append([row['logical_start'], row['logical_end'], kind, key])
     return out
 
 
 def extract_token(kind, tops):
-    """-> (sel, {t: (b0, b1)}, внутренние провода). Проверяет смысл блока перебором sel in {0,1}."""
+    """-> (sel, {t: (b0, b1)}, internal wires). Checks the meaning of the block by trying sel in {0,1}."""
     wset = sorted({w for o in tops for w in M.wires(o)})
     ctrl = {o[1] for o in tops if o[0] == K_CX}
     tgt_written = {o[2] for o in tops if o[0] == K_CX} | {o[3] for o in tops if o[0] in (K_AND, K_ERASE)}
     sel = sorted(ctrl - tgt_written)
-    need(len(sel) == 1, 'блок %s: ожидался один sel-провод (w=1), найдено %r' % (kind, sel))
+    need(len(sel) == 1, 'block %s: one sel wire expected (w=1), found %r' % (kind, sel))
     sel = sel[0]
     if kind == 'QC':
-        need(all(o[0] in (K_X, K_CX) for o in tops), 'QC: только x/cx')
-        need(all(o[1] == sel for o in tops if o[0] == K_CX), 'QC: cx управляются только sel')
-        need(all(o[1] == sel for o in tops if o[0] == K_X), 'QC: x только на sel')
-        need(all(o[2] != sel for o in tops if o[0] == K_CX), 'QC: sel не мишень')
+        need(all(o[0] in (K_X, K_CX) for o in tops), 'QC: only x/cx')
+        need(all(o[1] == sel for o in tops if o[0] == K_CX), 'QC: cx are controlled only by sel')
+        need(all(o[1] == sel for o in tops if o[0] == K_X), 'QC: x only on sel')
+        need(all(o[2] != sel for o in tops if o[0] == K_CX), 'QC: sel is not a target')
         code = {}
         for s in (0, 1):
             st = {w: 0 for w in wset}
@@ -70,19 +70,19 @@ def extract_token(kind, tops):
                     st[o[1]] ^= 1
                 else:
                     st[o[2]] ^= st[o[1]]
-            need(st[sel] == s, 'QC: sel изменён')
+            need(st[sel] == s, 'QC: sel changed')
             for w, v in st.items():
                 if w != sel:
                     code.setdefault(w, [0, 0])[s] = v
         tab = {w: tuple(c) for w, c in code.items() if tuple(c) != (0, 0)}
         return sel, tab, set()
-    # QA: исполнение с записью требуемых значений мишеней erase
-    need(all(o[0] in (K_X, K_CX, K_AND, K_ERASE) for o in tops), 'QA: виды вентилей')
+    # QA: execution that records the required values of the erase targets
+    need(all(o[0] in (K_X, K_CX, K_AND, K_ERASE) for o in tops), 'QA: kinds of gates')
     erased = [o[3] for o in tops if o[0] == K_ERASE]
-    need(len(erased) == len(set(erased)), 'QA: мишень erase стирается дважды')
-    need(all(o[0] != K_ERASE or o[4] < 0 for o in tops), 'QA: поправка l не поддержана')
+    need(len(erased) == len(set(erased)), 'QA: an erase target is erased twice')
+    need(all(o[0] != K_ERASE or o[4] < 0 for o in tops), 'QA: correction l is not supported')
     read_as_ctrl = {o[1] for o in tops if o[0] == K_CX} | {w for o in tops if o[0] in (K_AND, K_ERASE) for w in (o[1], o[2])}
-    need(not (set(erased) & read_as_ctrl), 'QA: стёртый провод читается как управляющий')
+    need(not (set(erased) & read_as_ctrl), 'QA: an erased wire is read as a control')
     code = {}
     internal = set(wset) - {sel} - set(erased)
     for s in (0, 1):
@@ -95,21 +95,21 @@ def extract_token(kind, tops):
             elif k == K_CX:
                 st[o[2]] ^= st[o[1]]
             elif k == K_AND:
-                need(st[o[3]] == 0, 'QA: цель AND не 0')
+                need(st[o[3]] == 0, 'QA: AND target is not 0')
                 st[o[3]] = st[o[1]] & st[o[2]]
             else:
                 code.setdefault(o[3], [0, 0])[s] = st[o[1]] & st[o[2]]
                 st[o[3]] = 0
-        need(st[sel] == s and all(v == 0 for w, v in st.items() if w != sel), 'QA: провода не вернулись в 0 при sel=%d' % s)
+        need(st[sel] == s and all(v == 0 for w, v in st.items() if w != sel), 'QA: wires did not return to 0 at sel=%d' % s)
     tab = {w: tuple(c) for w, c in code.items() if tuple(c) != (0, 0)}
     return sel, tab, internal
 
 
 def abstract_ops(ops, prog, interface_in):
-    """заменяет блоки QC/QA абстрактными LD/CLR; проверяет: цели LD -- свежие провода (не интерфейс, первое использование в блоке);
-    таблица CLR парного LD в окне совпадает. -> (новые ops, сведения)"""
+    """replaces the QC/QA blocks by abstract LD/CLR; checks: the targets of LD are fresh wires (not the interface, first use inside the block);
+    the CLR table of the paired LD in the window is the same. -> (new ops, info)"""
     toks = token_ranges(prog)
-    need(len(toks) == 2 and [t[2] for t in toks] in (['QC', 'QA'], ['QA', 'QC']), 'окно: ожидались блоки QC и QA, есть %r' % [t[2] for t in toks])
+    need(len(toks) == 2 and [t[2] for t in toks] in (['QC', 'QA'], ['QA', 'QC']), 'window: blocks QC and QA expected, found %r' % [t[2] for t in toks])
     info = []
     new = []
     pos = 0
@@ -131,10 +131,10 @@ def abstract_ops(ops, prog, interface_in):
                 for w in M.wires(o):
                     first_use.setdefault(w, i)
             for w in tab:
-                need(w not in interface_in, 'LD: цель %d -- провод интерфейса' % w)
-                need(first_use[w] >= lo, 'LD: цель %d использована до блока QC' % w)
+                need(w not in interface_in, 'LD: target %d is an interface wire' % w)
+                need(first_use[w] >= lo, 'LD: target %d is used before the block QC' % w)
     new.extend(ops[pos:])
-    need(tabs['QC'] == tabs['QA'], 'таблицы QC и QA окна различаются: %r %r' % (tabs['QC'], tabs['QA']))
+    need(tabs['QC'] == tabs['QA'], 'the tables QC and QA of the window differ: %r %r' % (tabs['QC'], tabs['QA']))
     return new, info
 
 
@@ -157,7 +157,7 @@ class PieceW:
         self.out_flat = {d['name']: [q for e in d['elements'] for q in e['wires_msb']] for d in regs_out}
         self.ins, self.outs = self.in_flat, self.out_flat
         self.nin = sum(len(v) for v in self.in_flat.values())
-        need(sorted(q for v in self.in_flat.values() for q in v) == list(range(self.nin)), 'входы не 0..nin-1')
+        need(sorted(q for v in self.in_flat.values() for q in v) == list(range(self.nin)), 'inputs are not 0..nin-1')
         self.ops, self.tokens = abstract_ops(self.ops_real, prog, set(range(self.nin)))
         self.n_meas = L.nmeas
 
@@ -178,10 +178,10 @@ class MontPair(PC.PairComposed):
             kind, P = None, None
             if type(bloq) is SingleWindowModMul:
                 kind, P = 'f', Pf
-                need(bloq == Pf.bloq, 'прямое окно отличается')
+                need(bloq == Pf.bloq, 'forward window differs')
             elif type(bloq) is Adjoint and bloq.subbloq == win:
                 kind, P = 'b', Pb
-                need(bloq == Pb.bloq, 'обратное окно отличается')
+                need(bloq == Pb.bloq, 'backward window differs')
             if kind is None:
                 return base(bloq, inputs, allocate, path)
             nanc = P.nsrc - P.nin
@@ -190,11 +190,11 @@ class MontPair(PC.PairComposed):
             for d in P.low['registers']['inputs']:
                 loc = [q for e in d['elements'] for q in e['wires_msb']]
                 glob = [int(q) for q in inputs[d['name']].flat]
-                need(len(loc) == len(glob), 'макро: ширина регистра %s' % d['name'])
+                need(len(loc) == len(glob), 'macro: width of register %s' % d['name'])
                 g.update(zip(loc, glob))
             for j in range(nanc):
                 g[P.nin + j] = int(anc[j])
-            need(len(g) == P.nsrc and len(set(g.values())) == P.nsrc, 'макро: отображение не инъективно')
+            need(len(g) == P.nsrc and len(set(g.values())) == P.nsrc, 'macro: the map is not injective')
             outs = {}
             for d in P.low['registers']['outputs']:
                 loc = [q for e in d['elements'] for q in e['wires_msb']]
@@ -206,7 +206,7 @@ class MontPair(PC.PairComposed):
         self.bloq = pair_bloq(n, w, p)
         self.top = top = lower_bloqgraph(self.bloq, extra_atom_rule=rule, max_leaves=BIG, max_nodes=BIG)
         nwin = n // w
-        need(len(macros) == 2 * nwin, 'ожидалось %d оконных узлов, есть %d' % (2 * nwin, len(macros)))
+        need(len(macros) == 2 * nwin, 'expected %d window nodes, found %d' % (2 * nwin, len(macros)))
         self.nwin = nwin
         leaves, mpos = [], []
         for lf in top['leaves']:
@@ -214,7 +214,7 @@ class MontPair(PC.PairComposed):
                 mpos.append((len(leaves), lf['macro']))
             else:
                 leaves.append(lf)
-        need([m for _, m in mpos] == list(range(2 * nwin)), 'порядок макро')
+        need([m for _, m in mpos] == list(range(2 * nwin)), 'macro order')
         freew = sorted({q for v in top['inputs'].values() for q in v} |
                        {q for lf in top['leaves'] if lf['name'] == 'macro' for q in lf['qubits']})
         tprog = translate(dict(nq=top['nq'], leaves=leaves), {'all': freew}, {'all': freew})

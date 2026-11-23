@@ -16,14 +16,14 @@ def bdd_eval(k, n, p, patched, v, ovals):
     B = BDD()
     W, asg = {}, {}
     def word(val, w):
-        # константные рёбра: тот же код specs.py, но без роста BDD (свёртка констант) — быстро при n=256
+        # constant edges: the same code of specs.py but without BDD growth (constant folding): fast at n=256
         return [ONE if (val >> i) & 1 else ZERO for i in range(w)]
     for nm in NAMES[k]:
         W[nm] = word(int(v[nm]), 1 if nm in ('f1', 'f2', 'f3', 'f4', 'ctrl') else n)
     O = [{key: word(int(ov), n)} for (kind, key), ov in zip(BOX[k], ovals)]
     S = STEPS[k](n, p, patched=patched)
     if hasattr(S, 'definitions'):
-        S.N = S.definitions(B, W)          # именованные слова шага 3 — по их определениям
+        S.N = S.definitions(B, W)          # named words of step 3, by their definitions
     def val(w):
         assert all(e in (ONE, ZERO) for e in w)
         return sum(int(e == ONE) << i for i, e in enumerate(w))
@@ -54,9 +54,9 @@ def main(argv=None):
             for t in range(a.count):
                 v = {nm: (rnd.randrange(2) if nm in ('f1', 'f2', 'f3', 'f4', 'ctrl') else
                           (rnd.choice(special) if rnd.random() < 0.3 else rnd.randrange(p))) for nm in NAMES[k]}
-                if k == 6 and rnd.random() < 0.3:   # часть входов шага 6 — с x=y=0 / x=a и т.п.
+                if k == 6 and rnd.random() < 0.3:   # some inputs of step 6 with x=y=0 / x=a etc.
                     v['x'], v['y'] = rnd.choice([(0, 0), (v['a'], v['b']), (v['a'], (p - v['b']) % p)])
-                if k == 5 and rnd.random() < 0.5:   # часть — с выполненным P5
+                if k == 5 and rnd.random() < 0.5:   # some with P5 satisfied
                     pass
                 ovals = [rnd.choice([0, rnd.randrange(p)]) for _ in BOX[k]]
                 if k == 5 and rnd.random() < 0.5:

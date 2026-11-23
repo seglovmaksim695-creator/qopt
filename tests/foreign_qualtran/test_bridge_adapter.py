@@ -49,26 +49,26 @@ def selftest() -> dict:
     q.cx(2, 0)
     q.ccx(0, 2, 1)
     q.swap(1, 2)
-    accept("четыре_примитива", q, [("x", [2]), ("cx", [2, 0]), ("ccx", [0, 2, 1]), ("swap", [1, 2])])
+    accept("four_primitives", q, [("x", [2]), ("cx", [2, 0]), ("ccx", [0, 2, 1]), ("swap", [1, 2])])
 
     inner = QuantumCircuit(2, name="inner")
     inner.x(0)
     inner.cx(0, 1)
     outer = QuantumCircuit(3)
     outer.append(inner.to_gate(), [2, 0])
-    accept("вложенные_провода", outer, [("x", [2]), ("cx", [2, 0])])
+    accept("nested_wires", outer, [("x", [2]), ("cx", [2, 0])])
 
     q = QuantumCircuit(2)
     q.append(CXGate(ctrl_state=0), [0, 1])
-    accept("управление_CX_по_нулю", q, [("x", [0]), ("cx", [0, 1]), ("x", [0])])
+    accept("CX_controlled_on_zero", q, [("x", [0]), ("cx", [0, 1]), ("x", [0])])
     q = QuantumCircuit(3)
     q.append(CCXGate(ctrl_state=1), [2, 0, 1])
-    accept("смешанное_управление_CCX", q, [("x", [0]), ("ccx", [2, 0, 1]), ("x", [0])])
+    accept("mixed_control_CCX", q, [("x", [0]), ("ccx", [2, 0, 1]), ("x", [0])])
 
     q = QuantumCircuit(2)
     q.cx(0, 1)
     q.cx(0, 1)
-    accept("нет_сокращения_обратных_вентилей", q, [("cx", [0, 1]), ("cx", [0, 1])])
+    accept("no_cancellation_of_inverse_gates", q, [("cx", [0, 1]), ("cx", [0, 1])])
 
     forged = Gate("x", 1, [])
     definition = QuantumCircuit(1)
@@ -76,58 +76,58 @@ def selftest() -> dict:
     forged.definition = definition
     q = QuantumCircuit(1)
     q.append(forged, [0])
-    reject("поддельное_имя_x_с_H", q)
+    reject("forged_name_x_with_H", q)
 
     q = QuantumCircuit(1)
     q.append(Gate("x", 1, []), [0])
-    reject("непрозрачный_gate_с_именем_x", q)
+    reject("opaque_gate_named_x", q)
 
     phased = QuantumCircuit(1, global_phase=0.125, name="phase_inside")
     phased.x(0)
     q = QuantumCircuit(1)
     q.append(phased.to_gate(), [0])
-    reject("вложенная_глобальная_фаза", q)
+    reject("nested_global_phase", q)
     q = QuantumCircuit(1, global_phase=0.25)
     q.x(0)
-    reject("глобальная_фаза_корня", q)
+    reject("global_phase_of_the_root", q)
 
     q = QuantumCircuit(1)
     q.rx(np.pi / 2, 0)
-    reject("дробный_поворот", q)
+    reject("fractional_rotation", q)
     q = QuantumCircuit(1)
     q.rx(Parameter("theta"), 0)
-    reject("свободный_параметр", q)
+    reject("free_parameter", q)
 
     for name in ("h", "z", "s", "t", "id", "reset"):
         q = QuantumCircuit(1)
         getattr(q, name)(0)
-        reject(f"запрещённый_{name}", q)
+        reject(f"forbidden_{name}", q)
     q = QuantumCircuit(1)
     q.barrier()
-    reject("barrier_не_исчезает", q)
+    reject("barrier_does_not_vanish", q)
 
     q = QuantumCircuit(1, 1)
     q.measure(0, 0)
-    reject("измерение", q)
+    reject("measurement", q)
     q = QuantumCircuit(1, 1)
     with q.if_test((q.clbits[0], 1)):
         q.x(0)
-    reject("классическое_управление", q)
+    reject("classical_control", q)
 
     q = QuantumCircuit(2)
     q.append(Gate("unknown_atomic", 2, []), [0, 1])
-    reject("неизвестный_атомарный_gate", q)
+    reject("unknown_atomic_gate", q)
 
     empty = Gate("empty_custom", 1, [])
     empty.definition = QuantumCircuit(1)
     q = QuantumCircuit(1)
     q.append(empty, [0])
-    reject("пустое_определение_gate", q)
+    reject("empty_gate_definition", q)
 
     q = QuantumCircuit(2)
     q.x(0)
     q.cx(0, 1)
-    reject("лимит_операций", q, max_operations=1)
+    reject("operation_limit", q, max_operations=1)
 
     a = QuantumCircuit(1, name="a")
     a.x(0)
@@ -135,7 +135,7 @@ def selftest() -> dict:
     b.append(a.to_gate(), [0])
     c = QuantumCircuit(1)
     c.append(b.to_gate(), [0])
-    reject("лимит_глубины", c, max_depth=1)
+    reject("depth_limit", c, max_depth=1)
 
     return {
         "utc": datetime.now(timezone.utc).isoformat(),

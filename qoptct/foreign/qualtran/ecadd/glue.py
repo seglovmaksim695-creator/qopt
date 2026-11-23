@@ -13,15 +13,15 @@ from .core import disjoint
 from .specs import STEPS
 
 LEMMAS = {
-    'MM0': 'MM(u,v)=0 <=> u=0 или v=0 (u,v<p; p простое; MM(u,v)=u*v*R^-1 mod p — контракт C)',
-    'K0': 'KINV(u)=0 <=> u=0 (u<p; KINV(u)=u^-1*R^2 mod p при u!=0, KINV(0)=0 — контракт D)',
-    'CONG': 'одинаковые аргументы => одинаковый выход (MM, KINV — функции)',
-    'C1': 'MM(u, MM(KINV(u), v)) = v при u!=0',
-    'C2': 'MM(KINV(u), MM(u, w)) = w при u!=0',
-    'EC_DBL': 'P,Q на кривой, конечны, a=x, b!=-y => y=b и b!=0',
-    'EC_TAN': 'ветвь ctrl: x_R=a => наклон Lam = lam_r (касательная в P)',
-    'EC_RNOTO': 'ветвь ctrl: (x_R,y_R) != (0,0) (R конечна и лежит на кривой, (0,0) не на кривой)',
-    'EC_RNOTP': 'ветвь ctrl: (x_R,y_R) != (a,b) (иначе Q=O)',
+    'MM0': 'MM(u,v)=0 <=> u=0 or v=0 (u,v<p; p prime; MM(u,v)=u*v*R^-1 mod p, contract C)',
+    'K0': 'KINV(u)=0 <=> u=0 (u<p; KINV(u)=u^-1*R^2 mod p for u!=0, KINV(0)=0, contract D)',
+    'CONG': 'equal arguments => equal output (MM, KINV are functions)',
+    'C1': 'MM(u, MM(KINV(u), v)) = v for u!=0',
+    'C2': 'MM(KINV(u), MM(u, w)) = w for u!=0',
+    'EC_DBL': 'P,Q on the curve, finite, a=x, b!=-y => y=b and b!=0',
+    'EC_TAN': 'branch ctrl: x_R=a => slope Lam = lam_r (tangent at P)',
+    'EC_RNOTO': 'branch ctrl: (x_R,y_R) != (0,0) (R is finite and on the curve, (0,0) is not on the curve)',
+    'EC_RNOTP': 'branch ctrl: (x_R,y_R) != (a,b) (otherwise Q=O)',
 }
 
 
@@ -33,7 +33,7 @@ class GlueFail(Exception):
 
 class Glue:
     def __init__(self, n, p, versions=None, lemmas=None, extra=None, log=print, full_lemmas=False):
-        """versions: {шаг: patched?}; extra: функция (B, W, F) -> список конъюнктов (доп. предусловие, E3)."""
+        """versions: {step: patched?}; extra: function (B, W, F) -> list of conjuncts (extra precondition, E3)."""
         self.n, self.p = n, p
         self.versions = versions or {k: True for k in range(1, 7)}
         self.lemmas = set(LEMMAS) if lemmas is None else set(lemmas)
@@ -41,9 +41,9 @@ class Glue:
         self.stats = dict(checks=0)
 
     def holds(self, d):
-        """d == ZERO при допущении A (конъюнкция частей). Части добавляются «слоями» по общим переменным с d:
-        если d несовместно уже с частью условий — несовместно и со всем A (достаточное условие, корректно);
-        если не хватило всей связной компоненты — это настоящее нарушение (остальные части от d не зависят)."""
+        """d == ZERO under the assumption A (conjunction of parts). The parts are added in "layers" by the variables shared with d:
+        if d is already incompatible with some of the conditions, it is incompatible with all of A (sufficient condition, sound);
+        if the whole connected component is not enough, this is a real violation (the other parts do not depend on d)."""
         if d == ZERO:
             return True
         self.stats['checks_nontrivial' if 'checks_nontrivial' in self.stats else 'checks'] += 1
@@ -79,7 +79,7 @@ class Glue:
         self.cache = {}
 
     def const(self, f):
-        """f — константа при текущем допущении? -> ONE/ZERO или None."""
+        """is f a constant under the current assumption? -> ONE/ZERO or None."""
         if f in (ONE, ZERO):
             return f
         if self.holds(f):
@@ -89,9 +89,9 @@ class Glue:
         return None
 
     def run(self, final_check='correct'):
-        """Разбор случаев по флагам: в каждом случае все однобитные входы шагов — константы (доказанные при
-        допущении случая), поэтому формулы шагов упрощаются. Случаи покрывают всё (каждое разбиение — f=0 и f=1).
-        final_check: 'correct' — корректность; 'incorrect' — на ВСЕХ входах допущения нарушено освобождение."""
+        """Case split by flags: in each case all one-bit inputs of the steps are constants (proved under
+        the assumption of the case), so the formulas of the steps simplify. The cases cover everything (every split is f=0 and f=1).
+        final_check: 'correct' = correctness; 'incorrect' = on ALL inputs of the assumption the release is violated."""
         self.t0 = time.time()
         n, p = self.n, self.p
         B = self.B = BDD()
@@ -138,7 +138,7 @@ class Glue:
                 self._cases(dict(fixed, **{k: c}), todo[1:])
                 self.pop_to(mark)
             return
-        # непустота случая (только диапазоны и предикаты случая)
+        # the case is non-empty (only the ranges and the predicates of the case)
         A = ONE
         for e, _ in self.conj:
             A = B.AND(A, e)
@@ -151,7 +151,7 @@ class Glue:
         self._chain(fixed, label)
 
     def _chain(self, Ec, label):
-        """Шаги 1..6 при константных e1..e4 (Ec); ветвление по прочим флагам — через _flag."""
+        """Steps 1..6 with constant e1..e4 (Ec); branching on the other flags goes through _flag."""
         B, n, p, S, V = self.B, self.n, self.p, self.S, self.V
         a, b, x, y, lr = (self.W0[k] for k in ('a', 'b', 'x', 'y', 'lam_r'))
         mark = len(self.conj)
@@ -223,13 +223,13 @@ class Glue:
                 if word == out:
                     return args['x']
             return None
-        if 'C1' in L:   # MM(u, MM(KINV(u), v)) = v ; пара: шаг 3 после шага 2
+        if 'C1' in L:   # MM(u, MM(KINV(u), v)) = v ; pair: step 3 after step 2
             tA, _, aA, oA = cmap['step3.MM0']
             tB, _, aB, oB = cmap['step2.MM1']
             u_k = kinv_of(aB['x'])
             ante = all_of(B, eq(B, aA['x'], u_k), is_zero(B, u_k) ^ 1, eq(B, aA['y'], oB))
             self.add(B.OR(ante ^ 1, eq(B, oA, aB['y'])), f'C1:{tA}({tB})')
-        if 'C2' in L:   # MM(KINV(u), MM(u, w)) = w ; пара: шаг 5 после шага 4
+        if 'C2' in L:   # MM(KINV(u), MM(u, w)) = w ; pair: step 5 after step 4
             tA, _, aA, oA = cmap['step5.MM1']
             tB, _, aB, oB = cmap['step4.MM1']
             u_k = kinv_of(aA['x'])
@@ -293,7 +293,7 @@ class _Stop(Exception):
 
 
 def groups(B, W, F, p):
-    """Группы находки 05 (README, раздел «Итог проверки 22.11») как предикаты входов."""
+    """Groups of finding 05 (docs/QUALTRAN_ECADD.md) as predicates of the inputs."""
     a, b, x, y, lr = (W[k] for k in ('a', 'b', 'x', 'y', 'lam_r'))
     finite = B.AND(F['e3'] ^ 1, F['e4'] ^ 1)
     g1 = all_of(B, finite, F['e1'] ^ 1, F['e2'])
@@ -307,8 +307,8 @@ def main(argv=None):
     ap.add_argument('--n', type=int, required=True)
     ap.add_argument('--p', required=True)
     ap.add_argument('--mode', default='E2', choices=['E2', 'E3', 'E3fail', 'canary'])
-    ap.add_argument('--orig', default='', help='шаги в исходной версии, напр. 1,2,6')
-    ap.add_argument('--drop', default='', help='убрать леммы (канарейки склейки)')
+    ap.add_argument('--orig', default='', help='steps in the original version, e.g. 1,2,6')
+    ap.add_argument('--drop', default='', help='drop lemmas (glue canaries)')
     ap.add_argument('--group', type=int, default=0)
     ap.add_argument('--out', default=None)
     a = ap.parse_args(argv)

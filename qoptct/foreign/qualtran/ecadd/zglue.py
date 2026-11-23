@@ -5,7 +5,7 @@ import argparse, json, os, subprocess, time
 from .zspecs import SmtOps, IntOps, ZSTEPS
 
 WIRING = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'wiring_ecadd.json')))
-# канарейки проводки: склейка обязана их опровергнуть (показывает, что проводка действительно читается)
+# wiring canaries: the glue must refute them (shows that the wiring is really read)
 WMUT = {'swap-xy-step4': lambda w: w['steps']['4'].update(x=w['steps']['4']['y'], y=w['steps']['4']['x']),
         'step6-x-from-4': lambda w: w['steps']['6'].update(x=[4, 'x']),
         'out-y-from-4': lambda w: w['out'].update(y=[4, 'y']),
@@ -14,14 +14,14 @@ WMUT = {'swap-xy-step4': lambda w: w['steps']['4'].update(x=w['steps']['4']['y']
 from . import _z3
 LEMMAS = ['MM0', 'K0', 'C1', 'C2', 'EC_DBL', 'EC_TAN', 'EC_RNOTO', 'EC_RNOTP']
 LEMMA_TEXT = {
-    'MM0': 'MM(u,v)=0 <=> u=0 или v=0 (u,v<p, p простое; MM(u,v)=u*v*R^-1 mod p — смысл контракта C)',
-    'K0': 'KINV(u)=0 <=> u=0 (KINV(u)=u^-1*R^2 mod p при u!=0, KINV(0)=0 — смысл контракта D)',
-    'C1': 'MM(u, MM(KINV(u), v)) = v при u!=0',
-    'C2': 'MM(KINV(u), MM(u, w)) = w при u!=0',
-    'EC_DBL': 'P,Q на кривой и конечны, a=x, b!=-y => y=b и b!=0',
-    'EC_TAN': 'обычная ветвь и привязка: x_R=a => Lam=lam_r (прямая через P,Q касается кривой в P)',
-    'EC_RNOTO': 'обычная ветвь и привязка: (x_R,y_R) != (0,0) (R лежит на кривой, (0,0) — нет)',
-    'EC_RNOTP': 'обычная ветвь и привязка: (x_R,y_R) != (a,b) (иначе Q=O)',
+    'MM0': 'MM(u,v)=0 <=> u=0 or v=0 (u,v<p, p prime; MM(u,v)=u*v*R^-1 mod p, the meaning of contract C)',
+    'K0': 'KINV(u)=0 <=> u=0 (KINV(u)=u^-1*R^2 mod p for u!=0, KINV(0)=0, the meaning of contract D)',
+    'C1': 'MM(u, MM(KINV(u), v)) = v for u!=0',
+    'C2': 'MM(KINV(u), MM(u, w)) = w for u!=0',
+    'EC_DBL': 'P,Q on the curve and finite, a=x, b!=-y => y=b and b!=0',
+    'EC_TAN': 'ordinary branch and binding: x_R=a => Lam=lam_r (the line through P,Q is tangent to the curve at P)',
+    'EC_RNOTO': 'ordinary branch and binding: (x_R,y_R) != (0,0) (R is on the curve, (0,0) is not)',
+    'EC_RNOTP': 'ordinary branch and binding: (x_R,y_R) != (a,b) (otherwise Q=O)',
 }
 
 
@@ -43,8 +43,8 @@ def build(n, p, versions, lemmas, extra=None, wiring=None):
             calls.append((f'step{k}.{kind}{j}', kind, args, O[j]))
         return post
 
-    # Проводка между шагами — из настоящего составного блока Qualtran (ew/wiring.py -> results/wiring_ecadd.json,
-    # сверено для обеих версий при n=16 и 256), а не рукописная: вход шага = выход того шага, к которому он подключён.
+    # The wiring between the steps comes from the real composite block of Qualtran (ecadd/wiring.py -> data/wiring_ecadd.json,
+    # checked for both versions at n=16 and 256), not hand-written: the input of a step = the output of the step it is connected to.
     inp = dict(a=a, b=b, x=x, y=y, lam_r=lr)
     Obox = {1: [], 2: [V['K2'], V['Z2']], 3: [V['Z1']], 4: [V['Z3'], V['Z3p']], 5: [V['K5'], V['Z5']], 6: []}
     posts = {}
@@ -73,12 +73,12 @@ def build(n, p, versions, lemmas, extra=None, wiring=None):
         for tag, kind, args, out in calls:
             if kind == 'KINV':
                 L.append(f"(assert (= (= {args['x']} 0) (= {out} 0)))  ; K0 {tag}")
-    if 'C1' in lemmas:   # MM(u, MM(KINV(u), v)) = v  (шаг 3 после шага 2)
+    if 'C1' in lemmas:   # MM(u, MM(KINV(u), v)) = v  (step 3 after step 2)
         tA, _, aA, oA = cm['step3.MM0']
         u = k2[2]['x']
         L.append(f"(assert (=> (and (= {aA['x']} {u}) (not (= {u} 0)) (= {aA['y']} {m2[3]}) (= {m2[2]['x']} {k2[3]})) "
                  f"(= {oA} {m2[2]['y']})))  ; C1")
-    if 'C2' in lemmas:   # MM(KINV(u), MM(u, w)) = w  (шаг 5 после шага 4)
+    if 'C2' in lemmas:   # MM(KINV(u), MM(u, w)) = w  (step 5 after step 4)
         k5, m5 = cm['step5.KINV0'], cm['step5.MM1']
         u = k5[2]['x']
         L.append(f"(assert (=> (and (= {m5[2]['x']} {k5[3]}) (= {m4b[2]['x']} {u}) (not (= {u} 0)) "
@@ -127,8 +127,8 @@ def main(argv=None):
     ap.add_argument('--smt', default=None)
     ap.add_argument('--wiring', default=None, help='wiring JSON read from the real ECAdd (ecadd.wiring --out); '
                     'default: the reference wiring shipped in data/')
-    ap.add_argument('--wmut', default=None, help='канарейка проводки: ' + ', '.join(WMUT))
-    ap.add_argument('--mutant', default=None, help='канарейка: порча одного контракта (см. zmutants.py)')
+    ap.add_argument('--wmut', default=None, help='wiring canary: ' + ', '.join(WMUT))
+    ap.add_argument('--mutant', default=None, help='canary: corruption of one contract (see zmutants.py)')
     a = ap.parse_args(argv)
     if a.mutant:
         from .zmutants import apply

@@ -159,11 +159,11 @@ def part_glue(R):
     def g_step3_x(o, W, O, pre, calls, post):
         x3 = o.ite(W['ctrl'], o.modadd(W['x'], W['a']), W['x'])
         return pre, calls, dict(post, x=x3)
-    cases = [('G1 шаг 4: y ^= Z3 вместо Z3p', 4, g_step4_y), ('G2 шаг 2: ветви lam переставлены', 2, g_step2_lam),
-             ('G3 шаг 5: x = b - x вместо a - x', 5, g_step5_x), ('G4 шаг 4: аргумент ящика без приведения mod p', 4, g_step4_raw),
-             ('G6 шаг 3: x += a вместо 3a', 3, g_step3_x)]
+    cases = [('G1 step 4: y ^= Z3 instead of Z3p', 4, g_step4_y), ('G2 step 2: lam branches swapped', 2, g_step2_lam),
+             ('G3 step 5: x = b - x instead of a - x', 5, g_step5_x), ('G4 step 4: box argument without reduction mod p', 4, g_step4_raw),
+             ('G6 step 3: x += a instead of 3a', 3, g_step3_x)]
     for n, p in ((16, P16), (256, P255)):
-        rr = {'G0 без порчи (контроль)': run(n, p)}
+        rr = {'G0 no corruption (control)': run(n, p)}
         for nm, k, fn in cases:
             S.ZSTEPS[k] = patch(k, fn)
             try:
@@ -172,10 +172,10 @@ def part_glue(R):
                 S.ZSTEPS[k] = orig[k]
         w = copy.deepcopy(ZG.WIRING)
         w['steps']['6']['f4'] = [1, 'f3']
-        rr['G7 проводка: f4 шага 6 из f3 шага 1'] = run(n, p, w)
+        rr['G7 wiring: f4 of step 6 taken from f3 of step 1'] = run(n, p, w)
         w = copy.deepcopy(ZG.WIRING)
         w['steps']['6']['f1'], w['steps']['6']['f2'] = w['steps']['6']['f2'], w['steps']['6']['f1']
-        rr['G5 проводка: f1 и f2 шага 6 переставлены'] = run(n, p, w)
+        rr['G5 wiring: f1 and f2 of step 6 swapped'] = run(n, p, w)
         # G8: XOR abstraction: is every one of its 3 properties needed? (drop one at a time; PROVED = not needed)
         for j, nm in enumerate(('u=0 -> v=w', 'w=0 -> v=u', 'u=w -> v=0')):
             keep = S.SmtOps.xor
@@ -189,7 +189,7 @@ def part_glue(R):
                 return v
             S.SmtOps.xor = xor_drop
             try:
-                rr['G8.%d без свойства XOR «%s» (справка: нужно ли оно)' % (j + 1, nm)] = run(n, p)
+                rr['G8.%d without the XOR property "%s" (reference: is it needed)' % (j + 1, nm)] = run(n, p)
             finally:
                 S.SmtOps.xor = keep
         res['n%d' % n] = rr
@@ -228,36 +228,36 @@ def part_box(R, n=16, p=P16):
         for key, val in kw.items():
             lf[key] = val
         items[i] = (items[i][0], lf, items[i][2])
-    out['B0 шаг 4 без порчи (контроль)'] = prove(4, progs[4])
+    out['B0 step 4 no corruption (control)'] = prove(4, progs[4])
 
     def b1(items):
         i = leaves(items, 'MM_adj')[0]
         y = list(items[i][1]['regs_in']['y'])
         y[0], y[1] = y[1], y[0]
         setleaf(items, i, regs_in=dict(items[i][1]['regs_in'], y=y), regs_out=dict(items[i][1]['regs_out'], y=y))
-    out['B1 шаг 4: обратный MM получает y с двумя переставленными проводами'] = prove(4, mutated(4, b1))
+    out['B1 step 4: the inverse MM gets y with two wires swapped'] = prove(4, mutated(4, b1))
 
     def b2(items):
         i = leaves(items, 'MM')[1]
         lf = items[i][1]
         setleaf(items, i, regs_in=dict(lf['regs_in'], y=lf['regs_in']['x']), regs_out=dict(lf['regs_out'], y=lf['regs_out']['x']))
-    out['B2 шаг 4: второй MM считает MM(x, x) вместо MM(x, lam)'] = prove(4, mutated(4, b2))
+    out['B2 step 4: the second MM computes MM(x, x) instead of MM(x, lam)'] = prove(4, mutated(4, b2))
 
     def b3(items):
         i = leaves(items, 'KINV')[0]
         lf = items[i][1]
         other = [ws for r, ws in lf['regs_in'].items()][0]
         setleaf(items, i, regs_out=dict(lf['regs_out'], junk=list(lf['regs_out']['junk'][:-1]) + [other[0]]))
-    out['B3 шаг 5: мусор KINV записан поверх живого провода x'] = prove(5, mutated(5, b3))
+    out['B3 step 5: KINV junk written over the live wire x'] = prove(5, mutated(5, b3))
 
     def b4(items):
         del items[leaves(items, 'MM_adj')[-1]]
-    out['B4 шаг 4: обратный MM удалён'] = prove(4, mutated(4, b4))
+    out['B4 step 4: inverse MM removed'] = prove(4, mutated(4, b4))
 
     def b5(items):
         i, j = leaves(items, 'MM')[:2]
         items[i], items[j] = items[j], items[i]
-    out['B5 шаг 4: два прямых MM переставлены местами'] = prove(4, mutated(4, b5))
+    out['B5 step 4: two forward MM swapped'] = prove(4, mutated(4, b5))
     R['box_canaries_n16'] = {k: dict(status=v[0], detail=v[1]) for k, v in out.items()}
 
 
