@@ -9,3 +9,6 @@ prune results/hardware
 global-exclude *.pyc __pycache__ *hwb*.qc *hwb*.qasm
 prune qoptct/contrib/c2/out
 include results/crypto/*.qasm results/crypto/*.qc results/crypto/*.json
+include results/qualtran/*.json
+include scripts/build_qualtran_registry.py
+include docs/QUALTRAN*.md
