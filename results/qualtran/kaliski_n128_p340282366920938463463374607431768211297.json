@@ -1,0 +1,230 @@
+{
+ "verdict": {
+  "status": "PROVED",
+  "n": 128,
+  "p": 340282366920938463463374607431768211297,
+  "checks": {
+   "chain": true,
+   "assumptions_covered": true,
+   "run": true,
+   "flow": true,
+   "client_hash": true,
+   "sim": true,
+   "sources_unchanged": true,
+   "lemmas": true,
+   "prime": true,
+   "samples": true,
+   "canaries": true
+  },
+  "program": {
+   "top_ops_sha256": "85717525e821ac79861316536d54adfbde92f793d46950e17d8aef6fef80a65f",
+   "piece_qasm_sha256": "24c9733bc0afc8066bcd19031f9756de436218739279dcb0855072fb5aa8144a",
+   "ops": 2929107,
+   "wires": 333569,
+   "measurements": 427135
+  },
+  "prove": {
+   "sec": 34.99,
+   "segments": 1538,
+   "maxnodes": 82537
+  },
+  "prime": {
+   "p": 340282366920938463463374607431768211297,
+   "qoptct": "probable",
+   "how": "probable prime: Miller-Rabin, 52 bases (a probabilistic test, not a proof of primality)",
+   "pocklington": true,
+   "pocklington_cert": {
+    "p": 340282366920938463463374607431768211297,
+    "F": 340282366920938463463374607431768211296,
+    "factors": {
+     "2": "small prime",
+     "3": "small prime",
+     "10253": "deterministic Miller-Rabin (bases 2..37, exact for m < 2^64)",
+     "29333": "deterministic Miller-Rabin (bases 2..37, exact for m < 2^64)",
+     "4454477": "deterministic Miller-Rabin (bases 2..37, exact for m < 2^64)",
+     "42113237": "deterministic Miller-Rabin (bases 2..37, exact for m < 2^64)",
+     "62826870453001": "deterministic Miller-Rabin (bases 2..37, exact for m < 2^64)"
+    },
+    "witnesses": {
+     "2": 5,
+     "3": 2,
+     "10253": 2,
+     "29333": 2,
+     "4454477": 2,
+     "42113237": 2,
+     "62826870453001": 2
+    }
+   },
+   "pocklington_sec": 0.1,
+   "verdict": "PROVEN PRIME"
+  },
+  "lemmas": {
+   "implications": 243,
+   "proved": 243,
+   "controls": 25,
+   "controls_ok": 25,
+   "z3": "Z3 version 5.3.3 - 64 bit",
+   "source_sha256": "5ac2cc16e386947998d2880177d7ada12574f3ec64491e126aaab7273d389c06"
+  },
+  "canaries": {
+   "total": 0,
+   "counted": 0,
+   "targeted": 0,
+   "false_proved": []
+  },
+  "client": {
+   "chain_sha256": "5c81f4cdb035109d02188c4f2f292aa0bfdb4595bf16ec6ec7951327e9945317",
+   "lemmas_sha256": "5ac2cc16e386947998d2880177d7ada12574f3ec64491e126aaab7273d389c06",
+   "flow_version": "flow-1"
+  },
+  "qualtran": "0.7.0",
+  "manifest_sha256": {
+   "src": "ac6b0a6e6d36521f855150758fc8192b84e49dbdbdb249cacef7f09030a4d43d",
+   "bridge": "0a881a9cb7a686faf41a20961e28e09faf40351a94e33bb4c4d10531771c3906",
+   "qoptct": "0f1dd2ae84b5546c8f1feb005bef696af32af5e2589d865ed9c92f09ee75b1cf",
+   "qualtran": "1d301b8ccbbb404e42d8e418bcaa840ff2d993757ecf966bb3a8c7e4190ab21f"
+  },
+  "peak_rss_mb": 501.0,
+  "evidence_sec": 56.51,
+  "sec": 56.9,
+  "finished": "2026-11-23T17:36:28Z"
+ },
+ "evidence": {
+  "n": 128,
+  "p": 340282366920938463463374607431768211297,
+  "qualtran": "0.7.0",
+  "started": "2026-11-23T17:35:32Z",
+  "manifest_before": {
+   "src": {
+    "files": 6,
+    "sha256": "ac6b0a6e6d36521f855150758fc8192b84e49dbdbdb249cacef7f09030a4d43d",
+    "each": {
+     "kaliski/canary.py": "235971f1b3494dd94757be7068b46d95ff0c2175c59a65e1d42c85b919d77849",
+     "kaliski/chain.py": "5c81f4cdb035109d02188c4f2f292aa0bfdb4595bf16ec6ec7951327e9945317",
+     "kaliski/lemmas_z3.py": "5ac2cc16e386947998d2880177d7ada12574f3ec64491e126aaab7273d389c06",
+     "kaliski/lower.py": "db756d67d6de24f94e62ddd7d9e4de3056c1ff85fee1d17706c7df24214f9c5b",
+     "kaliski/pq.py": "501dab1e709e9631d99a23115fd71f8aa943869caa456fec1d1ca3ece852a3a2",
+     "kaliski/run.py": "7c9837a89f8f813f688f9279dc2f0e70cda0b55a2444912bfb3cb62a169b4a25"
+    }
+   },
+   "bridge": {
+    "files": 17,
+    "sha256": "0a881a9cb7a686faf41a20961e28e09faf40351a94e33bb4c4d10531771c3906"
+   },
+   "qoptct": {
+    "files": 28,
+    "sha256": "0f1dd2ae84b5546c8f1feb005bef696af32af5e2589d865ed9c92f09ee75b1cf",
+    "each": {
+     "qoptct/verify/__init__.py": "c3aa7784aa9432c14f3504bfd109b50ec7f1a21a411d1d12cad9ffbb256e496c",
+     "qoptct/verify/__main__.py": "321fc6e3bf8e5f2cbe6ac6d2c3f5a1c9d277fd25e9b8acbf2b574e6d052f70f8",
+     "qoptct/verify/_limits.py": "c83f23dd70df5f1466671aaaca7e4aeff5a2033d32a8c498f0c467bdf319ae81",
+     "qoptct/verify/_parse.py": "5b6cce63d1778c4c5cf09d04cb4985704439a082ef6f9314a4bfc7731cc42ea2",
+     "qoptct/verify/_worker.py": "11dbecfcc66b7235226158cfcf987396c1c96261354ca79f0f9d99142bcfcdb3",
+     "qoptct/verify/algebra.py": "289c12dffe88d1af90433279d6bf87039a65c85ee428075442589907db9a97a6",
+     "qoptct/verify/arith.py": "5c50c6cec6c09a622ac3ddf248c99c9a88901a9f7201a31a617ed1a35584f669",
+     "qoptct/verify/arith_gens.py": "6842bfcaaefa49ddea98133cd079bde5d01cec468fdf6e8bc38df4a7b8124495",
+     "qoptct/verify/bdd.py": "afaf4b295861cd289b894b0463daf96c010f849d8dfda3942e3f7873e0864ae5",
+     "qoptct/verify/branchsim.py": "305e0e75d7bbbc237f99a814b0f5d93f006be1d526184b00d3bde117d3dcd916",
+     "qoptct/verify/cli.py": "a24f54ce01de7f472546400c03dcaeb3abc1545cdbc981bc4162cb669364b3de",
+     "qoptct/verify/compose/__init__.py": "a1aed8de7d5c04472b5125b5a8910f0b79edc15f5f3e81743d3418fa82827a74",
+     "qoptct/verify/compose/__main__.py": "700508352d8c688e43932c9d4434e48648a153e4300f842f54626a3feb4771d9",
+     "qoptct/verify/compose/bv.py": "c0a01d26786a57c957916a4075285842aa25804686db8b3005eba8ddf99c7bde",
+     "qoptct/verify/compose/ecadd.py": "08f7340a5166005e468b5811e8cf31a6787c4179b9db4fc60308306b2a735ca7",
+     "qoptct/verify/compose/ecmath.py": "d07a40c60a52896dac04c213247558bfc16f1754aaa3614b9a4a4cd8738a141c",
+     "qoptct/verify/compose/kal.py": "ffdf68f1e992e8417960f487a502a1f06e72feebf1956363c4769ad4c4d3a531",
+     "qoptct/verify/compose/lemmas_z3.py": "4dda8255e3b1aab4ccac29ddd31788e931c2905e2cce2e1979ffe24363a169ea",
+     "qoptct/verify/compose/lift.py": "1ab7d035d5297cd7dc0af057e4d35d98400b79c4f1cf156927eb7206753c5d8b",
+     "qoptct/verify/compose/walker.py": "402f59412bba5a77c620ca799353509797e82b6f7b787e903b599b6c47237d32",
+     "qoptct/verify/dense.py": "4e5bd287b59c7a6b4a651fa80117df3a3b6d271ae0402b1fa079d0a29992b5f2",
+     "qoptct/verify/exact2.py": "a21df1922915e6d0690e42fc24f9a82dc9ce2589e5f7e76df3058f8b9a4038cf",
+     "qoptct/verify/fastsim.py": "01184f89bf297fd7632d8061fa8483358f1db488cd81668f9a3f1324b0c167cf",
+     "qoptct/verify/kprove.py": "c2f6b43d9a32e32de1bc7f0c0d6980ac9f0a570512cf82013f54147588b2cd5f",
+     "qoptct/verify/ksym.py": "69d76b194697d6e6bbedde5bdf44e9d39bf6a3a167f7f4834c380c29ab679293",
+     "qoptct/verify/miter.py": "0bb337c5b2f3c2ac3b6b8e6ce91065c74ada7c87f6ce63fd8c1940717b9324be",
+     "qoptct/verify/pathsum.py": "f93102bce5d6c36271e23f1b28536eb4c114246918c5d556d27c28caa54752c7",
+     "qoptct/verify/qcec.py": "7cc8274bac7f1a8b935a2cdc6a434ccc3f2ca5a4cedff95e1d56f7ee39cf97a1"
+    }
+   },
+   "qualtran": {
+    "files": 632,
+    "sha256": "1d301b8ccbbb404e42d8e418bcaa840ff2d993757ecf966bb3a8c7e4190ab21f"
+   },
+   "qualtran_version": "0.7.0",
+   "mod_division_sha256": "58d519272e05fd642a611f7e56f5516ce0e7d106faa2480a3cc42c92b901353b"
+  },
+  "compose": {
+   "sec": 3.45,
+   "nq": 333569,
+   "nops": 2929107,
+   "piece_ops": 11434,
+   "piece_qasm_sha256": "24c9733bc0afc8066bcd19031f9756de436218739279dcb0855072fb5aa8144a",
+   "nmeas": 427135,
+   "top_ops": 2003,
+   "top_ops_sha256": "85717525e821ac79861316536d54adfbde92f793d46950e17d8aef6fef80a65f"
+  },
+  "prove": {
+   "status": "CHAIN_PROVED",
+   "error": null,
+   "sec": 34.99,
+   "segments": 1538,
+   "maxnodes": 82537,
+   "nodes": 20308540,
+   "assumed": {
+    "M-s": 256,
+    "M-a": 130,
+    "M-carry": 129,
+    "M-dbl": 129,
+    "M-end-vf": 1,
+    "M-end": 1
+   },
+   "admitted": [],
+   "pos": 2929107,
+   "F": 2929107,
+   "flow": {
+    "version": "flow-1",
+    "ok": true,
+    "iterations": 256,
+    "eq_checks": 7941,
+    "new_checks": 1028,
+    "disjoint_checks": 1536,
+    "junk_ok": true
+   }
+  },
+  "run": {
+   "inputs": 256,
+   "violations": 0,
+   "first_violations": [],
+   "wrong_output": [],
+   "n_wrong_output": 0,
+   "differs_from_qualtran_classical": [],
+   "n_differs": 0,
+   "pq_vs_contracts_mismatch": [],
+   "n_pq_mismatch": 0,
+   "pq_assumption_failures": [],
+   "iterations_traced": 256,
+   "xs_sha256": "76d3786e642393a2d7135ef22d156d57c7a0790c0478345169c9de2668f3152e",
+   "sec": 12.51,
+   "flow": {
+    "version": "flow-1",
+    "ok": true,
+    "iterations": 256,
+    "eq_checks": 7941,
+    "new_checks": 1028,
+    "disjoint_checks": 1536,
+    "junk_ok": true
+   }
+  },
+  "sim": {
+   "inputs": 127,
+   "gadget_error": null,
+   "dirty_wires": 0,
+   "mismatches": [],
+   "n_mismatch": 0,
+   "sec": 5.45,
+   "xs_sha256": "9622c77ae715b89edf3aaf759d1e9171c3cb228ad18b3ffdd919048633c5b371"
+  },
+  "sec": 56.51,
+  "peak_rss_mb": 501.0,
+  "sources_unchanged_during_run": true
+ }
+}
