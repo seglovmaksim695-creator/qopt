@@ -1,7 +1,7 @@
 {
  "n": 256,
  "p": 57896044618658097711785492504343953926634992332820282019728792003956564819949,
- "started": "2026-11-23T17:36:40Z",
+ "started": "2026-11-23T19:09:30Z",
  "canaries": [
   {
    "name": "T1 joint: first iteration, clearing of a",
@@ -19,7 +19,7 @@
     "x": 1,
     "reason": "a wire outside x/junk is not zero at the end"
    },
-   "sim_sec": 12.1,
+   "sim_sec": 10.9,
    "prove": "NOT_PROVED",
    "failure": "segment S6 (k=0, ops 14622..23081): wire 2049 does not end with the value of the contract",
    "prove_sec": 0.6,
@@ -41,10 +41,10 @@
     "x": 0,
     "reason": "a wire outside x/junk is not zero at the end"
    },
-   "sim_sec": 12.2,
+   "sim_sec": 11.0,
    "prove": "NOT_PROVED",
    "failure": "segment S6 (k=511, ops 11678708..11687167): wire 255 does not end with the value of the contract",
-   "prove_sec": 194.3,
+   "prove_sec": 175.1,
    "counted": true
   },
   {
@@ -63,10 +63,10 @@
     "x": 3618502788666131106986593281521497120414687020801267626233049500247285301248,
     "reason": "junk (history bits) differs from Qualtran"
    },
-   "sim_sec": 12.1,
+   "sim_sec": 10.9,
    "prove": "NOT_PROVED",
    "failure": "segment S1 (k=506, ops 11550211..11551750): wire 1024 does not end with the value of the contract",
-   "prove_sec": 183.6,
+   "prove_sec": 170.9,
    "counted": true
   },
   {
@@ -85,10 +85,10 @@
     "x": 3618502788666131106986593281521497120414687020801267626233049500247285301248,
     "reason": "junk (history bits) differs from Qualtran"
    },
-   "sim_sec": 12.1,
+   "sim_sec": 11.7,
    "prove": "NOT_PROVED",
    "failure": "segment S1 (k=506, ops 11550211..11551750): wire 2043 does not end with the value of the contract",
-   "prove_sec": 195.1,
+   "prove_sec": 174.4,
    "counted": true
   },
   {
@@ -107,7 +107,7 @@
     "x": 1099511627776,
     "reason": "wrong output x^-1*2^(2N) mod p"
    },
-   "sim_sec": 12.1,
+   "sim_sec": 11.9,
    "prove": "NOT_PROVED",
    "failure": "segment S2 (k=3, ops 70272..70294): wire 9784 does not end with the value of the contract",
    "prove_sec": 0.9,
@@ -129,7 +129,7 @@
     "x": 1,
     "reason": "wrong output x^-1*2^(2N) mod p"
    },
-   "sim_sec": 12.5,
+   "sim_sec": 11.9,
    "prove": "NOT_PROVED",
    "failure": "segment S3 (k=5, ops 115946..120576): wire 14939 does not end with the value of the contract",
    "prove_sec": 1.1,
@@ -170,9 +170,9 @@
     ]
    },
    "witness": null,
-   "sim_sec": 12.2,
+   "sim_sec": 12.4,
    "prove": "CHAIN_PROVED",
-   "prove_sec": 196.5,
+   "prove_sec": 185.2,
    "counted": false
   },
   {
@@ -194,7 +194,7 @@
    "sim_sec": 0.1,
    "prove": "NOT_PROVED",
    "failure": "segment S5 (k=10, ops 237266..242882): op 238801: erase condition violated",
-   "prove_sec": 1.8,
+   "prove_sec": 1.7,
    "counted": true
   },
   {
@@ -213,10 +213,10 @@
     "x": 0,
     "reason": "wrong output x^-1*2^(2N) mod p"
    },
-   "sim_sec": 12.5,
+   "sim_sec": 11.9,
    "prove": "NOT_PROVED",
    "failure": "segment fin (k=None, ops 11687167..11690977): wire 663565 does not end with the value of the contract",
-   "prove_sec": 193.5,
+   "prove_sec": 181.9,
    "counted": true
   },
   {
@@ -235,10 +235,10 @@
     "x": 0,
     "reason": "wrong output x^-1*2^(2N) mod p"
    },
-   "sim_sec": 11.3,
+   "sim_sec": 11.9,
    "prove": "NOT_PROVED",
    "failure": "segment fin (k=None, ops 11687167..11690977): wire 666143 does not end with the value of the contract",
-   "prove_sec": 179.2,
+   "prove_sec": 184.7,
    "counted": true
   },
   {
@@ -257,10 +257,10 @@
     "x": 0,
     "reason": "wrong output x^-1*2^(2N) mod p"
    },
-   "sim_sec": 11.6,
+   "sim_sec": 12.0,
    "prove": "NOT_PROVED",
    "failure": "segment S6 (k=511, ops 11678708..11687167): wire 895 does not end with the value of the contract",
-   "prove_sec": 173.9,
+   "prove_sec": 182.5,
    "counted": true
   },
   {
@@ -279,10 +279,10 @@
     "x": 1,
     "reason": "op 11688696: erase condition violated"
    },
-   "sim_sec": 2.6,
+   "sim_sec": 2.8,
    "prove": "NOT_PROVED",
    "failure": "segment fin (k=None, ops 11687167..11690977): op 11688696: erase condition violated",
-   "prove_sec": 194.3,
+   "prove_sec": 183.1,
    "counted": true
   },
   {
@@ -301,7 +301,7 @@
     "x": 1,
     "reason": "wrong output x^-1*2^(2N) mod p"
    },
-   "sim_sec": 12.0,
+   "sim_sec": 11.9,
    "prove": "NOT_PROVED",
    "failure": "segment init (k=None, ops 0..255): wire 257 does not end with the value of the contract",
    "prove_sec": 0.5,
@@ -323,10 +323,10 @@
     "x": 22835963083295358096932575511191922182123945984,
     "reason": "wrong output x^-1*2^(2N) mod p"
    },
-   "sim_sec": 12.4,
+   "sim_sec": 11.9,
    "prove": "NOT_PROVED",
    "failure": "segment S2 (k=118, ops 2695262..2695284): wire 466 does not end with the value of the contract",
-   "prove_sec": 14.5,
+   "prove_sec": 14.1,
    "counted": true
   },
   {
@@ -342,10 +342,10 @@
     ]
    },
    "witness": null,
-   "sim_sec": 12.1,
+   "sim_sec": 11.9,
    "prove": "NOT_PROVED",
    "failure": "segment S6 (k=458, ops 10468930..10477389): wire 844025 does not end with the value of the contract",
-   "prove_sec": 142.6,
+   "prove_sec": 151.4,
    "counted": false
   },
   {
@@ -364,10 +364,10 @@
     "x": 4643737002478022032564907410944289390299458954886617791453503451907343205835,
     "reason": "op 7625683: erase condition violated"
    },
-   "sim_sec": 1.7,
+   "sim_sec": 1.8,
    "prove": "NOT_PROVED",
    "failure": "segment S2 (k=334, ops 7625678..7625700): op 7625683: erase condition violated",
-   "prove_sec": 76.3,
+   "prove_sec": 78.2,
    "counted": true
   },
   {
@@ -389,7 +389,7 @@
    "sim_sec": 1.5,
    "prove": "NOT_PROVED",
    "failure": "segment S5 (k=289, ops 6605720..6611336): op 6610380: erase condition violated",
-   "prove_sec": 51.8,
+   "prove_sec": 52.5,
    "counted": true
   },
   {
@@ -408,10 +408,10 @@
     "x": 1766847064778384329583297500742918515827483896875618958121606201292619776,
     "reason": "junk (history bits) differs from Qualtran"
    },
-   "sim_sec": 11.7,
+   "sim_sec": 11.8,
    "prove": "NOT_PROVED",
    "failure": "segment S5 (k=494, ops 11285050..11290666): wire 0 does not end with the value of the contract",
-   "prove_sec": 167.8,
+   "prove_sec": 171.6,
    "counted": true
   },
   {
@@ -430,10 +430,10 @@
     "x": 22835963083295358096932575511191922182123945984,
     "reason": "wrong output x^-1*2^(2N) mod p"
    },
-   "sim_sec": 12.3,
+   "sim_sec": 11.7,
    "prove": "NOT_PROVED",
    "failure": "segment S3 (k=398, ops 9086564..9091194): wire 227 does not end with the value of the contract",
-   "prove_sec": 119.5,
+   "prove_sec": 112.1,
    "counted": true
   },
   {
@@ -471,9 +471,9 @@
     ]
    },
    "witness": null,
-   "sim_sec": 11.8,
+   "sim_sec": 11.7,
    "prove": "CHAIN_PROVED",
-   "prove_sec": 178.9,
+   "prove_sec": 178.5,
    "counted": false
   },
   {
@@ -495,7 +495,7 @@
    "sim_sec": 11.6,
    "prove": "NOT_PROVED",
    "failure": "segment S4 (k=240, ops 5484686..5487246): wire 995 does not end with the value of the contract",
-   "prove_sec": 29.2,
+   "prove_sec": 29.4,
    "counted": true
   },
   {
@@ -511,9 +511,9 @@
     ]
    },
    "witness": null,
-   "sim_sec": 11.1,
+   "sim_sec": 11.9,
    "prove": "CHAIN_PROVED",
-   "prove_sec": 170.3,
+   "prove_sec": 179.2,
    "counted": false
   },
   {
@@ -532,10 +532,10 @@
     "x": 0,
     "reason": "op 10031347: erase condition violated"
    },
-   "sim_sec": 2.1,
+   "sim_sec": 2.3,
    "prove": "NOT_PROVED",
    "failure": "segment S5 (k=439, ops 10029620..10035236): op 10031347: erase condition violated",
-   "prove_sec": 128.6,
+   "prove_sec": 134.6,
    "counted": true
   },
   {
@@ -554,10 +554,10 @@
     "x": 1,
     "reason": "op 11557725: erase condition violated"
    },
-   "sim_sec": 2.5,
+   "sim_sec": 2.7,
    "prove": "NOT_PROVED",
    "failure": "segment S4 (k=506, ops 11556402..11558962): op 11557725: erase condition violated",
-   "prove_sec": 164.5,
+   "prove_sec": 171.9,
    "counted": true
   },
   {
@@ -579,19 +579,19 @@
    "sim_sec": 0.1,
    "prove": "NOT_PROVED",
    "failure": "segment S5 (k=10, ops 237266..242882): op 238801: erase condition violated",
-   "prove_sec": 1.5,
+   "prove_sec": 1.7,
    "counted": true
   }
  ],
  "manifest": {
   "src": {
    "files": 6,
-   "sha256": "ac6b0a6e6d36521f855150758fc8192b84e49dbdbdb249cacef7f09030a4d43d",
+   "sha256": "c99887aaf6885be20fa1263a70191cb1dfacd70510feb3ab0b10b6cd29cf5903",
    "each": {
     "kaliski/canary.py": "235971f1b3494dd94757be7068b46d95ff0c2175c59a65e1d42c85b919d77849",
     "kaliski/chain.py": "5c81f4cdb035109d02188c4f2f292aa0bfdb4595bf16ec6ec7951327e9945317",
     "kaliski/lemmas_z3.py": "5ac2cc16e386947998d2880177d7ada12574f3ec64491e126aaab7273d389c06",
-    "kaliski/lower.py": "db756d67d6de24f94e62ddd7d9e4de3056c1ff85fee1d17706c7df24214f9c5b",
+    "kaliski/lower.py": "0e9357dcb0add2f6384478b4002d2bde3fb47ca821a1831ade5e7b6a734cff2c",
     "kaliski/pq.py": "501dab1e709e9631d99a23115fd71f8aa943869caa456fec1d1ca3ece852a3a2",
     "kaliski/run.py": "7c9837a89f8f813f688f9279dc2f0e70cda0b55a2444912bfb3cb62a169b4a25"
    }
@@ -643,7 +643,7 @@
  },
  "counted": 22,
  "targeted_counted": 13,
- "sec": 3000.2,
+ "sec": 2951.2,
  "merged_from": [
   "kaliski_canaries_n256_p25519 (13 targeted + 12 random)",
   "T8b rerun"

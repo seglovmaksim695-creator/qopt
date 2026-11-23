@@ -13,8 +13,8 @@
  "e4": {
   "status": "PROVED",
   "detail": null,
-  "wall_seconds": 1.33,
-  "peak_rss_mb": 227.4,
+  "wall_seconds": 1.12,
+  "peak_rss_mb": 227.1,
   "logical_ops": 4055,
   "regions": {
    "1:QROAMClean": 1098,
@@ -43,5 +43,5 @@
  },
  "status": "PROVED",
  "claim": "(c, Q) -> (c, Q + c*R) for all c < 2^window and all x, y < p, given the ECAdd contract",
- "wall_seconds": 1.7
+ "wall_seconds": 1.4
 }

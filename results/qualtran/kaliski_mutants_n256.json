@@ -2,7 +2,7 @@
  "n": 256,
  "p": 57896044618658097711785492504343953926634992332820282019728792003956564819949,
  "prepass": true,
- "started": "2026-11-23T18:36:42Z",
+ "started": "2026-11-23T20:11:18Z",
  "rows": [
   {
    "name": "O1 r between iterations",
@@ -10,7 +10,7 @@
    "status": "NOT_PROVED",
    "reason": "wire flow: S4 iteration 256: input of register r differs from its current wires (the input of the step is not the output of the previous one)",
    "flow_reason": true,
-   "sec": 0.57
+   "sec": 0.58
   },
   {
    "name": "O2 r in S4->S5",
@@ -18,7 +18,7 @@
    "status": "NOT_PROVED",
    "reason": "wire flow: S5 iteration 102: input of register r differs from its current wires (the input of the step is not the output of the previous one)",
    "flow_reason": true,
-   "sec": 0.48
+   "sec": 0.46
   },
   {
    "name": "O3 s in S5->S6",
@@ -26,7 +26,7 @@
    "status": "NOT_PROVED",
    "reason": "wire flow: S6 iteration 102: input of register s differs from its current wires (the input of the step is not the output of the previous one)",
    "flow_reason": true,
-   "sec": 0.59
+   "sec": 0.57
   },
   {
    "name": "O4 u between iterations",
@@ -34,7 +34,7 @@
    "status": "NOT_PROVED",
    "reason": "wire flow: S2 iteration 102: input of register u differs from its current wires (the input of the step is not the output of the previous one)",
    "flow_reason": true,
-   "sec": 0.46
+   "sec": 0.45
   },
   {
    "name": "O5 v between iterations",
@@ -42,7 +42,7 @@
    "status": "NOT_PROVED",
    "reason": "wire flow: S1 iteration 510: input of register v differs from its current wires (the input of the step is not the output of the previous one)",
    "flow_reason": true,
-   "sec": 0.84
+   "sec": 0.82
   },
   {
    "name": "O6 s between iterations",
@@ -50,7 +50,7 @@
    "status": "NOT_PROVED",
    "reason": "wire flow: S4 iteration 256: input of register s differs from its current wires (the input of the step is not the output of the previous one)",
    "flow_reason": true,
-   "sec": 0.61
+   "sec": 0.59
   },
   {
    "name": "O7 order of junk",
@@ -58,7 +58,7 @@
    "status": "NOT_PROVED",
    "reason": "wire flow: outputs[junk] differs from the t/m wires in the documented order (lengths 1024/1024, first differences [3, 517])",
    "flow_reason": true,
-   "sec": 0.94
+   "sec": 0.92
   },
   {
    "name": "O8 order of junk (neighbours)",
@@ -66,7 +66,7 @@
    "status": "NOT_PROVED",
    "reason": "wire flow: outputs[junk] differs from the t/m wires in the documented order (lengths 1024/1024, first differences [0, 1])",
    "flow_reason": true,
-   "sec": 0.83
+   "sec": 0.84
   },
   {
    "name": "O9 t0 of the end",
@@ -74,7 +74,7 @@
    "status": "NOT_PROVED",
    "reason": "wire flow: end: t0 differs from the t wire of iteration 0",
    "flow_reason": true,
-   "sec": 1.4
+   "sec": 1.37
   },
   {
    "name": "O10 \"old\" m instead of a new one",
@@ -82,7 +82,7 @@
    "status": "NOT_PROVED",
    "reason": "wire flow: S1 iteration 510: new register m occupies a junk wire",
    "flow_reason": true,
-   "sec": 0.85
+   "sec": 0.82
   },
   {
    "name": "O11 \"old\" t instead of a new one",
@@ -90,7 +90,7 @@
    "status": "NOT_PROVED",
    "reason": "wire flow: S1 iteration 102: new register is_terminal occupies a junk wire",
    "flow_reason": true,
-   "sec": 0.45
+   "sec": 0.44
   },
   {
    "name": "O12 r of iteration 0 occupies a u wire",
@@ -98,7 +98,7 @@
    "status": "NOT_PROVED",
    "reason": "wire flow: S4 iteration 0: input wires of the step repeat",
    "flow_reason": true,
-   "sec": 0.48
+   "sec": 0.46
   },
   {
    "name": "O13 f of the end",
@@ -106,7 +106,7 @@
    "status": "NOT_PROVED",
    "reason": "wire flow: end: input of register f differs from its current wires (the input of the step is not the output of the previous one)",
    "flow_reason": true,
-   "sec": 1.3
+   "sec": 1.25
   },
   {
    "name": "O14 u between iterations (certificate only)",
@@ -114,7 +114,7 @@
    "status": "NOT_PROVED",
    "reason": "wire flow: S2 iteration 510: input of register u differs from its current wires (the input of the step is not the output of the previous one)",
    "flow_reason": true,
-   "sec": 0.86
+   "sec": 0.82
   },
   {
    "name": "F1 (audit) iteration 507, bits 1 and 255 of v",
@@ -122,7 +122,7 @@
    "status": "NOT_PROVED",
    "reason": "wire flow: S1 iteration 507: input of register v differs from its current wires (the input of the step is not the output of the previous one)",
    "flow_reason": true,
-   "sec": 0.93
+   "sec": 0.92
   },
   {
    "name": "F4 (audit) iteration 269 writes t onto the wire t_262",
@@ -138,7 +138,7 @@
    "status": "NOT_PROVED",
    "reason": "wire flow: outputs[junk] differs from the t/m wires in the documented order (lengths 1024/1024, first differences [411, 923])",
    "flow_reason": true,
-   "sec": 0.83
+   "sec": 0.8
   },
   {
    "name": "F3 (audit) the end x=0 is controlled by t_1",

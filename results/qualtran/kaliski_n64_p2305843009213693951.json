@@ -24,7 +24,7 @@
    "measurements": 107071
   },
   "prove": {
-   "sec": 3.4,
+   "sec": 3.55,
    "segments": 770,
    "maxnodes": 9324
   },
@@ -78,10 +78,11 @@
    "source_sha256": "5ac2cc16e386947998d2880177d7ada12574f3ec64491e126aaab7273d389c06"
   },
   "canaries": {
-   "total": 0,
-   "counted": 0,
-   "targeted": 0,
-   "false_proved": []
+   "total": 27,
+   "counted": 23,
+   "targeted": 14,
+   "false_proved": [],
+   "made_by_this_client": true
   },
   "client": {
    "chain_sha256": "5c81f4cdb035109d02188c4f2f292aa0bfdb4595bf16ec6ec7951327e9945317",
@@ -90,30 +91,30 @@
   },
   "qualtran": "0.7.0",
   "manifest_sha256": {
-   "src": "ac6b0a6e6d36521f855150758fc8192b84e49dbdbdb249cacef7f09030a4d43d",
+   "src": "c99887aaf6885be20fa1263a70191cb1dfacd70510feb3ab0b10b6cd29cf5903",
    "bridge": "0a881a9cb7a686faf41a20961e28e09faf40351a94e33bb4c4d10531771c3906",
    "qoptct": "0f1dd2ae84b5546c8f1feb005bef696af32af5e2589d865ed9c92f09ee75b1cf",
    "qualtran": "1d301b8ccbbb404e42d8e418bcaa840ff2d993757ecf966bb3a8c7e4190ab21f"
   },
   "peak_rss_mb": 289.1,
-  "evidence_sec": 12.19,
-  "sec": 12.5,
-  "finished": "2026-11-23T17:34:51Z"
+  "evidence_sec": 12.7,
+  "sec": 13.1,
+  "finished": "2026-11-23T19:59:21Z"
  },
  "evidence": {
   "n": 64,
   "p": 2305843009213693951,
   "qualtran": "0.7.0",
-  "started": "2026-11-23T17:34:38Z",
+  "started": "2026-11-23T19:59:08Z",
   "manifest_before": {
    "src": {
     "files": 6,
-    "sha256": "ac6b0a6e6d36521f855150758fc8192b84e49dbdbdb249cacef7f09030a4d43d",
+    "sha256": "c99887aaf6885be20fa1263a70191cb1dfacd70510feb3ab0b10b6cd29cf5903",
     "each": {
      "kaliski/canary.py": "235971f1b3494dd94757be7068b46d95ff0c2175c59a65e1d42c85b919d77849",
      "kaliski/chain.py": "5c81f4cdb035109d02188c4f2f292aa0bfdb4595bf16ec6ec7951327e9945317",
      "kaliski/lemmas_z3.py": "5ac2cc16e386947998d2880177d7ada12574f3ec64491e126aaab7273d389c06",
-     "kaliski/lower.py": "db756d67d6de24f94e62ddd7d9e4de3056c1ff85fee1d17706c7df24214f9c5b",
+     "kaliski/lower.py": "0e9357dcb0add2f6384478b4002d2bde3fb47ca821a1831ade5e7b6a734cff2c",
      "kaliski/pq.py": "501dab1e709e9631d99a23115fd71f8aa943869caa456fec1d1ca3ece852a3a2",
      "kaliski/run.py": "7c9837a89f8f813f688f9279dc2f0e70cda0b55a2444912bfb3cb62a169b4a25"
     }
@@ -164,7 +165,7 @@
    "mod_division_sha256": "58d519272e05fd642a611f7e56f5516ce0e7d106faa2480a3cc42c92b901353b"
   },
   "compose": {
-   "sec": 1.44,
+   "sec": 1.49,
    "nq": 84865,
    "nops": 735337,
    "piece_ops": 5738,
@@ -176,7 +177,7 @@
   "prove": {
    "status": "CHAIN_PROVED",
    "error": null,
-   "sec": 3.4,
+   "sec": 3.55,
    "segments": 770,
    "maxnodes": 9324,
    "nodes": 2255997,
@@ -214,7 +215,7 @@
    "pq_assumption_failures": [],
    "iterations_traced": 128,
    "xs_sha256": "6e77b07d750272487ec88ebf148c9f549be5cd6631ed4a9b6e502fccee930e62",
-   "sec": 4.92,
+   "sec": 5.19,
    "flow": {
     "version": "flow-1",
     "ok": true,
@@ -231,10 +232,10 @@
    "dirty_wires": 0,
    "mismatches": [],
    "n_mismatch": 0,
-   "sec": 2.41,
+   "sec": 2.44,
    "xs_sha256": "2dce8cab4b897e45e09911f638237de8bac567d0545da011ae830f66a1ddb2d6"
   },
-  "sec": 12.19,
+  "sec": 12.7,
   "peak_rss_mb": 289.1,
   "sources_unchanged_during_run": true
  }

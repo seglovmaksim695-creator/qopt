@@ -11,10 +11,12 @@
    "statement": "x, y < p  =>  target < p and target = x*y*2^-n (mod p); the garbage registers (qrom_indices, reduced) are arbitrary; the uncompute box returns exactly the registers of its forward box to zero (pair identity)",
    "forward": {
     "proved_by": "montgomery_mul",
+    "evidence": "montgomery_mul/montgomery_n256_w1",
     "status": "PROVED_FOR_THIS_INSTANCE"
    },
    "pair": {
     "proved_by": "pair_montgomery",
+    "evidence": "pair_montgomery/pairs_montgomery_n256",
     "status": "PROVED_FOR_THIS_INSTANCE"
    }
   },
@@ -23,10 +25,12 @@
    "statement": "0 <= x < p  =>  x_out < p and x_out = x^-1 * 2^(2n) (mod p) for x != 0, x_out = 0 for x = 0; the junk register is arbitrary; the uncompute box returns exactly the registers of its forward box to zero (pair identity)",
    "forward": {
     "proved_by": "kaliski_inverse",
+    "evidence": "kaliski_inverse/kaliski_n256_p57896044618658097711785492504343953926634992332820282019728792003956564819949",
     "status": "PROVED_FOR_THIS_INSTANCE"
    },
    "pair": {
     "proved_by": "pair_kaliski",
+    "evidence": "pair_kaliski/pairs_kaliski_n256",
     "status": "PROVED_FOR_THIS_INSTANCE"
    }
   }
@@ -34,8 +38,8 @@
  "steps": {
   "1": {
    "status": "PROVED",
-   "wall_seconds": 27.63,
-   "peak_rss_mb": 1619.4,
+   "wall_seconds": 29.29,
+   "peak_rss_mb": 1610.2,
    "kind": "e",
    "logical_ops": 37839,
    "stats": {
@@ -47,15 +51,15 @@
     "max_bdd_nodes": 4997883,
     "cases": 1,
     "vacuous": 0,
-    "seconds": 21.41,
+    "seconds": 22.45,
     "nvars": 1024,
     "nq": 6910
    }
   },
   "2": {
    "status": "PROVED",
-   "wall_seconds": 254.7,
-   "peak_rss_mb": 1739.1,
+   "wall_seconds": 237.29,
+   "peak_rss_mb": 1584.2,
    "kind": "e",
    "logical_ops": 36800,
    "stats": {
@@ -67,15 +71,15 @@
     "max_bdd_nodes": 3279496,
     "cases": 12,
     "vacuous": 0,
-    "seconds": 244.94,
+    "seconds": 226.93,
     "nvars": 3075,
     "nq": 9737
    }
   },
   "3": {
    "status": "PROVED",
-   "wall_seconds": 638.22,
-   "peak_rss_mb": 1283.1,
+   "wall_seconds": 612.89,
+   "peak_rss_mb": 1272.1,
    "kind": "e",
    "logical_ops": 56308,
    "stats": {
@@ -87,15 +91,15 @@
     "max_bdd_nodes": 2006620,
     "cases": 20,
     "vacuous": 0,
-    "seconds": 615.47,
+    "seconds": 589.64,
     "nvars": 2306,
     "nq": 11808
    }
   },
   "4": {
    "status": "PROVED",
-   "wall_seconds": 15.2,
-   "peak_rss_mb": 1075.0,
+   "wall_seconds": 14.44,
+   "peak_rss_mb": 1097.2,
    "kind": "e",
    "logical_ops": 15577,
    "stats": {
@@ -107,15 +111,15 @@
     "max_bdd_nodes": 571404,
     "cases": 1,
     "vacuous": 0,
-    "seconds": 10.7,
+    "seconds": 10.17,
     "nvars": 1794,
     "nq": 4612
    }
   },
   "5": {
    "status": "PROVED",
-   "wall_seconds": 145.74,
-   "peak_rss_mb": 1625.1,
+   "wall_seconds": 135.36,
+   "peak_rss_mb": 1583.7,
    "kind": "e",
    "logical_ops": 35281,
    "stats": {
@@ -127,15 +131,15 @@
     "max_bdd_nodes": 1941470,
     "cases": 9,
     "vacuous": 0,
-    "seconds": 137.29,
+    "seconds": 127.38,
     "nvars": 3330,
     "nq": 8970
    }
   },
   "6": {
    "status": "PROVED",
-   "wall_seconds": 133.88,
-   "peak_rss_mb": 2608.4,
+   "wall_seconds": 126.49,
+   "peak_rss_mb": 2731.0,
    "kind": "e",
    "logical_ops": 58383,
    "stats": {
@@ -147,7 +151,7 @@
     "max_bdd_nodes": 1343078,
     "cases": 286,
     "vacuous": 272,
-    "seconds": 117.74,
+    "seconds": 111.2,
     "nvars": 1029,
     "nq": 10255
    }
@@ -193,5 +197,5 @@
  },
  "status": "PROVED",
  "claim": "ECAdd = point addition in Montgomery form",
- "wall_seconds": 1223.2
+ "wall_seconds": 1162.8
 }

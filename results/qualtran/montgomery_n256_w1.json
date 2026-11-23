@@ -80,8 +80,8 @@
    "detail": "BDD path sum reached the normal form for all inputs and outcomes (1025 measurements, 2561 H, 1793 HH, 0 omega; 66021 BDD nodes)",
    "ops": 5623,
    "nq": 1543,
-   "wall": 0.45,
-   "peak_mb": 139.788288,
+   "wall": 0.42,
+   "peak_mb": 138.60864,
    "qasm_sha256": "432ff5d07ce7465749b5b463eeb826ebf203a2231401f1a82c4ef87cb88f54b7",
    "contract_sha256": "4e49964f5cdaf7088e084f277de9cab56bd45f54e78a3c5adfb1c37007d02a7c",
    "domain": "PASS",
@@ -95,8 +95,8 @@
    "detail": "BDD path sum reached the normal form for all inputs and outcomes (256 measurements, 768 H, 512 HH, 0 omega; 1030429 BDD nodes)",
    "ops": 1785,
    "nq": 514,
-   "wall": 2.65,
-   "peak_mb": 474.202112,
+   "wall": 2.48,
+   "peak_mb": 471.61344,
    "qasm_sha256": "0d2fefce4730dead80a65174f3569cac6bb10f22073a0c0b38fd33c87b7d3a6f",
    "contract_sha256": "3b1973770366bb8d2554e9028f8a74826ae178432e2aff17d2bd6adc0e454f70",
    "domain": "PASS",
@@ -110,8 +110,8 @@
    "detail": "BDD path sum reached the normal form for all inputs and outcomes (255 measurements, 765 H, 510 HH, 0 omega; 39929 BDD nodes)",
    "ops": 2045,
    "nq": 768,
-   "wall": 0.21,
-   "peak_mb": 474.300416,
+   "wall": 0.2,
+   "peak_mb": 471.678976,
    "qasm_sha256": "fc5868031c44f10b6ec245ff807234e7cdcdc504b09ce138a68e8a731b135086",
    "contract_sha256": "a45462a3a017068b3fe395bdbc90373865f62839105da4673ec3eaaa5fb3736d",
    "domain": "PASS",
@@ -130,8 +130,8 @@
     "detail": "BDD path sum reached the normal form for all inputs and outcomes (512 measurements, 1536 H, 1024 HH, 0 omega; 60016 BDD nodes)",
     "ops": 2556,
     "nq": 1026,
-    "wall": 0.34,
-    "peak_mb": 474.300416,
+    "wall": 0.32,
+    "peak_mb": 471.678976,
     "qasm_sha256": "fddf9047230c412547097adb5043c7f48fe8ca60daef76fa4fd08921641aa744",
     "contract_sha256": "632695081bc77a4ac0341171339f40a015777512da0670188fc36f70b45463cc",
     "domain": "PASS",
@@ -145,8 +145,8 @@
     "detail": "BDD path sum reached the normal form for all inputs and outcomes (0 measurements, 0 H, 0 HH, 0 omega; 4 BDD nodes)",
     "ops": 1,
     "nq": 2,
-    "wall": 0.01,
-    "peak_mb": 474.300416,
+    "wall": 0.0,
+    "peak_mb": 471.678976,
     "qasm_sha256": "5aecac69cd7865e11d39ee8c63c29b7e2506caa6c31122349b58c3bca6323df1",
     "contract_sha256": "320de02a9eaf7867de88506446d877af23b69f6d335a634ad2d815bfc38b1805",
     "domain": "PASS",
@@ -160,8 +160,8 @@
     "detail": "BDD path sum reached the normal form for all inputs and outcomes (513 measurements, 1025 H, 769 HH, 0 omega; 43101 BDD nodes)",
     "ops": 3065,
     "nq": 773,
-    "wall": 0.22,
-    "peak_mb": 474.300416,
+    "wall": 0.21,
+    "peak_mb": 471.678976,
     "qasm_sha256": "cc53f796ce791cd974e634a06606fa100062362d98fd9bec3ec06a4d84c3c045",
     "contract_sha256": "74b00a3a4de453497e98e9a1b223d4365ef209310f0f2039f831bbba0879ec92",
     "domain": "PASS",
@@ -188,7 +188,7 @@
  "stages": {
   "lower": {
    "rc": 0,
-   "seconds": 256.8,
+   "seconds": 243.5,
    "cached": false
   },
   "inv_first": {
@@ -201,11 +201,11 @@
   },
   "prove": {
    "rc": 0,
-   "seconds": 4.4
+   "seconds": 4.1
   }
  },
- "source_sha256": "787d508a37400120bc6380a264b45aa71993c6d82bc242af9a1285eeeebdff83",
- "lower_cache_sha256": "e834e4e46c1e69f8cf2f9438c0f03ed7fd78dcbdd8953502eb83548fd80fbe4a",
- "work_dir": "$QOPT_CACHE/montgomery/n256_w1_p7fffffffffffffff_c_787d508a3740",
- "seconds": 261.5
+ "source_sha256": "bc1d9de1e2efb2551682a3fb19fd1256c9c2615de6088b5033c5e45eca49db22",
+ "lower_cache_sha256": "3fb7866f7147af94d4c1fa01feb5bf3d9aea6b3866c0c3b3faa78b5dc5986cec",
+ "work_dir": "$QOPT_CACHE/montgomery/n256_w1_p7fffffffffffffff_c_bc1d9de1e2ef",
+ "seconds": 247.9
 }

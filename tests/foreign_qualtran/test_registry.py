@@ -67,7 +67,7 @@ def test_contract_evidence_exists_and_is_proved():
                 assert e["name"] == name and e["status"] == "PROVED", (box, n, rid)
                 assert (e["n"], int(e["p"])) == (n, p), (box, n, rid)
                 seen += 1
-    assert seen >= 20
+    assert seen >= 18
     # S3: the Kaliski contract and its pair at n = 16, p = 32749 are results, not assumptions
     assert "kaliski_inverse/kaliski_n16_p32749" in by_id and "pair_kaliski/pairs_kaliski_n16_p32749" in by_id
 

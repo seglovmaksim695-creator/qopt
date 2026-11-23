@@ -1,7 +1,7 @@
 {
  "n": 256,
  "p": 57896044618658097711785492504343953926634992332820282019728792003956564819949,
- "started": "2026-11-23T18:26:40Z",
+ "started": "2026-11-23T19:58:43Z",
  "canaries": [
   {
    "name": "T8b erase correction: first erase of step 5 (iteration 10)",
@@ -22,19 +22,19 @@
    "sim_sec": 0.1,
    "prove": "NOT_PROVED",
    "failure": "segment S5 (k=10, ops 237266..242882): op 238801: erase condition violated",
-   "prove_sec": 1.5,
+   "prove_sec": 1.7,
    "counted": true
   }
  ],
  "manifest": {
   "src": {
    "files": 6,
-   "sha256": "ac6b0a6e6d36521f855150758fc8192b84e49dbdbdb249cacef7f09030a4d43d",
+   "sha256": "c99887aaf6885be20fa1263a70191cb1dfacd70510feb3ab0b10b6cd29cf5903",
    "each": {
     "kaliski/canary.py": "235971f1b3494dd94757be7068b46d95ff0c2175c59a65e1d42c85b919d77849",
     "kaliski/chain.py": "5c81f4cdb035109d02188c4f2f292aa0bfdb4595bf16ec6ec7951327e9945317",
     "kaliski/lemmas_z3.py": "5ac2cc16e386947998d2880177d7ada12574f3ec64491e126aaab7273d389c06",
-    "kaliski/lower.py": "db756d67d6de24f94e62ddd7d9e4de3056c1ff85fee1d17706c7df24214f9c5b",
+    "kaliski/lower.py": "0e9357dcb0add2f6384478b4002d2bde3fb47ca821a1831ade5e7b6a734cff2c",
     "kaliski/pq.py": "501dab1e709e9631d99a23115fd71f8aa943869caa456fec1d1ca3ece852a3a2",
     "kaliski/run.py": "7c9837a89f8f813f688f9279dc2f0e70cda0b55a2444912bfb3cb62a169b4a25"
    }
@@ -86,5 +86,5 @@
  },
  "counted": 1,
  "targeted_counted": 1,
- "sec": 8.9
+ "sec": 10.1
 }

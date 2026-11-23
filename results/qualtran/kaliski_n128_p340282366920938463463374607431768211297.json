@@ -24,7 +24,7 @@
    "measurements": 427135
   },
   "prove": {
-   "sec": 34.99,
+   "sec": 28.6,
    "segments": 1538,
    "maxnodes": 82537
   },
@@ -67,10 +67,11 @@
    "source_sha256": "5ac2cc16e386947998d2880177d7ada12574f3ec64491e126aaab7273d389c06"
   },
   "canaries": {
-   "total": 0,
-   "counted": 0,
-   "targeted": 0,
-   "false_proved": []
+   "total": 27,
+   "counted": 23,
+   "targeted": 14,
+   "false_proved": [],
+   "made_by_this_client": true
   },
   "client": {
    "chain_sha256": "5c81f4cdb035109d02188c4f2f292aa0bfdb4595bf16ec6ec7951327e9945317",
@@ -79,30 +80,30 @@
   },
   "qualtran": "0.7.0",
   "manifest_sha256": {
-   "src": "ac6b0a6e6d36521f855150758fc8192b84e49dbdbdb249cacef7f09030a4d43d",
+   "src": "c99887aaf6885be20fa1263a70191cb1dfacd70510feb3ab0b10b6cd29cf5903",
    "bridge": "0a881a9cb7a686faf41a20961e28e09faf40351a94e33bb4c4d10531771c3906",
    "qoptct": "0f1dd2ae84b5546c8f1feb005bef696af32af5e2589d865ed9c92f09ee75b1cf",
    "qualtran": "1d301b8ccbbb404e42d8e418bcaa840ff2d993757ecf966bb3a8c7e4190ab21f"
   },
-  "peak_rss_mb": 501.0,
-  "evidence_sec": 56.51,
-  "sec": 56.9,
-  "finished": "2026-11-23T17:36:28Z"
+  "peak_rss_mb": 497.9,
+  "evidence_sec": 47.96,
+  "sec": 48.3,
+  "finished": "2026-11-23T20:00:47Z"
  },
  "evidence": {
   "n": 128,
   "p": 340282366920938463463374607431768211297,
   "qualtran": "0.7.0",
-  "started": "2026-11-23T17:35:32Z",
+  "started": "2026-11-23T19:59:59Z",
   "manifest_before": {
    "src": {
     "files": 6,
-    "sha256": "ac6b0a6e6d36521f855150758fc8192b84e49dbdbdb249cacef7f09030a4d43d",
+    "sha256": "c99887aaf6885be20fa1263a70191cb1dfacd70510feb3ab0b10b6cd29cf5903",
     "each": {
      "kaliski/canary.py": "235971f1b3494dd94757be7068b46d95ff0c2175c59a65e1d42c85b919d77849",
      "kaliski/chain.py": "5c81f4cdb035109d02188c4f2f292aa0bfdb4595bf16ec6ec7951327e9945317",
      "kaliski/lemmas_z3.py": "5ac2cc16e386947998d2880177d7ada12574f3ec64491e126aaab7273d389c06",
-     "kaliski/lower.py": "db756d67d6de24f94e62ddd7d9e4de3056c1ff85fee1d17706c7df24214f9c5b",
+     "kaliski/lower.py": "0e9357dcb0add2f6384478b4002d2bde3fb47ca821a1831ade5e7b6a734cff2c",
      "kaliski/pq.py": "501dab1e709e9631d99a23115fd71f8aa943869caa456fec1d1ca3ece852a3a2",
      "kaliski/run.py": "7c9837a89f8f813f688f9279dc2f0e70cda0b55a2444912bfb3cb62a169b4a25"
     }
@@ -153,7 +154,7 @@
    "mod_division_sha256": "58d519272e05fd642a611f7e56f5516ce0e7d106faa2480a3cc42c92b901353b"
   },
   "compose": {
-   "sec": 3.45,
+   "sec": 2.88,
    "nq": 333569,
    "nops": 2929107,
    "piece_ops": 11434,
@@ -165,7 +166,7 @@
   "prove": {
    "status": "CHAIN_PROVED",
    "error": null,
-   "sec": 34.99,
+   "sec": 28.6,
    "segments": 1538,
    "maxnodes": 82537,
    "nodes": 20308540,
@@ -203,7 +204,7 @@
    "pq_assumption_failures": [],
    "iterations_traced": 256,
    "xs_sha256": "76d3786e642393a2d7135ef22d156d57c7a0790c0478345169c9de2668f3152e",
-   "sec": 12.51,
+   "sec": 11.35,
    "flow": {
     "version": "flow-1",
     "ok": true,
@@ -220,11 +221,11 @@
    "dirty_wires": 0,
    "mismatches": [],
    "n_mismatch": 0,
-   "sec": 5.45,
+   "sec": 5.04,
    "xs_sha256": "9622c77ae715b89edf3aaf759d1e9171c3cb228ad18b3ffdd919048633c5b371"
   },
-  "sec": 56.51,
-  "peak_rss_mb": 501.0,
+  "sec": 47.96,
+  "peak_rss_mb": 497.9,
   "sources_unchanged_during_run": true
  }
 }

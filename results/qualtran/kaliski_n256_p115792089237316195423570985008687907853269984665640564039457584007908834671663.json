@@ -24,7 +24,7 @@
    "measurements": 1706239
   },
   "prove": {
-   "sec": 167.83,
+   "sec": 180.73,
    "segments": 3074,
    "maxnodes": 318170
   },
@@ -63,30 +63,30 @@
   },
   "qualtran": "0.7.0",
   "manifest_sha256": {
-   "src": "ac6b0a6e6d36521f855150758fc8192b84e49dbdbdb249cacef7f09030a4d43d",
+   "src": "c99887aaf6885be20fa1263a70191cb1dfacd70510feb3ab0b10b6cd29cf5903",
    "bridge": "0a881a9cb7a686faf41a20961e28e09faf40351a94e33bb4c4d10531771c3906",
    "qoptct": "0f1dd2ae84b5546c8f1feb005bef696af32af5e2589d865ed9c92f09ee75b1cf",
    "qualtran": "1d301b8ccbbb404e42d8e418bcaa840ff2d993757ecf966bb3a8c7e4190ab21f"
   },
-  "peak_rss_mb": 1350.5,
-  "evidence_sec": 211.12,
-  "sec": 211.5,
-  "finished": "2026-11-23T18:33:50Z"
+  "peak_rss_mb": 1350.4,
+  "evidence_sec": 227.29,
+  "sec": 227.7,
+  "finished": "2026-11-23T20:08:21Z"
  },
  "evidence": {
   "n": 256,
   "p": 115792089237316195423570985008687907853269984665640564039457584007908834671663,
   "qualtran": "0.7.0",
-  "started": "2026-11-23T18:30:19Z",
+  "started": "2026-11-23T20:04:34Z",
   "manifest_before": {
    "src": {
     "files": 6,
-    "sha256": "ac6b0a6e6d36521f855150758fc8192b84e49dbdbdb249cacef7f09030a4d43d",
+    "sha256": "c99887aaf6885be20fa1263a70191cb1dfacd70510feb3ab0b10b6cd29cf5903",
     "each": {
      "kaliski/canary.py": "235971f1b3494dd94757be7068b46d95ff0c2175c59a65e1d42c85b919d77849",
      "kaliski/chain.py": "5c81f4cdb035109d02188c4f2f292aa0bfdb4595bf16ec6ec7951327e9945317",
      "kaliski/lemmas_z3.py": "5ac2cc16e386947998d2880177d7ada12574f3ec64491e126aaab7273d389c06",
-     "kaliski/lower.py": "db756d67d6de24f94e62ddd7d9e4de3056c1ff85fee1d17706c7df24214f9c5b",
+     "kaliski/lower.py": "0e9357dcb0add2f6384478b4002d2bde3fb47ca821a1831ade5e7b6a734cff2c",
      "kaliski/pq.py": "501dab1e709e9631d99a23115fd71f8aa943869caa456fec1d1ca3ece852a3a2",
      "kaliski/run.py": "7c9837a89f8f813f688f9279dc2f0e70cda0b55a2444912bfb3cb62a169b4a25"
     }
@@ -137,7 +137,7 @@
    "mod_division_sha256": "58d519272e05fd642a611f7e56f5516ce0e7d106faa2480a3cc42c92b901353b"
   },
   "compose": {
-   "sec": 6.79,
+   "sec": 7.44,
    "nq": 1322497,
    "nops": 11690950,
    "piece_ops": 22826,
@@ -149,7 +149,7 @@
   "prove": {
    "status": "CHAIN_PROVED",
    "error": null,
-   "sec": 167.83,
+   "sec": 180.73,
    "segments": 3074,
    "maxnodes": 318170,
    "nodes": 132845245,
@@ -187,7 +187,7 @@
    "pq_assumption_failures": [],
    "iterations_traced": 512,
    "xs_sha256": "d101922c94226d17af893405e3d7af4fe23db74b4a79578656f1f6c94f77c7b9",
-   "sec": 25.54,
+   "sec": 27.26,
    "flow": {
     "version": "flow-1",
     "ok": true,
@@ -204,11 +204,11 @@
    "dirty_wires": 0,
    "mismatches": [],
    "n_mismatch": 0,
-   "sec": 10.63,
+   "sec": 11.5,
    "xs_sha256": "c22ecbe74d1c60ae7030a8af4fbbed5f0120705637ed6dc8d8ed3aed0a5756f0"
   },
-  "sec": 211.12,
-  "peak_rss_mb": 1350.5,
+  "sec": 227.29,
+  "peak_rss_mb": 1350.4,
   "sources_unchanged_during_run": true
  }
 }
