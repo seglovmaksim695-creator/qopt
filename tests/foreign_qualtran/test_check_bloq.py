@@ -1,9 +1,9 @@
 """check_bloq: Qualtran blocks are accepted when right and NOT proved when anything is wrong."""
-import attrs
 import pytest
 
 pytest.importorskip("qualtran")
 pytest.importorskip("cirq")
+import attrs  # noqa: E402  (needs the optional qualtran extra)
 
 from qualtran import Bloq, QBit, QUInt, Register, Signature
 from qualtran.bloqs.arithmetic import Add, LessThanConstant, LessThanEqual
