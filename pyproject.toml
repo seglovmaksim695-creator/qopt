@@ -60,7 +60,7 @@ qoptct = "qoptct.qiskit_qopt:QoptInitPlugin"
 include = ["qoptct*"]
 
 [tool.setuptools.package-data]
-qoptct = ["models/*.pt", "contrib/c1/best_clean/*.qasm", "contrib/c1/best_clean/*.json", "contrib/eng1/ours/*.json", "contrib/gf2m/data/*.json", "verify/compose/PROOF.md", "foreign/qualtran/patches/manifest.json", "foreign/qualtran/patches/src/*.py", "foreign/qualtran/patches/diff/*.diff"]
+qoptct = ["models/*.pt", "contrib/c1/best_clean/*.qasm", "contrib/c1/best_clean/*.json", "contrib/eng1/ours/*.json", "contrib/gf2m/data/*.json", "verify/compose/PROOF.md", "foreign/qualtran/patches/manifest.json", "foreign/qualtran/patches/src/*.py", "foreign/qualtran/patches/diff/*.diff", "foreign/qualtran/ecadd/data/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

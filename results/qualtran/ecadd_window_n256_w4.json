@@ -1,0 +1,47 @@
+{
+ "api": "prove_ecwindowaddr",
+ "n": 256,
+ "p": "57896044618658097711785492504343953926634992332820282019728792003956564819949",
+ "window": 4,
+ "qualtran_kind": "e4",
+ "z3": "Z3 version 5.3.3 - 64 bit (binary)",
+ "depends_on": {
+  "box": "ECADD",
+  "proved_by": "ecadd",
+  "note": "call prove_ecadd(n, p, patched=True) for this (n, p)"
+ },
+ "e4": {
+  "status": "PROVED",
+  "detail": null,
+  "wall_seconds": 2.36,
+  "peak_rss_mb": 243.7,
+  "logical_ops": 17991,
+  "regions": {
+   "1:QROAMClean": 5762,
+   "2:ECAdd": 1,
+   "3:QROAMCleanAdjointWrapper": 12228
+  },
+  "R": [
+   "6",
+   "17298317600580294822385160144771489469754923807174533674212382638162693293830"
+  ],
+  "curve": "y^2=x^3+2x+3",
+  "stats": {
+   "ops": 287840,
+   "ands": 592,
+   "erases": 12880,
+   "checks_nontrivial": 96,
+   "gc": 0,
+   "max_bdd_nodes": 2568,
+   "cases": 16,
+   "vacuous": 0,
+   "seconds": 0.16,
+   "nvars": 1028,
+   "nq": 1323
+  },
+  "kind": "e4"
+ },
+ "status": "PROVED",
+ "claim": "(c, Q) -> (c, Q + c*R) for all c < 2^window and all x, y < p, given the ECAdd contract",
+ "wall_seconds": 2.7
+}

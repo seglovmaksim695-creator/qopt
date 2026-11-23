@@ -1,0 +1,325 @@
+{
+ "cmd": "run-montgomery",
+ "qualtran_kind": "c",
+ "qualtran_file": "/Users/max/quantum-start/lab/work/v07/f7_ecadd/cache/qualtran_patched/c-0.7.0/qualtran/__init__.py",
+ "files_sha256_16": {
+  "bloqs/cryptography/ecc/ec_add.py": "71a3efc0368f7fca",
+  "bloqs/mod_arithmetic/mod_multiplication.py": "c648332760a6f7c1",
+  "bloqs/data_loading/qrom_base.py": "fa02bc765c0aea68",
+  "bloqs/data_loading/select_swap_qrom.py": "6ff73893944bdfd5"
+ },
+ "n": 16,
+ "p": "32749",
+ "piece_mirror_ok": true,
+ "piece_msg": "ok",
+ "piece_stats": {
+  "nb": 308,
+  "seeded": 65,
+  "reordered": 26,
+  "ab_swaps": 0,
+  "max_window": 12,
+  "blocks": 0
+ },
+ "pi_macro_size": 1105,
+ "moved_across_macros": 1,
+ "top_parts": {
+  "F_pre": 0,
+  "F_post": 231,
+  "B_pre": 231,
+  "B_post": 0
+ },
+ "top_match": [
+  [
+   "F_post~B_pre",
+   true,
+   "ok",
+   {
+    "nb": 231,
+    "seeded": 48,
+    "reordered": 8,
+    "ab_swaps": 0,
+    "max_window": 13,
+    "blocks": 0
+   }
+  ],
+  [
+   "F_pre~B_post",
+   true,
+   "ok",
+   {
+    "nb": 0,
+    "seeded": 0,
+    "reordered": 0,
+    "ab_swaps": 0,
+    "max_window": 0,
+    "blocks": 0
+   }
+  ]
+ ],
+ "top_ok": true,
+ "pi_id_on_join": true,
+ "pi_xin_is_xout": true,
+ "pi_injective": true,
+ "mirror_ok": true,
+ "w": 1,
+ "piece_fwd_ops": 342,
+ "piece_bwd_ops": 342,
+ "top_ops": 462,
+ "macros": 32,
+ "tokens_fwd": [
+  {
+   "kind": "QC",
+   "ops": 15,
+   "sel": 34,
+   "table": {
+    "69": [
+     0,
+     1
+    ],
+    "70": [
+     0,
+     1
+    ],
+    "71": [
+     0,
+     1
+    ],
+    "72": [
+     0,
+     1
+    ],
+    "73": [
+     0,
+     1
+    ],
+    "74": [
+     0,
+     1
+    ],
+    "75": [
+     0,
+     1
+    ],
+    "76": [
+     0,
+     1
+    ],
+    "77": [
+     0,
+     1
+    ],
+    "78": [
+     0,
+     1
+    ],
+    "80": [
+     0,
+     1
+    ],
+    "81": [
+     0,
+     1
+    ],
+    "83": [
+     0,
+     1
+    ]
+   },
+   "internal": []
+  },
+  {
+   "kind": "QA",
+   "ops": 45,
+   "sel": 34,
+   "table": {
+    "83": [
+     0,
+     1
+    ],
+    "81": [
+     0,
+     1
+    ],
+    "80": [
+     0,
+     1
+    ],
+    "78": [
+     0,
+     1
+    ],
+    "77": [
+     0,
+     1
+    ],
+    "76": [
+     0,
+     1
+    ],
+    "75": [
+     0,
+     1
+    ],
+    "74": [
+     0,
+     1
+    ],
+    "73": [
+     0,
+     1
+    ],
+    "72": [
+     0,
+     1
+    ],
+    "71": [
+     0,
+     1
+    ],
+    "70": [
+     0,
+     1
+    ],
+    "69": [
+     0,
+     1
+    ]
+   },
+   "internal": [
+    100,
+    101
+   ]
+  }
+ ],
+ "tokens_bwd": [
+  {
+   "kind": "QC",
+   "ops": 15,
+   "sel": 34,
+   "table": {
+    "37": [
+     0,
+     1
+    ],
+    "38": [
+     0,
+     1
+    ],
+    "39": [
+     0,
+     1
+    ],
+    "40": [
+     0,
+     1
+    ],
+    "41": [
+     0,
+     1
+    ],
+    "42": [
+     0,
+     1
+    ],
+    "43": [
+     0,
+     1
+    ],
+    "44": [
+     0,
+     1
+    ],
+    "45": [
+     0,
+     1
+    ],
+    "46": [
+     0,
+     1
+    ],
+    "48": [
+     0,
+     1
+    ],
+    "49": [
+     0,
+     1
+    ],
+    "51": [
+     0,
+     1
+    ]
+   },
+   "internal": []
+  },
+  {
+   "kind": "QA",
+   "ops": 45,
+   "sel": 34,
+   "table": {
+    "51": [
+     0,
+     1
+    ],
+    "49": [
+     0,
+     1
+    ],
+    "48": [
+     0,
+     1
+    ],
+    "46": [
+     0,
+     1
+    ],
+    "45": [
+     0,
+     1
+    ],
+    "44": [
+     0,
+     1
+    ],
+    "43": [
+     0,
+     1
+    ],
+    "42": [
+     0,
+     1
+    ],
+    "41": [
+     0,
+     1
+    ],
+    "40": [
+     0,
+     1
+    ],
+    "39": [
+     0,
+     1
+    ],
+    "38": [
+     0,
+     1
+    ],
+    "37": [
+     0,
+     1
+    ]
+   },
+   "internal": [
+    68,
+    69
+   ]
+  }
+ ],
+ "sec": 0.4,
+ "wall_seconds": 0.44,
+ "peak_rss_mb": 222.5,
+ "status": "PROVED",
+ "api": "check_pair_montgomery",
+ "compare_full": false
+}
