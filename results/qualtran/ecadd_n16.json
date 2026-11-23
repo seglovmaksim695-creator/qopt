@@ -11,10 +11,12 @@
    "statement": "x, y < p  =>  target < p and target = x*y*2^-n (mod p); the garbage registers (qrom_indices, reduced) are arbitrary; the uncompute box returns exactly the registers of its forward box to zero (pair identity)",
    "forward": {
     "proved_by": "montgomery_mul",
+    "evidence": "montgomery_mul/montgomery_n16_w1",
     "status": "PROVED_FOR_THIS_INSTANCE"
    },
    "pair": {
     "proved_by": "pair_montgomery",
+    "evidence": "pair_montgomery/pairs_montgomery_n16",
     "status": "PROVED_FOR_THIS_INSTANCE"
    }
   },
@@ -23,19 +25,21 @@
    "statement": "0 <= x < p  =>  x_out < p and x_out = x^-1 * 2^(2n) (mod p) for x != 0, x_out = 0 for x = 0; the junk register is arbitrary; the uncompute box returns exactly the registers of its forward box to zero (pair identity)",
    "forward": {
     "proved_by": "kaliski_inverse",
-    "status": "ASSUMED_FOR_THIS_INSTANCE"
+    "evidence": "kaliski_inverse/kaliski_n16_p32749",
+    "status": "PROVED_FOR_THIS_INSTANCE"
    },
    "pair": {
     "proved_by": "pair_kaliski",
-    "status": "ASSUMED_FOR_THIS_INSTANCE"
+    "evidence": "pair_kaliski/pairs_kaliski_n16_p32749",
+    "status": "PROVED_FOR_THIS_INSTANCE"
    }
   }
  },
  "steps": {
   "1": {
    "status": "PROVED",
-   "wall_seconds": 0.44,
-   "peak_rss_mb": 227.1,
+   "wall_seconds": 0.4,
+   "peak_rss_mb": 227.8,
    "kind": "e",
    "logical_ops": 2319,
    "stats": {
@@ -54,8 +58,8 @@
   },
   "2": {
    "status": "PROVED",
-   "wall_seconds": 0.79,
-   "peak_rss_mb": 238.8,
+   "wall_seconds": 0.73,
+   "peak_rss_mb": 239.9,
    "kind": "e",
    "logical_ops": 2240,
    "stats": {
@@ -67,15 +71,15 @@
     "max_bdd_nodes": 44866,
     "cases": 12,
     "vacuous": 0,
-    "seconds": 0.35,
+    "seconds": 0.32,
     "nvars": 195,
     "nq": 617
    }
   },
   "3": {
    "status": "PROVED",
-   "wall_seconds": 1.82,
-   "peak_rss_mb": 248.0,
+   "wall_seconds": 1.67,
+   "peak_rss_mb": 248.3,
    "kind": "e",
    "logical_ops": 3508,
    "stats": {
@@ -87,15 +91,15 @@
     "max_bdd_nodes": 64566,
     "cases": 20,
     "vacuous": 0,
-    "seconds": 1.22,
+    "seconds": 1.12,
     "nvars": 146,
     "nq": 768
    }
   },
   "4": {
    "status": "PROVED",
-   "wall_seconds": 0.29,
-   "peak_rss_mb": 223.1,
+   "wall_seconds": 0.27,
+   "peak_rss_mb": 224.3,
    "kind": "e",
    "logical_ops": 937,
    "stats": {
@@ -114,8 +118,8 @@
   },
   "5": {
    "status": "PROVED",
-   "wall_seconds": 0.64,
-   "peak_rss_mb": 234.0,
+   "wall_seconds": 0.56,
+   "peak_rss_mb": 235.6,
    "kind": "e",
    "logical_ops": 2161,
    "stats": {
@@ -127,15 +131,15 @@
     "max_bdd_nodes": 41670,
     "cases": 9,
     "vacuous": 0,
-    "seconds": 0.22,
+    "seconds": 0.19,
     "nvars": 210,
     "nq": 570
    }
   },
   "6": {
    "status": "PROVED",
-   "wall_seconds": 1.09,
-   "peak_rss_mb": 237.0,
+   "wall_seconds": 1.03,
+   "peak_rss_mb": 238.1,
    "kind": "e",
    "logical_ops": 3663,
    "stats": {
@@ -147,7 +151,7 @@
     "max_bdd_nodes": 50644,
     "cases": 338,
     "vacuous": 319,
-    "seconds": 0.59,
+    "seconds": 0.56,
     "nvars": 69,
     "nq": 655
    }
@@ -193,5 +197,5 @@
  },
  "status": "PROVED",
  "claim": "ECAdd = point addition in Montgomery form",
- "wall_seconds": 11.8
+ "wall_seconds": 11.1
 }

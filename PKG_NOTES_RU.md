@@ -1,3 +1,15 @@
+# Выпуск 0.7.0 — заметки по пакету (23.11.2026)
+
+- Версия 0.7.0 во всех местах номера: `pyproject.toml`, `qoptct/__init__.py`, `qoptct/qopt_core.py`, `CITATION.cff`, `.zenodo.json` (DOI не менялся), README/README_RU, `tests/test_release.py`.
+- Новый extra `qualtran = ["qualtran==0.7.0", "z3-solver>=4.12"]` (был в pyproject от I1); core-зависимости не менялись.
+- В пакет добавлены данные (package-data): `foreign/qualtran/patches/{manifest.json,src/*.py,diff/*.diff}`, `foreign/qualtran/ecadd/data/*.json`, `foreign/qualtran/data/*.json` (реестр `registry.json` и файл канареек Калиски n=256). В архив исходников (sdist, `MANIFEST.in`) добавлены `results/qualtran/*.json`, `scripts/build_qualtran_registry.py`, `docs/QUALTRAN*.md`.
+- Абсолютных путей Мака в пакете нет (проверяет `tests/test_release.py`); кэши — в `$QOPT_CACHE`.
+- В `NOTICE` добавлены изменённые файлы Qualtran (Apache-2.0, Copyright Google LLC).
+- Реестр перестраивается командой `python scripts/build_qualtran_registry.py` после любого нового результата; тест `test_registry` проверяет, что он совпадает с файлами в `results/qualtran/`.
+- Перед публикацией (не сделано): решение Максима о сообщении разработчикам Qualtran; тег и выпуск; PyPI/Zenodo.
+
+---
+
 # Выпуск 0.3.0 как пакет PyPI `qoptct` — заметки (13.11.2026)
 
 Всё сделано локально в `release_qopt/` (ветка main, локальный коммит). **Ничего не отправлено** на GitHub и

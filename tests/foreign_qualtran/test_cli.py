@@ -36,6 +36,7 @@ def test_usage_errors(capsys):
     with pytest.raises(SystemExit) as e:
         cli.main(["prove", "nonsense", "--n", "4"])
     assert e.value.code == 2                                      # argparse
+    capsys.readouterr()
     code, _, err = run(["prove", "ecadd", "--n", "20"], capsys)  # no default modulus at n = 20 (or no Qualtran: also exit 3)
     assert code == cli.EXIT_USAGE and err.startswith("error:")
     code, _, err = run(["prove", "montgomery", "--n", "16", "--p", "__import__('os')"], capsys)

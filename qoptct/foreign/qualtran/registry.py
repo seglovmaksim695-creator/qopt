@@ -44,11 +44,22 @@ def _short(s, k=12):
     return s if len(s) <= k else s[:k - 1] + '~'
 
 
+_NAMED_P = {2 ** 255 - 19: '2^255-19', 2 ** 256 - 2 ** 32 - 977: 'secp256k1', 2 ** 127 - 1: '2^127-1', 2 ** 63 - 25: '2^63-25',
+            2 ** 256 - 2 ** 224 + 2 ** 192 + 2 ** 96 - 1: 'P-256'}
+
+
+def _pname(p):
+    try:
+        return _NAMED_P.get(int(p), _short(p, 14))
+    except ValueError:
+        return _short(p, 14)
+
+
 def format_table(es):
     """Plain-text table of the entries."""
     rows = [('name', 'n', 'p', 'w', 'qualtran', 'status', 'program hash', 'assumptions')]
     for e in es:
-        rows.append((e['name'], str(e['n']), _short(e['p'], 14), '-' if e.get('w') is None else str(e['w']),
+        rows.append((e['name'], str(e['n']), _pname(e['p']), '-' if e.get('w') is None else str(e['w']),
                      e['qualtran']['variant'], e['status'], _short(e['program']['value'], 12), str(len(e['assumptions']))))
     width = [max(len(r[i]) for r in rows) for i in range(len(rows[0]))]
     lines = ['  '.join(c.ljust(width[i]) for i, c in enumerate(r)).rstrip() for r in rows]

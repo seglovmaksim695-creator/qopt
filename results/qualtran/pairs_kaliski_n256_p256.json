@@ -1,0 +1,75 @@
+{
+ "cmd": "run-kaliski",
+ "qualtran_kind": "original",
+ "qualtran_file": "/Users/max/quantum-start/lab/work/v07/venv/lib/python3.12/site-packages/qualtran/__init__.py",
+ "files_sha256_16": {
+  "bloqs/cryptography/ecc/ec_add.py": "71a3efc0368f7fca",
+  "bloqs/mod_arithmetic/mod_multiplication.py": "3873115b5cf6fd31",
+  "bloqs/data_loading/qrom_base.py": "5837d39f0c301dfc",
+  "bloqs/data_loading/select_swap_qrom.py": "1dd5d2aee856779c"
+ },
+ "n": 256,
+ "p": "115792089210356248762697446949407573530086143415290314195533631308867097853951",
+ "piece_mirror_ok": true,
+ "piece_msg": "ok",
+ "piece_stats": {
+  "nb": 20268,
+  "seeded": 2573,
+  "reordered": 6651,
+  "ab_swaps": 0,
+  "max_window": 1021,
+  "blocks": 1279
+ },
+ "pi_macro_size": 1321986,
+ "top_parts": {
+  "F_pre": 131,
+  "F_post": 2876,
+  "B_pre": 2876,
+  "B_post": 131
+ },
+ "top_match": [
+  [
+   "F_post~B_pre",
+   true,
+   "ok",
+   {
+    "nb": 2876,
+    "seeded": 511,
+    "reordered": 832,
+    "ab_swaps": 0,
+    "max_window": 255,
+    "blocks": 0
+   }
+  ],
+  [
+   "F_pre~B_post",
+   true,
+   "ok",
+   {
+    "nb": 131,
+    "seeded": 0,
+    "reordered": 128,
+    "ab_swaps": 0,
+    "max_window": 128,
+    "blocks": 0
+   }
+  ]
+ ],
+ "top_ok": true,
+ "pi_id_on_join": true,
+ "pi_xin_is_xout": true,
+ "pi_injective": true,
+ "mirror_ok": true,
+ "piece_fwd_ops": 22826,
+ "piece_bwd_ops": 22826,
+ "top_ops": 6014,
+ "macros": 1024,
+ "qasm_sha_fwd_piece": "8f131c880a21a0e9a678eb1a90970f5cfdfcf9aaac932845d43620d1a2d725db",
+ "qasm_sha_bwd_piece": "a48122c3d029b82b110194e30eb67c0f9c2a355ba644831e2aa34837aa49ffdb",
+ "sec": 25.1,
+ "wall_seconds": 25.2,
+ "peak_rss_mb": 2116.1,
+ "status": "PROVED",
+ "api": "check_pair_kaliski",
+ "compare_full": false
+}

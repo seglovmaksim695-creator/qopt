@@ -1,0 +1,213 @@
+{
+ "schema": "qoptct.montgomery/1",
+ "verdict": "PROVED",
+ "reasons": [],
+ "n": 16,
+ "w": 1,
+ "p": 32749,
+ "p_hex": "0x7fed",
+ "patched": true,
+ "mutant": null,
+ "contract": "x,y,qrom_indices(digits m_i),reduced=[T_N>=p],target=T_N-p*reduced (PR1997 contract); other wires zero; no phase",
+ "qualtran": {
+  "version": "0.7.0",
+  "file": "qualtran/__init__.py in patched copy",
+  "patch_kind": "c",
+  "patch_files_sha256": {
+   "bloqs/data_loading/qrom_base.py": "fa02bc765c0aea68538fc2bb383d363bdc4dbfd111b9ff46fea8d0999f173f9e",
+   "bloqs/data_loading/select_swap_qrom.py": "6ff73893944bdfd58c0ae150d5a65ebede6ee4ce1430ae0d52133de4ada1c116",
+   "bloqs/mod_arithmetic/mod_multiplication.py": "c648332760a6f7c114ecedfa9415cfecfc6acae28a901fdb86fe5343461b7432"
+  }
+ },
+ "versions": {
+  "python": "3.12.16",
+  "qualtran": "0.7.0",
+  "z3": "5.3.3.0",
+  "numpy": "2.5.5"
+ },
+ "program": {
+  "nq": 1186,
+  "ops": 5703,
+  "ops_sha256": "c40267cfd6b4c8dbb562e16d915531373dcd1d2d3020e59f262e6a0762db06fa",
+  "windows": 16,
+  "generic_window_qasm_sha256": "6c9fe8b52152e9f3c89febfc1f37bc2fdbe1be7ac6cc5636bdc83b6280dc2c78",
+  "generic_window_layout_sha256": "da9743ae323ba3d09d9596ae53e94a0c57cd50c699400a4f189f20a5b1819163"
+ },
+ "glue": {
+  "ok": true,
+  "notes": []
+ },
+ "bookkeeping": {
+  "ok": true,
+  "notes": [],
+  "final_high_T_wires_must_be_zero": [
+   32
+  ]
+ },
+ "prefix_X_reduced": {
+  "ok": true,
+  "notes": []
+ },
+ "window_checks": {
+  "all_windows_ok": true,
+  "windows": 16,
+  "same_hash": true,
+  "same_structure": true,
+  "tiles_bad": {}
+ },
+ "invariants": {
+  "first": {
+   "inv_T_lt_y_plus_p": true,
+   "Tn_lt_2n": true,
+   "low_bits_zero": true
+  },
+  "generic": {
+   "inv_T_lt_y_plus_p": true,
+   "Tn_lt_2n": true,
+   "low_bits_zero": true
+  }
+ },
+ "telescoping": true,
+ "end_to_end": {
+  "cases": 29,
+  "cases_with_reduction": 13,
+  "mismatches": 0,
+  "first_witness": null
+ },
+ "segments": [
+  {
+   "label": "win0",
+   "kind": "win",
+   "status": "PROVED",
+   "detail": "BDD path sum reached the normal form for all inputs and outcomes (65 measurements, 161 H, 113 HH, 0 omega; 3456 BDD nodes)",
+   "ops": 343,
+   "nq": 103,
+   "wall": 0.03,
+   "peak_mb": 45.30176,
+   "qasm_sha256": "49ae2719fe781bc68643b9f2b5c864c63d084906e6a6ae2795d785af72b41703",
+   "contract_sha256": "5b78ea88420d8e699d02d5b57f46b00c3598104bbb1d7bd0d49415c633b3c9dd",
+   "domain": "PASS",
+   "sim_cases": 32,
+   "sim_bad": 0
+  },
+  {
+   "label": "lt",
+   "kind": "lt",
+   "status": "PROVED",
+   "detail": "BDD path sum reached the normal form for all inputs and outcomes (16 measurements, 48 H, 32 HH, 0 omega; 5046 BDD nodes)",
+   "ops": 105,
+   "nq": 34,
+   "wall": 0.01,
+   "peak_mb": 47.644672,
+   "qasm_sha256": "c65d60e9169c60db7d4e58f9f8e8419ed54c41b67d0fcf43c12c4da735010fab",
+   "contract_sha256": "5af3d4f54c18d6215c195d904ec8ae7baa649ec11a015397e3b98da00f4d5465",
+   "domain": "PASS",
+   "sim_cases": 12,
+   "sim_bad": 0
+  },
+  {
+   "label": "add",
+   "kind": "add",
+   "status": "PROVED",
+   "detail": "BDD path sum reached the normal form for all inputs and outcomes (15 measurements, 45 H, 30 HH, 0 omega; 2153 BDD nodes)",
+   "ops": 125,
+   "nq": 48,
+   "wall": 0.01,
+   "peak_mb": 47.693824,
+   "qasm_sha256": "a4f184abd208591a59b36d4a6c95a47adb39b5f5e4bd558c82370a49f81451bc",
+   "contract_sha256": "aff53d126cbcb0897e810e152e04568710dfc8b9ebd42f73436706e2a878135a",
+   "domain": "PASS",
+   "sim_cases": 12,
+   "sim_bad": 0
+  }
+ ],
+ "window0_by_subnodes": null,
+ "generic_window": {
+  "window": "window 1 (representative of windows 1..15)",
+  "subnodes": [
+   {
+    "label": "cadd0",
+    "kind": "cadd",
+    "status": "PROVED",
+    "detail": "BDD path sum reached the normal form for all inputs and outcomes (32 measurements, 96 H, 64 HH, 0 omega; 3525 BDD nodes)",
+    "ops": 156,
+    "nq": 66,
+    "wall": 0.01,
+    "peak_mb": 47.775744,
+    "qasm_sha256": "294cfecec03d9e99087613cecba904e7faedf497fa859a438885e7cd693d05a4",
+    "contract_sha256": "72968178e32b1954144dfed6ad33c5faca6adfa0c1a4748e0b0995d0eefaf272",
+    "domain": "PASS",
+    "sim_cases": 12,
+    "sim_bad": 0
+   },
+   {
+    "label": "xor",
+    "kind": "xor",
+    "status": "PROVED",
+    "detail": "BDD path sum reached the normal form for all inputs and outcomes (0 measurements, 0 H, 0 HH, 0 omega; 4 BDD nodes)",
+    "ops": 1,
+    "nq": 2,
+    "wall": 0.0,
+    "peak_mb": 47.775744,
+    "qasm_sha256": "5aecac69cd7865e11d39ee8c63c29b7e2506caa6c31122349b58c3bca6323df1",
+    "contract_sha256": "b64f7ba9593ef5fc0c5ad0a9191c5ef3f9467100ff8f94f201e5ddb94e1bdfd9",
+    "domain": "PASS",
+    "sim_cases": 12,
+    "sim_bad": 0
+   },
+   {
+    "label": "qaa",
+    "kind": "qaa",
+    "status": "PROVED",
+    "detail": "BDD path sum reached the normal form for all inputs and outcomes (33 measurements, 65 H, 49 HH, 0 omega; 2062 BDD nodes)",
+    "ops": 185,
+    "nq": 53,
+    "wall": 0.01,
+    "peak_mb": 47.808512,
+    "qasm_sha256": "6a38e998f6ab533d4c6c0e47a5f91a7d7f368b26e44f130e97cb145578223bd3",
+    "contract_sha256": "427364306da2404331cf444dfbf697e65de4dcfb8f3a7e077c47d585d3fc0ccf",
+    "domain": "PASS",
+    "sim_cases": 12,
+    "sim_bad": 0
+   }
+  ],
+  "compose": {
+   "ok": true,
+   "bad_wires": [],
+   "bdd_nodes": 1118
+  },
+  "ok": true
+ },
+ "witness": null,
+ "assumptions": [
+  "Qualtran 0.7.0 with the patches PR1997 + exact integer tables (kind c)",
+  "p odd, 2p <= 2^n, y < p, x any n-bit number",
+  "the rules of the bridge (A1 controlled-And, C1 QROAMCleanAdjoint) and qoptct kprove/BDD with the exact partial-domain guard",
+  "windows 1..N-1 are identical programs (equal QASM and layout hash, checked) with their own wires (glue and bookkeeping checked)",
+  "invariant T_i < y + p of the generic window: BDD for first window / small n, interval arithmetic where BDD does not fit in memory",
+  "w >= 4: composition of the sub-nodes by wire positions + interval arithmetic + exact integer runs (not BDD)"
+ ],
+ "stages": {
+  "lower": {
+   "rc": 0,
+   "seconds": 1.6,
+   "cached": false
+  },
+  "inv_first": {
+   "rc": 0,
+   "seconds": 0.1
+  },
+  "inv_generic": {
+   "rc": 0,
+   "seconds": 0.1
+  },
+  "prove": {
+   "rc": 0,
+   "seconds": 0.2
+  }
+ },
+ "source_sha256": "bc1d9de1e2efb2551682a3fb19fd1256c9c2615de6088b5033c5e45eca49db22",
+ "lower_cache_sha256": "d3c909619e7c99e880167a06f6825b7f9d9f7eced67c972686b42d226fc7cedf",
+ "work_dir": "$QOPT_CACHE/montgomery/n16_w1_p7fed_c_bc1d9de1e2ef",
+ "seconds": 2.0
+}
