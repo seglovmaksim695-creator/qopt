@@ -24,6 +24,563 @@
    "failure": "segment S6 (k=0, ops 14622..23081): wire 2049 does not end with the value of the contract",
    "prove_sec": 0.6,
    "counted": true
+  },
+  {
+   "name": "T2 joint: last iteration, clearing of the sign in ModDbl",
+   "what": "iteration 511, S6, op 11684602 (1, 1320955, 1320956, 0, -1): target -> u0",
+   "patches": {
+    "11684602": [
+     1,
+     1320955,
+     511,
+     0,
+     -1
+    ]
+   },
+   "witness": {
+    "x": 0,
+    "reason": "a wire outside x/junk is not zero at the end"
+   },
+   "sim_sec": 12.2,
+   "prove": "NOT_PROVED",
+   "failure": "segment S6 (k=511, ops 11678708..11687167): wire 255 does not end with the value of the contract",
+   "prove_sec": 194.3,
+   "counted": true
+  },
+  {
+   "name": "T3 iteration that detects v=0 (x=p-1): flag f",
+   "what": "iteration 506, S1, op 11551748: CX(m->f) deleted",
+   "patches": {
+    "11551748": [
+     1,
+     1322496,
+     1024,
+     0,
+     -1
+    ]
+   },
+   "witness": {
+    "x": 3618502788666131106986593281521497120414687020801267626233049500247285301248,
+    "reason": "junk (history bits) differs from Qualtran"
+   },
+   "sim_sec": 12.1,
+   "prove": "NOT_PROVED",
+   "failure": "segment S1 (k=506, ops 11550211..11551750): wire 1024 does not end with the value of the contract",
+   "prove_sec": 183.6,
+   "counted": true
+  },
+  {
+   "name": "T4 iteration that detects v=0 (x=p-1): history bit t",
+   "what": "iteration 506, S1, op 11551749: CX(m->t) deleted",
+   "patches": {
+    "11551749": [
+     1,
+     1322496,
+     2043,
+     0,
+     -1
+    ]
+   },
+   "witness": {
+    "x": 3618502788666131106986593281521497120414687020801267626233049500247285301248,
+    "reason": "junk (history bits) differs from Qualtran"
+   },
+   "sim_sec": 12.1,
+   "prove": "NOT_PROVED",
+   "failure": "segment S1 (k=506, ops 11550211..11551750): wire 2043 does not end with the value of the contract",
+   "prove_sec": 195.1,
+   "counted": true
+  },
+  {
+   "name": "T5 flag m -> b (iteration 3)",
+   "what": "iteration 3, S2, op 70293: CX(m->b) deleted",
+   "patches": {
+    "70293": [
+     1,
+     1322496,
+     9784,
+     0,
+     -1
+    ]
+   },
+   "witness": {
+    "x": 1099511627776,
+    "reason": "wrong output x^-1*2^(2N) mod p"
+   },
+   "sim_sec": 12.1,
+   "prove": "NOT_PROVED",
+   "failure": "segment S2 (k=3, ops 70272..70294): wire 9784 does not end with the value of the contract",
+   "prove_sec": 0.9,
+   "counted": true
+  },
+  {
+   "name": "T6 flag a in step 3 (iteration 5)",
+   "what": "iteration 5, S3, op 118260: CX(c->a) deleted",
+   "patches": {
+    "118260": [
+     1,
+     1322496,
+     14939,
+     0,
+     -1
+    ]
+   },
+   "witness": {
+    "x": 1,
+    "reason": "wrong output x^-1*2^(2N) mod p"
+   },
+   "sim_sec": 12.5,
+   "prove": "NOT_PROVED",
+   "failure": "segment S3 (k=5, ops 115946..120576): wire 14939 does not end with the value of the contract",
+   "prove_sec": 1.1,
+   "counted": true
+  },
+  {
+   "name": "T7 erase correction: MultiAnd of step 1 (iteration 1)",
+   "what": "iteration 1, S1, op 24233 (3, 4755, 128, 4756, -1): correction wire 128 -> 1024",
+   "patches": {
+    "24233": [
+     3,
+     4755,
+     1024,
+     4756,
+     -1
+    ]
+   },
+   "witness": {
+    "x": 0,
+    "reason": "op 24233: erase condition violated"
+   },
+   "sim_sec": 0.0,
+   "prove": "NOT_PROVED",
+   "failure": "segment S1 (k=1, ops 23081..24620): op 24233: erase condition violated",
+   "prove_sec": 0.7,
+   "counted": true
+  },
+  {
+   "name": "T8 erase correction: CAdd of step 5 (iteration 10)",
+   "what": "iteration 10, S5, op 241606 (3, 28867, 769, 29376, -1): correction wire 769 -> 1024",
+   "patches": {
+    "241606": [
+     3,
+     28867,
+     1024,
+     29376,
+     -1
+    ]
+   },
+   "witness": null,
+   "sim_sec": 12.2,
+   "prove": "CHAIN_PROVED",
+   "prove_sec": 196.5,
+   "counted": false
+  },
+  {
+   "name": "T8b erase correction: first erase of step 5 (iteration 10)",
+   "what": "iteration 10, S5, op 238801 (3, 28356, 1, 28865, -1): correction wire 28356 -> 510",
+   "patches": {
+    "238801": [
+     3,
+     510,
+     1,
+     28865,
+     -1
+    ]
+   },
+   "witness": {
+    "x": 3,
+    "reason": "op 238801: erase condition violated"
+   },
+   "sim_sec": 0.1,
+   "prove": "NOT_PROVED",
+   "failure": "segment S5 (k=10, ops 237266..242882): op 238801: erase condition violated",
+   "prove_sec": 1.8,
+   "counted": true
+  },
+  {
+   "name": "T9 last reduction AddK(p+1): constant loader",
+   "what": "fin, op 11687423 (0, 1321986, 0, 0, -1): X deleted",
+   "patches": {
+    "11687423": [
+     1,
+     1322496,
+     1321986,
+     0,
+     -1
+    ]
+   },
+   "witness": {
+    "x": 0,
+    "reason": "wrong output x^-1*2^(2N) mod p"
+   },
+   "sim_sec": 12.5,
+   "prove": "NOT_PROVED",
+   "failure": "segment fin (k=None, ops 11687167..11690977): wire 663565 does not end with the value of the contract",
+   "prove_sec": 193.5,
+   "counted": true
+  },
+  {
+   "name": "T10 branch x=0: C[XorK(p)] on t0",
+   "what": "fin, op 11690220 (1, 1537, 666143, 0, -1): CX(t0->r) deleted",
+   "patches": {
+    "11690220": [
+     1,
+     1322496,
+     666143,
+     0,
+     -1
+    ]
+   },
+   "witness": {
+    "x": 0,
+    "reason": "wrong output x^-1*2^(2N) mod p"
+   },
+   "sim_sec": 11.3,
+   "prove": "NOT_PROVED",
+   "failure": "segment fin (k=None, ops 11687167..11690977): wire 666143 does not end with the value of the contract",
+   "prove_sec": 179.2,
+   "counted": true
+  },
+  {
+   "name": "T11 last iteration: middle of step 6 (ModDbl)",
+   "what": "iteration 511, S6, op 11682813 (1, 1321856, 990971, 0, -1): CX deleted",
+   "patches": {
+    "11682813": [
+     1,
+     1322496,
+     990971,
+     0,
+     -1
+    ]
+   },
+   "witness": {
+    "x": 0,
+    "reason": "wrong output x^-1*2^(2N) mod p"
+   },
+   "sim_sec": 11.6,
+   "prove": "NOT_PROVED",
+   "failure": "segment S6 (k=511, ops 11678708..11687167): wire 895 does not end with the value of the contract",
+   "prove_sec": 173.9,
+   "counted": true
+  },
+  {
+   "name": "T13 carry through all bits: top carry of the adder AddK(p+1)",
+   "what": "fin, op 11688691 (2, 1321986, 666143, 1322495, -1): AND control 1321986 -> 511",
+   "patches": {
+    "11688691": [
+     2,
+     511,
+     666143,
+     1322495,
+     -1
+    ]
+   },
+   "witness": {
+    "x": 1,
+    "reason": "op 11688696: erase condition violated"
+   },
+   "sim_sec": 2.6,
+   "prove": "NOT_PROVED",
+   "failure": "segment fin (k=None, ops 11687167..11690977): op 11688696: erase condition violated",
+   "prove_sec": 194.3,
+   "counted": true
+  },
+  {
+   "name": "T12 joint: loader u = p",
+   "what": "init, op 1 (0, 257, 0, 0, -1): X deleted",
+   "patches": {
+    "1": [
+     1,
+     1322496,
+     257,
+     0,
+     -1
+    ]
+   },
+   "witness": {
+    "x": 1,
+    "reason": "wrong output x^-1*2^(2N) mod p"
+   },
+   "sim_sec": 12.0,
+   "prove": "NOT_PROVED",
+   "failure": "segment init (k=None, ops 0..255): wire 257 does not end with the value of the contract",
+   "prove_sec": 0.5,
+   "counted": true
+  },
+  {
+   "name": "R01 random: iteration 118, S2",
+   "what": "op 2695283 (1, 1143, 306254, 0, -1): CX target -> 466",
+   "patches": {
+    "2695283": [
+     1,
+     1143,
+     466,
+     0,
+     -1
+    ]
+   },
+   "witness": {
+    "x": 22835963083295358096932575511191922182123945984,
+    "reason": "wrong output x^-1*2^(2N) mod p"
+   },
+   "sim_sec": 12.4,
+   "prove": "NOT_PROVED",
+   "failure": "segment S2 (k=118, ops 2695262..2695284): wire 466 does not end with the value of the contract",
+   "prove_sec": 14.5,
+   "counted": true
+  },
+  {
+   "name": "R02 random: iteration 458, S6",
+   "what": "op 10471187 (1, 1184824, 555289, 0, -1): CX target -> 838",
+   "patches": {
+    "10471187": [
+     1,
+     1184824,
+     838,
+     0,
+     -1
+    ]
+   },
+   "witness": null,
+   "sim_sec": 12.1,
+   "prove": "NOT_PROVED",
+   "failure": "segment S6 (k=458, ops 10468930..10477389): wire 844025 does not end with the value of the contract",
+   "prove_sec": 142.6,
+   "counted": false
+  },
+  {
+   "name": "R03 random: iteration 334, S2",
+   "what": "op 7625683 (3, 1024, 511, 863359, -1): ERASE correction -> 62",
+   "patches": {
+    "7625683": [
+     3,
+     1024,
+     62,
+     863359,
+     -1
+    ]
+   },
+   "witness": {
+    "x": 4643737002478022032564907410944289390299458954886617791453503451907343205835,
+    "reason": "op 7625683: erase condition violated"
+   },
+   "sim_sec": 1.7,
+   "prove": "NOT_PROVED",
+   "failure": "segment S2 (k=334, ops 7625678..7625700): op 7625683: erase condition violated",
+   "prove_sec": 76.3,
+   "counted": true
+  },
+  {
+   "name": "R04 random: iteration 289, S5",
+   "what": "op 6610377 (1, 748558, 748208, 0, -1): CX control/target swapped",
+   "patches": {
+    "6610377": [
+     1,
+     748208,
+     748558,
+     0,
+     -1
+    ]
+   },
+   "witness": {
+    "x": 288230376151711743,
+    "reason": "op 6610380: erase condition violated"
+   },
+   "sim_sec": 1.5,
+   "prove": "NOT_PROVED",
+   "failure": "segment S5 (k=289, ops 6605720..6611336): op 6610380: erase condition violated",
+   "prove_sec": 51.8,
+   "counted": true
+  },
+  {
+   "name": "R05 random: iteration 494, S5",
+   "what": "op 11285058 (0, 5, 0, 0, -1): X deleted",
+   "patches": {
+    "11285058": [
+     1,
+     1322496,
+     5,
+     0,
+     -1
+    ]
+   },
+   "witness": {
+    "x": 1766847064778384329583297500742918515827483896875618958121606201292619776,
+    "reason": "junk (history bits) differs from Qualtran"
+   },
+   "sim_sec": 11.7,
+   "prove": "NOT_PROVED",
+   "failure": "segment S5 (k=494, ops 11285050..11290666): wire 0 does not end with the value of the contract",
+   "prove_sec": 167.8,
+   "counted": true
+  },
+  {
+   "name": "R06 random: iteration 398, S3",
+   "what": "op 9091165 (0, 227, 0, 0, -1): X deleted",
+   "patches": {
+    "9091165": [
+     1,
+     1322496,
+     227,
+     0,
+     -1
+    ]
+   },
+   "witness": {
+    "x": 22835963083295358096932575511191922182123945984,
+    "reason": "wrong output x^-1*2^(2N) mod p"
+   },
+   "sim_sec": 12.3,
+   "prove": "NOT_PROVED",
+   "failure": "segment S3 (k=398, ops 9086564..9091194): wire 227 does not end with the value of the contract",
+   "prove_sec": 119.5,
+   "counted": true
+  },
+  {
+   "name": "R07 random: iteration 39, S3",
+   "what": "op 893190 (1, 382, 126, 0, -1): CX target -> 212",
+   "patches": {
+    "893190": [
+     1,
+     382,
+     212,
+     0,
+     -1
+    ]
+   },
+   "witness": {
+    "x": 13031524727342702953751709994189823949622981578834717764672378910966328385424,
+    "reason": "op 895755: erase condition violated"
+   },
+   "sim_sec": 0.2,
+   "prove": "NOT_PROVED",
+   "failure": "segment S3 (k=39, ops 892030..896660): op 895755: erase condition violated",
+   "prove_sec": 4.7,
+   "counted": true
+  },
+  {
+   "name": "R08 random: iteration 18, S4",
+   "what": "op 419537 (3, 48453, 718, 1322496, -1): ERASE correction -> 862",
+   "patches": {
+    "419537": [
+     3,
+     48453,
+     862,
+     1322496,
+     -1
+    ]
+   },
+   "witness": null,
+   "sim_sec": 11.8,
+   "prove": "CHAIN_PROVED",
+   "prove_sec": 178.9,
+   "counted": false
+  },
+  {
+   "name": "R09 random: iteration 240, S4",
+   "what": "op 5487101 (1, 995, 547555, 0, -1): CX control/target swapped",
+   "patches": {
+    "5487101": [
+     1,
+     547555,
+     995,
+     0,
+     -1
+    ]
+   },
+   "witness": {
+    "x": 1,
+    "reason": "wrong output x^-1*2^(2N) mod p"
+   },
+   "sim_sec": 11.6,
+   "prove": "NOT_PROVED",
+   "failure": "segment S4 (k=240, ops 5484686..5487246): wire 995 does not end with the value of the contract",
+   "prove_sec": 29.2,
+   "counted": true
+  },
+  {
+   "name": "R10 random: iteration 51, S4",
+   "what": "op 1172737 (1, 945, 740, 0, -1): CX control/target swapped",
+   "patches": {
+    "1172737": [
+     1,
+     740,
+     945,
+     0,
+     -1
+    ]
+   },
+   "witness": null,
+   "sim_sec": 11.1,
+   "prove": "CHAIN_PROVED",
+   "prove_sec": 170.3,
+   "counted": false
+  },
+  {
+   "name": "R11 random: iteration 439, S5",
+   "what": "op 10030961 (1, 1134779, 48, 0, -1): CX control/target swapped",
+   "patches": {
+    "10030961": [
+     1,
+     48,
+     1134779,
+     0,
+     -1
+    ]
+   },
+   "witness": {
+    "x": 0,
+    "reason": "op 10031347: erase condition violated"
+   },
+   "sim_sec": 2.1,
+   "prove": "NOT_PROVED",
+   "failure": "segment S5 (k=439, ops 10029620..10035236): op 10031347: erase condition violated",
+   "prove_sec": 128.6,
+   "counted": true
+  },
+  {
+   "name": "R12 random: iteration 506, S4",
+   "what": "op 11557724 (1, 1322496, 776, 0, -1): CX control/target swapped",
+   "patches": {
+    "11557724": [
+     1,
+     776,
+     1322496,
+     0,
+     -1
+    ]
+   },
+   "witness": {
+    "x": 1,
+    "reason": "op 11557725: erase condition violated"
+   },
+   "sim_sec": 2.5,
+   "prove": "NOT_PROVED",
+   "failure": "segment S4 (k=506, ops 11556402..11558962): op 11557725: erase condition violated",
+   "prove_sec": 164.5,
+   "counted": true
+  },
+  {
+   "name": "T8b erase correction: first erase of step 5 (iteration 10)",
+   "what": "iteration 10, S5, op 238801 (3, 28356, 1, 28865, -1): correction wire 28356 -> 510",
+   "patches": {
+    "238801": [
+     3,
+     510,
+     1,
+     28865,
+     -1
+    ]
+   },
+   "witness": {
+    "x": 3,
+    "reason": "op 238801: erase condition violated"
+   },
+   "sim_sec": 0.1,
+   "prove": "NOT_PROVED",
+   "failure": "segment S5 (k=10, ops 237266..242882): op 238801: erase condition violated",
+   "prove_sec": 1.5,
+   "counted": true
   }
  ],
  "manifest": {
@@ -83,5 +640,12 @@
   },
   "qualtran_version": "0.7.0",
   "mod_division_sha256": "58d519272e05fd642a611f7e56f5516ce0e7d106faa2480a3cc42c92b901353b"
- }
+ },
+ "counted": 22,
+ "targeted_counted": 13,
+ "sec": 3000.2,
+ "merged_from": [
+  "kaliski_canaries_n256_p25519 (13 targeted + 12 random)",
+  "T8b rerun"
+ ]
 }

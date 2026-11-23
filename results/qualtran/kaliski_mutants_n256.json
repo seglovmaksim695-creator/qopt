@@ -1,0 +1,154 @@
+{
+ "n": 256,
+ "p": 57896044618658097711785492504343953926634992332820282019728792003956564819949,
+ "prepass": true,
+ "started": "2026-11-23T18:36:42Z",
+ "rows": [
+  {
+   "name": "O1 r between iterations",
+   "what": "gmaps[256]: bits 1 and 3 of r swapped (input and output of the iteration)",
+   "status": "NOT_PROVED",
+   "reason": "wire flow: S4 iteration 256: input of register r differs from its current wires (the input of the step is not the output of the previous one)",
+   "flow_reason": true,
+   "sec": 0.57
+  },
+  {
+   "name": "O2 r in S4->S5",
+   "what": "certificate: wires 0 and 1 of r swapped at S5 of iteration 102",
+   "status": "NOT_PROVED",
+   "reason": "wire flow: S5 iteration 102: input of register r differs from its current wires (the input of the step is not the output of the previous one)",
+   "flow_reason": true,
+   "sec": 0.48
+  },
+  {
+   "name": "O3 s in S5->S6",
+   "what": "certificate: wires 2 and 5 of s swapped at S6 of iteration 102",
+   "status": "NOT_PROVED",
+   "reason": "wire flow: S6 iteration 102: input of register s differs from its current wires (the input of the step is not the output of the previous one)",
+   "flow_reason": true,
+   "sec": 0.59
+  },
+  {
+   "name": "O4 u between iterations",
+   "what": "gmaps[102]: bits 2 and 4 of u swapped",
+   "status": "NOT_PROVED",
+   "reason": "wire flow: S2 iteration 102: input of register u differs from its current wires (the input of the step is not the output of the previous one)",
+   "flow_reason": true,
+   "sec": 0.46
+  },
+  {
+   "name": "O5 v between iterations",
+   "what": "gmaps[510]: bits 2 and 3 of v swapped",
+   "status": "NOT_PROVED",
+   "reason": "wire flow: S1 iteration 510: input of register v differs from its current wires (the input of the step is not the output of the previous one)",
+   "flow_reason": true,
+   "sec": 0.84
+  },
+  {
+   "name": "O6 s between iterations",
+   "what": "gmaps[256]: bits 0 and 1 of s swapped",
+   "status": "NOT_PROVED",
+   "reason": "wire flow: S4 iteration 256: input of register s differs from its current wires (the input of the step is not the output of the previous one)",
+   "flow_reason": true,
+   "sec": 0.61
+  },
+  {
+   "name": "O7 order of junk",
+   "what": "outputs[junk]: positions 3 and 2N+5 swapped",
+   "status": "NOT_PROVED",
+   "reason": "wire flow: outputs[junk] differs from the t/m wires in the documented order (lengths 1024/1024, first differences [3, 517])",
+   "flow_reason": true,
+   "sec": 0.94
+  },
+  {
+   "name": "O8 order of junk (neighbours)",
+   "what": "outputs[junk]: positions 0 and 1 swapped",
+   "status": "NOT_PROVED",
+   "reason": "wire flow: outputs[junk] differs from the t/m wires in the documented order (lengths 1024/1024, first differences [0, 1])",
+   "flow_reason": true,
+   "sec": 0.83
+  },
+  {
+   "name": "O9 t0 of the end",
+   "what": "certificate: t0 = t of iteration 1 instead of iteration 0",
+   "status": "NOT_PROVED",
+   "reason": "wire flow: end: t0 differs from the t wire of iteration 0",
+   "flow_reason": true,
+   "sec": 1.4
+  },
+  {
+   "name": "O10 \"old\" m instead of a new one",
+   "what": "gmaps[510]: m is written onto the m wire of iteration 509",
+   "status": "NOT_PROVED",
+   "reason": "wire flow: S1 iteration 510: new register m occupies a junk wire",
+   "flow_reason": true,
+   "sec": 0.85
+  },
+  {
+   "name": "O11 \"old\" t instead of a new one",
+   "what": "gmaps[102]: t is written onto the t wire of iteration 99",
+   "status": "NOT_PROVED",
+   "reason": "wire flow: S1 iteration 102: new register is_terminal occupies a junk wire",
+   "flow_reason": true,
+   "sec": 0.45
+  },
+  {
+   "name": "O12 r of iteration 0 occupies a u wire",
+   "what": "gmaps[0]: r enters on the wire of bit 0 of register u",
+   "status": "NOT_PROVED",
+   "reason": "wire flow: S4 iteration 0: input wires of the step repeat",
+   "flow_reason": true,
+   "sec": 0.48
+  },
+  {
+   "name": "O13 f of the end",
+   "what": "certificate: f of the end = the m wire of the last iteration",
+   "status": "NOT_PROVED",
+   "reason": "wire flow: end: input of register f differs from its current wires (the input of the step is not the output of the previous one)",
+   "flow_reason": true,
+   "sec": 1.3
+  },
+  {
+   "name": "O14 u between iterations (certificate only)",
+   "what": "certificate: wires 0 and 1 of u swapped at S2 of iteration 510",
+   "status": "NOT_PROVED",
+   "reason": "wire flow: S2 iteration 510: input of register u differs from its current wires (the input of the step is not the output of the previous one)",
+   "flow_reason": true,
+   "sec": 0.86
+  },
+  {
+   "name": "F1 (audit) iteration 507, bits 1 and 255 of v",
+   "what": "v[1] <-> v[255]",
+   "status": "NOT_PROVED",
+   "reason": "wire flow: S1 iteration 507: input of register v differs from its current wires (the input of the step is not the output of the previous one)",
+   "flow_reason": true,
+   "sec": 0.93
+  },
+  {
+   "name": "F4 (audit) iteration 269 writes t onto the wire t_262",
+   "what": "gmaps[269]: t -> wire t_262",
+   "status": "NOT_PROVED",
+   "reason": "wire flow: S1 iteration 269: new register is_terminal occupies a junk wire",
+   "flow_reason": true,
+   "sec": 0.58
+  },
+  {
+   "name": "F2 (audit) iteration 100, m and t swapped",
+   "what": "gmaps[100]: m <-> t",
+   "status": "NOT_PROVED",
+   "reason": "wire flow: outputs[junk] differs from the t/m wires in the documented order (lengths 1024/1024, first differences [411, 923])",
+   "flow_reason": true,
+   "sec": 0.83
+  },
+  {
+   "name": "F3 (audit) the end x=0 is controlled by t_1",
+   "what": "757 operations of fin: t0 -> t1; the certificate too",
+   "status": "NOT_PROVED",
+   "reason": "wire flow: end: t0 differs from the t wire of iteration 0",
+   "flow_reason": true,
+   "sec": 0.49
+  }
+ ],
+ "all_rejected": true,
+ "all_flow_reason": true
+}
