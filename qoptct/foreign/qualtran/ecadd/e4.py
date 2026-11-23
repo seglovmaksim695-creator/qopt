@@ -1,12 +1,13 @@
-"""E4: ECWindowAddR (исправленная) = выборка QROAMClean (K=1) + ECAdd (ящик с контрактом E2) + снятие выборки
-QROAMCleanAdjoint (правило C1 из shared/rules, без изменений). Доказатель ew (ROBDD qoptct) для ВСЕХ ctrl (w бит) и
-x, y < p проверяет: на входе ящика ECAdd стоят ровно (T_a[c], T_b[c], x, y, T_lam[c]) — таблица посчитана ЗДЕСЬ
-независимо (c·R обычной арифметикой точек, затем форма Монтгомери t·2^n mod p), каждая and/erase корректна,
-после снятия выборки все провода, кроме ctrl, x, y, равны 0, ctrl не меняется, x, y = выходы ящика.
-Вместе с E2 (ECAdd: (a,b,x,y,lam_r) -> (a,b,P+Q,lam_r), остальное чисто) это даёт ECWindowAddR: (c, Q) -> (c, Q + c·R).
-Примеры:  python -m ew.e4 prove --n 16 --p 32749 --w 4 --out results/e4_n16_w4.json
-          python -m ew.e4 canary --n 256 --p '2**255-19' --w 4 --count 24 --out results/e4_canary_n256.json
-          python -m ew.e4 indep --n 256 --p '2**255-19' --w 4 --out results/e4_indep_n256.json"""
+"""ECWindowAddR (fixed scheme) = QROAMClean lookup (K=1) + ECAdd (a box with the ECAdd contract) + QROAMCleanAdjoint
+removal of the lookup (rule C1 of the bridge, unchanged).  The ROBDD prover checks, for ALL ctrl (w bits) and x, y < p:
+the inputs of the ECAdd box are exactly (T_a[c], T_b[c], x, y, T_lam[c]) -- the table is recomputed HERE independently
+(c*R by ordinary point arithmetic, then the Montgomery form t*2^n mod p); every and/erase is correct; after the removal
+of the lookup all wires except ctrl, x, y are 0, ctrl is unchanged, x, y are the outputs of the box.
+Together with the ECAdd contract ((a,b,x,y,lam_r) -> (a,b,P+Q,lam_r), the rest clean) this gives
+ECWindowAddR: (c, Q) -> (c, Q + c*R).
+Examples:  python -m qoptct.foreign.qualtran.ecadd.e4 prove --n 16 --p 32749 --w 4 --out e4_n16_w4.json
+           python -m qoptct.foreign.qualtran.ecadd.e4 canary --n 16 --p 32749 --w 2 --count 10 --out e4_canary.json
+           python -m qoptct.foreign.qualtran.ecadd.e4 indep --n 16 --p 32749 --w 4 --out e4_indep.json"""
 import argparse, copy, json, random, resource, sys, time
 from qoptct.verify.bdd import ONE, ZERO
 from . import bv

@@ -1,8 +1,9 @@
-"""Проверка лемм склейки (E2/E3) — отдельно от схем.
-(1) sympy: тождество хорды/касательной (основа EC_TAN) над полем рациональных функций;
-(2) полный перебор при малых p: все кривые (B!=0, без особенностей), все пары точек (с O), все lam_r для P=O или y=0:
-    смысловые MM/KINV (контракты C/D) -> инстансы лемм MM0, K0, C1, C2, EC_DBL, EC_TAN, EC_RNOTO, EC_RNOTP истинны;
-    цепочка шести контрактов шагов (zspecs, IntOps) даёт P+Q и чистые флаги (исправленная); исходная — ровно вне G1-G3."""
+"""Check of the glue lemmas, separately from the schemes.
+(1) sympy: the chord/tangent identity (the basis of EC_TAN) over the field of rational functions;
+(2) full enumeration for small p: all curves (B!=0, non-singular), all pairs of points (with O), all lam_r for P=O or y=0:
+    with the semantic MM/KINV (contracts of goals C/D) the instances of the lemmas MM0, K0, C1, C2, EC_DBL, EC_TAN,
+    EC_RNOTO, EC_RNOTP are true; the chain of the six step contracts (zspecs, IntOps) gives P+Q and clean flags (fixed
+    scheme); the original one exactly outside G1-G3."""
 import itertools, json, sys, time
 from .zspecs import IntOps, ZSTEPS
 from . import ec

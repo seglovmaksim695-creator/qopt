@@ -1,4 +1,5 @@
-"""mont_canary -- канарейки для зеркальной проверки пары Монтгомери (w=1). python -m mont_canary n w p seed out.json"""
+"""Canaries for the mirror check of the Montgomery pair (w=1): corrupt ONE element of the backward program and
+require that the check does NOT pass.  python -m qoptct.foreign.qualtran.pairs canary-montgomery --n N --w 1 --p P"""
 import sys, json, random, time, gc
 from . import pair_compose as PC
 from . import pair_canary as PK

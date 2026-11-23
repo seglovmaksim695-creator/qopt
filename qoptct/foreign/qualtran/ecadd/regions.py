@@ -1,4 +1,4 @@
-"""Карта: верхнеуровневые блоки шага -> диапазоны переведённых операций (для целевых канареек)."""
+"""Map: top-level blocks of a step -> ranges of translated operations (for the targeted canaries)."""
 import collections, re, sys
 
 

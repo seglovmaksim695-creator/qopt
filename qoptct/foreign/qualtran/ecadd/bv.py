@@ -1,5 +1,5 @@
-"""Битовые векторы на рёбрах ROBDD qoptct (LSB первым). ONE=0, ZERO=1, NOT = ^1.
-Это язык СПЕЦИФИКАЦИЙ: схема здесь не участвует."""
+"""Bit vectors on ROBDD edges of qoptct (LSB first). ONE=0, ZERO=1, NOT = ^1.
+This is the language of the SPECIFICATIONS: the scheme takes no part here."""
 from qoptct.verify.bdd import ONE, ZERO
 
 # Упрощение под допущением: исполнитель на время доказательства ставит SIMP(f) -> константа, если f постоянна

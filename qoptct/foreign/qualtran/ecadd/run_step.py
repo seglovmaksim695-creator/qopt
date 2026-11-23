@@ -1,4 +1,5 @@
-"""Доказать один шаг ECAdd методом ew. Пример: python -m qoptct.foreign.qualtran.ecadd.run_step --step 2 --n 16 --p 32749 --out results/x.json"""
+"""Prove one ECAdd step with the ew method.
+Example: python -m qoptct.foreign.qualtran.ecadd.run_step --step 2 --n 16 --p 32749 --out step2.json"""
 import argparse, hashlib, json, os, sys, time, resource
 
 

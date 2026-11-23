@@ -1,13 +1,13 @@
-"""mont_compose -- пара DirtyOutOfPlaceMontgomeryModMul(w=1) прямой + обратный в макро-виде: n/w прямых окон SingleWindowModMul и
-n/w обратных (Adjoint окна) -- макро-листья; одно прямое и одно обратное окно раскрываются мостом C (правило QROAMCleanAdjoint).
-Особенность Монтгомери: в обратном окне QROAMClean и QROAMCleanAdjoint ПОМЕНЯЛИСЬ ролями (зеркало загрузки -- снятие, и наоборот),
-а снятие -- примитив по правилу C1, не побитовое зеркало загрузки. Поэтому оба блока (w=1, sel = 1 бит) заменяются на ПОБИТНЫЕ
-абстрактные операции с проверяемым смыслом:
-  LD(sel, t, код) : t ^= b0 ^ sel*(b0^b1)         (блок QROAMClean: только x/cx, управление только sel)
-  CLR(sel, t, код): предусловие t == b0 ^ sel*(b0^b1), результат t = 0   (блок QROAMCleanAdjoint по правилу C1: исполнением при sel=0,1)
-Зеркало: LD <-> CLR с тем же кодом. Смысл блоков проверяется ПОЛНЫМ перебором sel in {0,1} (исполнение операций моста), цели LD --
-свежие нулевые провода. Всё остальное -- обычное зеркало (mirror.py).
-Среда: env_h2.sh (исправленная Qualtran H/qlocal, мост C)."""
+"""Pair DirtyOutOfPlaceMontgomeryModMul(w=1) forward + backward in macro form: n/w forward windows SingleWindowModMul and
+n/w backward (Adjoint) windows are macro leaves; one forward and one backward window are expanded by the bridge (rule
+QROAMCleanAdjoint).  Peculiarity of Montgomery: in the backward window QROAMClean and QROAMCleanAdjoint SWAPPED roles (the
+mirror of a load is a removal, and vice versa), and the removal is a primitive by rule C1, not a bitwise mirror of the load.
+So both blocks (w=1, sel = 1 bit) are replaced by BITWISE abstract operations with a checkable meaning:
+  LD(sel, t, code) : t ^= b0 ^ sel*(b0^b1)         (block QROAMClean: only x/cx, controlled only by sel)
+  CLR(sel, t, code): precondition t == b0 ^ sel*(b0^b1), result t = 0   (block QROAMCleanAdjoint by rule C1: by execution at sel=0,1)
+Mirror: LD <-> CLR with the same code.  The meaning of the blocks is checked by a FULL enumeration of sel in {0,1} (execution
+of the bridge operations); the targets of LD are fresh zero wires.  Everything else is the ordinary mirror (mirror.py).
+Qualtran variant: the fixed one (kind 'c')."""
 import sys, json, time
 import numpy as np
 from qoptct.foreign.qualtran.bridge.qroam_clean_adjoint import chained_atom_rule

@@ -1,7 +1,7 @@
-"""Правило «чёрного ящика» для lower_bloqgraph: умножитель Монтгомери и Калиски не раскрываются.
+""""Black box" rule for lower_bloqgraph: the Montgomery multiplier and the Kaliski inverse are not expanded.
 
-Лист {'name': 'opaque', 'kind': MM|MM_adj|KINV|KINV_adj, 'regs_in', 'regs_out', 'bloq'}.
-Провода регистров — списки физических номеров в порядке MSB-first (как в lower_bloqgraph).
+Leaf {'name': 'opaque', 'kind': MM|MM_adj|KINV|KINV_adj, 'regs_in', 'regs_out', 'bloq'}.
+The wires of the registers are lists of physical numbers in MSB-first order (as in lower_bloqgraph).
 """
 from qoptct.foreign.qualtran.bridge.qualtran_layout import AtomExpansion
 

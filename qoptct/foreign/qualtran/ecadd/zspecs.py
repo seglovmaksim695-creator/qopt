@@ -1,7 +1,7 @@
-"""Спецификации шагов в третьей записи: один код для двух «алгебр» —
-IntOps (целые Python: прогон и сверка с specs/ispecs) и SmtOps (термы SMT-LIB для склейки в Z3).
-Структура формул — построчно как в specs.py. XOR в SmtOps заменён свежей переменной с верными свойствами XOR
-(u=0 -> v=w; w=0 -> v=u; u=w -> v=0; 0<=v<2^n) — это огрубление: доказанное с ним верно и для настоящего XOR."""
+"""Specifications of the steps in a third record: one code for two "algebras" --
+IntOps (Python integers: run and cross-check with specs/ispecs) and SmtOps (SMT-LIB terms for the Z3 glue).
+The structure of the formulas follows specs.py line by line.  XOR in SmtOps is replaced by a fresh variable with the TRUE
+properties of XOR (u=0 -> v=w; w=0 -> v=u; u=w -> v=0; 0<=v<2^n): a coarsening, what is proved with it holds for the real XOR."""
 
 
 class IntOps:

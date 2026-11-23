@@ -1,5 +1,5 @@
-"""Сверка трёх записей спецификаций шагов в точках: specs.py (ROBDD, используется в E1), zspecs.py (IntOps;
-та же запись даёт формулы Z3 склейки), ispecs.py. Точки: случайные, редкие значения, цепочки на кривых."""
+"""Cross-check of the three records of the step specifications at sample points: specs.py (ROBDD, used in E1), zspecs.py
+(IntOps; the same record gives the Z3 glue formulas), ispecs.py.  Points: random, rare values, chains on curves."""
 import argparse, json, random, time
 from qoptct.verify.bdd import BDD, ONE, ZERO
 from .specs import STEPS

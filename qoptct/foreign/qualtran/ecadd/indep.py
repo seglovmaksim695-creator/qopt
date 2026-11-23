@@ -1,5 +1,5 @@
-"""Независимая симуляция: классический симулятор САМОГО Qualtran на раскрытом шаге (ящики MM/KINV — их собственным
-on_classical_vals) против целочисленной спецификации ispecs. Плюс прогон цепочки шести шагов на точках кривых."""
+"""Independent simulation: the classical simulator of Qualtran ITSELF on the expanded step (the MM/KINV boxes by their own
+on_classical_vals) against the integer specification ispecs.  Plus a run of the chain of six steps on curve points."""
 import argparse, json, random, time, sys
 from . import ec
 from .ispecs import ISTEPS

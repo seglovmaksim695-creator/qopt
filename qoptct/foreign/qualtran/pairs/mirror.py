@@ -1,14 +1,15 @@
-"""mirror -- зеркальное сопоставление обратной программы с прямой (с учётом коммутирующих соседей).
+"""Mirror matching of the backward program with the forward one (commuting neighbours allowed).
 
-Программа = список операций (kind, a, b, t, l), kind: 0 x, 1 cx(a->b), 2 and(a,b->t), 3 erase(t; a,b, l).
-Зеркало прямой P: обратный порядок; x->x; cx->cx; and(a,b->t)->erase(a,b;t); erase(a,b;t,l)->and(a,b->t)[+cx(l->t)].
-Сопоставление: каждую операцию обратной программы b ищем среди ещё не сопоставленных операций зеркала m так, что
-  (1) m и b одного вида, провода согласованы с перенумерацией pi (инъективной в обе стороны, pi = id на проводах стыка);
-  (2) m коммутирует со всеми ещё не сопоставленными операциями зеркала, стоящими РАНЬШЕ неё.
-Коммутация (точная, для классического действия вентилей): общие провода двух операций у обеих только «читаемые»
-(контроли cx, a и b у and/erase, линейная поправка l), либо у обеих «xor-мишень» (мишень cx или x). Всё остальное не коммутирует.
-Успех = обратная программа получена из зеркала перестановкой пар коммутирующих соседей и переименованием pi.
-Это достаточно для тождества пары (см. REPORT): сохранение классических значений на проводах каждой операции.
+A program = a list of operations (kind, a, b, t, l), kind: 0 x, 1 cx(a->b), 2 and(a,b->t), 3 erase(t; a,b, l).
+The mirror of a forward program P: reverse order; x->x; cx->cx; and(a,b->t)->erase(a,b;t); erase(a,b;t,l)->and(a,b->t)[+cx(l->t)].
+Matching: every operation b of the backward program is looked up among the not yet matched operations m of the mirror so that
+  (1) m and b have the same kind and their wires agree with the renaming pi (injective both ways, pi = id on the joint wires);
+  (2) m commutes with all not yet matched mirror operations that stand EARLIER than it.
+Commutation (exact, for the classical action of the gates): the shared wires of two operations are, in both, only "read"
+(controls of cx, a and b of and/erase, the linear correction l), or, in both, an "xor target" (target of cx or x).  Everything
+else does not commute.
+Success = the backward program is obtained from the mirror by swapping pairs of commuting neighbours and renaming by pi.
+This is enough for the identity of the pair: classical values on the wires of every operation are preserved.
 """
 from collections import deque
 

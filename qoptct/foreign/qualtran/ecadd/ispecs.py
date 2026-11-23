@@ -1,5 +1,5 @@
-"""Те же спецификации шагов на целых числах (вторая, независимая запись; для симуляции и прогона склейки).
-v: dict имя -> int; o: список выходов прямых ящиков (dict). Возвращают то же, что specs.py."""
+"""The same step specifications on integers (a second, independent record; for simulation and for checking the glue).
+v: dict name -> int; o: list of outputs of the forward boxes (dict).  They return the same as specs.py."""
 
 
 def _neg(y, p):

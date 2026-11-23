@@ -1,4 +1,4 @@
-"""Пакет склеек Z3: E2 (исправленная), канарейки склейки (без каждой леммы; исходные шаги), E3, E3fail."""
+"""Batch of Z3 glue runs: E2 (fixed), glue canaries (without each lemma; original steps), E3, E3fail."""
 import json, subprocess, sys, os
 from .zglue import LEMMAS
 

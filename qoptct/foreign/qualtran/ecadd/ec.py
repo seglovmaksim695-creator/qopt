@@ -1,4 +1,4 @@
-"""Своя арифметика кривой y^2 = x^3 + A x + B над F_p (точка O = None), кодирование Монтгомери, сценарии входов."""
+"""Own arithmetic of the curve y^2 = x^3 + A x + B over F_p (the point O is None), Montgomery encoding, input scenarios."""
 import random
 
 

@@ -1,11 +1,11 @@
-"""pair_compose -- пара Калиски (прямой + обратный) в макро-виде, как у D: 2n прямых итераций и 2n обратных (Adjoint итерации)
-становятся макро-листьями; одна прямая и одна обратная итерация раскрываются мостом отдельно.
-Зеркальная проверка по частям (см. check_pair):
-  (1) кусок: обратная итерация = pi_p-зеркало прямой итерации (pi_p на интерфейсе задана: выход прямой -> вход обратной);
-  (2) сборка глобальной pi из кусков по 2n макро-узлам, проверка совместимости и инъективности;
-  (3) верхний уровень: хвост прямого ~ голова обратного, голова прямого ~ хвост обратного, с глобальной pi как затравкой;
-  (4) pi = id на проводах стыка, pi(вход x) = выход x.
-Для малых n сборка сверяется ПОЭЛЕМЕНТНО с полным раскрытием (materialize == lift_pair)."""
+"""Kaliski pair (forward + backward) in macro form: 2n forward iterations and 2n backward (Adjoint) iterations become macro
+leaves; one forward and one backward iteration are expanded by the bridge separately.
+Mirror check by parts (see check_pair):
+  (1) piece: the backward iteration = the pi_p-mirror of the forward iteration (pi_p is given on the interface: forward output -> backward input);
+  (2) assembly of the global pi from the pieces over the 2n macro nodes, check of compatibility and injectivity;
+  (3) top level: tail of the forward ~ head of the backward, head of the forward ~ tail of the backward, with the global pi as the seed;
+  (4) pi = id on the joint wires, pi(input x) = output x.
+For small n the assembly is compared ELEMENT BY ELEMENT with the full expansion (materialize == lift_pair)."""
 import sys, json, time, hashlib
 import numpy as np
 from qoptct.foreign.qualtran.bridge.from_qualtran import lower_graph

@@ -1,6 +1,6 @@
-"""Копия bridge/rules.py (verify_bridge2) с одной добавкой: лист opaque -> маркер ('opaque', индекс листа).
-Остальные правила побайтно те же."""
-"""Каждый лист получает ровно одно явное правило; история сохраняется."""
+"""Copy of bridge/rules.py with one addition: an opaque leaf -> the marker ('opaque', leaf index).
+The other rules are byte for byte the same."""
+"""Every leaf gets exactly one explicit rule; the history is kept."""
 from qoptct.foreign.qualtran.bridge.emit import emit_qasm
 
 from qoptct.foreign.qualtran.bridge.rules import TranslationError

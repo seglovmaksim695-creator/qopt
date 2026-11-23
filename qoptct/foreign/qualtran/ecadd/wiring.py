@@ -1,8 +1,6 @@
-"""Проводка ECAdd между шагами — берётся из настоящего составного блока Qualtran (cbloq.connections), а не
-из рукописной схемы. Пишет results/wiring_ecadd_<версия>_n<n>.json; ew.wiring --merge сверяет все файлы и пишет
-results/wiring_ecadd.json, который читает zglue (склейка E2/E3). Пример:
-  python -m ew.wiring --n 16 --p 32749          (в окружении env_e.sh или env_orig.sh)
-  python -m ew.wiring --merge"""
+"""Wiring of ECAdd between the steps -- read from the real composite block of Qualtran (cbloq.connections), not from a
+hand-written scheme.  The result is compared by the glue with the reference wiring in data/wiring_ecadd.json.
+Example:  python -m qoptct.foreign.qualtran.ecadd.wiring --n 16 --p 32749 --out wiring.json"""
 import argparse, json, os
 
 NAMES = {'_ECAddStepOne': 1, '_ECAddStepTwo': 2, '_ECAddStepThree': 3, '_ECAddStepFour': 4,

@@ -1,6 +1,6 @@
-"""Канарейки: порча НАСТОЯЩЕЙ переведённой программы шага; каждая обязана быть не PROVED.
-Для каждого REFUTED — свидетель: конкретное исполнение испорченной программы (csim) на контрпримере.
-Если порча вдруг PROVED — проверка csim на случайных входах: нарушение => ЛОЖНОЕ PROVED (HOLES)."""
+"""Canaries: corrupt the REAL translated program of a step; each one must be NOT proved.
+Every REFUTED one comes with a witness: a concrete execution of the corrupted program (csim) on the counterexample.
+If a corruption is PROVED after all, csim is run on random inputs: a violation means a FALSE PROVED (HOLES)."""
 import argparse, copy, json, math, random, re, time
 from qoptct.verify.bdd import ZERO
 from .core import build_program, lower_step, Run, Fail, lsb

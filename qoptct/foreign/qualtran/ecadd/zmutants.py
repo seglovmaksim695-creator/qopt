@@ -1,5 +1,5 @@
-"""Канарейки склейки E2: порча формулы ОДНОГО контракта шага (как если бы шаг был доказан с другой формулой).
-Каждая обязана давать не PROVED. Применяется подменой функции шага в zspecs.ZSTEPS на время прогона."""
+"""Canaries of the E2 glue: corrupt the formula of ONE step contract (as if the step had been proved with another
+formula).  Each one must give NOT proved.  Applied by replacing the step function in zspecs.ZSTEPS for the run."""
 from . import zspecs as Z
 
 

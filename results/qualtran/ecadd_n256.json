@@ -1,0 +1,197 @@
+{
+ "api": "prove_ecadd",
+ "n": 256,
+ "p": "57896044618658097711785492504343953926634992332820282019728792003956564819949",
+ "patched": true,
+ "qualtran_kind": "e",
+ "z3": "Z3 version 5.3.3 - 64 bit (binary)",
+ "contracts_status": {
+  "MM": {
+   "box": "DirtyOutOfPlaceMontgomeryModMul(bitsize=n, window_size=1, mod=p), forward and uncompute=True",
+   "statement": "x, y < p  =>  target < p and target = x*y*2^-n (mod p); the garbage registers (qrom_indices, reduced) are arbitrary; the uncompute box returns exactly the registers of its forward box to zero (pair identity)",
+   "forward": {
+    "proved_by": "montgomery_mul",
+    "status": "PROVED_FOR_THIS_INSTANCE"
+   },
+   "pair": {
+    "proved_by": "pair_montgomery",
+    "status": "PROVED_FOR_THIS_INSTANCE"
+   }
+  },
+  "KINV": {
+   "box": "KaliskiModInverse(bitsize=n, mod=p), forward and uncompute=True",
+   "statement": "0 <= x < p  =>  x_out < p and x_out = x^-1 * 2^(2n) (mod p) for x != 0, x_out = 0 for x = 0; the junk register is arbitrary; the uncompute box returns exactly the registers of its forward box to zero (pair identity)",
+   "forward": {
+    "proved_by": "kaliski_inverse",
+    "status": "PROVED_FOR_THIS_INSTANCE"
+   },
+   "pair": {
+    "proved_by": "pair_kaliski",
+    "status": "PROVED_FOR_THIS_INSTANCE"
+   }
+  }
+ },
+ "steps": {
+  "1": {
+   "status": "PROVED",
+   "wall_seconds": 27.63,
+   "peak_rss_mb": 1619.4,
+   "kind": "e",
+   "logical_ops": 37839,
+   "stats": {
+    "ops": 37839,
+    "ands": 5364,
+    "erases": 5364,
+    "checks_nontrivial": 10971,
+    "gc": 5,
+    "max_bdd_nodes": 4997883,
+    "cases": 1,
+    "vacuous": 0,
+    "seconds": 21.41,
+    "nvars": 1024,
+    "nq": 6910
+   }
+  },
+  "2": {
+   "status": "PROVED",
+   "wall_seconds": 254.7,
+   "peak_rss_mb": 1739.1,
+   "kind": "e",
+   "logical_ops": 36800,
+   "stats": {
+    "ops": 441552,
+    "ands": 55248,
+    "erases": 55248,
+    "checks_nontrivial": 78244,
+    "gc": 74,
+    "max_bdd_nodes": 3279496,
+    "cases": 12,
+    "vacuous": 0,
+    "seconds": 244.94,
+    "nvars": 3075,
+    "nq": 9737
+   }
+  },
+  "3": {
+   "status": "PROVED",
+   "wall_seconds": 638.22,
+   "peak_rss_mb": 1283.1,
+   "kind": "e",
+   "logical_ops": 56308,
+   "stats": {
+    "ops": 1126120,
+    "ands": 122880,
+    "erases": 122880,
+    "checks_nontrivial": 362327,
+    "gc": 142,
+    "max_bdd_nodes": 2006620,
+    "cases": 20,
+    "vacuous": 0,
+    "seconds": 615.47,
+    "nvars": 2306,
+    "nq": 11808
+   }
+  },
+  "4": {
+   "status": "PROVED",
+   "wall_seconds": 15.2,
+   "peak_rss_mb": 1075.0,
+   "kind": "e",
+   "logical_ops": 15577,
+   "stats": {
+    "ops": 15573,
+    "ands": 1533,
+    "erases": 1533,
+    "checks_nontrivial": 4601,
+    "gc": 5,
+    "max_bdd_nodes": 571404,
+    "cases": 1,
+    "vacuous": 0,
+    "seconds": 10.7,
+    "nvars": 1794,
+    "nq": 4612
+   }
+  },
+  "5": {
+   "status": "PROVED",
+   "wall_seconds": 145.74,
+   "peak_rss_mb": 1625.1,
+   "kind": "e",
+   "logical_ops": 35281,
+   "stats": {
+    "ops": 317493,
+    "ands": 39132,
+    "erases": 39132,
+    "checks_nontrivial": 63816,
+    "gc": 61,
+    "max_bdd_nodes": 1941470,
+    "cases": 9,
+    "vacuous": 0,
+    "seconds": 137.29,
+    "nvars": 3330,
+    "nq": 8970
+   }
+  },
+  "6": {
+   "status": "PROVED",
+   "wall_seconds": 133.88,
+   "peak_rss_mb": 2608.4,
+   "kind": "e",
+   "logical_ops": 58383,
+   "stats": {
+    "ops": 817362,
+    "ands": 114702,
+    "erases": 114702,
+    "checks_nontrivial": 104619,
+    "gc": 26,
+    "max_bdd_nodes": 1343078,
+    "cases": 286,
+    "vacuous": 272,
+    "seconds": 117.74,
+    "nvars": 1029,
+    "nq": 10255
+   }
+  }
+ },
+ "wiring": {
+  "status": "OK",
+  "kind": "e",
+  "connections": 41,
+  "order": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6
+  ],
+  "detail": null
+ },
+ "glue": {
+  "status": "PROVED",
+  "mode": "E2",
+  "checks": 49,
+  "answers": {
+   "unsat": 49
+  },
+  "failed": [],
+  "z3_seconds": 0.2,
+  "z3_version": "Z3 version 5.3.3 - 64 bit (binary)",
+  "wiring_source": "live ECAdd.decompose_bloq()",
+  "wiring_equals_reference": true,
+  "lemmas": [
+   "MM0",
+   "K0",
+   "C1",
+   "C2",
+   "EC_DBL",
+   "EC_TAN",
+   "EC_RNOTO",
+   "EC_RNOTP"
+  ],
+  "detail": null
+ },
+ "status": "PROVED",
+ "claim": "ECAdd = point addition in Montgomery form",
+ "wall_seconds": 1223.2
+}

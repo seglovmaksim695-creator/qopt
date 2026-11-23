@@ -1,10 +1,8 @@
-"""pair_kal -- пара KaliskiModInverse(uncompute=False) + (uncompute=True) одним составным блоком; полное раскрытие мостом.
-Зеркальная проверка: вторая половина программы == pi-перенумерованное зеркало первой.
-  зеркало: обратный порядок; x->x; cx->cx; AND(a,b->t) -> ERASE(a,b;t); ERASE(a,b;t,l) -> AND(a,b->t)[; CX(l->t)].
-  pi строится по ходу сопоставления (инъективно в обе стороны); требуется pi = id на проводах, несущих данные на стыке
-  (выход x и junk прямого блока), и pi(входные провода x) = выходные провода x пары.
-Запуск: python -m pair_kal n p
-"""
+"""Pair KaliskiModInverse(uncompute=False) + (uncompute=True) as one composite block; full expansion by the bridge.
+Mirror check: the second half of the program == the pi-renamed mirror of the first.
+  mirror: reverse order; x->x; cx->cx; AND(a,b->t) -> ERASE(a,b;t); ERASE(a,b;t,l) -> AND(a,b->t)[; CX(l->t)].
+  pi is built during matching (injective both ways); required: pi = id on the wires that carry data at the joint
+  (output x and junk of the forward block), and pi(input wires of x) = output wires of x of the pair."""
 import sys, json, time
 from qoptct.foreign.qualtran.bridge.from_qualtran import lower_graph
 from qoptct.foreign.qualtran.bridge.fredkin_rule import FredkinRules

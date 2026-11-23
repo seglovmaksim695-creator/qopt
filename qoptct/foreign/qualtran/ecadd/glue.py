@@ -1,9 +1,10 @@
-"""E2/E3: склейка ECAdd из шести доказанных контрактов шагов (specs.py) + явные леммы (каждая — отдельное
-математическое утверждение, см. LEMMAS). Всё — на ROBDD при полной ширине n.
+"""Legacy BDD glue of ECAdd from the six step contracts (specs.py) + explicit lemmas (each a separate mathematical
+statement, see LEMMAS), on ROBDD at full width n.  It did not scale (nested arithmetic) and is superseded by the Z3 glue
+(``zglue``); it is kept as an independent small-n cross-check and is not used by the API.
 
-Состояние — слова-рёбра. Выход каждого ящика (MM target, KINV x) — свежая переменная; связь с аргументами — только
-через перечисленные леммы. Проверяется: предусловие каждого шага (диапазоны, P5, P6) и аргументы каждого ящика (<p)
-выполняются; итог = FORMULA (сложение точек в форме Монтгомери по формулам учебника, ветви O/-P)."""
+The state is words as edges.  The output of every box (MM target, KINV x) is a fresh variable; its link to the arguments is
+only through the listed lemmas.  Checked: the precondition of every step (ranges, P5, P6) and the arguments of every box
+(<p) hold; the result equals FORMULA (point addition in Montgomery form by the textbook formulas, branches O/-P)."""
 import argparse, json, time
 from qoptct.verify.bdd import BDD, ONE, ZERO
 from . import bv

@@ -1,8 +1,8 @@
-"""Спецификации шагов ECAdd (формулы написаны по исходнику Qualtran, НЕ по схеме).
+"""Specifications of the ECAdd steps (the formulas are written from the Qualtran SOURCE, NOT from the scheme).
 
-Слова — списки рёбер ROBDD, LSB первым; флаги — списки из одного ребра. O[c] — выходы c-го ПРЯМОГО ящика:
-MM -> target, qrom_indices, reduced; KINV -> x (результат на месте), junk.
-patched=True — исправленная версия (патч E05), False — исходная Qualtran 0.7.0.
+Words are lists of ROBDD edges, LSB first; flags are lists of one edge.  O[c] = outputs of the c-th FORWARD box:
+MM -> target, qrom_indices, reduced; KINV -> x (result in place), junk.
+patched=True -- the fixed version (patch E05), False -- the original Qualtran 0.7.0.
 """
 from qoptct.verify.bdd import ONE, ZERO
 from .bv import (const, xor, mask, ite, lt_const, eq, is_zero, all_of, modadd, modsub, modneg, moddbl, add, lt, _s)

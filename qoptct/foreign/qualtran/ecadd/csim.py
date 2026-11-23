@@ -1,5 +1,6 @@
-"""Конкретный (не символьный) исполнитель той же переведённой программы: биты — целые Python.
-Ящики — значения из словаря (контрпример ew) или из оракула Qualtran. Возвращает список нарушений."""
+"""Concrete (not symbolic) executor of the same translated program: bits are Python integers.
+Boxes take their values from a dictionary (a counterexample of the prover) or from a Qualtran oracle.
+Returns the list of violations."""
 from .core import lsb
 
 

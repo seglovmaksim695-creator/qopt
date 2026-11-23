@@ -1,5 +1,6 @@
-"""E2/E3 склейка в Z3 (бинарник /opt/homebrew/bin/z3, SMT-LIB2, целые числа): шесть контрактов шагов (zspecs —
-та же запись, что specs.py/ispecs.py) + явные леммы. Каждое обязательство проверяется отдельно: UNSAT отрицания."""
+"""E2/E3 glue in Z3 (SMT-LIB2, integers): the six step contracts (zspecs -- the same record as specs.py/ispecs.py)
++ explicit lemmas.  Every obligation is checked separately: UNSAT of its negation.  The wiring between the steps is
+read from the real ECAdd (see wiring.py) and must equal the reference wiring."""
 import argparse, json, os, subprocess, time
 from .zspecs import SmtOps, IntOps, ZSTEPS
 

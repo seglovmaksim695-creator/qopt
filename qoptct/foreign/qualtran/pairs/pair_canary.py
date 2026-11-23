@@ -1,6 +1,6 @@
-"""pair_canary -- канарейки для зеркальной проверки пары Калиски: портим ОДИН элемент ОБРАТНОЙ программы (кусок-итерация, макро-узел
-или верхний уровень) и требуем, чтобы проверка НЕ дала PASS. Отдельно «равносильные» перестановки (должны проходить).
-python -m pair_canary n p [seed] [out.json]"""
+"""Canaries for the mirror check of the Kaliski pair: corrupt ONE element of the BACKWARD program (iteration piece, macro node
+or top level) and require that the check does NOT pass.  Separately "equivalent" permutations (must pass).
+python -m qoptct.foreign.qualtran.pairs canary-kaliski --n N --p P [--seed S]"""
 import sys, json, random, copy, time
 from . import pair_compose as PC
 from . import mirror as M

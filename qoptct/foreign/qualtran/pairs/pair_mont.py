@@ -1,5 +1,5 @@
-"""pair_mont -- пара DirtyOutOfPlaceMontgomeryModMul (uncompute=False) + (uncompute=True), окно w: сборка и раскрытие мостом C
-(правило QROAMCleanAdjoint = shared/rules, версия Qualtran ИСПРАВЛЕННАЯ: H/qlocal). Среда: env_h2.sh."""
+"""Pair DirtyOutOfPlaceMontgomeryModMul (uncompute=False) + (uncompute=True), window w: assembly and expansion by the bridge
+(rule QROAMCleanAdjoint of the bridge; Qualtran variant: the FIXED one, kind 'c')."""
 import sys, json, time
 from qoptct.foreign.qualtran.bridge.qroam_clean_adjoint import chained_atom_rule
 from qoptct.foreign.qualtran.bridge.qualtran_layout import lower_bloqgraph

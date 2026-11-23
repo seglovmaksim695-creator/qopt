@@ -1,11 +1,11 @@
-"""ew.core — символьное исполнение шага ECAdd на ROBDD (qoptct.verify.bdd, без изменений).
+"""Symbolic execution of an ECAdd step on ROBDD (qoptct.verify.bdd, unchanged).
 
-Программа шага = настоящие логические операции (Qualtran -> bridge2 lower_bloqgraph -> правила translate ->
-QASM -> qoptct lift; леммы о гаджетах AND/ERASE проверяет qoptct.check_gadget_lemmas) + маркеры чёрных ящиков.
-Для ВСЕХ значений переменных, удовлетворяющих допущению A (предусловие шага + диапазоны выходов ящиков),
-проверяется: цель каждой and = 0; у каждого erase цель = a*b (xor l) ТОЧНО; входы каждого прямого ящика = входам,
-заявленным спецификацией, и в его области (<p); обратный ящик получает ровно выходы парного прямого вызова;
-выходы = спецификация; все прочие провода = 0. A проверяется на непустоту.
+The step program = the real logical operations (Qualtran -> bridge lower_bloqgraph -> translate rules -> QASM ->
+qoptct lift; the gadget lemmas for AND/ERASE are checked by qoptct.check_gadget_lemmas) + black-box markers.
+For ALL values of the variables that satisfy the assumption A (step precondition + ranges of the box outputs) it checks:
+the target of every and is 0; the target of every erase equals a*b (xor l) EXACTLY; the inputs of every forward box equal
+the inputs stated by the specification and lie in its domain (<p); a backward box receives exactly the outputs of its
+paired forward call; the outputs equal the specification; every other wire is 0.  A is checked to be non-empty.
 """
 import time
 from qoptct.verify.bdd import BDD, ONE, ZERO
