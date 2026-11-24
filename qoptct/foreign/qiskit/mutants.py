@@ -34,7 +34,8 @@ def make_mutants(circuit, rare_wires=None, count=None):
 
     def add(label, new):
         out.append((label, rebuild(circuit, new)))
-    pos = sorted({0, 1, n // 4, n // 2 - 1, n // 2, n // 2 + 1, (3 * n) // 4, n - 2, n - 1})
+    pos = sorted({0, 1, n // 8, n // 4, (3 * n) // 8, n // 2 - 1, n // 2, n // 2 + 1, (5 * n) // 8, (3 * n) // 4,
+                  (7 * n) // 8, n - 2, n - 1})
     for i in pos:
         if 0 <= i < n:
             add('drop[%d]' % i, ops[:i] + ops[i + 1:])
@@ -46,7 +47,7 @@ def make_mutants(circuit, rare_wires=None, count=None):
         add('swap-adjacent[%d]' % m, ops[:m] + [ops[m + 1], ops[m]] + ops[m + 2:])
     # wrong control / wrong target on the first, middle and last multi-qubit gates
     multi = [i for i, o in enumerate(ops) if o[0] in ('cx', 'ccx', 'mcx')]
-    for i in (multi[0], multi[len(multi) // 2], multi[-1]):
+    for i in sorted({multi[0], multi[len(multi) // 4], multi[len(multi) // 2], multi[(3 * len(multi)) // 4], multi[-1]}):
         o = ops[i]
         wires = set(range(tr.nq))
         alt = next(w for w in sorted(wires - set(o[1:])))

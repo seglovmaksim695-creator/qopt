@@ -258,7 +258,9 @@ def _check_reference(out, tr, reference, clean, ref_clean, budget_sec, max_mb, m
         path = os.path.join(d, 'm.qasm')
         with open(path, 'w') as f:
             f.write(emit_qasm(nq, ops))
-        order = [w for w in range(nq) if w not in clean_wires]
+        inputs = [n for n in tr.registers if n not in clean]
+        order = _order(tr, inputs)
+        order += [w for w in range(nq) if w not in clean_wires and w not in set(order)]
         r = kprove(path, spec=lambda S: {}, n=nq, clean_wires=clean_wires, order=order, budget_sec=budget_sec,
                    max_mb=max_mb, sample=False, confirm=True)
     st = r.get('status')

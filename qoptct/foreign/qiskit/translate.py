@@ -56,6 +56,7 @@ for _cls, (_n, _w) in _NAMES.items():
         _LEAF[_typ] = (_cls, _n, _w)
 _MCX_TYPES = (MCXGate, C3XGate, C4XGate)
 _PHASE_TYPES = (PhaseGate, U1Gate)
+_ROTATIONS = frozenset({'u', 'u2', 'u3', 'r', 'rx', 'ry', 'rz', 'rv'})  # arbitrary angles: fractional phases (Q2)
 _FORBIDDEN = frozenset({'reset', 'store', 'while_loop', 'for_loop', 'switch_case', 'break_loop', 'continue_loop',
                         'delay', 'global_phase'})
 _INVERSE = {'x': 'x', 'cx': 'cx', 'ccx': 'ccx', 'mcx': 'mcx', 'swap': 'swap', 'h': 'h', 'z': 'z', 'cz': 'cz',
@@ -266,6 +267,14 @@ def translate(circuit, *, mcx='primitive', max_depth=64, max_operations=2_000_00
                 out.append(('mcx',) + tuple(qs))
                 prim['mcx%d' % (k - 1)] = prim.get('mcx%d' % (k - 1), 0) + 1
                 leaf_paths.append(cur)
+                continue
+            if name in _ROTATIONS:
+                par = [x for x in op.params]
+                try:
+                    ang = float(par[0])
+                except (TypeError, ValueError, IndexError):
+                    raise QiskitTranslationError('%s: unbound rotation parameter' % cur)
+                fractional.append((cur, name, ang))
                 continue
             try:
                 definition = op.definition
