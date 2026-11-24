@@ -2,7 +2,7 @@
 """Targets of the loop: a reference circuit (.qc, the specification), a model (strict or clean) and, when known, the
 generator parameters that the proposers use.
 
-Target specs (strings):
+Target specs (strings; crypto: and qc: files come from a checkout: $QOPT_REPO or the current folder when the package is installed):
     crypto:<name>           a circuit of results/crypto (baseline = its .qasm; lookup_* get generator parameters)
     lookup:c<c>w<w>s<seed>  random table (xor lookup, z ^= T[a]); baseline = the Davio lookup
     lookupadd:c<c>w<w>s<seed>   random table, acc += T[a] mod 2^w; baseline = the plain narrow lookup-add
@@ -22,8 +22,14 @@ class TargetError(Exception):
 
 
 def repo_root():
+    """The folder that holds results/crypto and bench_qc: the checkout this package lives in; for an installed package
+    (which does not ship them) $QOPT_REPO, or else the current folder, when it has results/crypto."""
     here = os.path.dirname(os.path.abspath(__file__))
-    return os.path.abspath(os.path.join(here, '..', '..'))
+    pkg_parent = os.path.abspath(os.path.join(here, '..', '..'))
+    for cand in (pkg_parent, os.environ.get('QOPT_REPO'), os.getcwd()):
+        if cand and os.path.isdir(os.path.join(cand, 'results', 'crypto')):
+            return os.path.abspath(cand)
+    return pkg_parent
 
 
 def _ref_wires(qc_text):
