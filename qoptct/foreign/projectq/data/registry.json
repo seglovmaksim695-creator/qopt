@@ -292,6 +292,78 @@
     "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
     "a freed wire is required to end in |0> like every other clean wire"
    ],
+   "block": "Binary_ECC Multiplication/Mul_x283.py",
+   "canaries": {
+    "by_group": {
+     "erasure": 8,
+     "junction": 3,
+     "other": 6,
+     "phase": 4,
+     "rare": 3
+    },
+    "decided": 24,
+    "equivalent": 0,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 30819,
+     "free": 29970,
+     "x1": 110571,
+     "x2": 10273
+    },
+    "logical_ops": 141390,
+    "logical_wires": 30820,
+    "mode": "nct",
+    "wires": 30819
+   },
+   "claim": "result = x*y mod f in GF(2^283), f = 0x800000000000000000000000000000000000000000000000000000000000000000010a1, x and y unchanged, every wire that is not x, y, result or garbage ends in |0>, the 9990 garbage wires end in the values of the pin",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "binary_ecc_multiplier_m283.json",
+    "sha256": "a436fdda4bdf678850a3c617e8afc066fc8fbfd63e93691063108c5f6ec58f11"
+   },
+   "garbage": {
+    "kind": "w2",
+    "note": "garbage wires are compared with the golden circuit, not proved meaningful",
+    "pin_sha256": "f53c8d87453133c0665cea7d3e5be4e59f4e0ef7c2992a4b36dd491a139708e4",
+    "wires": 9990
+   },
+   "id": "binary_ecc_multiplier/m283",
+   "independent": {
+    "exact_vs_sampled": {
+     "detail": "96 sample lanes agree with the schoolbook product, x and y unchanged, clean wires clean",
+     "ok": true
+    },
+    "projectq_classical_simulator": {
+     "detail": "24 inputs agree with ProjectQ ClassicalSimulator (sampled)",
+     "ok": true,
+     "tested": 24,
+     "via": "gates"
+    }
+   },
+   "name": "binary_ecc_multiplier",
+   "program": {
+    "name": "logical_sha256",
+    "value": "0be408d5aac8cb2bca747ff4f1a119c52ff3ed20ee3cfc172e21d8ee7566e09e"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "313e0e80b435f95f4d6854d8442a53198e1f581245db38ab812bc51dec049f43",
+   "reproduce": "python -m qoptct.foreign.projectq prove multiplier --m 283 --source <Binary_ECC folder>",
+   "size": 283,
+   "source": {
+    "file": "Multiplication/Mul_x283.py",
+    "sha256": "697005652a43504d5112019c1fe12d9cb3db3096e331ca15775bdc4832a7056e"
+   },
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
    "block": "Binary_ECC Multiplication/Mul_x8.py",
    "canaries": {
     "by_group": {

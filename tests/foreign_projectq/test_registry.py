@@ -28,7 +28,7 @@ def test_registry_shape():
 
 def test_binary_ecc_results_cover_the_target_sizes():
     ids = {e['id'] for e in registry.entries()}
-    for m in (8, 16, 127, 163, 233):
+    for m in (8, 16, 127, 163, 233, 283):
         assert f'binary_ecc_multiplier/m{m}' in ids
     assert 'binary_ecc_point_addition/FLT_in_m8' in ids
     for e in registry.entries('binary_ecc_multiplier'):
