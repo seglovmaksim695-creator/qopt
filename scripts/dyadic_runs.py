@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Registry runs of qoptct.verify.dyadic on library circuits with rotations pi/2^k (Qiskit; ProjectQ from JSON dumps).
+"""Registry runs of qoptct.dyadic on library circuits with rotations pi/2^k (Qiskit; ProjectQ from JSON dumps).
 
     python scripts/dyadic_runs.py run FAMILY N [--canaries] [--budget S]     # one result as a JSON line
     python scripts/dyadic_runs.py registry [--families f1,f2] [--sizes 2,4,8] [--out results/dyadic]
@@ -24,7 +24,7 @@ from fractions import Fraction
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))
 
-from qoptct.verify.dyadic import (DCircuit, Pi, prove_equal, prove_spec, QFTSpec, adder_spec, const_adder_spec,  # noqa
+from qoptct.dyadic import (DCircuit, Pi, prove_equal, prove_spec, QFTSpec, adder_spec, const_adder_spec,  # noqa
                                   multiplier_spec, ClassicalSpec)
 
 BASIS = ['h', 'x', 'y', 'z', 's', 'sdg', 't', 'tdg', 'sx', 'sxdg', 'cx', 'cz', 'cy', 'ccx', 'ccz', 'p', 'cp', 'rz',
@@ -51,7 +51,7 @@ def qiskit_case(family, n):
     from qiskit.circuit.library import QFTGate
     from qiskit.synthesis.qft import synth_qft_full
     from qiskit.synthesis.arithmetic import adder_qft_d00, multiplier_qft_r17, multiplier_cumulative_h18
-    from qoptct.verify.dyadic.qiskit_io import from_qiskit
+    from qoptct.dyadic.qiskit_io import from_qiskit
     if family in ('qft', 'iqft', 'qft_qftdg'):
         qc = QuantumCircuit(n)
         g = QFTGate(n)
@@ -131,7 +131,7 @@ def translation_check(qc, c):
         return None
     import numpy as np
     from qiskit.quantum_info import Operator
-    from qoptct.verify.dyadic import sim
+    from qoptct.dyadic import sim
     U = Operator(qc).data
     V = sim.unitary(c)
     return bool(np.max(np.abs(U - V)) < 1e-8)
@@ -220,7 +220,7 @@ def canaries(c, spec, family, n, rng):
         e = c.copy()
         nm, qs, rs = e.ops[i]
         e.ops[i] = (nm, qs, (-rs[0],) + rs[1:])
-        if -rs[0] % 2 != rs[0] % 2:
+        if rs[0] % 2 not in (0, 1):         # P(-t) != P(t), and not only a global phase for RZ
             out.append(('negated_rotation', e, 'global'))
     return out
 
@@ -229,7 +229,12 @@ def canaries(c, spec, family, n, rng):
 def run_one(family, n, do_canaries, budget, seed=1):
     t0 = time.time()
     if family.startswith('pq_'):
-        qc, c, spec, meta = projectq_case(family, n)
+        from qoptct.dyadic import NotDyadic, Unsupported
+        try:
+            qc, c, spec, meta = projectq_case(family, n)
+        except (NotDyadic, Unsupported) as e:      # the gate list cannot be read exactly: not proved
+            return dict(family=family, n=n, verdict='UNKNOWN', method='input', reason=str(e)[:300],
+                        time_build=round(time.time() - t0, 2), peak_mb=peak_mb())
     else:
         qc, c, spec = qiskit_case(family, n)
         meta = {}
@@ -258,7 +263,7 @@ def run_one(family, n, do_canaries, budget, seed=1):
         res['canaries_proved'] = sum(1 for x in cres if x['verdict'] == 'PROVED')
         # independent numeric check at the largest size (product-state simulator, random basis inputs; not a proof)
         if not isinstance(spec, DCircuit):
-            from qoptct.verify.dyadic import prodsim
+            from qoptct.dyadic import prodsim
             chk = prodsim.check_qft if spec.kind == 'qft' else prodsim.check_arith
             t, bad, ent = chk(c, spec, 20, random.Random(seed))
             res['product_check'] = dict(inputs=t, bad=bad, entangling=ent)

@@ -6,7 +6,7 @@ its Qiskit definition (recursively, with the definition's global phase), so libr
 multipliers, controlled gates with open controls, ...) are unrolled down to the supported set.  A controlled gate is
 taken directly only when all its controls are closed (ctrl_state all ones) and it acts on exactly controls + 1 qubits;
 otherwise its definition is used.  Measurements, resets, classical conditions and gates without a definition raise
-Unsupported.  Float angles go through the dyadic recognition of qoptct.verify.dyadic.circuit (recorded in
+Unsupported.  Float angles go through the dyadic recognition of qoptct.dyadic.circuit (recorded in
 DCircuit.angle_rec).
 """
 from .circuit import DCircuit, GATES, Unsupported

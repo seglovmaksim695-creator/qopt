@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Public API of qoptct.verify.dyadic: exact equivalence of circuits with dyadic angles pi*p/2^k.
+"""Public API of qoptct.dyadic: exact equivalence of circuits with dyadic angles pi*p/2^k.
 
     prove_equal(circuit, reference, phase='global', ancillas=None, budget_sec=120.0)
     prove_spec(circuit, spec, phase='global', ancillas=None, budget_sec=120.0)
@@ -9,9 +9,9 @@
 Meaning of PROVED.  prove_equal: circuit |x, 0> = exp(i g) (reference (x) I) |x, 0> for every basis input x of the
 non-ancilla wires (ancillas start in 0; extra wires beyond the reference must end in 0); g is reported exactly as
 global_phase (a multiple of pi); phase='exact' also demands g = 0.  prove_spec: the same with the specification in
-place of the reference (QFTSpec, ArithSpec, PermutationSpec; see qoptct.verify.dyadic.spec).
+place of the reference (QFTSpec, ArithSpec, PermutationSpec; see qoptct.dyadic.spec).
 How.  The path sum of the composition with the adjoint of the reference/specification is reduced with the exact
-rules of qoptct.verify.dyadic.core.  PROVED only from (a) a form with no path variables left whose wires are the
+rules of qoptct.dyadic.core.  PROVED only from (a) a form with no path variables left whose wires are the
 expected polynomials and whose phase is a constant (both canonical), with the amplitude factor exactly 1, or (b) an
 exact enumeration of the remaining small sum in Z[zeta] (zeta = exp(2 pi i / 2^K), canonical power basis
 1, zeta, ..., zeta^(2^(K-1)-1)).  REFUTED from a canonical violation of that form (with a basis-state witness) or from

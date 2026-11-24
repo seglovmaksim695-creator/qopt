@@ -1,13 +1,13 @@
-# qoptct.verify.dyadic — exact proofs for circuits with rotations π·p/2^k
+# qoptct.dyadic — exact proofs for circuits with rotations π·p/2^k
 
 `qoptct.verify.pathsum` (the Clifford+T prover of 0.4–0.7) keeps phases modulo 8 (ω = e^{iπ/4}).  Circuits with
 rotations π/2^k — the QFT, Draper's adders, QFT multipliers in Qiskit and ProjectQ — need finer phases.
-`qoptct.verify.dyadic` is a separate prover (the old one is not changed) whose phases are integers modulo 2^K, with K
+`qoptct.dyadic` is a separate prover (the old one is not changed) whose phases are integers modulo 2^K, with K
 chosen per problem.
 
 ```python
-from qoptct.verify.dyadic import DCircuit, Pi, prove_dyadic, QFTSpec, adder_spec, multiplier_spec, ClassicalSpec
-from qoptct.verify.dyadic.qiskit_io import from_qiskit          # optional, needs qiskit
+from qoptct.dyadic import DCircuit, Pi, prove_dyadic, QFTSpec, adder_spec, multiplier_spec, ClassicalSpec
+from qoptct.dyadic.qiskit_io import from_qiskit          # optional, needs qiskit
 
 c = from_qiskit(adder_qft_d00(64, kind='fixed'))                # or DCircuit(n); c.add('cp', (i, j), Pi(1, 8))
 r = prove_dyadic(c, adder_spec(a=range(64), b=range(64, 128)))
@@ -177,7 +177,7 @@ REFUTED for n ≥ 2, which is correct).
 
 1. Build a `DCircuit(n)` with `c.add(name, qubits, *angles)` (controls first, Qiskit conventions) and
    `c.add_global_phase(angle)`.  Prefer exact angles `Pi(p, 2**k)`; floats in radians are accepted (see §1).
-   Qiskit: `qoptct.verify.dyadic.qiskit_io.from_qiskit(qc)` unrolls library blocks by their definitions (and checks
+   Qiskit: `qoptct.dyadic.qiskit_io.from_qiskit(qc)` unrolls library blocks by their definitions (and checks
    control states).  Do not `transpile` with the default `qubits_initially_zero=True`: it may use idle qubits as
    clean ancillas and keeps only the action on |0…0⟩; use `qubits_initially_zero=False`.
    ProjectQ: rotation angles are rounded to 12 decimals by ProjectQ itself; pass `float_abs_tol=2e-11` (or recover

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""D2 evidence for qoptct.verify.dyadic: random circuits with rotations pi*p/2^k against the dense simulator.
+"""D2 evidence for qoptct.dyadic: random circuits with rotations pi*p/2^k against the dense simulator.
 
     python scripts/dyadic_fuzz.py [--cases 3000] [--spec-cases 1000] [--out results/dyadic/fuzz.json]
 
@@ -16,7 +16,7 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from qoptct.verify.dyadic.fuzz import run_fuzz, run_spec_fuzz  # noqa: E402
+from qoptct.dyadic.fuzz import run_fuzz, run_spec_fuzz  # noqa: E402
 
 
 def main(argv=None):

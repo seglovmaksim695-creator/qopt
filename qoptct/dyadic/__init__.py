@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
-"""qoptct.verify.dyadic -- exact verification of circuits with rotations pi*p/2^k (QFT, Draper adders, QFT
+"""qoptct.dyadic -- exact verification of circuits with rotations pi*p/2^k (QFT, Draper adders, QFT
 multipliers) by a sum-over-paths whose phases are integers modulo 2^K (Amy, arXiv:1805.06908v2, generalised from Z8).
 
-    from qoptct.verify.dyadic import DCircuit, Pi, prove_dyadic, prove_equal, prove_spec, QFTSpec, adder_spec
+    from qoptct.dyadic import DCircuit, Pi, prove_dyadic, prove_equal, prove_spec, QFTSpec, adder_spec
 
     c = DCircuit(3); c.add('h', (2,)); c.add('cp', (1, 2), 'pi/2'); ...
     prove_equal(c, reference)                    # circuit = exp(i g) reference ?

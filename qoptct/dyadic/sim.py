@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Independent dense simulator for qoptct.verify.dyadic (cross-checks and counterexample confirmation; not a proof).
+"""Independent dense simulator for qoptct.dyadic (cross-checks and counterexample confirmation; not a proof).
 
 It shares nothing with the path-sum engine except the gate list of a DCircuit: every gate is applied by its matrix,
 written here from the gate's definition (Qiskit conventions, qubit 0 = least significant bit), with complex128

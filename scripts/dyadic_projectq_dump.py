@@ -10,7 +10,7 @@ consecutive rotations: the merged angles pi*p/2^k have large p and ProjectQ keep
 down to one of two backends:
   native: H, X, CNOT, Toffoli, Swap, single-qubit R / Rz / Rx / Ry / Ph, controlled R (one control);
   basic:  single-qubit gates and CNOT only (controlled R is decomposed by ProjectQ into CNOT, R/Rz and Ph).
-Gate names in the dump are those of qoptct.verify.dyadic (controls first); angles are ProjectQ's floats (radians).
+Gate names in the dump are those of qoptct.dyadic (controls first); angles are ProjectQ's floats (radians).
 """
 import argparse
 import json

@@ -1,9 +1,9 @@
-"""Tests of qoptct.verify.dyadic (exact path sums with phases in Z_{2^K}).
+"""Tests of qoptct.dyadic (exact path sums with phases in Z_{2^K}).
 
 Correctness is checked against things that share no code with the path-sum engine:
   * the lift and every rewrite rule against an exact enumeration of the operator in Z[zeta] (random path sums);
   * random circuits with rotations pi*p/2^k (equivalent pairs and mutants) against the independent dense simulator
-    (qoptct.verify.dyadic.sim): a PROVED must be dense-equal with the same global phase, a REFUTED dense-different;
+    (qoptct.dyadic.sim): a PROVED must be dense-equal with the same global phase, a REFUTED dense-different;
   * canaries on QFT and Draper adders (shifted angle, lost rotation, wrong qubit, global phase): never PROVED;
   * the cases of tests/data/kprove and the audit circuits: a wrong circuit is never PROVED.
 Fast by default; the large runs (n = 32 / 64) are marked slow.
@@ -16,19 +16,19 @@ from fractions import Fraction
 
 import pytest
 
-from qoptct.verify.dyadic import (DCircuit, Pi, prove_equal, prove_spec, prove_qasm, parse_qasm, QFTSpec, ArithSpec,
+from qoptct.dyadic import (DCircuit, Pi, prove_equal, prove_spec, prove_qasm, parse_qasm, QFTSpec, ArithSpec,
                                   PermutationSpec, adder_spec, const_adder_spec, multiplier_spec, NotDyadic)
-from qoptct.verify.dyadic import sim
-from qoptct.verify.dyadic.core import DPathSum, ZERO, ONE, peval
-from qoptct.verify.dyadic.api import _canon, _lam_equal
-from qoptct.verify.dyadic.circuit import recognise_float, to_angle, GATES
+from qoptct.dyadic import sim
+from qoptct.dyadic.core import DPathSum, ZERO, ONE, peval
+from qoptct.dyadic.api import _canon, _lam_equal
+from qoptct.dyadic.circuit import recognise_float, to_angle, GATES
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(HERE, 'data')
 
 
 # ----------------------------------------------------------------------------- helpers
-from qoptct.verify.dyadic.fuzz import (qft_circuit, dense_equal, consistent, rand_circuit, rewrite, mutate,
+from qoptct.dyadic.fuzz import (qft_circuit, dense_equal, consistent, rand_circuit, rewrite, mutate,
                                        run_fuzz)
 
 
@@ -448,7 +448,7 @@ def test_qiskit_translation_matches_qiskit_operator():
     from qiskit import QuantumCircuit
     from qiskit.quantum_info import Operator
     from qiskit.circuit.library import QFTGate, MCPhaseGate, MCXGate
-    from qoptct.verify.dyadic.qiskit_io import from_qiskit
+    from qoptct.dyadic.qiskit_io import from_qiskit
     rng = random.Random(4)
     one = ['h', 'x', 'y', 'z', 's', 'sdg', 't', 'tdg', 'sx', 'sxdg']
     par1 = ['p', 'rz', 'rx', 'ry']

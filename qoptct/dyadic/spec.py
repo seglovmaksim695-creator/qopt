@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Specifications for qoptct.verify.dyadic, each with an exact path sum (applied as an adjoint before the circuit).
+"""Specifications for qoptct.dyadic, each with an exact path sum (applied as an adjoint before the circuit).
 
 QFTSpec(wires, swaps=True, inverse=False)
     F |x> = 2^(-m/2) sum_y exp(2 pi i X Y / 2^m) |y>,  X = sum_j 2^j x_j with x_j on wires[j] (little endian, as in

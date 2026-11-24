@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Random-circuit harness for qoptct.verify.dyadic (used by tests/test_dyadic.py and scripts/dyadic_fuzz.py).
+"""Random-circuit harness for qoptct.dyadic (used by tests/test_dyadic.py and scripts/dyadic_fuzz.py).
 
 Pairs (circuit, reference) are built from a random circuit by exact rewrites (equivalent pairs) and by mutations
-(usually different).  The ground truth is the independent dense simulator qoptct.verify.dyadic.sim; a verdict is
+(usually different).  The ground truth is the independent dense simulator qoptct.dyadic.sim; a verdict is
 consistent if PROVED => dense-equal with the reported global phase, REFUTED => dense-different (or, with
 phase='exact', a global phase != 1).  Nothing here is used by the prover itself.
 """

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Exact sum-over-paths with dyadic phases (coefficients in Z_{2^K}): the engine of qoptct.verify.dyadic.
+"""Exact sum-over-paths with dyadic phases (coefficients in Z_{2^K}): the engine of qoptct.dyadic.
 
 Representation (M. Amy, "Towards Large-scale Functional Verification of Universal Quantum Circuits", QPL 2018,
 EPTCS 287 (2019), doi:10.4204/EPTCS.287.1, arXiv:1805.06908v2, Definition 2.1).  An operator acts on basis states as
@@ -37,7 +37,7 @@ condition does not hold is not applied:
 Why the HH condition is also necessary for a delta: sum_y exp(2 pi i y G / 2^K) = 1 + exp(2 pi i G / 2^K) is 0 or 2
 for every point iff 2 G = 0 mod 2^K pointwise, iff (canonical representation) every coefficient of G is 0 or 2^(K-1).
 Each rule removes at least one path variable, so the reduction terminates; nothing here ever answers PROVED by
-itself - the callers (qoptct.verify.dyadic.api) only accept a form with no path variables left (canonical) or an
+itself - the callers (qoptct.dyadic.api) only accept a form with no path variables left (canonical) or an
 exact enumeration.
 """
 import heapq

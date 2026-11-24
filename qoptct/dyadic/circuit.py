@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Circuits with dyadic angles for qoptct.verify.dyadic: exact angles, gate set, expansion to primitives.
+"""Circuits with dyadic angles for qoptct.dyadic: exact angles, gate set, expansion to primitives.
 
 Angles.  An angle is kept as an exact multiple of pi: theta = pi * r with r a Fraction (reduced modulo 2).  Inputs:
   * Pi(p, q)            exact: pi * p / q;
@@ -17,7 +17,7 @@ Gates (Qiskit names and conventions; qubit order as listed, controls first):
   id x y z h s sdg t tdg sx sxdg                      p(l) u1(l) phase(l) rz(l) rx(l) ry(l) u(t,f,l) u3 u2(f,l)
   gphase(l)  cx cnot cy cz cs csdg csx cp(l) cu1 cphase crz(l) swap dcx rzz(l)
   ccx toffoli ccz cswap fredkin  mcx mct c3x c4x (k controls, target)  mcz  mcp(l) mcphase mcu1 (controls, target)
-Every gate is expanded into the exact primitives of qoptct.verify.dyadic.core (Hadamard, XOR, swap, cswap, phase of a
+Every gate is expanded into the exact primitives of qoptct.dyadic.core (Hadamard, XOR, swap, cswap, phase of a
 product of wires, phase of an xor of wires); the identities are listed in `expand`.  The inverse of a circuit is the
 reversed primitive list with every phase negated (H, XOR, swap, cswap are self-inverse), so no gate-level inverse
 table is needed.
@@ -664,7 +664,7 @@ def _call(st, env, qmap, regs, defs, ops, gph, rec, depth):
 
 def from_qc(path):
     """qoptct .qc reference (read with qoptct.verify._parse.parse_qc) -> (DCircuit, names, inputs)."""
-    from .._parse import parse_qc
+    from ..verify._parse import parse_qc
     names, ins, gates = parse_qc(path)
     c = DCircuit(len(names))
     for nm, qs in gates:
