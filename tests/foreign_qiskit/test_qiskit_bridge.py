@@ -175,5 +175,8 @@ def test_registry_matches_families():
         assert r["family"] in FAMILIES
         if r["status"] == "PROVED":
             assert r["max_n_proved"] >= 16
-            if r["canaries"]:
-                assert r["canaries"]["proved_false"] == 0 and r["canaries"]["refuted"] >= 20
+            # every PROVED row has canaries at its largest proved size (audit 0.8, X4)
+            assert r["canaries"], r["family"]
+            assert r["canaries"]["n"] == r["max_n_proved"], r["family"]
+            assert r["canaries"]["proved_false"] == 0 and r["canaries"]["unknown"] == 0
+            assert r["canaries"]["refuted"] >= 20, r["family"]

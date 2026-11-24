@@ -14,7 +14,14 @@
     64,
     256
    ],
-   "canaries": null,
+   "canaries": {
+    "n": 256,
+    "mutants": 28,
+    "refuted": 26,
+    "equivalent": 2,
+    "unknown": 0,
+    "proved_false": 0
+   },
    "command": "python -m qoptct.foreign.qiskit prove and 256"
   },
   {
@@ -333,7 +340,14 @@
     64,
     256
    ],
-   "canaries": null,
+   "canaries": {
+    "n": 256,
+    "mutants": 50,
+    "refuted": 49,
+    "equivalent": 1,
+    "unknown": 0,
+    "proved_false": 0
+   },
    "command": "python -m qoptct.foreign.qiskit prove or 256"
   },
   {
@@ -407,7 +421,14 @@
     64,
     256
    ],
-   "canaries": null,
+   "canaries": {
+    "n": 256,
+    "mutants": 47,
+    "refuted": 44,
+    "equivalent": 3,
+    "unknown": 0,
+    "proved_false": 0
+   },
    "command": "python -m qoptct.foreign.qiskit prove xor-const 256"
   }
  ]
