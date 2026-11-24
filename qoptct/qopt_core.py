@@ -1390,7 +1390,12 @@ def _main():
                   "(module qoptct.dyn; `qoptct dyn --help`)")
     sp.add_parser("qualtran", add_help=False, help="proofs about Qualtran blocks: check, prove, pair, results "
                   "(module qoptct.foreign.qualtran; needs the extra `qualtran`; `qoptct qualtran --help`)")
+    sp.add_parser("loop", add_help=False, help="propose -> prove -> accumulate: journal of proved improvements "
+                  "(module qoptct.loop; `qoptct loop --help`)")
     sp.add_parser("version")
+    if sys.argv[1:2] == ["loop"]:
+        from .loop.cli import main as loop_main
+        sys.exit(loop_main(sys.argv[2:]))
     if sys.argv[1:2] == ["qualtran"]:
         from .foreign.qualtran.cli import main as qualtran_main
         sys.exit(qualtran_main(sys.argv[2:]))
