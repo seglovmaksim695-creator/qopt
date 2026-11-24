@@ -148,7 +148,19 @@
      "contract": "Xor(1)"
     }
    ],
-   "canaries": null,
+   "canaries": {
+    "file": "canaries_montgomery_n256_w1.json",
+    "sha256": "3cfb35c00197d62cb535e5017d28354e5e96e0589ee57a3d90c0d01e63fd7b4d",
+    "total": 34,
+    "counted": 34,
+    "joints": 20,
+    "gates": 14,
+    "not_proved": 34,
+    "proved": [],
+    "ok": true,
+    "source_sha256": "d80d01de696bdca5f3c8622505e033141fb7e51ce14e6a20f351971db8d95de9",
+    "program_ops_sha256": "90e665cd297649d88ca4259bfe640a2269ef2a59c21d38122b3273882ddd7883"
+   },
    "compare_07": {
     "entry_07": "montgomery_mul/montgomery_n256_w1",
     "program_07": "90e665cd297649d88ca4259bfe640a2269ef2a59c21d38122b3273882ddd7883",
@@ -330,7 +342,19 @@
      "contract": "X"
     }
    ],
-   "canaries": null,
+   "canaries": {
+    "file": "canaries_montgomery_n256_w2.json",
+    "sha256": "7fa26ff2e6d17ce0840a52e47a74cd811f0da5a2a39900f93845796a26d08d19",
+    "total": 34,
+    "counted": 34,
+    "joints": 20,
+    "gates": 14,
+    "not_proved": 34,
+    "proved": [],
+    "ok": true,
+    "source_sha256": "d80d01de696bdca5f3c8622505e033141fb7e51ce14e6a20f351971db8d95de9",
+    "program_ops_sha256": "ffd71399723c972aa70662a4eccc4b7095db4ba51142c6fb4f9c450683cc7482"
+   },
    "compare_07": {
     "entry_07": "montgomery_mul/montgomery_n256_w2",
     "program_07": "ffd71399723c972aa70662a4eccc4b7095db4ba51142c6fb4f9c450683cc7482",
