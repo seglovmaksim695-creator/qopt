@@ -8,8 +8,10 @@ compared through the miter ``circuit * reference^-1`` (all wires, clean wires ar
 
 PROVED comes only from the exact prover (kprove, BDD sum-over-paths with symbolic outcomes) or from an exhaustive
 enumeration of ALL inputs of a classical circuit.  REFUTED always carries a witness that was replayed by an
-independent classical simulator.  Everything else (fractional phases, unsupported gate, budget, no symbolic form) is
-UNKNOWN; an unproved sample never becomes PROVED.
+independent classical simulator.  Everything else (unsupported gate, budget, no symbolic form) is UNKNOWN; an unproved
+sample never becomes PROVED.  Rotations that are not multiples of pi/4 go to the dyadic prover (qoptct.dyadic, see
+dyadic_bridge) when the call gives a reference circuit or a dyadic spec; without one the result is UNKNOWN with
+needs == 'fractional_phases'.
 """
 from __future__ import annotations
 
@@ -175,6 +177,11 @@ def check_qiskit(circuit, spec=None, reference=None, *, clean=(), ref_clean=(), 
     try:
         if (spec is None) == (reference is None):
             raise QiskitTranslationError('give exactly one of spec and reference')
+        from .dyadic_bridge import is_dyadic_spec, via_dyadic
+        if spec is not None and is_dyadic_spec(spec):      # a QFT / Fourier-arithmetic specification
+            out.update(method='dyadic', detail='')
+            via_dyadic(out, circuit, spec, None, clean, ref_clean, budget_sec)
+            return _finish(out, t0)
         tr = translate(circuit, mcx=mcx)
         out['translation'] = _info(tr)
         if reference is not None:
@@ -210,6 +217,8 @@ def check_qiskit(circuit, spec=None, reference=None, *, clean=(), ref_clean=(), 
             out['detail'] = 'prover: %s %s' % (st, out['detail'])
     except NeedsFractionalPhases as e:
         out.update(method='translate', needs='fractional_phases', detail=str(e), rotations=e.gates)
+        # rotations pi*p/2^k: the dyadic prover, when a reference circuit is given (a dyadic spec took the path above)
+        via_dyadic(out, circuit, spec, reference, clean, ref_clean, budget_sec)
     except QiskitTranslationError as e:
         out.update(method='translate', detail=str(e))
     except Exception as e:
