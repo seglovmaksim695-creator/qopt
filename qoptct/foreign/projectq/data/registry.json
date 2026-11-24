@@ -1,0 +1,2147 @@
+{
+ "entries": [
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "Binary_ECC Multiplication/Mul_x127.py",
+   "canaries": {
+    "by_group": {
+     "erasure": 8,
+     "junction": 3,
+     "other": 6,
+     "phase": 4,
+     "rare": 3
+    },
+    "decided": 24,
+    "equivalent": 0,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 6555,
+     "free": 6174,
+     "x1": 24660,
+     "x2": 2185
+    },
+    "logical_ops": 31215,
+    "logical_wires": 6556,
+    "mode": "nct",
+    "wires": 6555
+   },
+   "claim": "result = x*y mod f in GF(2^127), f = 0x80000000000000000000000000000003, x and y unchanged, every wire that is not x, y, result or garbage ends in |0>, the 2058 garbage wires end in the values of the pin",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "binary_ecc_multiplier_m127.json",
+    "sha256": "c3624b4e5da60823573dcccd6a60b34f5dd35716a4a0e7cef12846924ec98ee9"
+   },
+   "garbage": {
+    "kind": "w2",
+    "note": "garbage wires are compared with the golden circuit, not proved meaningful",
+    "pin_sha256": "b6e844e3f70bacf50312208fdf66f5b08834fdc425ea0104b90e6b6256f3fd1d",
+    "wires": 2058
+   },
+   "id": "binary_ecc_multiplier/m127",
+   "independent": {
+    "exact_vs_sampled": {
+     "detail": "96 sample lanes agree with the schoolbook product, x and y unchanged, clean wires clean",
+     "ok": true
+    },
+    "projectq_classical_simulator": {
+     "detail": "24 inputs agree with ProjectQ ClassicalSimulator (sampled)",
+     "ok": true,
+     "tested": 24
+    }
+   },
+   "name": "binary_ecc_multiplier",
+   "program": {
+    "name": "logical_sha256",
+    "value": "753693d7269b31f54854a6a53b34273245c5359d2bd63563e09777fbb702afcd"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "744cd2aa7861521528f29b90a30855d11d0d9d2024f5a78066869ed22a727c69",
+   "reproduce": "python -m qoptct.foreign.projectq prove multiplier --m 127 --source <Binary_ECC folder>",
+   "size": 127,
+   "source": {
+    "file": "Multiplication/Mul_x127.py",
+    "sha256": "f804886a30dadceb48dcac951dc8fca1dd6c7988c82766616cc1eb6ed11ab58b"
+   },
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "Binary_ECC Multiplication/Mul_x16.py",
+   "canaries": {
+    "by_group": {
+     "erasure": 8,
+     "junction": 3,
+     "other": 6,
+     "phase": 4,
+     "rare": 3
+    },
+    "decided": 24,
+    "equivalent": 0,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 243,
+     "free": 195,
+     "x1": 828,
+     "x2": 81
+    },
+    "logical_ops": 1071,
+    "logical_wires": 244,
+    "mode": "nct",
+    "wires": 243
+   },
+   "claim": "result = x*y mod f in GF(2^16), f = 0x1002b, x and y unchanged, every wire that is not x, y, result or garbage ends in |0>, the 65 garbage wires end in the values of the pin",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "binary_ecc_multiplier_m16.json",
+    "sha256": "09fd72b2acfdec0baebe05395e9d628bb7ab44710f5847c0d24a73ffc7ad7930"
+   },
+   "garbage": {
+    "kind": "w2",
+    "note": "garbage wires are compared with the golden circuit, not proved meaningful",
+    "pin_sha256": "74a84e7a04bba9b4ff794b90abbce7d40ab89470bb72a64a256094878496de56",
+    "wires": 65
+   },
+   "id": "binary_ecc_multiplier/m16",
+   "independent": {
+    "exact_vs_sampled": {
+     "detail": "96 sample lanes agree with the schoolbook product, x and y unchanged, clean wires clean",
+     "ok": true
+    },
+    "projectq_classical_simulator": {
+     "detail": "24 inputs agree with ProjectQ ClassicalSimulator (sampled)",
+     "ok": true,
+     "tested": 24
+    }
+   },
+   "name": "binary_ecc_multiplier",
+   "program": {
+    "name": "logical_sha256",
+    "value": "c905578d738e1db5a88438755d8ed245422807c0ef4e80c04bd93d357b6ea337"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "d9a2fb6902bf711a03fff88556a74daca47c5ce3d7d35e94187bba33f06b413a",
+   "reproduce": "python -m qoptct.foreign.projectq prove multiplier --m 16 --source <Binary_ECC folder>",
+   "size": 16,
+   "source": {
+    "file": "Multiplication/Mul_x16.py",
+    "sha256": "a2f22fb7e60be77ad3705b7314cca9a70cdc49c642ed96b3f4df0f248c414ae6"
+   },
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "Binary_ECC Multiplication/Mul_x163.py",
+   "canaries": {
+    "by_group": {
+     "erasure": 8,
+     "junction": 3,
+     "other": 6,
+     "phase": 4,
+     "rare": 3
+    },
+    "decided": 24,
+    "equivalent": 0,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 13161,
+     "free": 12672,
+     "x1": 46329,
+     "x2": 4387
+    },
+    "logical_ops": 59490,
+    "logical_wires": 13162,
+    "mode": "nct",
+    "wires": 13161
+   },
+   "claim": "result = x*y mod f in GF(2^163), f = 0x800000000000000000000000000000000000000c9, x and y unchanged, every wire that is not x, y, result or garbage ends in |0>, the 4224 garbage wires end in the values of the pin",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "binary_ecc_multiplier_m163.json",
+    "sha256": "bed01a6297629f55aeedf749d0400d8506a4ca4dfc44cd6f85014c85e318b6d3"
+   },
+   "garbage": {
+    "kind": "w2",
+    "note": "garbage wires are compared with the golden circuit, not proved meaningful",
+    "pin_sha256": "8b27df0600a2d2c7babbfd208a3ec4b3230a4bba298f0c32dfcb3709f8a2a72c",
+    "wires": 4224
+   },
+   "id": "binary_ecc_multiplier/m163",
+   "independent": {
+    "exact_vs_sampled": {
+     "detail": "96 sample lanes agree with the schoolbook product, x and y unchanged, clean wires clean",
+     "ok": true
+    },
+    "projectq_classical_simulator": {
+     "detail": "24 inputs agree with ProjectQ ClassicalSimulator (sampled)",
+     "ok": true,
+     "tested": 24
+    }
+   },
+   "name": "binary_ecc_multiplier",
+   "program": {
+    "name": "logical_sha256",
+    "value": "d7e9c975fcd1d68dedcec864f761345e02a8a79cf9c330c68e7df698b85658aa"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "cf3ab0a433b1d9267605b3eeb51c969d2e29342b3ad9ae8ab1030d875f36ebea",
+   "reproduce": "python -m qoptct.foreign.projectq prove multiplier --m 163 --source <Binary_ECC folder>",
+   "size": 163,
+   "source": {
+    "file": "Multiplication/Mul_x163.py",
+    "sha256": "a5446feb7cba6e35e9339bcb931ad31e54d0b29a5ad42ab69f404d6de8309d6a"
+   },
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "Binary_ECC Multiplication/Mul_x233.py",
+   "canaries": {
+    "by_group": {
+     "erasure": 8,
+     "junction": 3,
+     "other": 6,
+     "phase": 4,
+     "rare": 3
+    },
+    "decided": 24,
+    "equivalent": 0,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 18969,
+     "free": 18270,
+     "x1": 71197,
+     "x2": 6323
+    },
+    "logical_ops": 90166,
+    "logical_wires": 18970,
+    "mode": "nct",
+    "wires": 18969
+   },
+   "claim": "result = x*y mod f in GF(2^233), f = 0x20000000000000000000000000000000000000004000000000000000001, x and y unchanged, every wire that is not x, y, result or garbage ends in |0>, the 6090 garbage wires end in the values of the pin",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "binary_ecc_multiplier_m233.json",
+    "sha256": "ea3d15d0fed688a11385dfec4b97dcdf508ab054a63657c23f8b9cd8b21e7eba"
+   },
+   "garbage": {
+    "kind": "w2",
+    "note": "garbage wires are compared with the golden circuit, not proved meaningful",
+    "pin_sha256": "b3e8adb14671a57b0515e3f080cbac206d8d6f827ee4748c6f548d051c75af77",
+    "wires": 6090
+   },
+   "id": "binary_ecc_multiplier/m233",
+   "independent": {
+    "exact_vs_sampled": {
+     "detail": "96 sample lanes agree with the schoolbook product, x and y unchanged, clean wires clean",
+     "ok": true
+    },
+    "projectq_classical_simulator": {
+     "detail": "24 inputs agree with ProjectQ ClassicalSimulator (sampled)",
+     "ok": true,
+     "tested": 24,
+     "via": "gates"
+    }
+   },
+   "name": "binary_ecc_multiplier",
+   "program": {
+    "name": "logical_sha256",
+    "value": "3e2813228eea974a638bc20f9c4cc354239bc18ae534948147b0cb145487f12f"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "a04d5eafa1afa1be4d5c987b4fd271a38709279300a732feb50f42d880d1d4a0",
+   "reproduce": "python -m qoptct.foreign.projectq prove multiplier --m 233 --source <Binary_ECC folder>",
+   "size": 233,
+   "source": {
+    "file": "Multiplication/Mul_x233.py",
+    "sha256": "55f230976d782e1a59d80d8a5cb63c146c28dd6e4cde6564db95ba1b0eb4086d"
+   },
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "Binary_ECC Multiplication/Mul_x283.py",
+   "canaries": {
+    "by_group": {
+     "erasure": 8,
+     "junction": 3,
+     "other": 6,
+     "phase": 4,
+     "rare": 3
+    },
+    "decided": 24,
+    "equivalent": 0,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 30819,
+     "free": 29970,
+     "x1": 110571,
+     "x2": 10273
+    },
+    "logical_ops": 141390,
+    "logical_wires": 30820,
+    "mode": "nct",
+    "wires": 30819
+   },
+   "claim": "result = x*y mod f in GF(2^283), f = 0x800000000000000000000000000000000000000000000000000000000000000000010a1, x and y unchanged, every wire that is not x, y, result or garbage ends in |0>, the 9990 garbage wires end in the values of the pin",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "binary_ecc_multiplier_m283.json",
+    "sha256": "a436fdda4bdf678850a3c617e8afc066fc8fbfd63e93691063108c5f6ec58f11"
+   },
+   "garbage": {
+    "kind": "w2",
+    "note": "garbage wires are compared with the golden circuit, not proved meaningful",
+    "pin_sha256": "f53c8d87453133c0665cea7d3e5be4e59f4e0ef7c2992a4b36dd491a139708e4",
+    "wires": 9990
+   },
+   "id": "binary_ecc_multiplier/m283",
+   "independent": {
+    "exact_vs_sampled": {
+     "detail": "96 sample lanes agree with the schoolbook product, x and y unchanged, clean wires clean",
+     "ok": true
+    },
+    "projectq_classical_simulator": {
+     "detail": "24 inputs agree with ProjectQ ClassicalSimulator (sampled)",
+     "ok": true,
+     "tested": 24,
+     "via": "gates"
+    }
+   },
+   "name": "binary_ecc_multiplier",
+   "program": {
+    "name": "logical_sha256",
+    "value": "0be408d5aac8cb2bca747ff4f1a119c52ff3ed20ee3cfc172e21d8ee7566e09e"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "313e0e80b435f95f4d6854d8442a53198e1f581245db38ab812bc51dec049f43",
+   "reproduce": "python -m qoptct.foreign.projectq prove multiplier --m 283 --source <Binary_ECC folder>",
+   "size": 283,
+   "source": {
+    "file": "Multiplication/Mul_x283.py",
+    "sha256": "697005652a43504d5112019c1fe12d9cb3db3096e331ca15775bdc4832a7056e"
+   },
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "Binary_ECC Multiplication/Mul_x8.py",
+   "canaries": {
+    "by_group": {
+     "erasure": 8,
+     "junction": 3,
+     "other": 6,
+     "phase": 4,
+     "rare": 3
+    },
+    "decided": 24,
+    "equivalent": 0,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 81,
+     "free": 57,
+     "x1": 237,
+     "x2": 27
+    },
+    "logical_ops": 318,
+    "logical_wires": 82,
+    "mode": "nct",
+    "wires": 81
+   },
+   "claim": "result = x*y mod f in GF(2^8), f = 0x11b, x and y unchanged, every wire that is not x, y, result or garbage ends in |0>, the 19 garbage wires end in the values of the pin",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "binary_ecc_multiplier_m8.json",
+    "sha256": "1227125a6911395e48ed2a746cc508f59b62db44bdf27a2bb0247a596ebc261e"
+   },
+   "garbage": {
+    "kind": "w2",
+    "note": "garbage wires are compared with the golden circuit, not proved meaningful",
+    "pin_sha256": "48cba4a9bb6bf53f0e1bc3c7c1751a7772e4ab54ff36577b60aca70df81b9d7a",
+    "wires": 19
+   },
+   "id": "binary_ecc_multiplier/m8",
+   "independent": {
+    "exact_vs_sampled": {
+     "detail": "96 sample lanes agree with the schoolbook product, x and y unchanged, clean wires clean",
+     "ok": true
+    },
+    "projectq_classical_simulator": {
+     "detail": "24 inputs agree with ProjectQ ClassicalSimulator (sampled)",
+     "ok": true,
+     "tested": 24
+    }
+   },
+   "name": "binary_ecc_multiplier",
+   "program": {
+    "name": "logical_sha256",
+    "value": "dd228c6b46558d5984695a98c7d131584c08835f736a3dfedef266115a799fb5"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "e6688c9361941737b7f36c825abdeb64f28548c4f53f6f0bda482470798594aa",
+   "reproduce": "python -m qoptct.foreign.projectq prove multiplier --m 8 --source <Binary_ECC folder>",
+   "size": 8,
+   "source": {
+    "file": "Multiplication/Mul_x8.py",
+    "sha256": "323b5f8c52990ba4b178c795e8d766b8cd06b6c0bac0616d9ea0e6928083a736"
+   },
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "Binary_ECC Point_additions/FLT_in/x^8/Point_addition_x8.py",
+   "canaries": {
+    "by_group": {
+     "erasure": 8,
+     "junction": 3,
+     "other": 6,
+     "phase": 4,
+     "rare": 3
+    },
+    "decided": 24,
+    "equivalent": 0,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 419,
+     "x0": 24,
+     "x1": 3352,
+     "x2": 340
+    },
+    "logical_ops": 4396,
+    "logical_wires": 420,
+    "mode": "nct",
+    "wires": 419
+   },
+   "claim": "q = 0: (x1, y1) unchanged; q = 1 and x1 != x2: (x1, y1) <- (x1, y1) + (x2, y2) on y^2 + xy = x^3 + a x^2 + b over GF(2^8); constants a=3, x2=0xab, y2=0xcf; all 131072 inputs; clean wires clean; 364 garbage wires equal the pin",
+   "domain": "inputs satisfying the promise",
+   "evidence": {
+    "file": "binary_ecc_point_addition_FLT_in_m8.json",
+    "sha256": "7fdcf144da87f86a617b7f309173f7714a4ccea0f08769b16989770ca08363ff"
+   },
+   "garbage": {
+    "kind": "full",
+    "note": "garbage wires are compared with the golden circuit, not proved meaningful",
+    "pin_sha256": "61b646546ef9d055db6c3c5c2bb3faae92c9a235841f48b65403f429f6b32814",
+    "wires": 364
+   },
+   "id": "binary_ecc_point_addition/FLT_in_m8",
+   "independent": {
+    "exact_vs_sampled": null,
+    "projectq_classical_simulator": {
+     "detail": "48 inputs agree with ProjectQ ClassicalSimulator (sampled)",
+     "ok": true,
+     "tested": 48
+    }
+   },
+   "name": "binary_ecc_point_addition",
+   "program": {
+    "name": "logical_sha256",
+    "value": "8ea4ef377e66491c7b24aa80d378552d9f95fa7f79292b40bc31fb4480708984"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "79f4098fb4c22d038ad78085554ab896b16df2b1c6acaba9d465bc5d52e73e37",
+   "reproduce": "python -m qoptct.foreign.projectq prove point-addition --m 8 --source <Binary_ECC folder>",
+   "size": 8,
+   "source": {
+    "file": "Point_additions/FLT_in/x^8/Point_addition_x8.py",
+    "sha256": "472079ba1c5dc6dd548da4d98fed23987b9f2d1ce9c857640ff7a124c144590d"
+   },
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "projectq.libs.math: add_quantum_carry",
+   "canaries": {
+    "by_group": {
+     "erasure": 8,
+     "junction": 3,
+     "other": 6,
+     "phase": 4,
+     "rare": 3
+    },
+    "decided": 24,
+    "equivalent": 0,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 5,
+     "x1": 5,
+     "x2": 3
+    },
+    "logical_ops": 14,
+    "logical_wires": 6,
+    "mode": "nct",
+    "wires": 5
+   },
+   "claim": "add_quantum_carry_n2: all outputs equal the arithmetic specification, every other wire ends in |0>",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "projectq_library_add_quantum_carry_n2.json",
+    "sha256": "2da23ec8baf1914743245d9efcb537daa740a8697265115bf3399d8b4471a759"
+   },
+   "garbage": {
+    "kind": null,
+    "note": "no garbage",
+    "pin_sha256": null,
+    "wires": 0
+   },
+   "id": "projectq_library/add_quantum_carry_n2",
+   "independent": {
+    "exact_vs_sampled": null,
+    "projectq_classical_simulator": {
+     "detail": "32 inputs agree with ProjectQ ClassicalSimulator (all inputs)",
+     "ok": true,
+     "tested": 32,
+     "via": "gates"
+    }
+   },
+   "name": "projectq_library",
+   "program": {
+    "name": "logical_sha256",
+    "value": "cbde48f2da2a271ef1b5d58c1f90b3c4c86a8193b554de4b2b0d99038a91743e"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "0969a22ad704d53fa9323febb94e9ee8d696154712bdd30f504cdb74844d4732",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block add_quantum_carry --n 2",
+   "size": 2,
+   "source": null,
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "projectq.libs.math: add_quantum_carry",
+   "canaries": {
+    "by_group": {
+     "erasure": 8,
+     "junction": 3,
+     "other": 6,
+     "phase": 4,
+     "rare": 3
+    },
+    "decided": 24,
+    "equivalent": 0,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 9,
+     "x1": 15,
+     "x2": 7
+    },
+    "logical_ops": 36,
+    "logical_wires": 10,
+    "mode": "nct",
+    "wires": 9
+   },
+   "claim": "add_quantum_carry_n4: all outputs equal the arithmetic specification, every other wire ends in |0>",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "projectq_library_add_quantum_carry_n4.json",
+    "sha256": "7454ae9182cf5f0bdd64e371bdc22d83422d65231156801b81a1ad54bcc12690"
+   },
+   "garbage": {
+    "kind": null,
+    "note": "no garbage",
+    "pin_sha256": null,
+    "wires": 0
+   },
+   "id": "projectq_library/add_quantum_carry_n4",
+   "independent": {
+    "exact_vs_sampled": null,
+    "projectq_classical_simulator": {
+     "detail": "512 inputs agree with ProjectQ ClassicalSimulator (all inputs)",
+     "ok": true,
+     "tested": 512,
+     "via": "gates"
+    }
+   },
+   "name": "projectq_library",
+   "program": {
+    "name": "logical_sha256",
+    "value": "25b9e393c609b1b23719620afbcf15f80fd6a3246a9669930dfe3a2f736daff3"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "d04d3c13340ad9c99da36b30cef816c26e6679adc708db7d0c0d0f836332574a",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block add_quantum_carry --n 4",
+   "size": 4,
+   "source": null,
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "projectq.libs.math: add_quantum_carry",
+   "canaries": {
+    "by_group": {
+     "erasure": 8,
+     "junction": 3,
+     "other": 6,
+     "phase": 4,
+     "rare": 3
+    },
+    "decided": 24,
+    "equivalent": 0,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 15,
+     "x1": 30,
+     "x2": 13
+    },
+    "logical_ops": 69,
+    "logical_wires": 16,
+    "mode": "nct",
+    "wires": 15
+   },
+   "claim": "add_quantum_carry_n7: all outputs equal the arithmetic specification, every other wire ends in |0>",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "projectq_library_add_quantum_carry_n7.json",
+    "sha256": "1ccff27dcce97f049d3032d4da11e13510399df1b0d5f8eec193e0020893e1f1"
+   },
+   "garbage": {
+    "kind": null,
+    "note": "no garbage",
+    "pin_sha256": null,
+    "wires": 0
+   },
+   "id": "projectq_library/add_quantum_carry_n7",
+   "independent": {
+    "exact_vs_sampled": null,
+    "projectq_classical_simulator": {
+     "detail": "24 inputs agree with ProjectQ ClassicalSimulator (sampled)",
+     "ok": true,
+     "tested": 24,
+     "via": "gates"
+    }
+   },
+   "name": "projectq_library",
+   "program": {
+    "name": "logical_sha256",
+    "value": "d08a4597c9fee9f0292ffffda37d0419ae01b296b1c78b2343fb722ac3f0c953"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "90d87697f2133e9a6046c8a8a45fdcbc776f83240439b468dff23cc5112f8ac1",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block add_quantum_carry --n 7",
+   "size": 7,
+   "source": null,
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "projectq.libs.math: add_quantum_controlled",
+   "canaries": {
+    "by_group": {
+     "erasure": 8,
+     "junction": 3,
+     "other": 6,
+     "phase": 4,
+     "rare": 3
+    },
+    "decided": 24,
+    "equivalent": 0,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 9,
+     "free": 4,
+     "x1": 4,
+     "x2": 10
+    },
+    "logical_ops": 34,
+    "logical_wires": 10,
+    "mode": "nct",
+    "wires": 9
+   },
+   "claim": "add_quantum_controlled_n2: all outputs equal the arithmetic specification, every other wire ends in |0>",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "projectq_library_add_quantum_controlled_n2.json",
+    "sha256": "3b77f83168a8669e72dea2b382c7123f9bdcc9b1c58c156866cd606e9fb09a4b"
+   },
+   "garbage": {
+    "kind": null,
+    "note": "no garbage",
+    "pin_sha256": null,
+    "wires": 0
+   },
+   "id": "projectq_library/add_quantum_controlled_n2",
+   "independent": {
+    "exact_vs_sampled": null,
+    "projectq_classical_simulator": {
+     "detail": "32 inputs agree with ProjectQ ClassicalSimulator (all inputs)",
+     "ok": true,
+     "tested": 32,
+     "via": "gates"
+    }
+   },
+   "name": "projectq_library",
+   "program": {
+    "name": "logical_sha256",
+    "value": "db6d898b08c0700d2e517dda6659920872317c9988d7a3925ffd4db1412fa764"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "f70c2b926da0e72e23529cb98088739904783f8f7a1906456abe3ec8818bd8d2",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block add_quantum_controlled --n 2",
+   "size": 2,
+   "source": null,
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "projectq.libs.math: add_quantum_controlled",
+   "canaries": {
+    "by_group": {
+     "erasure": 8,
+     "junction": 3,
+     "other": 6,
+     "phase": 4,
+     "rare": 3
+    },
+    "decided": 24,
+    "equivalent": 0,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 19,
+     "free": 10,
+     "x1": 8,
+     "x2": 32
+    },
+    "logical_ops": 104,
+    "logical_wires": 20,
+    "mode": "nct",
+    "wires": 19
+   },
+   "claim": "add_quantum_controlled_n4: all outputs equal the arithmetic specification, every other wire ends in |0>",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "projectq_library_add_quantum_controlled_n4.json",
+    "sha256": "9af504687020144c946f02ed33d44d4fc0f9c4468158ea9e47649afd7338528a"
+   },
+   "garbage": {
+    "kind": null,
+    "note": "no garbage",
+    "pin_sha256": null,
+    "wires": 0
+   },
+   "id": "projectq_library/add_quantum_controlled_n4",
+   "independent": {
+    "exact_vs_sampled": null,
+    "projectq_classical_simulator": {
+     "detail": "512 inputs agree with ProjectQ ClassicalSimulator (all inputs)",
+     "ok": true,
+     "tested": 512,
+     "via": "gates"
+    }
+   },
+   "name": "projectq_library",
+   "program": {
+    "name": "logical_sha256",
+    "value": "868005559adfc1559a1b128985e061c5540e2f90897686d02f1ff0f6cf11260f"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "8e754046e3fcc3ed9add6d4c947ac105ca666474f692116dfe3df23955eb45fa",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block add_quantum_controlled --n 4",
+   "size": 4,
+   "source": null,
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "projectq.libs.math: add_quantum_controlled",
+   "canaries": {
+    "by_group": {
+     "erasure": 8,
+     "junction": 3,
+     "other": 6,
+     "phase": 4,
+     "rare": 3
+    },
+    "decided": 24,
+    "equivalent": 0,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 29,
+     "free": 16,
+     "x1": 12,
+     "x2": 54
+    },
+    "logical_ops": 174,
+    "logical_wires": 30,
+    "mode": "nct",
+    "wires": 29
+   },
+   "claim": "add_quantum_controlled_n6: all outputs equal the arithmetic specification, every other wire ends in |0>",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "projectq_library_add_quantum_controlled_n6.json",
+    "sha256": "3b25ae8b469901338c0e6703b7e984969f561a09585de56eda66815472f5e1bd"
+   },
+   "garbage": {
+    "kind": null,
+    "note": "no garbage",
+    "pin_sha256": null,
+    "wires": 0
+   },
+   "id": "projectq_library/add_quantum_controlled_n6",
+   "independent": {
+    "exact_vs_sampled": null,
+    "projectq_classical_simulator": {
+     "detail": "24 inputs agree with ProjectQ ClassicalSimulator (sampled)",
+     "ok": true,
+     "tested": 24,
+     "via": "gates"
+    }
+   },
+   "name": "projectq_library",
+   "program": {
+    "name": "logical_sha256",
+    "value": "a7c48a4d7c540e199b72409fd100f7e41c73a972336927ee9bf3bd603b0ead6b"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "da00bb3b2bc199ef5dbb67ca0b15c4535d16eff25f77c86635424df969641dbf",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block add_quantum_controlled --n 6",
+   "size": 6,
+   "source": null,
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "projectq.libs.math: add_quantum",
+   "canaries": {
+    "by_group": {
+     "erasure": 8,
+     "junction": 3,
+     "other": 6,
+     "phase": 4,
+     "rare": 3
+    },
+    "decided": 24,
+    "equivalent": 0,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 4,
+     "x1": 4,
+     "x2": 2
+    },
+    "logical_ops": 10,
+    "logical_wires": 5,
+    "mode": "nct",
+    "wires": 4
+   },
+   "claim": "add_quantum_n2: all outputs equal the arithmetic specification, every other wire ends in |0>",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "projectq_library_add_quantum_n2.json",
+    "sha256": "c7f73593c0a59f6be14d758ecdc8ef85913984a2a703517020af1a82e9fae494"
+   },
+   "garbage": {
+    "kind": null,
+    "note": "no garbage",
+    "pin_sha256": null,
+    "wires": 0
+   },
+   "id": "projectq_library/add_quantum_n2",
+   "independent": {
+    "exact_vs_sampled": null,
+    "projectq_classical_simulator": {
+     "detail": "16 inputs agree with ProjectQ ClassicalSimulator (all inputs)",
+     "ok": true,
+     "tested": 16,
+     "via": "gates"
+    }
+   },
+   "name": "projectq_library",
+   "program": {
+    "name": "logical_sha256",
+    "value": "079c08202847fbfa124be8452365c83b062581df154c8dcb20dff400f5a94ed9"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "c1e793e300420eff9fce9a22f5f8048d223fa7d6423442d6da16def471f2f441",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block add_quantum --n 2",
+   "size": 2,
+   "source": null,
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "projectq.libs.math: add_quantum",
+   "canaries": {
+    "by_group": {
+     "erasure": 8,
+     "junction": 3,
+     "other": 6,
+     "phase": 4,
+     "rare": 3
+    },
+    "decided": 24,
+    "equivalent": 0,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 6,
+     "x1": 9,
+     "x2": 4
+    },
+    "logical_ops": 21,
+    "logical_wires": 7,
+    "mode": "nct",
+    "wires": 6
+   },
+   "claim": "add_quantum_n3: all outputs equal the arithmetic specification, every other wire ends in |0>",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "projectq_library_add_quantum_n3.json",
+    "sha256": "96d67adfae8047608ae92d385856d416088948d57d9561d03cc5489903cb74b1"
+   },
+   "garbage": {
+    "kind": null,
+    "note": "no garbage",
+    "pin_sha256": null,
+    "wires": 0
+   },
+   "id": "projectq_library/add_quantum_n3",
+   "independent": {
+    "exact_vs_sampled": null,
+    "projectq_classical_simulator": {
+     "detail": "64 inputs agree with ProjectQ ClassicalSimulator (all inputs)",
+     "ok": true,
+     "tested": 64,
+     "via": "gates"
+    }
+   },
+   "name": "projectq_library",
+   "program": {
+    "name": "logical_sha256",
+    "value": "0bf0bcd041ef15cb7c39d7fc325a2d1d31cb393d013cbe150255a52a9c88e64a"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "42f76a31dc6096414a646e1612797fce51fc1186d3460e28d016676581df284c",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block add_quantum --n 3",
+   "size": 3,
+   "source": null,
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "projectq.libs.math: add_quantum",
+   "canaries": {
+    "by_group": {
+     "erasure": 8,
+     "junction": 3,
+     "other": 6,
+     "phase": 4,
+     "rare": 3
+    },
+    "decided": 24,
+    "equivalent": 0,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 8,
+     "x1": 14,
+     "x2": 6
+    },
+    "logical_ops": 32,
+    "logical_wires": 9,
+    "mode": "nct",
+    "wires": 8
+   },
+   "claim": "add_quantum_n4: all outputs equal the arithmetic specification, every other wire ends in |0>",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "projectq_library_add_quantum_n4.json",
+    "sha256": "890cb39716c576c7c280c75a74696e0425b462193c5517d56211799657d523ea"
+   },
+   "garbage": {
+    "kind": null,
+    "note": "no garbage",
+    "pin_sha256": null,
+    "wires": 0
+   },
+   "id": "projectq_library/add_quantum_n4",
+   "independent": {
+    "exact_vs_sampled": null,
+    "projectq_classical_simulator": {
+     "detail": "256 inputs agree with ProjectQ ClassicalSimulator (all inputs)",
+     "ok": true,
+     "tested": 256,
+     "via": "gates"
+    }
+   },
+   "name": "projectq_library",
+   "program": {
+    "name": "logical_sha256",
+    "value": "a117a4c71301763432130224375dcb717eae9aa2707b5a7faa3fe359ac125d90"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "7d050167db8df4b225cbf9442ee83f9d2d73b6e82883d569e7a6adae1da486f9",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block add_quantum --n 4",
+   "size": 4,
+   "source": null,
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "projectq.libs.math: add_quantum",
+   "canaries": {
+    "by_group": {
+     "erasure": 8,
+     "junction": 3,
+     "other": 6,
+     "phase": 4,
+     "rare": 3
+    },
+    "decided": 24,
+    "equivalent": 0,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 12,
+     "x1": 24,
+     "x2": 10
+    },
+    "logical_ops": 54,
+    "logical_wires": 13,
+    "mode": "nct",
+    "wires": 12
+   },
+   "claim": "add_quantum_n6: all outputs equal the arithmetic specification, every other wire ends in |0>",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "projectq_library_add_quantum_n6.json",
+    "sha256": "6c4bcae4e21855a4dd83a3bfbcc8e7733cf197836bdf4bed37d7354ba9866eee"
+   },
+   "garbage": {
+    "kind": null,
+    "note": "no garbage",
+    "pin_sha256": null,
+    "wires": 0
+   },
+   "id": "projectq_library/add_quantum_n6",
+   "independent": {
+    "exact_vs_sampled": null,
+    "projectq_classical_simulator": {
+     "detail": "24 inputs agree with ProjectQ ClassicalSimulator (sampled)",
+     "ok": true,
+     "tested": 24,
+     "via": "gates"
+    }
+   },
+   "name": "projectq_library",
+   "program": {
+    "name": "logical_sha256",
+    "value": "2894fdab2db6bf06b6995ffe9d115a6ea2ed962acd11d46f71a1296cd2c11e11"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "4edd9b4e88733c75a4cb66903ad1a13806d3c55ce8cb18a786dcba1913f85f8e",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block add_quantum --n 6",
+   "size": 6,
+   "source": null,
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "projectq.libs.math: add_quantum",
+   "canaries": {
+    "by_group": {
+     "erasure": 8,
+     "junction": 3,
+     "other": 6,
+     "phase": 4,
+     "rare": 3
+    },
+    "decided": 24,
+    "equivalent": 0,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 16,
+     "x1": 34,
+     "x2": 14
+    },
+    "logical_ops": 76,
+    "logical_wires": 17,
+    "mode": "nct",
+    "wires": 16
+   },
+   "claim": "add_quantum_n8: all outputs equal the arithmetic specification, every other wire ends in |0>",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "projectq_library_add_quantum_n8.json",
+    "sha256": "dae6dfd771736a3ac4999c436f5335ebc94ecf406fe517fe2589ee33e65546fe"
+   },
+   "garbage": {
+    "kind": null,
+    "note": "no garbage",
+    "pin_sha256": null,
+    "wires": 0
+   },
+   "id": "projectq_library/add_quantum_n8",
+   "independent": {
+    "exact_vs_sampled": null,
+    "projectq_classical_simulator": {
+     "detail": "24 inputs agree with ProjectQ ClassicalSimulator (sampled)",
+     "ok": true,
+     "tested": 24,
+     "via": "gates"
+    }
+   },
+   "name": "projectq_library",
+   "program": {
+    "name": "logical_sha256",
+    "value": "38f94c1d10d5563720b302d5ccc4b82aa065bdb0904bfe33e84465ae8fdeb59f"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "3dd6f9dc4041a51e49fc77ec4d8013d458b205a54a6d9009b9de19bcda3437d1",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block add_quantum --n 8",
+   "size": 8,
+   "source": null,
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "projectq.libs.math: comparator_quantum",
+   "canaries": {
+    "by_group": {
+     "erasure": 8,
+     "junction": 3,
+     "other": 6,
+     "phase": 4,
+     "rare": 3
+    },
+    "decided": 24,
+    "equivalent": 0,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 5,
+     "x0": 4,
+     "x1": 3,
+     "x2": 3
+    },
+    "logical_ops": 16,
+    "logical_wires": 6,
+    "mode": "nct",
+    "wires": 5
+   },
+   "claim": "comparator_quantum_n2: all outputs equal the arithmetic specification, every other wire ends in |0>",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "projectq_library_comparator_quantum_n2.json",
+    "sha256": "2f3a4124ee8e71f9f058f4593a835395ca718df2e9670a4fdc74431d292a8435"
+   },
+   "garbage": {
+    "kind": null,
+    "note": "no garbage",
+    "pin_sha256": null,
+    "wires": 0
+   },
+   "id": "projectq_library/comparator_quantum_n2",
+   "independent": {
+    "exact_vs_sampled": null,
+    "projectq_classical_simulator": {
+     "detail": "32 inputs agree with ProjectQ ClassicalSimulator (all inputs)",
+     "ok": true,
+     "tested": 32,
+     "via": "gates"
+    }
+   },
+   "name": "projectq_library",
+   "program": {
+    "name": "logical_sha256",
+    "value": "2e560bfe0c6d31b91c954b79e46ed0777edfbff3e459253cb546de9c5afb43a7"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "dedc84787a745b16a3a246b46479b6dde1e70b40fc5b8e6d3e7a45ad79613247",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block comparator_quantum --n 2",
+   "size": 2,
+   "source": null,
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "projectq.libs.math: controlled_swap",
+   "canaries": {
+    "by_group": {
+     "erasure": 8,
+     "junction": 3,
+     "other": 6,
+     "phase": 4,
+     "rare": 3
+    },
+    "decided": 24,
+    "equivalent": 0,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 3,
+     "x1": 2,
+     "x2": 1
+    },
+    "logical_ops": 5,
+    "logical_wires": 4,
+    "mode": "nct",
+    "wires": 3
+   },
+   "claim": "fredkin: all outputs equal the arithmetic specification, every other wire ends in |0>",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "projectq_library_controlled_swap_n1.json",
+    "sha256": "10c4a771eb8570b752970dad4704cf7099a87e195bd7e09396e626938fb89a02"
+   },
+   "garbage": {
+    "kind": null,
+    "note": "no garbage",
+    "pin_sha256": null,
+    "wires": 0
+   },
+   "id": "projectq_library/controlled_swap_n1",
+   "independent": {
+    "exact_vs_sampled": null,
+    "projectq_classical_simulator": {
+     "detail": "8 inputs agree with ProjectQ ClassicalSimulator (all inputs)",
+     "ok": true,
+     "tested": 8,
+     "via": "decomposition"
+    }
+   },
+   "name": "projectq_library",
+   "program": {
+    "name": "logical_sha256",
+    "value": "3fbcb43ac97689ec26a86db9820e3a3996c6f299c68bc7769fc11ab563ee7316"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "9a44d945ccf61b2e35a8812d876c237c9bf7bde18f42ffbf32ec7e4289727e54",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block controlled_swap --n 1",
+   "size": 1,
+   "source": null,
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "projectq.libs.math: divide_quantum",
+   "canaries": {
+    "by_group": {
+     "erasure": 8,
+     "junction": 3,
+     "other": 6,
+     "phase": 5,
+     "rare": 2
+    },
+    "decided": 24,
+    "equivalent": 1,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 14,
+     "free": 8,
+     "x0": 10,
+     "x1": 18,
+     "x2": 24
+    },
+    "logical_ops": 100,
+    "logical_wires": 15,
+    "mode": "nct",
+    "wires": 14
+   },
+   "claim": "divide_quantum_n2: all outputs equal the arithmetic specification on the promised domain, every other wire ends in |0>",
+   "domain": "inputs satisfying the promise",
+   "evidence": {
+    "file": "projectq_library_divide_quantum_n2.json",
+    "sha256": "7b1d62fd941a723e197940088dcb967b5df9f111609d25a6bdaf90eb4c9e4a38"
+   },
+   "garbage": {
+    "kind": null,
+    "note": "no garbage",
+    "pin_sha256": null,
+    "wires": 0
+   },
+   "id": "projectq_library/divide_quantum_n2",
+   "independent": {
+    "exact_vs_sampled": null,
+    "projectq_classical_simulator": {
+     "detail": "6 inputs agree with ProjectQ ClassicalSimulator (all inputs)",
+     "ok": true,
+     "tested": 6,
+     "via": "gates"
+    }
+   },
+   "name": "projectq_library",
+   "program": {
+    "name": "logical_sha256",
+    "value": "a63311daac1767d7b076f4e9c79dc2516fa1e5f637ce9f21cbcb0015e8c39d84"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "8b44bf09863b91d7364ddeeb9494a5497d0f8e4119da0f4200837ad414b8c1c6",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block divide_quantum --n 2",
+   "size": 2,
+   "source": null,
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "projectq.libs.math: multi_controlled_x",
+   "canaries": {
+    "by_group": {
+     "erasure": 7,
+     "other": 6,
+     "phase": 5,
+     "rare": 6
+    },
+    "decided": 24,
+    "equivalent": 1,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 3,
+     "x2": 1
+    },
+    "logical_ops": 3,
+    "logical_wires": 4,
+    "mode": "nct",
+    "wires": 3
+   },
+   "claim": "mcx_n2: all outputs equal the arithmetic specification, every other wire ends in |0>",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "projectq_library_multi_controlled_x_n2.json",
+    "sha256": "4125ba5288446f872386b44f870edd6d1f5984c86b45622ea6529dfe54ffd151"
+   },
+   "garbage": {
+    "kind": null,
+    "note": "no garbage",
+    "pin_sha256": null,
+    "wires": 0
+   },
+   "id": "projectq_library/multi_controlled_x_n2",
+   "independent": {
+    "exact_vs_sampled": null,
+    "projectq_classical_simulator": {
+     "detail": "8 inputs agree with ProjectQ ClassicalSimulator (all inputs)",
+     "ok": true,
+     "tested": 8,
+     "via": "gates"
+    }
+   },
+   "name": "projectq_library",
+   "program": {
+    "name": "logical_sha256",
+    "value": "959be7bbe3c58690f9bc81f4e9c98241ff209c1e4cc7564fa73ded98b5b53eaf"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "3dd1c347267717b029e7c6098f054bfe08338e1dcefdf3387b140943aba88bff",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block multi_controlled_x --n 2",
+   "size": 2,
+   "source": null,
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "projectq.libs.math: multi_controlled_x",
+   "canaries": {
+    "by_group": {
+     "erasure": 7,
+     "other": 6,
+     "phase": 5,
+     "rare": 6
+    },
+    "decided": 24,
+    "equivalent": 1,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 5,
+     "free": 1,
+     "x2": 3
+    },
+    "logical_ops": 9,
+    "logical_wires": 6,
+    "mode": "nct",
+    "wires": 5
+   },
+   "claim": "mcx_n3: all outputs equal the arithmetic specification, every other wire ends in |0>",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "projectq_library_multi_controlled_x_n3.json",
+    "sha256": "447fcc88616c0196d787cf032652e94bd39a40ff840083d44bbba1be81f05d65"
+   },
+   "garbage": {
+    "kind": null,
+    "note": "no garbage",
+    "pin_sha256": null,
+    "wires": 0
+   },
+   "id": "projectq_library/multi_controlled_x_n3",
+   "independent": {
+    "exact_vs_sampled": null,
+    "projectq_classical_simulator": {
+     "detail": "16 inputs agree with ProjectQ ClassicalSimulator (all inputs)",
+     "ok": true,
+     "tested": 16,
+     "via": "gates"
+    }
+   },
+   "name": "projectq_library",
+   "program": {
+    "name": "logical_sha256",
+    "value": "ebb66b5336d0a428df024d17df09a7e1fffecf8cb9807c887fef287c2d704f94"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "7805a050f80db0422944556745a05714dcc82260f226d3c4e42e967a93f8e4c3",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block multi_controlled_x --n 3",
+   "size": 3,
+   "source": null,
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "projectq.libs.math: multi_controlled_x",
+   "canaries": {
+    "by_group": {
+     "erasure": 8,
+     "other": 6,
+     "phase": 4,
+     "rare": 6
+    },
+    "decided": 24,
+    "equivalent": 0,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 7,
+     "free": 2,
+     "x2": 5
+    },
+    "logical_ops": 15,
+    "logical_wires": 8,
+    "mode": "nct",
+    "wires": 7
+   },
+   "claim": "mcx_n4: all outputs equal the arithmetic specification, every other wire ends in |0>",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "projectq_library_multi_controlled_x_n4.json",
+    "sha256": "b6d8e7290ebae3979d4534a0086c748408bef50e453f939448cd2fb8cec6faff"
+   },
+   "garbage": {
+    "kind": null,
+    "note": "no garbage",
+    "pin_sha256": null,
+    "wires": 0
+   },
+   "id": "projectq_library/multi_controlled_x_n4",
+   "independent": {
+    "exact_vs_sampled": null,
+    "projectq_classical_simulator": {
+     "detail": "32 inputs agree with ProjectQ ClassicalSimulator (all inputs)",
+     "ok": true,
+     "tested": 32,
+     "via": "gates"
+    }
+   },
+   "name": "projectq_library",
+   "program": {
+    "name": "logical_sha256",
+    "value": "2dc78f5663ddab9a4df393fe44c3a610cc3b2195b30eda1379b5d4f5d5013061"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "9197fbf9a5f8db329053c96b7bef89984bbae127600139edc0f199af8a2cd5df",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block multi_controlled_x --n 4",
+   "size": 4,
+   "source": null,
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "projectq.libs.math: multi_controlled_x",
+   "canaries": {
+    "by_group": {
+     "erasure": 8,
+     "other": 6,
+     "phase": 4,
+     "rare": 6
+    },
+    "decided": 24,
+    "equivalent": 0,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 11,
+     "free": 4,
+     "x2": 9
+    },
+    "logical_ops": 27,
+    "logical_wires": 12,
+    "mode": "nct",
+    "wires": 11
+   },
+   "claim": "mcx_n6: all outputs equal the arithmetic specification, every other wire ends in |0>",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "projectq_library_multi_controlled_x_n6.json",
+    "sha256": "690635f252d6e6a94593a1391a8dcd6b10dfb6fd6c9ef86488e00480ffb86a24"
+   },
+   "garbage": {
+    "kind": null,
+    "note": "no garbage",
+    "pin_sha256": null,
+    "wires": 0
+   },
+   "id": "projectq_library/multi_controlled_x_n6",
+   "independent": {
+    "exact_vs_sampled": null,
+    "projectq_classical_simulator": {
+     "detail": "128 inputs agree with ProjectQ ClassicalSimulator (all inputs)",
+     "ok": true,
+     "tested": 128,
+     "via": "gates"
+    }
+   },
+   "name": "projectq_library",
+   "program": {
+    "name": "logical_sha256",
+    "value": "52cfed636a40ae633eb77aad9462055260e39549bb8586bd03ca5274f53a38ec"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "bfb6878bf13fd22e7a65524ae2c9f71e8b58c95cfd571d3bea1fb160ca194368",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block multi_controlled_x --n 6",
+   "size": 6,
+   "source": null,
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "projectq.libs.math: revkit_permutation",
+   "canaries": {
+    "by_group": {
+     "junction": 9,
+     "other": 12,
+     "rare": 3
+    },
+    "decided": 24,
+    "equivalent": 0,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 3,
+     "x0": 1,
+     "x1": 4
+    },
+    "logical_ops": 5,
+    "logical_wires": 3,
+    "mode": "nct",
+    "wires": 3
+   },
+   "claim": "revkit_permutation_n3: all outputs equal the arithmetic specification, every other wire ends in |0>",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "projectq_library_revkit_permutation_n3.json",
+    "sha256": "2fb988fa675fe9603cbf3474f5998a17e012a4129ae5c25ebc7851f02b9b6214"
+   },
+   "garbage": {
+    "kind": null,
+    "note": "no garbage",
+    "pin_sha256": null,
+    "wires": 0
+   },
+   "id": "projectq_library/revkit_permutation_n3",
+   "independent": {
+    "exact_vs_sampled": null,
+    "projectq_classical_simulator": {
+     "detail": "8 inputs agree with ProjectQ ClassicalSimulator (all inputs)",
+     "ok": true,
+     "tested": 8,
+     "via": "gates"
+    }
+   },
+   "name": "projectq_library",
+   "program": {
+    "name": "logical_sha256",
+    "value": "cc8f8e1e7644d3c889a79684edbf76932288190fddedaeb929cfaace93b1b70d"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "49359483649ffe7a7a71f83042eeed5d0330c5d78e0e87f6e6c46d231641c41b",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block revkit_permutation --n 3",
+   "size": 3,
+   "source": null,
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "projectq.libs.math: revkit_permutation",
+   "canaries": {
+    "by_group": {
+     "erasure": 8,
+     "junction": 3,
+     "other": 6,
+     "phase": 4,
+     "rare": 3
+    },
+    "decided": 24,
+    "equivalent": 0,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 6,
+     "free": 2,
+     "x0": 2,
+     "x1": 8,
+     "x2": 16
+    },
+    "logical_ops": 58,
+    "logical_wires": 7,
+    "mode": "nct",
+    "wires": 6
+   },
+   "claim": "revkit_permutation_n4: all outputs equal the arithmetic specification, every other wire ends in |0>",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "projectq_library_revkit_permutation_n4.json",
+    "sha256": "c76762f3226e19c0b117a85da74a9bf8a2b7540ec2a2f1e423650711b8261967"
+   },
+   "garbage": {
+    "kind": null,
+    "note": "no garbage",
+    "pin_sha256": null,
+    "wires": 0
+   },
+   "id": "projectq_library/revkit_permutation_n4",
+   "independent": {
+    "exact_vs_sampled": null,
+    "projectq_classical_simulator": {
+     "detail": "16 inputs agree with ProjectQ ClassicalSimulator (all inputs)",
+     "ok": true,
+     "tested": 16,
+     "via": "gates"
+    }
+   },
+   "name": "projectq_library",
+   "program": {
+    "name": "logical_sha256",
+    "value": "7d6ec1a6bd0167deefb9717d1620f18e4eb07cad6c746127e6ef0eea3ddc6b56"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "d6f536247a3538ef7d15662576a338127b9cd2dcd49964f68b953500431ea552",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block revkit_permutation --n 4",
+   "size": 4,
+   "source": null,
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "projectq.libs.math: subtract_quantum",
+   "canaries": {
+    "by_group": {
+     "erasure": 8,
+     "junction": 3,
+     "other": 6,
+     "phase": 4,
+     "rare": 3
+    },
+    "decided": 24,
+    "equivalent": 0,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 4,
+     "x0": 4,
+     "x1": 4,
+     "x2": 2
+    },
+    "logical_ops": 14,
+    "logical_wires": 5,
+    "mode": "nct",
+    "wires": 4
+   },
+   "claim": "subtract_quantum_n2: all outputs equal the arithmetic specification, every other wire ends in |0>",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "projectq_library_subtract_quantum_n2.json",
+    "sha256": "10fa5905e7ecb3eef18f33513e92a5390911732f6bea748742271bed72c9039c"
+   },
+   "garbage": {
+    "kind": null,
+    "note": "no garbage",
+    "pin_sha256": null,
+    "wires": 0
+   },
+   "id": "projectq_library/subtract_quantum_n2",
+   "independent": {
+    "exact_vs_sampled": null,
+    "projectq_classical_simulator": {
+     "detail": "16 inputs agree with ProjectQ ClassicalSimulator (all inputs)",
+     "ok": true,
+     "tested": 16,
+     "via": "gates"
+    }
+   },
+   "name": "projectq_library",
+   "program": {
+    "name": "logical_sha256",
+    "value": "ef2dc1838aaae2d591f177baecd8871d86b44decc21596f9313418c897ca75e2"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "4622e1f6874604bf87cb060d5e8a7e2dbbdf4dd9fc6c48a4867e50a588cc32f9",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block subtract_quantum --n 2",
+   "size": 2,
+   "source": null,
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "projectq.libs.math: subtract_quantum",
+   "canaries": {
+    "by_group": {
+     "erasure": 8,
+     "junction": 3,
+     "other": 6,
+     "phase": 4,
+     "rare": 3
+    },
+    "decided": 24,
+    "equivalent": 0,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 8,
+     "x0": 8,
+     "x1": 14,
+     "x2": 6
+    },
+    "logical_ops": 40,
+    "logical_wires": 9,
+    "mode": "nct",
+    "wires": 8
+   },
+   "claim": "subtract_quantum_n4: all outputs equal the arithmetic specification, every other wire ends in |0>",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "projectq_library_subtract_quantum_n4.json",
+    "sha256": "ab6ebf47772071e2236e5b424ea1a776f961b8c2510e2b3f83f18c6ade396a88"
+   },
+   "garbage": {
+    "kind": null,
+    "note": "no garbage",
+    "pin_sha256": null,
+    "wires": 0
+   },
+   "id": "projectq_library/subtract_quantum_n4",
+   "independent": {
+    "exact_vs_sampled": null,
+    "projectq_classical_simulator": {
+     "detail": "256 inputs agree with ProjectQ ClassicalSimulator (all inputs)",
+     "ok": true,
+     "tested": 256,
+     "via": "gates"
+    }
+   },
+   "name": "projectq_library",
+   "program": {
+    "name": "logical_sha256",
+    "value": "31987a9a5b657e2a00415f34f24161aa57e32bf93d30a34c998e43dae1767806"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "a12220ef9ef49ab82e0336c78037cfb0ef370e42cd9ed6e08eb23386973807e3",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block subtract_quantum --n 4",
+   "size": 4,
+   "source": null,
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "projectq.libs.math: subtract_quantum",
+   "canaries": {
+    "by_group": {
+     "erasure": 8,
+     "junction": 3,
+     "other": 6,
+     "phase": 4,
+     "rare": 3
+    },
+    "decided": 24,
+    "equivalent": 0,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 12,
+     "x0": 12,
+     "x1": 24,
+     "x2": 10
+    },
+    "logical_ops": 66,
+    "logical_wires": 13,
+    "mode": "nct",
+    "wires": 12
+   },
+   "claim": "subtract_quantum_n6: all outputs equal the arithmetic specification, every other wire ends in |0>",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "projectq_library_subtract_quantum_n6.json",
+    "sha256": "bb044d6c24775eee73209d46410a3d6f0ab29ff53f1aa6f6d828656247e85f8c"
+   },
+   "garbage": {
+    "kind": null,
+    "note": "no garbage",
+    "pin_sha256": null,
+    "wires": 0
+   },
+   "id": "projectq_library/subtract_quantum_n6",
+   "independent": {
+    "exact_vs_sampled": null,
+    "projectq_classical_simulator": {
+     "detail": "24 inputs agree with ProjectQ ClassicalSimulator (sampled)",
+     "ok": true,
+     "tested": 24,
+     "via": "gates"
+    }
+   },
+   "name": "projectq_library",
+   "program": {
+    "name": "logical_sha256",
+    "value": "37793521e42ef9f4dce448d6de92e9a7a9c4d90901cc0f492972cd3c358dd37e"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "7b1afe1de3ed2d76f555754fcea66a67feca74bfe243726cf1c0d686a8997e05",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block subtract_quantum --n 6",
+   "size": 6,
+   "source": null,
+   "status": "PROVED"
+  },
+  {
+   "assumptions": [
+    "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+    "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+    "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+    "a freed wire is required to end in |0> like every other clean wire"
+   ],
+   "block": "projectq.libs.math: subtract_quantum",
+   "canaries": {
+    "by_group": {
+     "erasure": 8,
+     "junction": 3,
+     "other": 6,
+     "phase": 4,
+     "rare": 3
+    },
+    "decided": 24,
+    "equivalent": 0,
+    "not_proved": 24
+   },
+   "circuit": {
+    "counts": {
+     "alloc": 16,
+     "x0": 16,
+     "x1": 34,
+     "x2": 14
+    },
+    "logical_ops": 92,
+    "logical_wires": 17,
+    "mode": "nct",
+    "wires": 16
+   },
+   "claim": "subtract_quantum_n8: all outputs equal the arithmetic specification, every other wire ends in |0>",
+   "domain": "all inputs",
+   "evidence": {
+    "file": "projectq_library_subtract_quantum_n8.json",
+    "sha256": "b01af1bd9f47b7625c742590b08c24e599b694d564ac0bf08ac90873db49d8a7"
+   },
+   "garbage": {
+    "kind": null,
+    "note": "no garbage",
+    "pin_sha256": null,
+    "wires": 0
+   },
+   "id": "projectq_library/subtract_quantum_n8",
+   "independent": {
+    "exact_vs_sampled": null,
+    "projectq_classical_simulator": {
+     "detail": "24 inputs agree with ProjectQ ClassicalSimulator (sampled)",
+     "ok": true,
+     "tested": 24,
+     "via": "gates"
+    }
+   },
+   "name": "projectq_library",
+   "program": {
+    "name": "logical_sha256",
+    "value": "a19bb9b54a0d2b1bb74cc59829275c233f15a72eeed47b203c723af29a9b94f0"
+   },
+   "projectq": "0.8.0",
+   "recording_sha256": "3aff2b2dde3b1dbac926ea138bbdc3929bc285b6ec385078257b274c6954da4e",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block subtract_quantum --n 8",
+   "size": 8,
+   "source": null,
+   "status": "PROVED"
+  }
+ ],
+ "findings": [
+  {
+   "block": "projectq.libs.math: comparator_quantum",
+   "claim": "comparator_quantum_n1: all outputs equal the arithmetic specification, every other wire ends in |0>",
+   "detail": "output wire 2 differs on input {'a': 1, 'b': 0, 'c': 0}",
+   "evidence": {
+    "file": "projectq_library_comparator_quantum_n1.json",
+    "sha256": "fffb602f0ce5e715a8d4579c38d7870e308c81944e9db07a2b6fe2efa2c54ad7"
+   },
+   "id": "projectq_library/comparator_quantum_n1",
+   "projectq": "0.8.0",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block comparator_quantum --n 1",
+   "status": "REFUTED"
+  },
+  {
+   "block": "projectq.libs.math: comparator_quantum",
+   "claim": "comparator_quantum_n3: all outputs equal the arithmetic specification, every other wire ends in |0>",
+   "detail": "output wire 2 differs on input {'a': 1, 'b': 0, 'c': 0}",
+   "evidence": {
+    "file": "projectq_library_comparator_quantum_n3.json",
+    "sha256": "4891013edfccd3f6abcb3d47bc3e1037e31eafe6f5559efa5e7420bf83913370"
+   },
+   "id": "projectq_library/comparator_quantum_n3",
+   "projectq": "0.8.0",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block comparator_quantum --n 3",
+   "status": "REFUTED"
+  },
+  {
+   "block": "projectq.libs.math: comparator_quantum",
+   "claim": "comparator_quantum_n4: all outputs equal the arithmetic specification, every other wire ends in |0>",
+   "detail": "output wire 2 differs on input {'a': 1, 'b': 0, 'c': 0}",
+   "evidence": {
+    "file": "projectq_library_comparator_quantum_n4.json",
+    "sha256": "73c639a77826bdd661697418734adfcf1983a3b728ac64116bf68b855e0ef96c"
+   },
+   "id": "projectq_library/comparator_quantum_n4",
+   "projectq": "0.8.0",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block comparator_quantum --n 4",
+   "status": "REFUTED"
+  },
+  {
+   "block": "projectq.libs.math: comparator_quantum",
+   "claim": "comparator_quantum_n5: all outputs equal the arithmetic specification, every other wire ends in |0>",
+   "detail": "output wire 2 differs on input {'a': 1, 'b': 0, 'c': 0}",
+   "evidence": {
+    "file": "projectq_library_comparator_quantum_n5.json",
+    "sha256": "a524be75018a76ee02fad154fd60fad9a1c449751dae148999862f577bf18fb8"
+   },
+   "id": "projectq_library/comparator_quantum_n5",
+   "projectq": "0.8.0",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block comparator_quantum --n 5",
+   "status": "REFUTED"
+  },
+  {
+   "block": "projectq.libs.math: multiply_quantum",
+   "claim": "multiply_quantum_n2: all outputs equal the arithmetic specification on the promised domain, every other wire ends in |0>",
+   "detail": "output wire 6 differs on input {'a': 2, 'b': 2, 'c': 0}",
+   "evidence": {
+    "file": "projectq_library_multiply_quantum_n2.json",
+    "sha256": "529fe5bacf16c5427789c8b852583be2183fbd7fe4191611cf11155b468ef6e1"
+   },
+   "id": "projectq_library/multiply_quantum_n2",
+   "projectq": "0.8.0",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block multiply_quantum --n 2",
+   "status": "REFUTED"
+  },
+  {
+   "block": "projectq.libs.math: multiply_quantum",
+   "claim": "multiply_quantum_n3: all outputs equal the arithmetic specification on the promised domain, every other wire ends in |0>",
+   "detail": "output wire 9 differs on input {'a': 4, 'b': 2, 'c': 0}",
+   "evidence": {
+    "file": "projectq_library_multiply_quantum_n3.json",
+    "sha256": "ee35959feb121168f77b7b147b61e8e025ad18915607c0cd7705ba908e64d0f4"
+   },
+   "id": "projectq_library/multiply_quantum_n3",
+   "projectq": "0.8.0",
+   "reproduce": "python -m qoptct.foreign.projectq prove library --block multiply_quantum --n 3",
+   "status": "REFUTED"
+  }
+ ],
+ "note": "generated by scripts/build_projectq_registry.py from results/projectq/*.json; entries are PROVED only",
+ "schema": "qoptct.projectq.registry/1"
+}

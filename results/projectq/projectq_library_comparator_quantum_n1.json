@@ -1,0 +1,64 @@
+{
+ "schema": "qoptct.projectq.result/1",
+ "id": "projectq_library/comparator_quantum_n1",
+ "name": "projectq_library",
+ "block": "projectq.libs.math: comparator_quantum",
+ "claim": "comparator_quantum_n1: all outputs equal the arithmetic specification, every other wire ends in |0>",
+ "status": "REFUTED",
+ "detail": "output wire 2 differs on input {'a': 1, 'b': 0, 'c': 0}",
+ "method": "exhaustive-lanes",
+ "domain": "all inputs",
+ "projectq": "0.8.0",
+ "program": {
+  "name": "logical_sha256",
+  "value": "b51789bf857bcb88ec9cfe0fce81cf799a5f246f241ad9a0174bebdc580d6b09"
+ },
+ "recording_sha256": "cb0582be87ad167575c49cde78ea2cd2de44e3a838ea55c5ed74bf76eff4413e",
+ "circuit": {
+  "mode": "nct",
+  "wires": 3,
+  "logical_wires": 4,
+  "logical_ops": 6,
+  "counts": {
+   "alloc": 3,
+   "x0": 2,
+   "x1": 1,
+   "x2": 1
+  }
+ },
+ "independent": null,
+ "native": {
+  "ok": null,
+  "tested": 1,
+  "decomposed_run": {
+   "a": 1,
+   "b": 0,
+   "c": 0
+  },
+  "specification": {
+   "a": 1,
+   "b": 0,
+   "c": 1
+  },
+  "detail": "ProjectQ decomposition run on the witness: the same wrong value (the decomposition itself differs from the specification)"
+ },
+ "exact2": null,
+ "canaries": null,
+ "assumptions": [
+  "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+  "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+  "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+  "a freed wire is required to end in |0> like every other clean wire"
+ ],
+ "reproduce": "python -m qoptct.foreign.projectq prove library --block comparator_quantum --n 1",
+ "wall_seconds": 0.0,
+ "n": 1,
+ "block_name": "comparator_quantum",
+ "source": null,
+ "garbage": {
+  "wires": 0,
+  "pin_sha256": null,
+  "kind": null,
+  "note": "no garbage"
+ }
+}

@@ -1,0 +1,217 @@
+{
+ "schema": "qoptct.projectq.result/1",
+ "id": "projectq_library/revkit_permutation_n3",
+ "name": "projectq_library",
+ "block": "projectq.libs.math: revkit_permutation",
+ "claim": "revkit_permutation_n3: all outputs equal the arithmetic specification, every other wire ends in |0>",
+ "status": "PROVED",
+ "detail": "all 8 inputs: outputs equal the specification, clean wires clean, 0 garbage wires equal the pin",
+ "method": "exhaustive-lanes",
+ "domain": "all inputs",
+ "projectq": "0.8.0",
+ "program": {
+  "name": "logical_sha256",
+  "value": "cc8f8e1e7644d3c889a79684edbf76932288190fddedaeb929cfaace93b1b70d"
+ },
+ "recording_sha256": "49359483649ffe7a7a71f83042eeed5d0330c5d78e0e87f6e6c46d231641c41b",
+ "circuit": {
+  "mode": "nct",
+  "wires": 3,
+  "logical_wires": 3,
+  "logical_ops": 5,
+  "counts": {
+   "alloc": 3,
+   "x1": 4,
+   "x0": 1
+  }
+ },
+ "independent": null,
+ "native": {
+  "ok": true,
+  "tested": 8,
+  "via": "gates",
+  "detail": "8 inputs agree with ProjectQ ClassicalSimulator (all inputs)"
+ },
+ "exact2": null,
+ "canaries": {
+  "requested": 24,
+  "decided": 24,
+  "equivalent": 0,
+  "not_proved": 24,
+  "false_proved": [],
+  "by_group": {
+   "junction": 9,
+   "rare": 3,
+   "other": 12
+  },
+  "targeted": 12,
+  "by_status": {
+   "REFUTED": 21,
+   "UNKNOWN": 3
+  },
+  "ok": true,
+  "rows": [
+   {
+    "desc": "drop cx #3 (first use of a wire)",
+    "group": "junction",
+    "status": "REFUTED",
+    "detail": "output wire 2 differs on input {'q': 4}"
+   },
+   {
+    "desc": "drop cx #4 (last use of a wire)",
+    "group": "junction",
+    "status": "REFUTED",
+    "detail": "output wire 2 differs on input {'q': 2}"
+   },
+   {
+    "desc": "retarget cx #6 (last use of a wire)",
+    "group": "junction",
+    "status": "REFUTED",
+    "detail": "output wire 0 differs on input {'q': 1}"
+   },
+   {
+    "desc": "append a 3-control X (0,2,1) -> 1",
+    "group": "rare",
+    "status": "UNKNOWN",
+    "detail": "AND/erasure precondition does not hold on every input: op 8: erased wire differs from p AND q on wire 4"
+   },
+   {
+    "desc": "drop cx #3",
+    "group": "other",
+    "status": "REFUTED",
+    "detail": "output wire 2 differs on input {'q': 4}"
+   },
+   {
+    "desc": "reverse cx #6",
+    "group": "other",
+    "status": "REFUTED",
+    "detail": "output wire 0 differs on input {'q': 1}"
+   },
+   {
+    "desc": "duplicate cx #6",
+    "group": "other",
+    "status": "REFUTED",
+    "detail": "output wire 0 differs on input {'q': 1}"
+   },
+   {
+    "desc": "flip result wire 2 at the end",
+    "group": "other",
+    "status": "REFUTED",
+    "detail": "output wire 2 differs on input {'q': 0}"
+   },
+   {
+    "desc": "append cx input -> result",
+    "group": "other",
+    "status": "REFUTED",
+    "detail": "output wire 0 differs on input {'q': 2}"
+   },
+   {
+    "desc": "drop cx #4 (first use of a wire)",
+    "group": "junction",
+    "status": "REFUTED",
+    "detail": "output wire 2 differs on input {'q': 2}"
+   },
+   {
+    "desc": "drop cx #6 (last use of a wire)",
+    "group": "junction",
+    "status": "REFUTED",
+    "detail": "output wire 0 differs on input {'q': 1}"
+   },
+   {
+    "desc": "retarget cx #4 (last use of a wire)",
+    "group": "junction",
+    "status": "REFUTED",
+    "detail": "output wire 0 differs on input {'q': 2}"
+   },
+   {
+    "desc": "append a 3-control X (2,1,0) -> 1",
+    "group": "rare",
+    "status": "UNKNOWN",
+    "detail": "AND/erasure precondition does not hold on every input: op 9: erased wire differs from p AND q on wire 3"
+   },
+   {
+    "desc": "drop cx #3",
+    "group": "other",
+    "status": "REFUTED",
+    "detail": "output wire 2 differs on input {'q': 4}"
+   },
+   {
+    "desc": "reverse cx #6",
+    "group": "other",
+    "status": "REFUTED",
+    "detail": "output wire 0 differs on input {'q': 1}"
+   },
+   {
+    "desc": "duplicate cx #3",
+    "group": "other",
+    "status": "REFUTED",
+    "detail": "output wire 2 differs on input {'q': 4}"
+   },
+   {
+    "desc": "flip result wire 2 at the end",
+    "group": "other",
+    "status": "REFUTED",
+    "detail": "output wire 2 differs on input {'q': 0}"
+   },
+   {
+    "desc": "append cx input -> result",
+    "group": "other",
+    "status": "REFUTED",
+    "detail": "output wire 0 differs on input {'q': 2}"
+   },
+   {
+    "desc": "drop cx #3 (first use of a wire)",
+    "group": "junction",
+    "status": "REFUTED",
+    "detail": "output wire 2 differs on input {'q': 4}"
+   },
+   {
+    "desc": "drop cx #4 (last use of a wire)",
+    "group": "junction",
+    "status": "REFUTED",
+    "detail": "output wire 2 differs on input {'q': 2}"
+   },
+   {
+    "desc": "retarget cx #6 (last use of a wire)",
+    "group": "junction",
+    "status": "REFUTED",
+    "detail": "output wire 0 differs on input {'q': 1}"
+   },
+   {
+    "desc": "append a 3-control X (1,0,2) -> 1",
+    "group": "rare",
+    "status": "UNKNOWN",
+    "detail": "AND/erasure precondition does not hold on every input: op 9: erased wire differs from p AND q on wire 3"
+   },
+   {
+    "desc": "drop cx #5",
+    "group": "other",
+    "status": "REFUTED",
+    "detail": "output wire 0 differs on input {'q': 1}"
+   },
+   {
+    "desc": "reverse cx #4",
+    "group": "other",
+    "status": "REFUTED",
+    "detail": "output wire 1 differs on input {'q': 1}"
+   }
+  ]
+ },
+ "assumptions": [
+  "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+  "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+  "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+  "a freed wire is required to end in |0> like every other clean wire"
+ ],
+ "reproduce": "python -m qoptct.foreign.projectq prove library --block revkit_permutation --n 3",
+ "wall_seconds": 0.0,
+ "n": 3,
+ "block_name": "revkit_permutation",
+ "source": null,
+ "garbage": {
+  "wires": 0,
+  "pin_sha256": null,
+  "kind": null,
+  "note": "no garbage"
+ }
+}

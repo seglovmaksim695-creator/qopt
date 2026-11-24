@@ -45,6 +45,7 @@ hw = ["qiskit-ibm-runtime>=0.40", "qiskit-aer>=0.17"]
 dyn = ["qiskit-ibm-runtime>=0.40", "qiskit-aer>=0.17"]
 z3 = ["z3-solver>=4.12"]
 qualtran = ["qualtran==0.7.0", "z3-solver>=4.12"]
+projectq = ["projectq==0.8.0"]
 test = ["pytest>=8", "qiskit-qasm3-import>=0.5"]
 
 [project.scripts]
@@ -60,7 +61,7 @@ qoptct = "qoptct.qiskit_qopt:QoptInitPlugin"
 include = ["qoptct*"]
 
 [tool.setuptools.package-data]
-qoptct = ["models/*.pt", "contrib/c1/best_clean/*.qasm", "contrib/c1/best_clean/*.json", "contrib/eng1/ours/*.json", "contrib/gf2m/data/*.json", "verify/compose/PROOF.md", "foreign/qualtran/patches/manifest.json", "foreign/qualtran/patches/src/*.py", "foreign/qualtran/patches/diff/*.diff", "foreign/qualtran/ecadd/data/*.json", "foreign/qualtran/data/*.json", "foreign/qiskit/data/*.json"]
+qoptct = ["models/*.pt", "contrib/c1/best_clean/*.qasm", "contrib/c1/best_clean/*.json", "contrib/eng1/ours/*.json", "contrib/gf2m/data/*.json", "verify/compose/PROOF.md", "foreign/qualtran/patches/manifest.json", "foreign/qualtran/patches/src/*.py", "foreign/qualtran/patches/diff/*.diff", "foreign/qualtran/ecadd/data/*.json", "foreign/qualtran/data/*.json", "foreign/qiskit/data/*.json", "foreign/projectq/data/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
