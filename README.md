@@ -537,7 +537,9 @@ qoptct results                           # one table of everything proved, over 
 * **`qoptct loop`** lets proposers suggest circuits, proves them, and keeps a hash-chained journal; the shipped journal has 116 proved
   records and re-checks with `qoptct loop verify`.
 
-Every PROVED at the largest size comes with at least 20 canaries (damaged variants that must not be proved).  Overview, assumptions and
+Every PROVED at the largest size comes with at least 20 canaries (damaged variants that must not be proved), with two exceptions that the
+registries and `qoptct results` state: Qiskit `comparator-gate` (n = 16, no canaries: one proof of its 415 073 gates takes tens of minutes) and
+Qiskit `modular-adder-gate` (canaries at n = 32; some mutants at n = 256 exceed the memory limit of the prover).  Overview, assumptions and
 reproduction commands: [`docs/FOREIGN.md`](docs/FOREIGN.md); details in `docs/QISKIT.md`, `PROJECTQ.md`, `DYADIC.md`, `AUTO.md`, `LOOP.md`.
 
 ## Hardware check (IBM Quantum)

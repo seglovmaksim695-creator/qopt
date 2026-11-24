@@ -41,8 +41,8 @@ Versions 0.5.0, 0.6.0, 0.7.0 and 0.8.0 are published together as one release, 0.
   instance of a standard Qiskit gate class with the matching matrix, any other gate (for example a user gate called `h` whose body is S)
   is unrolled by its definition.  Before, such circuits could be reported `PROVED` although not equal.  Same rule for ProjectQ gates.
 * **Float angles**: an angle above 4 pi is first reduced exactly modulo 4 pi, then compared with the tolerance (nearly always `UNKNOWN`).
-* **Canaries** for the registry rows that had none (Qiskit `and`, `or`, `xor-const`, `c-cdkm-fixed`, `comparator-gate`; auto `cmodmulk` and
-  `ctrlscalemodadd` at n = 8); `qoptct loop`: records carry a hash of the target flags and `verify` checks it; `qoptct.foreign.auto`
+* **Canaries** for the registry rows that had none (Qiskit `and`, `or`, `xor-const`, `c-cdkm-fixed`; auto `cmodmulk` and `ctrlscalemodadd`
+  at n = 8); two Qiskit rows are marked in the registry instead (`comparator-gate`: none, `modular-adder-gate`: at n = 32); `qoptct loop`: records carry a hash of the target flags and `verify` checks it; `qoptct.foreign.auto`
   canaries write the candidates dropped by the filters D13 / D19 to `<result>.excluded.jsonl`.
 
 ### Findings (described in the documents of the parts)

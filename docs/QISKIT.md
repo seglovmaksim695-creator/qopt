@@ -40,9 +40,9 @@ mutants).  All rows below are PROVED by the BDD prover for **every** input and e
 |---|---|---|
 | `cdkm-half/full/fixed` (CDKMRippleCarryAdder) | `b := (cin + a + b) mod 2^n`, `cout ^= carry` | 256 |
 | `vbe-half/full` (VBERippleCarryAdder) | same | 256 |
-| `half-adder-gate`, `full-adder-gate`, `modular-adder-gate` | sum of the gate, `ModularAdderGate` is Clifford+T (h, t, tdg) | 256 |
+| `half-adder-gate`, `full-adder-gate`, `modular-adder-gate` | sum of the gate, `ModularAdderGate` is Clifford+T (h, t, tdg) | 256 (`modular-adder-gate`: canaries at n = 32 only, mutants at n = 256 exceed the prover's memory) |
 | `comparator-geq`, `comparator-lt` (IntegerComparator) | `compare ^= [state >= v]` / `< v` | 256 |
-| `comparator-gate` (IntegerComparatorGate) | same | 16 (the BDD exceeds 3 GB at 64) |
+| `comparator-gate` (IntegerComparatorGate) | same | 16 (the BDD exceeds 3 GB at 64); **no canaries** (one proof of its 415 073 gates takes tens of minutes; `prove comparator-gate 16 --canaries --sample 26` produces them) |
 | `and`, `or`, `xor-const` (AndGate, OrGate, BitwiseXorGate) | boolean function | 256 |
 | `c-cdkm-*`, `c-vbe-half/full` | controlled versions, see below | 256 |
 
@@ -63,7 +63,7 @@ positions (seams, first, last, quartiles), a moved or swapped gate, a wrong cont
 an extra X / CX, a phase-only defect (z, t, s) and a defect on one rare input (all-ones multi-controlled flip).  A
 mutant that the prover accepts must also be accepted by the reference miter (genuinely equivalent, for example
 `s` on a clean ancilla at the start, or the last CNOT of the 2-CNOT UMA when the carry-in is 0); everything else must
-be `REFUTED`.  Evidence at n=256: `evidence/` in the round folder.
+be `REFUTED`.  Canaries at the largest size are in the registry (`canaries` of each row; rows without them say so).  For short circuits (a single wide AND, a row of X gates) extra mutants are added (dropped control, shifted target, extra X / Z); `--sample N` takes N mutants spread over the whole list and builds them one at a time (huge circuits).
 
 ## Qiskit circuits with fractional phases: the dyadic prover (0.8)
 

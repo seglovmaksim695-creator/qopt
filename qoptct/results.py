@@ -44,9 +44,11 @@ def _qiskit():
     out = []
     for r in data['rows']:
         c = r.get('canaries')
-        cs = '%d/%d' % (c['refuted'] + c['equivalent'], c['mutants']) if c else '-'
+        cs = '%d/%d' % (c['refuted'] + c['equivalent'], c['mutants']) if c else ('none' if r.get('canaries_note') else '-')
+        if c and r.get('canaries_note'):
+            cs += ' (at n=%s)' % c['n']
         out.append(_row('qiskit', r['family'], 'n=%s' % r['max_n_proved'], r['status'], cs, 1, r.get('command', ''),
-                        'Qiskit %s' % data.get('qiskit', '')))
+                        'Qiskit %s%s' % (data.get('qiskit', ''), ('; ' + r['canaries_note']) if r.get('canaries_note') else '')))
     return out
 
 

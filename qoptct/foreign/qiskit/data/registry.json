@@ -223,7 +223,8 @@
     16
    ],
    "canaries": null,
-   "command": "python -m qoptct.foreign.qiskit prove comparator-gate 16"
+   "command": "python -m qoptct.foreign.qiskit prove comparator-gate 16",
+   "canaries_note": "none: a single proof at n = 16 (415 073 gates) takes tens of minutes and 26 mutants would take about a day; the same circuit family is covered by comparator-geq / comparator-lt with 33+ canaries at n = 256; to produce them: python -m qoptct.foreign.qiskit prove comparator-gate 16 --canaries --sample 26"
   },
   {
    "family": "comparator-geq",
@@ -333,7 +334,8 @@
     "unknown": 2,
     "proved_false": 0
    },
-   "command": "python -m qoptct.foreign.qiskit prove modular-adder-gate 256"
+   "command": "python -m qoptct.foreign.qiskit prove modular-adder-gate 256",
+   "canaries_note": "canaries at n = 32, not at n = 256: some mutants at n = 256 exceed the 3 GB limit of the prover (33 mutants at n = 32, 30 refuted, 1 equivalent, 2 unknown, none proved falsely)"
   },
   {
    "family": "or",
