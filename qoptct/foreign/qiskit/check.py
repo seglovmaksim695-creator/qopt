@@ -222,7 +222,7 @@ def _map_reference(tr, rtr, clean, ref_clean):
     reference wires are fresh clean wires appended after the circuit."""
     wmap, nxt = {}, tr.nq
     for name, ws in rtr.registers.items():
-        if name in tr.registers and len(tr.registers[name]) == len(ws) and name not in ref_clean:
+        if name in tr.registers and len(tr.registers[name]) == len(ws) and not (name in ref_clean and name not in clean):
             for a, b in zip(ws, tr.registers[name]):
                 wmap[a] = b
     for w in range(rtr.nq):
@@ -241,8 +241,7 @@ def _check_reference(out, tr, reference, clean, ref_clean, budget_sec, max_mb, m
     wmap, nq = _map_reference(tr, rtr, clean, ref_clean)
     inv = [(o[0],) + tuple(wmap[w] for w in o[1:]) for o in rtr.inverse_ops()]
     ops = list(tr.ops) + inv
-    clean_wires = sorted({w for n in clean for w in tr.registers[n]} | set(range(tr.nq, nq)) | {
-        wmap[w] for n in ref_clean for w in rtr.registers[n]})
+    clean_wires = sorted({w for n in clean for w in tr.registers[n]} | set(range(tr.nq, nq)))
     shared_inputs = [w for w in range(tr.nq) if w not in clean_wires]
     out['miter'] = dict(nq=nq, clean=len(clean_wires))
     if all(o[0] in ('x', 'cx', 'ccx', 'mcx', 'swap') for o in ops) and len(shared_inputs) <= exhaustive_bits:

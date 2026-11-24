@@ -38,7 +38,13 @@ def main(argv=None):
     p.add_argument('--canaries', action='store_true')
     p.add_argument('--budget', type=float, default=300)
     sub.add_parser('list')
+    sub.add_parser('fractional')
     a = ap.parse_args(argv)
+    if a.cmd == 'fractional':
+        from .fractional import classify
+        for name, st, why in classify():
+            print('%-52s %-24s %s' % (name, st, why[:90]))
+        return 0
     if a.cmd == 'list':
         print('\n'.join(sorted(FAMILIES)))
         return 0
