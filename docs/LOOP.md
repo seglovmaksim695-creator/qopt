@@ -51,6 +51,11 @@ circuit, the proof itself again on the stored files plus the simulators, and tha
 table derived from the journal. `tests/test_loop.py` covers 18 kinds of corruption (replaced or edited candidate,
 wrong hashes, swapped reference, deleted / reordered / duplicated / truncated records, forged costs and status, proof
 of another circuit, hand-edited table, ...) and a prover that proves everything.
+Flags: every new record carries `flags_sha`, the SHA-256 of the flags that give its proof its meaning (`clean`, the target `spec` string, the
+generator parameters and the reference hash).  `verify` compares it with `targets/<id>.json` and between the records of one target, so
+changing `clean` (false -> true weakens the meaning of the proofs) or the spec after the proofs is reported.  Records written before this
+field existed (the shipped journal of 116 records) have none and are accepted as before; for them the flags are not protected.
+
 Limits: the proofs are those of `qoptct.verify` and carry its assumptions; the state directory is not signed, so an
 attacker who also reruns every proof and rewrites every hash is not stopped by the chain but only by the re-proof,
 which is why `verify` re-proves.

@@ -79,7 +79,8 @@ check_qiskit(DraperQFTAdder(4, kind="fixed").decompose(), adder_spec(range(4), r
 ```
 
 The answer carries `method == 'dyadic:...'`, the answer of the prover under `r['dyadic']` and its `assumptions`.  Clean registers are
-ancillas.  A float angle that is not (within a few ulp) a multiple of pi/2^k, an unsupported gate or a measurement give `UNKNOWN`.
+ancillas.  A float angle that is not (within 32 ulp, after an exact reduction modulo 4 pi) a multiple of pi/2^k, an unsupported gate or a measurement give `UNKNOWN`.
+The registers of a reference circuit are matched to those of the circuit by name (the same rule as in the Clifford+T path); a gate is taken by its name only when it is a standard Qiskit gate class with the matching matrix, a user gate is unrolled by its definition.
 Overview: [FOREIGN.md](FOREIGN.md); results: `qoptct dyadic results`.  At n=4 the following give `UNKNOWN` without a target ("needs
 fractional phases"): `DraperQFTAdder` (half, fixed), `RGQFTMultiplier`, `HRSCumulativeMultiplier`, `MultiplierGate`,
 `QFTGate`, `QuadraticForm`, `LinearPauliRotations`, `PiecewiseLinearPauliRotations`, `PolynomialPauliRotations`,
