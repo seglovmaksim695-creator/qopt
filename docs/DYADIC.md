@@ -188,21 +188,38 @@ REFUTED for n ≥ 2, which is correct).
 3. A circuit outside the gate set or with measurements: UNKNOWN with the reason; convert first or use the Clifford+T
    provers.
 
-## 6. Results (registry `results/dyadic/*.json`)
+## 6. Results (registry `results/dyadic/*.json` from `scripts/dyadic_runs.py`, lab Mac, one process)
 
-| circuit (library) | specification | proved up to | time at max | canaries at max | independent checks |
-|---|---|---|---|---|---|
-| Qiskit QFTGate (with swaps) | QFTSpec | n = 256 | see registry | 22 / 22 REFUTED | dense n ≤ 10, Qiskit Operator n ≤ 10, product-state sim at max |
-| Qiskit synth_qft_full(do_swaps=False) | QFTSpec(swaps=False) | n = 256 | | | |
-| Qiskit QFTGate.inverse() | QFTSpec(inverse=True) | n = 256 | | | |
-| Qiskit QFT · QFT† | identity | n = 256 | | | |
-| Qiskit DraperQFTAdder fixed / half | adder_spec (+ lemma) | n = 256 (512 qubits) | | | + no-lemma ClassicalSpec n ≤ 4 (tests) |
-| Qiskit RGQFTMultiplier | multiplier_spec (+ lemma) | n = 32 (128 qubits) | | | |
-| Qiskit HRSCumulativeMultiplier | ClassicalSpec, out = 0 | see registry | | | |
-| ProjectQ QFT / AddConstant(c) (native, basic) | QFTSpec(swaps=False) / const_adder_spec | n = 32 / 31 | | | |
+| circuit (library) | specification | proved up to | qubits / gates at max | prove time, peak memory | canaries at max | first size not proved |
+|---|---|---|---|---|---|---|
+| Qiskit `QFTGate` (with swaps) | `QFTSpec` | n = 256 | 256 / 33 024 | 1.0 s, 102 MB | 22 / 22 REFUTED | — |
+| Qiskit `synth_qft_full(do_swaps=False)` | `QFTSpec(swaps=False)` | n = 256 | 256 / 32 896 | 1.0 s, 102 MB | 21 / 21 | — |
+| Qiskit `QFTGate.inverse()` | `QFTSpec(inverse=True)` | n = 256 | 256 / 33 024 | 1.0 s, 127 MB | 22 / 22 | — |
+| Qiskit QFT · QFT† | identity | n = 256 | 256 / 66 048 | 1.7 s, 141 MB | 22 / 22 | — |
+| Qiskit `DraperQFTAdder` fixed | `adder_spec` (+ lemma) | n = 256 | 512 / 98 944 | 9.9 s, 191 MB | 22 / 22 | — |
+| Qiskit `DraperQFTAdder` half | `adder_spec` with carry (+ lemma) | n = 256 | 513 / 99 714 | 9.9 s, 191 MB | 22 / 22 | — |
+| Qiskit `DraperQFTAdder(n).control(1)` | controlled `ArithSpec` (+ lemma) | n = 10 | 21 / 895 | 48 s, 125 MB | 20 / 20 | REFUTED at n = 64 (see below) |
+| Qiskit `RGQFTMultiplier` | `multiplier_spec` (+ lemma) | n = 32 | 128 / 69 760 | 1.8 s, 163 MB | 22 / 22 | — |
+| Qiskit `HRSCumulativeMultiplier` (p(±π/8)) | `ClassicalSpec`, out = 0 | n = 7 | 28 / 4 634 | 175 s, 92 MB | see registry | n = 8 UNKNOWN (time) |
+| ProjectQ `QFT` (native) | `QFTSpec(swaps=False)` | n = 32 | 32 / 528 | 0.04 s | 21 / 21 | n = 48 UNKNOWN (angles) |
+| ProjectQ `AddConstant(c)` (native) | `const_adder_spec` (+ lemma) | n = 32 | 32 / 1 351 | 0.07 s | 21 / 21 | n = 48 UNKNOWN (angles) |
+| ProjectQ `QFT` (basic: CNOT + 1-qubit) | `QFTSpec(swaps=False)` | n = 31 | 31 / 2 356 | 0.08 s | 20 / 20 | n = 32 UNKNOWN (angles) |
+| ProjectQ `AddConstant(c)` (basic) | `const_adder_spec` (+ lemma) | n = 16 | 16 / 1 292 | 0.06 s | 20 / 20 | n = 24 UNKNOWN (angle numerator > 2^20) |
 
-The exact numbers (time, memory, canary list, product-state check) are in the JSON files; `REPORT_Q2_RU.md` of the
-0.8 round summarises them.
+Independent checks: every size ≤ 10 qubits re-checked by the dense simulator (`dense_check: agrees`) and, for Qiskit
+circuits, the translation compared with Qiskit's own `Operator`; at the largest size the product-state simulator
+(`prodsim.py`) ran 20 random basis inputs with 0 errors (it cannot follow HRS, whose Toffoli decompositions
+entangle).  `results/dyadic/fuzz.json`: 3000 random circuit pairs and 1000 random circuit/specification pairs up to
+10 qubits, 0 disagreements with the dense simulator.
+
+Findings.  (1) Qiskit 2.6.2 `control()` of `CPhase(θ)` gives the angles (θ, θ, θ) instead of (θ/2, −θ/2, θ/2) when
+|θ| ≤ π/2^51, so `DraperQFTAdder(n).control(1)` is not exactly a controlled adder for n ≥ 52 (REFUTED at n = 64 with
+the all-ones witness; the error is below 10^{−15} rad, invisible to numeric checks;
+`results/dyadic/cdraper_n64_finding.json`, `test_controlled_cp_pattern_tiny_angles`).  (2) ProjectQ keeps 12 decimals
+of every angle and rounds rotations below 5·10^{−13} rad to 0 (its QFT on 64 qubits has 231 of 2016 controlled R with
+angle 0): from n ≈ 43 on its QFT and AddConstant are not exact, and from n = 33 the float angles cannot be read back
+uniquely.  (3) Qiskit `transpile` with the default `qubits_initially_zero=True` may borrow idle qubits as clean
+ancillas; the result is equal only on |0…0⟩ (HRS n = 2: 4 inputs with out = 0 differ).
 
 ## 7. Limits
 
