@@ -1,0 +1,493 @@
+{
+ "schema": "qoptct.auto.canaries/1",
+ "target": "subtractfrom",
+ "params": {
+  "n": 256
+ },
+ "versions": {
+  "python": "3.12.16",
+  "qualtran": "0.7.0",
+  "z3-solver": "5.3.3.0",
+  "numpy": "2.5.5",
+  "z3": "5.3.3"
+ },
+ "qualtran_variant": {
+  "kind": "original",
+  "qualtran_file": "/Users/max/quantum-start/lab/work/v07/venv/lib/python3.12/site-packages/qualtran/__init__.py",
+  "qualtran_version": null,
+  "files_sha256_16": {
+   "bloqs/cryptography/ecc/ec_add.py": "71a3efc0368f7fca",
+   "bloqs/mod_arithmetic/mod_multiplication.py": "3873115b5cf6fd31",
+   "bloqs/data_loading/qrom_base.py": "5837d39f0c301dfc",
+   "bloqs/data_loading/select_swap_qrom.py": "1dd5d2aee856779c"
+  }
+ },
+ "source_sha256": "d80d01de696bdca5f3c8622505e033141fb7e51ce14e6a20f351971db8d95de9",
+ "canary_sha256": "d549063de2d25990302c5d59de548701720fd27a6f83842edd63332309c554be",
+ "program_ops_sha256": "654ec5ddec0cb107fc12f85d79224ae25c061692e112a3b19c826becd736e153",
+ "total": 26,
+ "counted": 26,
+ "joints": 12,
+ "gates": 14,
+ "proved": [],
+ "rows": [
+  {
+   "name": "J1_swap_wires_of_a_child",
+   "family": "joint",
+   "mutation": "SubtractFrom/1:Add: register a: its first and last wire exchanged (input and output)",
+   "status": "NOT_PROVED",
+   "detail": "child SubtractFrom/1:Add (Add) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J2_swap_output_wires_of_a_child",
+   "family": "joint",
+   "mutation": "SubtractFrom/2:BitwiseNot: output register x: two wires exchanged (only on the output side)",
+   "status": "NOT_PROVED",
+   "detail": "child SubtractFrom/2:BitwiseNot (BitwiseNot) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.3,
+   "counts": true
+  },
+  {
+   "name": "J4_extra_operation_between_children",
+   "family": "joint",
+   "mutation": "X on input wire 255 inserted at 256, between SubtractFrom/0:BitwiseNot and the next child (owned by the root)",
+   "status": "NOT_PROVED",
+   "detail": "coverage: operations 256..257 of SubtractFrom belong to no child (or children overlap) before SubtractFrom/1:Add",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J5_extra_operation_inside_a_child",
+   "family": "joint",
+   "mutation": "X on wire 511 inserted inside SubtractFrom/0:BitwiseNot at 128",
+   "status": "NOT_PROVED",
+   "detail": "child SubtractFrom/0:BitwiseNot (BitwiseNot) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J4b_extra_operation_before_the_first_child",
+   "family": "joint",
+   "mutation": "X on input wire 256 inserted at 0, before the first child SubtractFrom/0:BitwiseNot (owned by the root)",
+   "status": "NOT_PROVED",
+   "detail": "coverage: operations 0..1 of SubtractFrom belong to no child (or children overlap) before SubtractFrom/0:BitwiseNot",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J4c_extra_operation_after_the_last_child",
+   "family": "joint",
+   "mutation": "X on output wire 255 inserted at 2549, after the last child SubtractFrom/2:BitwiseNot (owned by the root)",
+   "status": "NOT_PROVED",
+   "detail": "coverage: operations 2549..2550 of SubtractFrom belong to no child",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J6_extra_operation_between_grandchildren",
+   "family": "joint",
+   "mutation": "X on wire 511 inserted between SubtractFrom/1:Add/2:And and SubtractFrom/1:Add/3:CNOT (owned by SubtractFrom/1:Add)",
+   "status": "NOT_PROVED",
+   "detail": "child SubtractFrom/1:Add (Add) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J8_wrong_contract_of_child_BitwiseNot",
+   "family": "joint",
+   "mutation": "contract of BitwiseNot:24613b400edd7dc2 replaced by a wrong one: BitwiseNot(256) [WRONG: +1 on x]",
+   "status": "NOT_PROVED",
+   "detail": "child SubtractFrom/0:BitwiseNot (BitwiseNot) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J8_wrong_contract_of_child_Add",
+   "family": "joint",
+   "mutation": "contract of Add:d4f533142c59a439 replaced by a wrong one: Add(256,256) [WRONG: +1 on b]",
+   "status": "NOT_PROVED",
+   "detail": "child SubtractFrom/1:Add (Add) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J8b_child_claims_no_effect_BitwiseNot",
+   "family": "joint",
+   "mutation": "contract of BitwiseNot:24613b400edd7dc2 replaced by a wrong one: BitwiseNot(256) [WRONG: x unchanged]",
+   "status": "NOT_PROVED",
+   "detail": "child SubtractFrom/0:BitwiseNot (BitwiseNot) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J8b_child_claims_no_effect_Add",
+   "family": "joint",
+   "mutation": "contract of Add:d4f533142c59a439 replaced by a wrong one: Add(256,256) [WRONG: b unchanged]",
+   "status": "NOT_PROVED",
+   "detail": "child SubtractFrom/1:Add (Add) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J10_child_domain_narrowed_BitwiseNot",
+   "family": "joint",
+   "mutation": "contract of BitwiseNot:24613b400edd7dc2 replaced by a wrong one: BitwiseNot(256) [NARROW: x < 2]",
+   "status": "NOT_PROVED",
+   "detail": "SubtractFrom/0:BitwiseNot: precondition of BitwiseNot(256) [NARROW: x < 2] (part 0): does not follow from the facts (counterexample found)",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "G1_phase_correction_removed_Add",
+   "family": "gate",
+   "mutation": "op 1784: erase correction removed (phase)",
+   "status": "NOT_PROVED",
+   "detail": "child SubtractFrom/1:Add (Add) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 2,
+    "cases": 40,
+    "first": {
+     "input": {
+      "a": "49777695318851681210475338373073370098286246008617623698763029522245618016059",
+      "b": "22832168772679961329187283861338187765364149771809725097515433955251752549401"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G2_phase_correction_moved_Add",
+   "family": "gate",
+   "mutation": "op 1784: erase correction moved to wire 255 (phase)",
+   "status": "NOT_PROVED",
+   "detail": "child SubtractFrom/1:Add (Add) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 4,
+    "cases": 40,
+    "first": {
+     "input": {
+      "a": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "b": "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G3_carry_cx_reversed_Add",
+   "family": "gate",
+   "mutation": "op 2289: control and target of a CX near the top of the carry chain exchanged",
+   "status": "NOT_PROVED",
+   "detail": "child SubtractFrom/1:Add (Add) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 24,
+    "cases": 40,
+    "first": {
+     "input": {
+      "a": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "b": "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G4_high_carry_and_weakened_Add",
+   "family": "gate",
+   "mutation": "op 1267: the AND of a high carry replaced by a CX of one control (wrong only on rare inputs)",
+   "status": "NOT_PROVED",
+   "detail": "child SubtractFrom/1:Add (Add) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 12,
+    "cases": 40,
+    "first": {
+     "input": {
+      "a": "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+      "b": "115792089237316195423570985008687907853269984665640564039457584007913129639935"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": [
+      "b"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G5_x_removed_BitwiseNot",
+   "family": "gate",
+   "mutation": "op 128: an X removed",
+   "status": "NOT_PROVED",
+   "detail": "child SubtractFrom/0:BitwiseNot (BitwiseNot) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 40,
+    "cases": 40,
+    "first": {
+     "input": {
+      "a": "0",
+      "b": "0"
+     },
+     "phase": false,
+     "other_wires": false,
+     "outputs_differ": [
+      "b"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G6_noncommuting_swap_Add",
+   "family": "gate",
+   "mutation": "ops 260, 261: two non-commuting CX exchanged",
+   "status": "NOT_PROVED",
+   "detail": "child SubtractFrom/1:Add (Add) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 6,
+    "cases": 40,
+    "first": {
+     "input": {
+      "a": "22978536559827879325448670194332516426450372756506817956306852295444968542953",
+      "b": "75165217408794086353415736765689348696024730944712140711748435436012848791414"
+     },
+     "phase": false,
+     "other_wires": false,
+     "outputs_differ": [
+      "a",
+      "b"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G7_last_operation_removed",
+   "family": "gate",
+   "mutation": "op 2548 (the last one) removed",
+   "status": "NOT_PROVED",
+   "detail": "child SubtractFrom/2:BitwiseNot (BitwiseNot) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.3,
+   "witness": {
+    "mismatches": 40,
+    "cases": 40,
+    "first": {
+     "input": {
+      "a": "0",
+      "b": "0"
+     },
+     "phase": false,
+     "other_wires": false,
+     "outputs_differ": [
+      "b"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_0_BitwiseNot",
+   "family": "gate",
+   "mutation": "op 2420 in SubtractFrom/2:BitwiseNot: ('x', 383) -> ('x', 262)",
+   "status": "NOT_PROVED",
+   "detail": "child SubtractFrom/2:BitwiseNot (BitwiseNot) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.3,
+   "witness": {
+    "mismatches": 40,
+    "cases": 40,
+    "first": {
+     "input": {
+      "a": "0",
+      "b": "0"
+     },
+     "phase": false,
+     "other_wires": false,
+     "outputs_differ": [
+      "b"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_1_Add",
+   "family": "gate",
+   "mutation": "op 828 in SubtractFrom/1:Add: ('cx', 654, 655) -> ('cx', 654, 186)",
+   "status": "NOT_PROVED",
+   "detail": "child SubtractFrom/1:Add (Add) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 12,
+    "cases": 40,
+    "first": {
+     "input": {
+      "a": "61624315993496918567947895351738066092208101965358879900336054292588484510150",
+      "b": "57896044618658097711785492504343953926634992332820282019728792003956564819968"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": [
+      "a",
+      "b"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_2_BitwiseNot",
+   "family": "gate",
+   "mutation": "op 36 in SubtractFrom/0:BitwiseNot: ('x', 292) -> ('x', 327)",
+   "status": "NOT_PROVED",
+   "detail": "child SubtractFrom/0:BitwiseNot (BitwiseNot) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 40,
+    "cases": 40,
+    "first": {
+     "input": {
+      "a": "0",
+      "b": "0"
+     },
+     "phase": false,
+     "other_wires": false,
+     "outputs_differ": [
+      "b"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_3_BitwiseNot",
+   "family": "gate",
+   "mutation": "op 67 in SubtractFrom/0:BitwiseNot: ('x', 323) -> ('x', 256)",
+   "status": "NOT_PROVED",
+   "detail": "child SubtractFrom/0:BitwiseNot (BitwiseNot) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 40,
+    "cases": 40,
+    "first": {
+     "input": {
+      "a": "0",
+      "b": "0"
+     },
+     "phase": false,
+     "other_wires": false,
+     "outputs_differ": [
+      "b"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_4_BitwiseNot",
+   "family": "gate",
+   "mutation": "op 110 in SubtractFrom/0:BitwiseNot: ('x', 366) -> ('x', 340)",
+   "status": "NOT_PROVED",
+   "detail": "child SubtractFrom/0:BitwiseNot (BitwiseNot) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 40,
+    "cases": 40,
+    "first": {
+     "input": {
+      "a": "0",
+      "b": "0"
+     },
+     "phase": false,
+     "other_wires": false,
+     "outputs_differ": [
+      "b"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_5_Add",
+   "family": "gate",
+   "mutation": "op 898 in SubtractFrom/1:Add: ('cx', 672, 350) -> ('cx', 672, 203)",
+   "status": "NOT_PROVED",
+   "detail": "child SubtractFrom/1:Add (Add) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 23,
+    "cases": 40,
+    "first": {
+     "input": {
+      "a": "14731581308045465511232104033899030365044377307110711873680253420080552288688",
+      "b": "96976500096378430651843848310082162348765114556328447831622098376253718967061"
+     },
+     "phase": false,
+     "other_wires": false,
+     "outputs_differ": [
+      "a",
+      "b"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_6_BitwiseNot",
+   "family": "gate",
+   "mutation": "op 100 in SubtractFrom/0:BitwiseNot: ('x', 356) -> ('x', 452)",
+   "status": "NOT_PROVED",
+   "detail": "child SubtractFrom/0:BitwiseNot (BitwiseNot) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 40,
+    "cases": 40,
+    "first": {
+     "input": {
+      "a": "0",
+      "b": "0"
+     },
+     "phase": false,
+     "other_wires": false,
+     "outputs_differ": [
+      "b"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  }
+ ],
+ "ok": true,
+ "seconds": 4.3,
+ "not_proved": 26
+}

@@ -1,0 +1,15 @@
+{
+ "kind": "compare_ecadd_step",
+ "n": 256,
+ "p": "57896044618658097711785492504343953926634992332820282019728792003956564819949",
+ "w": 1,
+ "step": 1,
+ "step_bloq": "_ECAddStepOne",
+ "ops_07": 37839,
+ "ops_auto": 37839,
+ "digest_07": "ded17ef5f27f898a9da83151359dd0effdb7bdf1186611531b00fadad3591254",
+ "digest_auto": "ded17ef5f27f898a9da83151359dd0effdb7bdf1186611531b00fadad3591254",
+ "equal": true,
+ "same_inputs": true,
+ "opaque_in_07": 0
+}

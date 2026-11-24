@@ -1,0 +1,567 @@
+{
+ "schema": "qoptct.auto.canaries/1",
+ "target": "ecadd_step1",
+ "params": {
+  "n": 256,
+  "p": 57896044618658097711785492504343953926634992332820282019728792003956564819949
+ },
+ "versions": {
+  "python": "3.12.16",
+  "qualtran": "0.7.0",
+  "z3-solver": "5.3.3.0",
+  "numpy": "2.5.5",
+  "z3": "5.3.3"
+ },
+ "qualtran_variant": {
+  "kind": "e",
+  "qualtran_file": "/Users/max/quantum-start/lab/work/v08/f8_auto/cache/qualtran_patched/e-0.7.0/qualtran/__init__.py",
+  "qualtran_version": null,
+  "files_sha256_16": {
+   "bloqs/cryptography/ecc/ec_add.py": "73bdcb891a4bae73",
+   "bloqs/mod_arithmetic/mod_multiplication.py": "bc489ab85232a20f",
+   "bloqs/data_loading/qrom_base.py": "5837d39f0c301dfc",
+   "bloqs/data_loading/select_swap_qrom.py": "1dd5d2aee856779c"
+  }
+ },
+ "source_sha256": "d80d01de696bdca5f3c8622505e033141fb7e51ce14e6a20f351971db8d95de9",
+ "canary_sha256": "d549063de2d25990302c5d59de548701720fd27a6f83842edd63332309c554be",
+ "program_ops_sha256": "ded17ef5f27f898a9da83151359dd0effdb7bdf1186611531b00fadad3591254",
+ "total": 31,
+ "counted": 31,
+ "joints": 17,
+ "gates": 14,
+ "proved": [],
+ "rows": [
+  {
+   "name": "J1_swap_wires_of_a_child",
+   "family": "joint",
+   "mutation": "_ECAddStepOne/6:ModNeg: register x: its first and last wire exchanged (input and output)",
+   "status": "NOT_PROVED",
+   "detail": "child _ECAddStepOne/6:ModNeg (ModNeg) is not proved: NOT_PROVED output x equals the contract: does not follow from the facts (counterexample found)",
+   "seconds": 2.5,
+   "counts": true
+  },
+  {
+   "name": "J1b_swap_wires_of_a_later_child",
+   "family": "joint",
+   "mutation": "_ECAddStepOne/20:MultiControlX: register controls: its first and last wire exchanged (input and output)",
+   "status": "NOT_PROVED",
+   "detail": "child _ECAddStepOne/20:MultiControlX (MultiControlX) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 4.8,
+   "counts": true
+  },
+  {
+   "name": "J2_swap_output_wires_of_a_child",
+   "family": "joint",
+   "mutation": "_ECAddStepOne/23:ModNeg: output register x: two wires exchanged (only on the output side)",
+   "status": "NOT_PROVED",
+   "detail": "child _ECAddStepOne/23:ModNeg (ModNeg) is not proved: NOT_PROVED output x equals the contract: does not follow from the facts (counterexample found)",
+   "seconds": 6.6,
+   "counts": true
+  },
+  {
+   "name": "J3_wires_exchanged_between_children",
+   "family": "joint",
+   "mutation": "_ECAddStepOne/5:Equals.x and _ECAddStepOne/6:ModNeg.x: wires 255 and 1023 exchanged between the two children",
+   "status": "NOT_PROVED",
+   "detail": "child _ECAddStepOne/5:Equals (Equals) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.1,
+   "counts": true
+  },
+  {
+   "name": "J4_extra_operation_between_children",
+   "family": "joint",
+   "mutation": "X on input wire 255 inserted at 2047, between _ECAddStepOne/5:Equals and the next child (owned by the root)",
+   "status": "NOT_PROVED",
+   "detail": "coverage: operations 2047..2048 of _ECAddStepOne belong to no child (or children overlap) before _ECAddStepOne/6:ModNeg",
+   "seconds": 0.1,
+   "counts": true
+  },
+  {
+   "name": "J5_extra_operation_inside_a_child",
+   "family": "joint",
+   "mutation": "X on wire 255 inserted inside _ECAddStepOne/5:Equals at 1023",
+   "status": "NOT_PROVED",
+   "detail": "child _ECAddStepOne/5:Equals (Equals) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.1,
+   "counts": true
+  },
+  {
+   "name": "J4b_extra_operation_before_the_first_child",
+   "family": "joint",
+   "mutation": "X on input wire 768 inserted at 0, before the first child _ECAddStepOne/5:Equals (owned by the root)",
+   "status": "NOT_PROVED",
+   "detail": "coverage: operations 0..1 of _ECAddStepOne belong to no child (or children overlap) before _ECAddStepOne/5:Equals",
+   "seconds": 0.1,
+   "counts": true
+  },
+  {
+   "name": "J4c_extra_operation_after_the_last_child",
+   "family": "joint",
+   "mutation": "X on output wire 1024 inserted at 37839, after the last child _ECAddStepOne/23:ModNeg (owned by the root)",
+   "status": "NOT_PROVED",
+   "detail": "coverage: operations 37839..37840 of _ECAddStepOne belong to no child",
+   "seconds": 0.1,
+   "counts": true
+  },
+  {
+   "name": "J6_extra_operation_between_grandchildren",
+   "family": "joint",
+   "mutation": "X on wire 1284 inserted between _ECAddStepOne/6:ModNeg/1:XGate and _ECAddStepOne/6:ModNeg/2:ControlledViaAnd (owned by _ECAddStepOne/6:ModNeg)",
+   "status": "NOT_PROVED",
+   "detail": "child _ECAddStepOne/6:ModNeg (ModNeg) is not proved: NOT_PROVED coverage: operations 2048..2049 of _ECAddStepOne/6:ModNeg belong to no child (or children overlap) before _ECAddStepOne/6:ModNeg/2:ControlledViaAnd",
+   "seconds": 1.6,
+   "counts": true
+  },
+  {
+   "name": "J7_operation_moved_across_a_boundary",
+   "family": "joint",
+   "mutation": "the last operation of _ECAddStepOne/6:ModNeg/2:ControlledViaAnd attributed to _ECAddStepOne/6:ModNeg/3:MultiTargetCNOT",
+   "status": "NOT_PROVED",
+   "detail": "child _ECAddStepOne/6:ModNeg (ModNeg) is not proved: NOT_PROVED child _ECAddStepOne/6:ModNeg/2:ControlledViaAnd (ControlledViaAnd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 1.6,
+   "counts": true
+  },
+  {
+   "name": "J8_wrong_contract_of_child_Equals",
+   "family": "joint",
+   "mutation": "contract of Equals:3d754e62e8e506a1 replaced by a wrong one: Equals(256) [WRONG: +1 on target]",
+   "status": "NOT_PROVED",
+   "detail": "child _ECAddStepOne/5:Equals (Equals) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.1,
+   "counts": true
+  },
+  {
+   "name": "J8_wrong_contract_of_child_XGate",
+   "family": "joint",
+   "mutation": "contract of XGate:9c761c8336b01810 replaced by a wrong one: X [WRONG: +1 on q]",
+   "status": "NOT_PROVED",
+   "detail": "child _ECAddStepOne/6:ModNeg (ModNeg) is not proved: NOT_PROVED child _ECAddStepOne/6:ModNeg/1:XGate (XGate) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 1.7,
+   "counts": true
+  },
+  {
+   "name": "J8_wrong_contract_of_child_ControlledViaAnd",
+   "family": "joint",
+   "mutation": "contract of ControlledViaAnd:63a307e6e146b2e1 replaced by a wrong one: Controlled[X; ctrl=0] [WRONG: +1 on q]",
+   "status": "NOT_PROVED",
+   "detail": "child _ECAddStepOne/6:ModNeg (ModNeg) is not proved: NOT_PROVED child _ECAddStepOne/6:ModNeg/2:ControlledViaAnd (ControlledViaAnd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 1.6,
+   "counts": true
+  },
+  {
+   "name": "J8b_child_claims_no_effect_Equals",
+   "family": "joint",
+   "mutation": "contract of Equals:3d754e62e8e506a1 replaced by a wrong one: Equals(256) [WRONG: target unchanged]",
+   "status": "NOT_PROVED",
+   "detail": "child _ECAddStepOne/5:Equals (Equals) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.1,
+   "counts": true
+  },
+  {
+   "name": "J8b_child_claims_no_effect_XGate",
+   "family": "joint",
+   "mutation": "contract of XGate:9c761c8336b01810 replaced by a wrong one: X [WRONG: q unchanged]",
+   "status": "NOT_PROVED",
+   "detail": "child _ECAddStepOne/6:ModNeg (ModNeg) is not proved: NOT_PROVED child _ECAddStepOne/6:ModNeg/1:XGate (XGate) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 1.6,
+   "counts": true
+  },
+  {
+   "name": "J9_root_precondition_weakened_0",
+   "family": "joint",
+   "mutation": "root precondition weakened",
+   "status": "NOT_PROVED",
+   "detail": "_ECAddStepOne/6:ModNeg: precondition of ModNeg(n=256, p=57896044618658097711785492504343953926634992332820282019728792003956564819949) (part 0): does not follow from the facts (counterexample found)",
+   "seconds": 2.5,
+   "counts": true
+  },
+  {
+   "name": "J10_child_domain_narrowed_Equals",
+   "family": "joint",
+   "mutation": "contract of Equals:3d754e62e8e506a1 replaced by a wrong one: Equals(256) [NARROW: x < 2]",
+   "status": "NOT_PROVED",
+   "detail": "_ECAddStepOne/5:Equals: precondition of Equals(256) [NARROW: x < 2] (part 0): does not follow from the facts (counterexample found)",
+   "seconds": 1.7,
+   "counts": true
+  },
+  {
+   "name": "G1_phase_correction_removed_Equals",
+   "family": "gate",
+   "mutation": "op 1406: erase correction removed (phase)",
+   "status": "NOT_PROVED",
+   "detail": "child _ECAddStepOne/5:Equals (Equals) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.1,
+   "witness": {
+    "mismatches": 3,
+    "cases": 40,
+    "first": {
+     "input": {
+      "a": "0",
+      "b": "0",
+      "x": "0",
+      "y": "0"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G2_phase_correction_moved_Equals",
+   "family": "gate",
+   "mutation": "op 1406: erase correction moved to wire 255 (phase)",
+   "status": "NOT_PROVED",
+   "detail": "child _ECAddStepOne/5:Equals (Equals) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.1,
+   "witness": {
+    "mismatches": 6,
+    "cases": 40,
+    "first": {
+     "input": {
+      "a": "0",
+      "b": "0",
+      "x": "0",
+      "y": "0"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G3_carry_cx_reversed_Controlled",
+   "family": "gate",
+   "mutation": "op 6634: control and target of a CX near the top of the carry chain exchanged",
+   "status": "NOT_PROVED",
+   "detail": "child _ECAddStepOne/6:ModNeg (ModNeg) is not proved: NOT_PROVED child _ECAddStepOne/6:ModNeg/4:Controlled (Controlled) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 2.3,
+   "witness": {
+    "mismatches": 29,
+    "cases": 40,
+    "first": {
+     "input": {
+      "a": "33654761885379702644915519670180317630571056009675226225931178035056198323859",
+      "b": "0",
+      "x": "18726573117159430026978657574715093838445481455505045756444968309350179382339",
+      "y": "46664459000732743519658885335141185403006137080216123103023937962216627893945"
+     },
+     "phase": false,
+     "other_wires": true,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G4_high_carry_and_weakened_Controlled",
+   "family": "gate",
+   "mutation": "op 5358: the AND of a high carry replaced by a CX of one control (wrong only on rare inputs)",
+   "status": "NOT_PROVED",
+   "detail": "child _ECAddStepOne/6:ModNeg (ModNeg) is not proved: NOT_PROVED child _ECAddStepOne/6:ModNeg/4:Controlled (Controlled) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 2.2,
+   "witness": {
+    "mismatches": 1,
+    "cases": 24,
+    "first": {
+     "input": {
+      "ctrl": 1,
+      "x": 1
+     },
+     "expected": {
+      "ctrl": 1,
+      "x": 57896044618658097711785492504343953926634992332820282019728792003956564819951
+     },
+     "got": {
+      "ctrl": 1,
+      "x": 86844066927987146567678238756515930889952488499230423029593188005934847229935
+     },
+     "phase": true,
+     "other_wires_nonzero": false
+    },
+    "level": "leaf _ECAddStepOne/6:ModNeg/4:Controlled"
+   },
+   "counts": true
+  },
+  {
+   "name": "G5_x_removed_Equals",
+   "family": "gate",
+   "mutation": "op 1024: an X removed",
+   "status": "NOT_PROVED",
+   "detail": "child _ECAddStepOne/5:Equals (Equals) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.1,
+   "witness": {
+    "mismatches": 40,
+    "cases": 40,
+    "first": {
+     "input": {
+      "a": "0",
+      "b": "0",
+      "x": "0",
+      "y": "0"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": [
+      "f4",
+      "x"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G6_noncommuting_swap_MultiTargetCNOT",
+   "family": "gate",
+   "mutation": "ops 3836, 3837: two non-commuting CX exchanged",
+   "status": "NOT_PROVED",
+   "detail": "child _ECAddStepOne/6:ModNeg (ModNeg) is not proved: NOT_PROVED child _ECAddStepOne/6:ModNeg/3:MultiTargetCNOT (MultiTargetCNOT) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 2.3,
+   "witness": {
+    "mismatches": 1,
+    "cases": 24,
+    "first": {
+     "input": {
+      "control": 1,
+      "targets": 115792089237316195423570985008687907853269984665640564039457584007913129639935
+     },
+     "expected": {
+      "control": 1,
+      "targets": 0
+     },
+     "got": {
+      "control": 1,
+      "targets": 7719472615821079694904732333912527190217998977709370935963838933860875309329
+     },
+     "phase": false,
+     "other_wires_nonzero": false
+    },
+    "level": "leaf _ECAddStepOne/6:ModNeg/3:MultiTargetCNOT"
+   },
+   "counts": true
+  },
+  {
+   "name": "G7_last_operation_removed",
+   "family": "gate",
+   "mutation": "op 37838 (the last one) removed",
+   "status": "NOT_PROVED",
+   "detail": "child _ECAddStepOne/23:ModNeg (ModNeg) is not proved: NOT_PROVED child _ECAddStepOne/23:ModNeg/6:XGate (XGate) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 6.6,
+   "witness": {
+    "mismatches": 40,
+    "cases": 40,
+    "first": {
+     "input": {
+      "a": "0",
+      "b": "0",
+      "x": "0",
+      "y": "0"
+     },
+     "phase": false,
+     "other_wires": true,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_0_ControlledViaAnd",
+   "family": "gate",
+   "mutation": "op 11325 in _ECAddStepOne/8:ModNeg/2:ControlledViaAnd: ('x', 911) -> ('x', 872)",
+   "status": "NOT_PROVED",
+   "detail": "child _ECAddStepOne/8:ModNeg (ModNeg) is not proved: NOT_PROVED child _ECAddStepOne/8:ModNeg/2:ControlledViaAnd (ControlledViaAnd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 2.6,
+   "witness": {
+    "mismatches": 40,
+    "cases": 40,
+    "first": {
+     "input": {
+      "a": "0",
+      "b": "0",
+      "x": "0",
+      "y": "0"
+     },
+     "phase": true,
+     "other_wires": true,
+     "outputs_differ": [
+      "f4",
+      "y"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_1_ControlledViaAnd",
+   "family": "gate",
+   "mutation": "op 11005 in _ECAddStepOne/8:ModNeg/2:ControlledViaAnd: ('erase', 2811, (('cz', 2810, 1018),)) -> ('erase', 2811, ())",
+   "status": "NOT_PROVED",
+   "detail": "child _ECAddStepOne/8:ModNeg (ModNeg) is not proved: NOT_PROVED child _ECAddStepOne/8:ModNeg/2:ControlledViaAnd (ControlledViaAnd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 2.5,
+   "witness": {
+    "mismatches": 6,
+    "cases": 40,
+    "first": {
+     "input": {
+      "a": "0",
+      "b": "0",
+      "x": "0",
+      "y": "0"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_2_Equals",
+   "family": "gate",
+   "mutation": "op 739 in _ECAddStepOne/5:Equals: ('and', 1188, 673, 1189) -> ('and', 680, 673, 1189)",
+   "status": "NOT_PROVED",
+   "detail": "child _ECAddStepOne/5:Equals (Equals) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.1,
+   "witness": {
+    "mismatches": 13,
+    "cases": 40,
+    "first": {
+     "input": {
+      "a": "0",
+      "b": "0",
+      "x": "0",
+      "y": "0"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": [
+      "f1"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_3_ControlledViaAnd",
+   "family": "gate",
+   "mutation": "op 7177 in _ECAddStepOne/6:ModNeg/5:ControlledViaAnd: ('and', 2229, 948, 2230) -> ('and', 801, 948, 2230)",
+   "status": "NOT_PROVED",
+   "detail": "child _ECAddStepOne/6:ModNeg (ModNeg) is not proved: NOT_PROVED child _ECAddStepOne/6:ModNeg/5:ControlledViaAnd (ControlledViaAnd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 2.5,
+   "witness": {
+    "mismatches": 20,
+    "cases": 40,
+    "first": {
+     "input": {
+      "a": "0",
+      "b": "0",
+      "x": "0",
+      "y": "0"
+     },
+     "phase": true,
+     "other_wires": true,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_4_ControlledViaAnd",
+   "family": "gate",
+   "mutation": "op 16045 in _ECAddStepOne/8:ModNeg/5:ControlledViaAnd: ('x', 868) -> ('x', 769)",
+   "status": "NOT_PROVED",
+   "detail": "child _ECAddStepOne/8:ModNeg (ModNeg) is not proved: NOT_PROVED child _ECAddStepOne/8:ModNeg/5:ControlledViaAnd (ControlledViaAnd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 2.5,
+   "witness": {
+    "mismatches": 40,
+    "cases": 40,
+    "first": {
+     "input": {
+      "a": "0",
+      "b": "0",
+      "x": "0",
+      "y": "0"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": [
+      "f4",
+      "y"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_5_MultiTargetCNOT",
+   "family": "gate",
+   "mutation": "op 3741 in _ECAddStepOne/6:ModNeg/3:MultiTargetCNOT: ('cx', 798, 862) -> ('cx', 798, 949)",
+   "status": "NOT_PROVED",
+   "detail": "child _ECAddStepOne/6:ModNeg (ModNeg) is not proved: NOT_PROVED child _ECAddStepOne/6:ModNeg/3:MultiTargetCNOT (MultiTargetCNOT) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 2.2,
+   "witness": {
+    "mismatches": 16,
+    "cases": 40,
+    "first": {
+     "input": {
+      "a": "36462339107764481088887969903583306559798829609364227129456886986715910014434",
+      "b": "21344510989672238306337856735304170881341069394533460581493297101217436312852",
+      "x": "18770838898086335028037360914286040048828622826454665130748662837025913698978",
+      "y": "34547836574710711776961012088635294087488325957274927414355712553836962067597"
+     },
+     "phase": false,
+     "other_wires": false,
+     "outputs_differ": [
+      "y"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_6_Controlled",
+   "family": "gate",
+   "mutation": "op 26496 in _ECAddStepOne/21:ModNeg/4:Controlled: ('cx', 5031, 934) -> ('cx', 5031, 858)",
+   "status": "NOT_PROVED",
+   "detail": "child _ECAddStepOne/21:ModNeg (ModNeg) is not proved: NOT_PROVED child _ECAddStepOne/21:ModNeg/4:Controlled (Controlled) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 4.9,
+   "witness": {
+    "mismatches": 30,
+    "cases": 40,
+    "first": {
+     "input": {
+      "a": "1403561394050649928321341113313643831457009317696018955547383141070309536409",
+      "b": "57896044618658097711785492504343953926634992332820282019728792003956564819948",
+      "x": "35045196938166742217087404797222502745840689289442981438331626311055018672507",
+      "y": "53886449580111376548700170592207738387869867082474190255575738902830332866164"
+     },
+     "phase": false,
+     "other_wires": false,
+     "outputs_differ": [
+      "y"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  }
+ ],
+ "ok": true,
+ "seconds": 79.5,
+ "not_proved": 31
+}
