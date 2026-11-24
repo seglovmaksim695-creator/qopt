@@ -19,7 +19,8 @@ def regions(tr, depth=1):
 if __name__ == '__main__':
     from qoptct.foreign.qualtran.ecadd.core import lower_step
     from qoptct.foreign.qualtran.ecadd.run_step import step_bloq
-    k, n, p = int(sys.argv[1]), int(sys.argv[2]), eval(sys.argv[3])
+    from qoptct.foreign.qualtran._intexpr import int_expr
+    k, n, p = int(sys.argv[1]), int(sys.argv[2]), int_expr(sys.argv[3])
     low, tr = lower_step(step_bloq(k, n, p))
     for key, (lo, hi, cnt) in regions(tr, int(sys.argv[4]) if len(sys.argv) > 4 else 1).items():
         print(f'{key:45s} ops[{lo}:{hi}] {cnt}')

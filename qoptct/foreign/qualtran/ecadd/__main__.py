@@ -25,7 +25,8 @@ def main(argv=None):
     ap.add_argument('--steps', default='1,2,3,4,5,6', help='ecadd: subset of steps (a partial run is never PROVED)')
     ap.add_argument('--out', default=None)
     a = ap.parse_args(argv)
-    p = eval(a.p, {'__builtins__': {}}, {})
+    from qoptct.foreign.qualtran._intexpr import int_expr
+    p = int_expr(a.p)
     from . import api
     log = lambda m: print(m, file=sys.stderr, flush=True)
     if a.cmd == 'ecadd':

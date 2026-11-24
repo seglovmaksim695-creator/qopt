@@ -173,7 +173,8 @@ def main(argv=None):
     ap.add_argument('--out', default=None)
     ap.add_argument('--only', default=None, help='only corruptions with these numbers (comma separated): one per process at n=256')
     a = ap.parse_args(argv)
-    n, p = a.n, eval(a.p, {}, {})
+    from qoptct.foreign.qualtran._intexpr import int_expr
+    n, p = a.n, int_expr(a.p)
     only = {int(t) for t in a.only.split(',')} if a.only else None
     from qoptct.foreign.qualtran.ecadd.run_step import step_bloq, version_info
     from qoptct.foreign.qualtran.ecadd.indep import oracle

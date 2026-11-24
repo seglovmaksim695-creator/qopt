@@ -42,7 +42,8 @@ def main(argv=None):
     ap.add_argument('--seed', type=int, default=3)
     ap.add_argument('--out', default=None)
     a = ap.parse_args(argv)
-    n, p = a.n, eval(a.p, {}, {})
+    from qoptct.foreign.qualtran._intexpr import int_expr
+    n, p = a.n, int_expr(a.p)
     rnd = random.Random(a.seed)
     io = IntOps(n, p)
     t0 = time.time()

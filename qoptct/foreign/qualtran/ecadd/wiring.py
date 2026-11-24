@@ -73,7 +73,8 @@ def main(argv=None):
     ap.add_argument('--p', required=True)
     ap.add_argument('--out', default=None)
     a = ap.parse_args(argv)
-    n, p = a.n, eval(a.p, {}, {})
+    from qoptct.foreign.qualtran._intexpr import int_expr
+    n, p = a.n, int_expr(a.p)
     d = extract(n, p)
     d['status'] = 'OK'
     if a.out:

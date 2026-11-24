@@ -125,6 +125,8 @@ are recomputed once (about 150 s) and cached.
 
 ### Known limitations (from the independent audit of 0.7)
 
+* `qoptct qualtran check` builds the bloq by evaluating the given expression as Python (Qualtran names, a few builtins).
+  This is not a sandbox: do not pass text from an untrusted source.  Numbers (`--n`, `--p`, ...) are read without `eval`.
 * Kaliski canaries: the packaged evidence contains the run of 27 candidates (13 targeted + 12 random + the rerun of T8b); the wide
   search for a witness beyond the standard sample inputs (the `extra` field, supported by the verdict) was done in round 3 and is not
   repeated by the package.  The counting rule is the same as in round 3.

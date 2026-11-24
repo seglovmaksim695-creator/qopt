@@ -35,7 +35,8 @@ def _int_expr(text):
     if len(text or '') > 80 or not re.fullmatch(r'[0-9+\-*() ]+', text or ''):
         raise UsageError(f'cannot read the number {text!r} (digits and + - * ** ( ) only)')
     try:
-        return int(eval(text, {'__builtins__': {}}, {}))
+        from qoptct.foreign.qualtran._intexpr import int_expr
+        return int_expr(text)
     except Exception as e:  # noqa: BLE001
         raise UsageError(f'cannot read the number {text!r}: {e}') from e
 

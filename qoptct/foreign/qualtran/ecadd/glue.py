@@ -312,7 +312,8 @@ def main(argv=None):
     ap.add_argument('--group', type=int, default=0)
     ap.add_argument('--out', default=None)
     a = ap.parse_args(argv)
-    n, p = a.n, eval(a.p, {}, {})
+    from qoptct.foreign.qualtran._intexpr import int_expr
+    n, p = a.n, int_expr(a.p)
     orig = {int(s) for s in a.orig.split(',') if s}
     versions = {k: k not in orig for k in range(1, 7)}
     lem = set(LEMMAS) - {s for s in a.drop.split(',') if s}

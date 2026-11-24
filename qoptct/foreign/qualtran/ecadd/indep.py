@@ -75,7 +75,8 @@ def main(argv=None):
                     help='box values by the formulas (MM=u*v*R^-1, KINV=u^-1*R^2), not by the Qualtran classical simulation '
                          '(needed for the original 0.7.0 at n=256: its classical simulation of the multiplier fails, finding 04)')
     a = ap.parse_args(argv)
-    n, p = a.n, eval(a.p, {}, {})
+    from qoptct.foreign.qualtran._intexpr import int_expr
+    n, p = a.n, int_expr(a.p)
     from qoptct.foreign.qualtran.ecadd.run_step import version_info
     vi = version_info()
     patched = vi['version'] == 'patched'

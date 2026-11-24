@@ -18,7 +18,8 @@ import time
 
 
 def _p(s):
-    return int(eval(s, {'__builtins__': {}}, {}))
+    from qoptct.foreign.qualtran._intexpr import int_expr
+    return int_expr(s)
 
 
 def main(argv=None):

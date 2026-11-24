@@ -285,7 +285,8 @@ def check_pair_mont(n, w, p, compare_full=False):
 
 
 if __name__ == '__main__':
-    n, w, p = int(sys.argv[1]), int(sys.argv[2]), int(eval(sys.argv[3], {'__builtins__': {}}))
+    from qoptct.foreign.qualtran._intexpr import int_expr
+    n, w, p = int(sys.argv[1]), int(sys.argv[2]), int_expr(sys.argv[3])
     cmp_full = len(sys.argv) > 4 and sys.argv[4] == 'full'
     try:
         r = check_pair_mont(n, w, p, compare_full=cmp_full)

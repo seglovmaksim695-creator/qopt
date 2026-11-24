@@ -133,7 +133,16 @@ def main(argv=None):
     if a.mutant:
         from .zmutants import apply
         apply(a.mutant)
-    n, p = a.n, eval(a.p, {}, {})
+    from qoptct.foreign.qualtran._intexpr import int_expr
+    from qoptct.foreign.qualtran.domain import check_domain
+    n, p = a.n, int_expr(a.p)
+    dom = check_domain('ecadd', n, p)
+    if not dom['ok']:   # glue of ECAdd only for a modulus in the ECAdd domain
+        res = dict(n=n, p=str(p), mode=a.mode, status='NOT_PROVED', domain=dom)
+        print(json.dumps(res, ensure_ascii=False))
+        if a.out:
+            json.dump(res, open(a.out, 'w'), ensure_ascii=False, indent=1)
+        return res
     orig = {int(s) for s in a.orig.split(',') if s}
     versions = {k: k not in orig for k in range(1, 7)}
     lem = [l for l in LEMMAS if l not in a.drop.split(',')]

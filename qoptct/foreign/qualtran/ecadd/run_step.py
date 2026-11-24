@@ -45,7 +45,8 @@ def main(argv=None):
     ap.add_argument('--only-flags', default=None,
                     help='restrict the flag sets, e.g. "f1=0,f2=1,f3=0,f4=0,ctrl=0;f1=1,..." (the claim holds only for them)')
     a = ap.parse_args(argv)
-    p = eval(a.p, {}, {})  # allows 2**255-19
+    from qoptct.foreign.qualtran._intexpr import int_expr
+    p = int_expr(a.p)  # allows 2**255-19
     from qoptct.foreign.qualtran.ecadd.core import build_program, Run, Fail
     from qoptct.foreign.qualtran.ecadd.specs import STEPS
     vi = version_info()

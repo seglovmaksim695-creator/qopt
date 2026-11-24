@@ -403,7 +403,8 @@ def main(argv=None):
     ap.add_argument('--seed', type=int, default=7)
     ap.add_argument('--out', default=None)
     a = ap.parse_args(argv)
-    n, p, w = a.n, eval(a.p, {}, {}), a.w
+    from qoptct.foreign.qualtran._intexpr import int_expr
+    n, p, w = a.n, int_expr(a.p), a.w
     t0 = time.time()
     res = dict(cmd=a.cmd, n=n, p=str(p), w=w, mul_window_size=1, curve=f'y^2=x^3+{CURVE_A}x+{CURVE_B}', **version_info(),
                assumptions=['E2: ECAdd(n,p,1) fixed = point addition, a,b,lam_r unchanged, everything else clean',
