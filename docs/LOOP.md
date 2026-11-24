@@ -8,7 +8,8 @@ improvements are written to an append-only journal. The "best known" table is bu
 
     qoptct loop run    --state DIR --target SPEC [--target SPEC ...] [--hours H] [--proposers lookup,optimize]
                        [--canaries 20] [--budget SEC] [--max-steps N] [--prove-all]
-    qoptct loop verify --state DIR [--no-reprove] [--budget SEC]     # exit 0: journal holds; 1: problems listed
+    qoptct loop verify --state DIR [--no-reprove] [--budget SEC]     # exit 0: journal holds; 1: problems listed, journal missing/empty
+                                                                    # (empty is allowed only with --allow-empty)
     qoptct loop table  --state DIR
     qoptct loop status --state DIR
 
@@ -43,7 +44,7 @@ circuit by the order (AND, CX, qubits, T) without being worse in any key; `trade
 
 ## Guard against false accumulation
 
-`qoptct loop verify` believes nothing: it checks the hash chain and the replay rules (sequence, first record of a
+`qoptct loop verify` believes nothing: a missing or empty journal is an error, every record must go through the full check (the count is printed), it checks the hash chain and the replay rules (sequence, first record of a
 target is its baseline, reference hash pinned by the baseline, `cost_before` equals the best known cost at that point,
 `kind` matches the costs, status PROVED), the stored files against their SHA-256, the costs recomputed from the stored
 circuit, the proof itself again on the stored files plus the simulators, and that `best.json` / `BEST.md` equal the
