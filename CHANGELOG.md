@@ -2,7 +2,7 @@
 
 Versions 0.5.0, 0.6.0, 0.7.0 and 0.8.0 are published together as one release, 0.8.0; 0.5.0 to 0.7.0 were not released separately.
 
-## 0.8.0 — unreleased
+## 0.8.0 — 2026-11-24
 
 ### Added
 * **`qoptct.dyadic`** and **`qoptct dyadic prove|results`**: exact proofs for circuits with rotations pi*p/2^k (QFT, Draper adders, QFT
