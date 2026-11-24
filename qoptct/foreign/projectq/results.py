@@ -52,7 +52,7 @@ def prove_multiplier(m, source=None, canaries=24, seed=1):
     out = _base(f'binary_ecc_multiplier/m{m}', 'binary_ecc_multiplier', f'Binary_ECC Multiplication/Mul_x{m}.py',
                 f"result = x*y mod f in GF(2^{m}), f = {hex(spec.poly)}, x and y unchanged, every wire that is not x, y, result or garbage ends in |0>, "
                 f"the {len(pin)} garbage wires end in the values of the pin", r, rec, lg, t0,
-                f'qoptct projectq prove multiplier --m {m} --source <Binary_ECC folder>', can)
+                f'python -m qoptct.foreign.projectq prove multiplier --m {m} --source <Binary_ECC folder>', can)
     out.update(m=m, poly=hex(spec.poly), source=dict(file=f'Multiplication/Mul_x{m}.py', sha256=B.file_sha256(B.multiplier_path(m, source))),
                garbage=dict(wires=len(pin), pin_sha256=pin.digest, kind=pin.kind,
                             note='garbage wires are compared with the golden circuit, not proved meaningful'))
@@ -78,7 +78,7 @@ def prove_point_addition(m, source=None, canaries=24, seed=1, variant='FLT_in'):
                 f'q = 0: (x1, y1) unchanged; q = 1 and x1 != x2: (x1, y1) <- (x1, y1) + (x2, y2) on y^2 + xy = x^3 + a x^2 + b over GF(2^{m}); '
                 f'constants a={cst["a"]}, x2={hex(cst["x2"])}, y2={hex(cst["y2"])}; all {1 << (2 * m + 1)} inputs; clean wires clean; '
                 f'{len(pin)} garbage wires equal the pin', r, rec, lg, t0,
-                f'qoptct projectq prove point-addition --m {m} --source <Binary_ECC folder>', can)
+                f'python -m qoptct.foreign.projectq prove point-addition --m {m} --source <Binary_ECC folder>', can)
     out.update(m=m, poly=hex(sum(1 << e for e in B.POLYNOMIALS[m])), constants=cst,
                source=dict(file=f'Point_additions/{variant}/x^{m}/Point_addition_x{m}.py',
                            sha256=B.file_sha256(B.point_addition_path(m, variant, source))),
@@ -100,7 +100,7 @@ def prove_library(name, n, canaries=24, seed=1, mode='nct'):
     can = _canary_block(rec, spec, None, canaries, seed) if r['status'] == 'PROVED' and mode == 'nct' else None
     out = _base(f'projectq_library/{name}_n{n}' + ('' if mode == 'nct' else '_clifford_t'), 'projectq_library', f'projectq.libs.math: {name}',
                 f'{spec.name}: all outputs equal the arithmetic specification' + ('' if spec.promise is None else ' on the promised domain')
-                + ', every other wire ends in |0>', r, rec, lg, t0, f'qoptct projectq prove library --block {name} --n {n}'
+                + ', every other wire ends in |0>', r, rec, lg, t0, f'python -m qoptct.foreign.projectq prove library --block {name} --n {n}'
                 + ('' if mode == 'nct' else ' --clifford-t'), can)
     out.update(n=n, block_name=name, source=None, garbage=dict(wires=0, pin_sha256=None, kind=None, note='no garbage'))
     return out

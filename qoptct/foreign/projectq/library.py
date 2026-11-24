@@ -100,7 +100,19 @@ def controlled_swap(n):
                                name='fredkin')
 
 
+def permutation_oracle(n):
+    """``projectq.libs.revkit.PermutationOracle`` (needs the external ``revkit`` package) for a fixed pseudo-random permutation
+    of 0..2^n-1 (seed 2026): |x> -> |perm[x]>."""
+    import random
+    from projectq.libs.revkit import PermutationOracle
+    perm = list(range(1 << n))
+    random.Random(2026 + n).shuffle(perm)
+    prog = _prog([('q', n)], lambda e, r: PermutationOracle(perm) | r['q'], ['q'], ['q'])
+    return prog, ClassicalSpec(lambda v: dict(q=perm[v['q']]), name=f'revkit_permutation_n{n}')
+
+
 BLOCKS = {
+    'revkit_permutation': permutation_oracle,
     'add_quantum': add_quantum,
     'add_quantum_carry': add_quantum_carry,
     'add_quantum_controlled': add_quantum_controlled,

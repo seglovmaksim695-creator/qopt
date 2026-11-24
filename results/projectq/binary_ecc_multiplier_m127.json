@@ -213,7 +213,7 @@
   "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
   "a freed wire is required to end in |0> like every other clean wire"
  ],
- "reproduce": "qoptct projectq prove multiplier --m 127 --source <Binary_ECC folder>",
+ "reproduce": "python -m qoptct.foreign.projectq prove multiplier --m 127 --source <Binary_ECC folder>",
  "wall_seconds": 36.7,
  "m": 127,
  "poly": "0x80000000000000000000000000000003",

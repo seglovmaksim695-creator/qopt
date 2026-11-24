@@ -85,9 +85,10 @@ def make_canaries(rec, count=24, seed=1, pin=None):
         def ctrl_sub(k):
             i = pick(cc, k * 11 + 3)
             c0, c1 = ops[i][1]
-            w = rng.choice(free_in)
-            while w in (c0, c1, ops[i][2]):
-                w = rng.choice(free_in)
+            others = [x for x in range(rec.n_wires) if x not in (c0, c1, ops[i][2])]
+            if not others:
+                return ('rare', f'Toffoli #{i} -> CNOT (one control dropped)', sub(i, ('x', (c1,), ops[i][2])))
+            w = rng.choice([x for x in free_in if x in others] or others)
             return ('rare', f'replace a control of the Toffoli #{i} by wire {w}', sub(i, ('x', (c0, w), ops[i][2])))
         makers.append(ctrl_sub)
 
@@ -169,6 +170,12 @@ def make_canaries(rec, count=24, seed=1, pin=None):
     return merged
 
 
+def _same(a, b, mask):
+    if mask is None:
+        return a == b
+    return all(((x ^ y) & mask) == 0 for x, y in zip(a, b))
+
+
 def _final_state(lg, kind):
     from ._sim import masks_full, masks_w2, simulate
     free = lg.free_wires if kind == 'full' else list(lg.inputs['x']) + list(lg.inputs['y'])
@@ -188,6 +195,14 @@ def run_canaries(rec, spec, pin=None, count=24, seed=1, check=None, extra=12):
     chk = check or (lambda obj: check_projectq(obj, spec, pin=pin, native=False))
     golden = to_logical(rec)
     gold_state = None
+    dom_mask = None
+    if pin is None or pin.kind == 'full':           # a promise limits the claim: equivalence is judged on the promised inputs
+        try:
+            from ._classical import expected_lanes
+            if getattr(spec, 'promise', None) is not None:
+                dom_mask = expected_lanes(golden, spec, len(golden.free_wires))[1]
+        except Exception:  # noqa: BLE001
+            dom_mask = None
     rows, decided = [], 0
     for c in make_canaries(rec, count + extra, seed, pin):
         if decided >= count:
@@ -195,12 +210,13 @@ def run_canaries(rec, spec, pin=None, count=24, seed=1, check=None, extra=12):
         try:
             r = chk(c['obj'])
             row = dict(desc=c['desc'], group=c['group'], status=r['status'], detail=str(r.get('detail'))[:160])
-            if r['status'] == 'PROVED' and pin is not None:
+            if r['status'] == 'PROVED':
+                kind = pin.kind if pin is not None else 'full'
                 obj = c['obj']
                 lg = obj if hasattr(obj, 'parsed_ops') else to_logical(obj)
                 if gold_state is None:
-                    gold_state = _final_state(golden, pin.kind)
-                if lg.nq == golden.nq and _final_state(lg, pin.kind) == gold_state:
+                    gold_state = _final_state(golden, kind)
+                if lg.nq == golden.nq and _same(gold_state, _final_state(lg, kind), dom_mask):
                     row['status'] = 'EQUIVALENT'
                     row['detail'] = 'identical final value on every wire: not a real mutant'
         except Exception as e:  # noqa: BLE001 - a crash is not a proof either

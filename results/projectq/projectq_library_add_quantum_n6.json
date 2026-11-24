@@ -1,0 +1,219 @@
+{
+ "schema": "qoptct.projectq.result/1",
+ "id": "projectq_library/add_quantum_n6",
+ "name": "projectq_library",
+ "block": "projectq.libs.math: add_quantum",
+ "claim": "add_quantum_n6: all outputs equal the arithmetic specification, every other wire ends in |0>",
+ "status": "PROVED",
+ "detail": "all 4096 inputs: outputs equal the specification, clean wires clean, 0 garbage wires equal the pin",
+ "method": "exhaustive-lanes",
+ "domain": "all inputs",
+ "projectq": "0.8.0",
+ "program": {
+  "name": "logical_sha256",
+  "value": "2894fdab2db6bf06b6995ffe9d115a6ea2ed962acd11d46f71a1296cd2c11e11"
+ },
+ "recording_sha256": "4edd9b4e88733c75a4cb66903ad1a13806d3c55ce8cb18a786dcba1913f85f8e",
+ "circuit": {
+  "mode": "nct",
+  "wires": 12,
+  "logical_wires": 13,
+  "logical_ops": 54,
+  "counts": {
+   "alloc": 12,
+   "x1": 24,
+   "x2": 10
+  }
+ },
+ "independent": null,
+ "native": {
+  "ok": true,
+  "tested": 24,
+  "via": "gates",
+  "detail": "24 inputs agree with ProjectQ ClassicalSimulator (sampled)"
+ },
+ "exact2": null,
+ "canaries": {
+  "requested": 24,
+  "decided": 24,
+  "equivalent": 0,
+  "not_proved": 24,
+  "false_proved": [],
+  "by_group": {
+   "erasure": 8,
+   "junction": 3,
+   "phase": 4,
+   "rare": 3,
+   "other": 6
+  },
+  "targeted": 18,
+  "by_status": {
+   "UNKNOWN": 12,
+   "REFUTED": 12
+  },
+  "ok": true,
+  "rows": [
+   {
+    "desc": "erasure #20: wrong correction pair",
+    "group": "erasure",
+    "status": "UNKNOWN",
+    "detail": "AND/erasure precondition does not hold on every input: op 20: erased wire differs from p AND q on wire 12"
+   },
+   {
+    "desc": "drop cx #15 (first use of a wire)",
+    "group": "junction",
+    "status": "REFUTED",
+    "detail": "output wire 10 differs on input {'a': 16, 'b': 0}"
+   },
+   {
+    "desc": "erasure #14: correction removed",
+    "group": "erasure",
+    "status": "UNKNOWN",
+    "detail": "the QASM text is not in the classical language of exact2: unsupported measurement construct at line 39"
+   },
+   {
+    "desc": "drop cx #40 (last use of a wire)",
+    "group": "junction",
+    "status": "REFUTED",
+    "detail": "output wire 6 differs on input {'a': 1, 'b': 0}"
+   },
+   {
+    "desc": "AND #15 replaced by a CNOT",
+    "group": "erasure",
+    "status": "UNKNOWN",
+    "detail": "AND/erasure precondition does not hold on every input: op 17: erased wire differs from p AND q on wire 12"
+   },
+   {
+    "desc": "retarget cx #43 (last use of a wire)",
+    "group": "junction",
+    "status": "REFUTED",
+    "detail": "output wire 9 differs on input {'a': 8, 'b': 0}"
+   },
+   {
+    "desc": "phase: Sdg of AND gadget 7 replaced by S",
+    "group": "phase",
+    "status": "UNKNOWN",
+    "detail": "the QASM text is not in the classical language of exact2: unsupported construct (not the AND gadget) at line 114"
+   },
+   {
+    "desc": "append a 3-control X (2,9,1) -> 4",
+    "group": "rare",
+    "status": "REFUTED",
+    "detail": "output wire 4 differs on input {'a': 14, 'b': 0}"
+   },
+   {
+    "desc": "phase: a Tdg of the AND gadgets replaced by T (occurrence 11)",
+    "group": "phase",
+    "status": "UNKNOWN",
+    "detail": "the QASM text is not in the classical language of exact2: unsupported construct (not the AND gadget) at line 84"
+   },
+   {
+    "desc": "replace a control of the Toffoli #33 by wire 4",
+    "group": "rare",
+    "status": "REFUTED",
+    "detail": "output wire 2 differs on input {'a': 2, 'b': 0}"
+   },
+   {
+    "desc": "erasure #11: wrong correction pair",
+    "group": "erasure",
+    "status": "UNKNOWN",
+    "detail": "AND/erasure precondition does not hold on every input: op 11: erased wire differs from p AND q on wire 12"
+   },
+   {
+    "desc": "Toffoli #24 -> CNOT (one control dropped)",
+    "group": "rare",
+    "status": "REFUTED",
+    "detail": "output wire 4 differs on input {'a': 15, 'b': 1}"
+   },
+   {
+    "desc": "AND #25 replaced by a CNOT",
+    "group": "erasure",
+    "status": "UNKNOWN",
+    "detail": "AND/erasure precondition does not hold on every input: op 27: erased wire differs from p AND q on wire 12"
+   },
+   {
+    "desc": "drop cx #15",
+    "group": "other",
+    "status": "REFUTED",
+    "detail": "output wire 10 differs on input {'a': 16, 'b': 0}"
+   },
+   {
+    "desc": "phase: Sdg of AND gadget 8 replaced by S",
+    "group": "phase",
+    "status": "UNKNOWN",
+    "detail": "the QASM text is not in the classical language of exact2: unsupported construct (not the AND gadget) at line 129"
+   },
+   {
+    "desc": "reverse cx #37",
+    "group": "other",
+    "status": "REFUTED",
+    "detail": "output wire 2 differs on input {'a': 4, 'b': 0}"
+   },
+   {
+    "desc": "phase: a Tdg of the AND gadgets replaced by T (occurrence 8)",
+    "group": "phase",
+    "status": "UNKNOWN",
+    "detail": "the QASM text is not in the classical language of exact2: unsupported construct (not the AND gadget) at line 69"
+   },
+   {
+    "desc": "duplicate cx #36",
+    "group": "other",
+    "status": "REFUTED",
+    "detail": "output wire 2 differs on input {'a': 2, 'b': 0}"
+   },
+   {
+    "desc": "erasure #35: wrong correction pair",
+    "group": "erasure",
+    "status": "UNKNOWN",
+    "detail": "AND/erasure precondition does not hold on every input: op 35: erased wire differs from p AND q on wire 12"
+   },
+   {
+    "desc": "drop Toffoli #31",
+    "group": "other",
+    "status": "REFUTED",
+    "detail": "output wire 3 differs on input {'a': 4, 'b': 0}"
+   },
+   {
+    "desc": "erasure #43: correction removed",
+    "group": "erasure",
+    "status": "UNKNOWN",
+    "detail": "the QASM text is not in the classical language of exact2: unsupported measurement construct at line 156"
+   },
+   {
+    "desc": "flip result wire 11 at the end",
+    "group": "other",
+    "status": "REFUTED",
+    "detail": "output wire 11 differs on input {'a': 0, 'b': 0}"
+   },
+   {
+    "desc": "AND #37 replaced by a CNOT",
+    "group": "erasure",
+    "status": "UNKNOWN",
+    "detail": "AND/erasure precondition does not hold on every input: op 39: erased wire differs from p AND q on wire 12"
+   },
+   {
+    "desc": "append cx input -> result",
+    "group": "other",
+    "status": "REFUTED",
+    "detail": "output wire 0 differs on input {'a': 16, 'b': 0}"
+   }
+  ]
+ },
+ "assumptions": [
+  "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+  "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+  "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+  "a freed wire is required to end in |0> like every other clean wire"
+ ],
+ "reproduce": "python -m qoptct.foreign.projectq prove library --block add_quantum --n 6",
+ "wall_seconds": 0.1,
+ "n": 6,
+ "block_name": "add_quantum",
+ "source": null,
+ "garbage": {
+  "wires": 0,
+  "pin_sha256": null,
+  "kind": null,
+  "note": "no garbage"
+ }
+}

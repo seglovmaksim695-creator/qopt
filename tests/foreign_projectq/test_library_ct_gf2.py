@@ -18,9 +18,10 @@ def test_library_blocks_proved(name, n):
 
 
 @needs_projectq
-def test_projectq_comparator_decomposition_is_wrong_from_n3():
+def test_projectq_comparator_decomposition_is_wrong_except_n2():
     from qoptct.foreign.projectq import check_projectq
     from qoptct.foreign.projectq.library import block
+    assert check_projectq(*block('comparator_quantum', 1))['status'] == 'REFUTED'
     r = check_projectq(*block('comparator_quantum', 3))
     assert r['status'] == 'REFUTED'
     assert r['native']['decomposed_run'] != r['native']['specification']
