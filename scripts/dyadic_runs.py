@@ -249,8 +249,9 @@ def run_one(family, n, do_canaries, budget, seed=1):
         cres = []
         for name, e, ph in canaries(c, spec, family, n, rng):
             t2 = time.time()
-            rr = prove(e, spec, budget, phase=ph)
-            cres.append(dict(name=name, verdict=rr['verdict'], method=rr.get('method'), time=round(time.time() - t2, 2)))
+            rr = prove(e, spec, min(budget, 120.0), phase=ph)
+            cres.append(dict(name=name, verdict=rr['verdict'], method=rr.get('method'),
+                             time=round(time.time() - t2, 2)))
         res['canaries'] = cres
         res['canaries_refuted'] = sum(1 for x in cres if x['verdict'] == 'REFUTED')
         res['canaries_proved'] = sum(1 for x in cres if x['verdict'] == 'PROVED')

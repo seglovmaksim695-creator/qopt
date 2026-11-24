@@ -484,3 +484,42 @@ def test_qiskit_translation_matches_qiskit_operator():
         U = Operator(qc).data
         V = sim.unitary(c)
         assert np.max(np.abs(U - V)) < 1e-9, (t, qc)
+
+
+# ----------------------------------------------------------------------------- large sizes (slow)
+@pytest.mark.slow
+@pytest.mark.parametrize('n', [32, 64])
+def test_qft_large_and_canaries(n):
+    assert prove_spec(qft_circuit(n), QFTSpec(range(n)))['verdict'] == 'PROVED'
+    cans = canaries_qft(n, random.Random(n))
+    assert len(cans) >= 30
+    for name, c in cans:
+        r = prove_spec(c, QFTSpec(range(n)), phase='exact' if name == 'global_phase' else 'global', budget_sec=120)
+        assert r['verdict'] == 'REFUTED', (name, r.get('reason'))
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize('kind', ['fixed', 'half'])
+def test_draper_64_and_canaries(kind):
+    n = 64
+    c0, a, b, cout = draper(n, kind)
+    spec = adder_spec(a, b, cout)
+    assert prove_spec(c0, spec)['verdict'] == 'PROVED'
+    rng = random.Random(64)
+    cps = [i for i, o in enumerate(c0.ops) if o[0] == 'cp']
+    smallest = min(cps, key=lambda i: c0.ops[i][2][0])
+    cnt = 0
+    for i in [smallest] + rng.sample(cps, 9):
+        for k in (1, 33, 63, 64):
+            c = c0.copy()
+            nm, qs, rs = c.ops[i]
+            c.ops[i] = (nm, qs, (rs[0] + Fraction(1, 2 ** k),))
+            assert prove_spec(c, spec, budget_sec=120)['verdict'] == 'REFUTED'
+            cnt += 1
+    c = c0.copy()
+    c.add('mcx', tuple(range(c.n)))                   # flips only on the all-ones input
+    assert prove_spec(c, spec, budget_sec=120)['verdict'] == 'REFUTED'
+    c = c0.copy()
+    c.gphase = Fraction(1, 2 ** 62)
+    assert prove_spec(c, spec, phase='exact')['verdict'] == 'REFUTED'
+    assert cnt >= 40

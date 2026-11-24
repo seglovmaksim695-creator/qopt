@@ -29,7 +29,8 @@ from .core import DPathSum, Blowup, Timeout, ZERO, peval
 from .circuit import DCircuit, NotDyadic, Unsupported, invert_prims, needed_K, parse_qasm, from_qc, _mod2
 from .spec import QFTSpec, ArithSpec, ClassicalSpec, anf_over_vars
 
-__all__ = ['prove_equal', 'prove_spec', 'prove_qasm', 'VERDICTS', 'ENUM_MAX_VARS', 'MAX_SELFCHECK', 'LEMMA']
+__all__ = ['prove_dyadic', 'prove_equal', 'prove_spec', 'prove_qasm', 'VERDICTS', 'ENUM_MAX_VARS', 'MAX_SELFCHECK',
+           'LEMMA']
 
 VERDICTS = ('PROVED', 'REFUTED', 'UNKNOWN', 'ERROR', 'INTERNAL')
 ENUM_MAX_VARS = 16       # exact enumeration of a stuck sum: inputs + path variables
@@ -208,16 +209,15 @@ WITNESS_ENUM = 18
 
 
 def _inputs(n, anc, tries, seed):
-    """Candidate basis inputs (dict qubit -> bit; ancillas 0): structured ones first, then seeded random ones."""
+    """Candidate basis inputs (dict qubit -> bit; ancillas 0): all-0, all-1, seeded random ones interleaved with the
+    alternating patterns and single bits."""
     import random
     free = [q for q in range(n) if q not in anc]
     rng = random.Random(seed)
-    cand = [{q: 0 for q in free}, {q: 1 for q in free}, {q: i & 1 for i, q in enumerate(free)},
-            {q: 1 - (i & 1) for i, q in enumerate(free)}]
-    for i in rng.sample(range(len(free)), min(4, len(free))):
-        cand.append({q: int(j == i) for j, q in enumerate(free)})
-    while len(cand) < tries:
-        cand.append({q: rng.randint(0, 1) for q in free})
+    rnd = [{q: rng.randint(0, 1) for q in free} for _ in range(max(tries, 4))]
+    singles = [{q: int(j == i) for j, q in enumerate(free)} for i in rng.sample(range(len(free)), min(4, len(free)))]
+    cand = [{q: 0 for q in free}, {q: 1 for q in free}, rnd[0], {q: i & 1 for i, q in enumerate(free)}, rnd[1],
+            {q: 1 - (i & 1) for i, q in enumerate(free)}, rnd[2]] + singles + rnd[3:]
     seen, out = set(), []
     for x in cand:
         key = tuple(x[q] for q in free)
@@ -420,6 +420,15 @@ def _prove(circ, pre, post, want_fn, K, n, anc, phase, budget_sec, max_terms, st
                    counterexample=dict(input=[wit[0].get(q, 0) for q in range(n)], kind='witness'))
         return True
     best = None
+    # quick exact refutation first (4 structured/random inputs, at most 10% of the budget): a wrong circuit is
+    # usually caught here in a fraction of a second, before a symbolic strategy can diverge
+    qdl = None if deadline is None else t0 + 0.1 * (deadline - t0)
+    wit = _witness_search(circ, pre, post, n, anc, K, qdl, max_terms, expected, tries=7)
+    if wit is not None:
+        res.update(verdict='REFUTED', method='witness', reason=wit[1],
+                   counterexample=dict(input=[wit[0].get(q, 0) for q in range(n)], kind='witness'))
+        res['strategies_tried'].append(('quick-witness', 'found'))
+        strategies = []
     for i, strat in enumerate(strategies):
         if i > 0 and not state['searched'] and witness():
             break
@@ -653,3 +662,13 @@ def prove_qasm(qasm, reference, phase='global', clean=False, budget_sec=120.0, *
         return dict(verdict='ERROR', method='input', reason='%s: %s' % (type(e).__name__, e),
                     time=round(time.time() - t0, 3))
     return prove_equal(c, ref, phase=phase, ancillas=anc, budget_sec=budget_sec, **kw)
+
+
+def prove_dyadic(circuit, target, **kw):
+    """One entry point for the bridges: target is a reference DCircuit (-> prove_equal) or a specification
+    (QFTSpec, ArithSpec / adder_spec / const_adder_spec / multiplier_spec, ClassicalSpec / PermutationSpec;
+    -> prove_spec).  Keyword arguments as there (phase, ancillas, budget_sec, max_terms, strategies, selfcheck).
+    -> dict with verdict PROVED | REFUTED | UNKNOWN | ERROR | INTERNAL; never raises."""
+    if isinstance(target, DCircuit):
+        return prove_equal(circuit, target, **kw)
+    return prove_spec(circuit, target, **kw)

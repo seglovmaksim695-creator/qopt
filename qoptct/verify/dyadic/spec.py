@@ -27,7 +27,8 @@ ClassicalSpec(n, func, zero_wires=())  /  PermutationSpec(n, func)      (small n
 """
 from .core import ZERO, ONE, pmul
 
-__all__ = ['QFTSpec', 'ArithSpec', 'PermutationSpec', 'ClassicalSpec', 'adder_spec', 'const_adder_spec', 'multiplier_spec',
+__all__ = ['QFTSpec', 'ArithSpec', 'PermutationSpec', 'ClassicalSpec', 'adder_spec', 'const_adder_spec',
+           'multiplier_spec',
            'PERM_MAX_QUBITS', 'anf_over_vars']
 
 PERM_MAX_QUBITS = 20

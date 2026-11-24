@@ -141,7 +141,8 @@ def main(argv=None):
         for fam, build in (('pq_addconst', build_add), ('pq_qft', build_qft)):
             d = compile_circuit(a.mode, build, a.optimizer == 'on')
             d.update(generator='scripts/dyadic_projectq_dump.py', projectq_version=pqv, family=fam)
-            name = fam + ('_basic' if a.mode == 'basic' else '') + ('_opt' if a.optimizer == 'on' else '') + '_%d.json' % n
+            name = (fam + ('_basic' if a.mode == 'basic' else '') + ('_opt' if a.optimizer == 'on' else '')
+                    + '_%d.json' % n)
             with open(os.path.join(a.out, name), 'w') as f:
                 json.dump(d, f)
             print(fam, n, a.mode, len(d['ops']), 'ops', flush=True)
