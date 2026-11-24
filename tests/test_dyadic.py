@@ -557,3 +557,21 @@ def test_fourier_lemma_instances_on_classical_adders(n):
         bad = _classical_adder(n)
         del bad.ops[-1]
         assert prove_spec(bad, spec, budget_sec=60)['verdict'] == 'REFUTED'
+
+
+@pytest.mark.parametrize('k', [5, 51, 63])
+def test_controlled_cp_pattern_tiny_angles(k):
+    """CCP(t) = CP(t/2)[c,a] CCX CP(-t/2)[c,b] CCX CP(t/2)[c,b] is PROVED; the pattern with (t, t, t) (what Qiskit 2.6.2
+    control() gives for t <= pi/2^51) is REFUTED although the dense simulator cannot see the difference (the answer
+    stays REFUTED, it is not turned into INTERNAL)."""
+    t = Fraction(1, 2 ** k)
+    ref = DCircuit(3).add('mcp', (0, 1, 2), Pi(t))
+    for angs, want in (((t / 2, -t / 2, t / 2), 'PROVED'), ((t, t, t), 'REFUTED')):
+        c = DCircuit(3)
+        c.add('cp', (0, 1), Pi(angs[0]))
+        c.add('ccx', (0, 1, 2))
+        c.add('cp', (0, 2), Pi(angs[1]))
+        c.add('ccx', (0, 1, 2))
+        c.add('cp', (0, 2), Pi(angs[2]))
+        r = prove_equal(c, ref, phase='exact')
+        assert r['verdict'] == want, (k, angs, r)
