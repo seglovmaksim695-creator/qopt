@@ -1,0 +1,289 @@
+{
+ "family": "pq_exact_addconst",
+ "rows": [
+  {
+   "family": "pq_exact_addconst",
+   "n": 2,
+   "qubits": 2,
+   "gates": 9,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "reason": null,
+   "assumptions": [
+    "fourier-shift lemma: the exact Fourier path sum of an ArithSpec equals the classical map |x,s> -> |x,(s+G(x)) mod 2^m> (geometric sum; docs/DYADIC.md, Lemma 2)",
+    "ProjectQ angles are accepted only as exactly round(p*pi/2^k mod period, 12) with k <= 38 (unique reading); a rotation that ProjectQ rounded to 0 cannot be told from no rotation, such a program is UNKNOWN"
+   ],
+   "angles": {
+    "count": 5,
+    "max_k": 1
+   },
+   "projectq": "0.8.0",
+   "global_phase": "0",
+   "dense_check": "agrees",
+   "time": 0.0,
+   "command": "python scripts/projectq_dyadic_runs.py run addconst 2 --canaries"
+  },
+  {
+   "family": "pq_exact_addconst",
+   "n": 4,
+   "qubits": 4,
+   "gates": 27,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "reason": null,
+   "assumptions": [
+    "fourier-shift lemma: the exact Fourier path sum of an ArithSpec equals the classical map |x,s> -> |x,(s+G(x)) mod 2^m> (geometric sum; docs/DYADIC.md, Lemma 2)",
+    "ProjectQ angles are accepted only as exactly round(p*pi/2^k mod period, 12) with k <= 38 (unique reading); a rotation that ProjectQ rounded to 0 cannot be told from no rotation, such a program is UNKNOWN"
+   ],
+   "angles": {
+    "count": 19,
+    "max_k": 3
+   },
+   "projectq": "0.8.0",
+   "global_phase": "0",
+   "dense_check": "agrees",
+   "time": 0.0,
+   "command": "python scripts/projectq_dyadic_runs.py run addconst 4 --canaries"
+  },
+  {
+   "family": "pq_exact_addconst",
+   "n": 8,
+   "qubits": 8,
+   "gates": 83,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "reason": null,
+   "assumptions": [
+    "fourier-shift lemma: the exact Fourier path sum of an ArithSpec equals the classical map |x,s> -> |x,(s+G(x)) mod 2^m> (geometric sum; docs/DYADIC.md, Lemma 2)",
+    "ProjectQ angles are accepted only as exactly round(p*pi/2^k mod period, 12) with k <= 38 (unique reading); a rotation that ProjectQ rounded to 0 cannot be told from no rotation, such a program is UNKNOWN"
+   ],
+   "angles": {
+    "count": 67,
+    "max_k": 7
+   },
+   "projectq": "0.8.0",
+   "global_phase": "0",
+   "dense_check": "agrees",
+   "time": 0.01,
+   "command": "python scripts/projectq_dyadic_runs.py run addconst 8 --canaries"
+  },
+  {
+   "family": "pq_exact_addconst",
+   "n": 16,
+   "qubits": 16,
+   "gates": 332,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "reason": null,
+   "assumptions": [
+    "fourier-shift lemma: the exact Fourier path sum of an ArithSpec equals the classical map |x,s> -> |x,(s+G(x)) mod 2^m> (geometric sum; docs/DYADIC.md, Lemma 2)",
+    "ProjectQ angles are accepted only as exactly round(p*pi/2^k mod period, 12) with k <= 38 (unique reading); a rotation that ProjectQ rounded to 0 cannot be told from no rotation, such a program is UNKNOWN"
+   ],
+   "angles": {
+    "count": 300,
+    "max_k": 15
+   },
+   "projectq": "0.8.0",
+   "global_phase": "0",
+   "dense_check": "skipped (n > 10)",
+   "time": 0.01,
+   "command": "python scripts/projectq_dyadic_runs.py run addconst 16 --canaries"
+  },
+  {
+   "family": "pq_exact_addconst",
+   "n": 32,
+   "qubits": 32,
+   "gates": 1351,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "reason": null,
+   "assumptions": [
+    "fourier-shift lemma: the exact Fourier path sum of an ArithSpec equals the classical map |x,s> -> |x,(s+G(x)) mod 2^m> (geometric sum; docs/DYADIC.md, Lemma 2)",
+    "ProjectQ angles are accepted only as exactly round(p*pi/2^k mod period, 12) with k <= 38 (unique reading); a rotation that ProjectQ rounded to 0 cannot be told from no rotation, such a program is UNKNOWN"
+   ],
+   "angles": {
+    "count": 1287,
+    "max_k": 31
+   },
+   "projectq": "0.8.0",
+   "global_phase": "0",
+   "dense_check": "skipped (n > 10)",
+   "time": 0.06,
+   "command": "python scripts/projectq_dyadic_runs.py run addconst 32 --canaries"
+  },
+  {
+   "family": "pq_exact_addconst",
+   "n": 38,
+   "qubits": 38,
+   "gates": 1961,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "reason": null,
+   "assumptions": [
+    "fourier-shift lemma: the exact Fourier path sum of an ArithSpec equals the classical map |x,s> -> |x,(s+G(x)) mod 2^m> (geometric sum; docs/DYADIC.md, Lemma 2)",
+    "ProjectQ angles are accepted only as exactly round(p*pi/2^k mod period, 12) with k <= 38 (unique reading); a rotation that ProjectQ rounded to 0 cannot be told from no rotation, such a program is UNKNOWN"
+   ],
+   "angles": {
+    "count": 1885,
+    "max_k": 37
+   },
+   "projectq": "0.8.0",
+   "global_phase": "0",
+   "dense_check": "skipped (n > 10)",
+   "time": 0.09,
+   "command": "python scripts/projectq_dyadic_runs.py run addconst 38 --canaries",
+   "canaries": [
+    {
+     "name": "smallest_rotation1/137438953472",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "smallest_rotation1/274877906944",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "smallest_rotation-1/274877906944",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "lost_smallest_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.02
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.03
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "lost_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.02
+    },
+    {
+     "name": "lost_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.02
+    },
+    {
+     "name": "lost_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "wrong_qubit",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.02
+    },
+    {
+     "name": "wrong_qubit",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "wrong_qubit",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "lost_h",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "junction_swap_order",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.03
+    },
+    {
+     "name": "global_phase_exact",
+     "verdict": "REFUTED",
+     "method": "normal-form",
+     "time": 0.06
+    },
+    {
+     "name": "rare_input_phase",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.02
+    },
+    {
+     "name": "rare_input_flip_all_ones",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.02
+    }
+   ],
+   "canaries_refuted": 21,
+   "canaries_proved": 0,
+   "product_check": {
+    "inputs": 20,
+    "bad": 0,
+    "entangling": 0
+   }
+  },
+  {
+   "family": "pq_exact_addconst",
+   "n": 40,
+   "qubits": null,
+   "gates": null,
+   "verdict": "UNKNOWN",
+   "method": null,
+   "reason": "unsupported: ProjectQ angle 6e-12 is 0 or within 1e-11 of the period: it may be a rotation that ProjectQ rounded away (ambiguous)",
+   "assumptions": [],
+   "angles": null,
+   "projectq": null,
+   "global_phase": null,
+   "dense_check": null,
+   "time": 0.02,
+   "command": "python scripts/projectq_dyadic_runs.py run addconst 40 --canaries"
+  }
+ ],
+ "python": "3.12.16"
+}

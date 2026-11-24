@@ -136,3 +136,55 @@ def test_largest_exact_sizes_and_first_ambiguous_size():
         AddConstant(0x2AAAAAAAAB) | q
         return dict(registers=dict(b=q))
     assert check(program, lambda regs: const_adder_spec(0x2AAAAAAAAB, regs['b']))['status'] == 'PROVED'
+
+
+@pytest.mark.parametrize('what', ['qft3', 'qft4', 'add4', 'rz_rx_ry'])
+def test_recording_equals_projectq_simulator(what):
+    """The DCircuit of the recording has the same action as the genuine program on ProjectQ's own simulator
+    (every basis input, up to one global phase)."""
+    import numpy as np
+    from projectq import MainEngine
+    from projectq.backends import Simulator
+    from projectq.ops import QFT, X, Rx, Ry, Rz, R, H
+    from projectq.libs.math import AddConstant
+    from projectq.cengines import AutoReplacer, DecompositionRuleSet
+    import projectq.libs.math as pqmath
+    import projectq.setups.decompositions as pqdecomp
+    from qoptct.dyadic import sim
+    from qoptct.foreign.projectq.dyadic import record_dyadic
+    rules = DecompositionRuleSet(modules=[pqmath, pqdecomp])    # the simulator cannot run QFT / AddConstant directly
+
+    def body(eng, q):
+        if what.startswith('qft'):
+            QFT | q
+        elif what == 'add4':
+            AddConstant(5) | q
+        else:
+            H | q[0]; Rz(math.pi / 8) | q[0]; Rx(3 * math.pi / 16) | q[1]; Ry(math.pi / 4 + math.pi / 32) | q[2]
+            R(math.pi / 4 + math.pi / 16) | q[1]
+    n = {'qft3': 3, 'qft4': 4, 'add4': 4, 'rz_rx_ry': 3}[what]
+    circ, info = record_dyadic(lambda eng: (body(eng, eng.allocate_qureg(n)), dict(registers={}))[1])
+    U = sim.unitary(circ)
+    ph = None
+    for x in range(1 << n):
+        eng = MainEngine(backend=Simulator(), engine_list=[AutoReplacer(rules)])
+        q = eng.allocate_qureg(n)
+        for i in range(n):
+            if (x >> i) & 1:
+                X | q[i]
+        body(eng, q)
+        eng.flush()
+        mp, st = eng.backend.cheat()
+        v = np.zeros(1 << n, dtype=complex)
+        for idx in range(1 << n):
+            v[idx] = st[sum(((idx >> i) & 1) << mp[q[i].id] for i in range(n))]
+        col = U[:, x]
+        k = int(np.argmax(np.abs(col)))
+        g = v[k] / col[k]
+        ph = g if ph is None else ph
+        assert abs(abs(g) - 1) < 1e-9
+        assert np.max(np.abs(v - g * col)) < 1e-7, (what, x)
+        assert abs(g - ph) < 1e-7, 'not one global phase'
+        from projectq.ops import All, Measure
+        All(Measure) | q
+        eng.flush()

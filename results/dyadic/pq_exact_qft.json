@@ -1,0 +1,320 @@
+{
+ "family": "pq_exact_qft",
+ "rows": [
+  {
+   "family": "pq_exact_qft",
+   "n": 2,
+   "qubits": 2,
+   "gates": 3,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "reason": null,
+   "assumptions": [
+    "ProjectQ angles are accepted only as exactly round(p*pi/2^k mod period, 12) with k <= 38 (unique reading); a rotation that ProjectQ rounded to 0 cannot be told from no rotation, such a program is UNKNOWN"
+   ],
+   "angles": {
+    "count": 1,
+    "max_k": 1
+   },
+   "projectq": "0.8.0",
+   "global_phase": "0",
+   "dense_check": "agrees",
+   "time": 0.19,
+   "command": "python scripts/projectq_dyadic_runs.py run qft 2 --canaries"
+  },
+  {
+   "family": "pq_exact_qft",
+   "n": 4,
+   "qubits": 4,
+   "gates": 10,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "reason": null,
+   "assumptions": [
+    "ProjectQ angles are accepted only as exactly round(p*pi/2^k mod period, 12) with k <= 38 (unique reading); a rotation that ProjectQ rounded to 0 cannot be told from no rotation, such a program is UNKNOWN"
+   ],
+   "angles": {
+    "count": 6,
+    "max_k": 3
+   },
+   "projectq": "0.8.0",
+   "global_phase": "0",
+   "dense_check": "agrees",
+   "time": 0.0,
+   "command": "python scripts/projectq_dyadic_runs.py run qft 4 --canaries"
+  },
+  {
+   "family": "pq_exact_qft",
+   "n": 8,
+   "qubits": 8,
+   "gates": 36,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "reason": null,
+   "assumptions": [
+    "ProjectQ angles are accepted only as exactly round(p*pi/2^k mod period, 12) with k <= 38 (unique reading); a rotation that ProjectQ rounded to 0 cannot be told from no rotation, such a program is UNKNOWN"
+   ],
+   "angles": {
+    "count": 28,
+    "max_k": 7
+   },
+   "projectq": "0.8.0",
+   "global_phase": "0",
+   "dense_check": "agrees",
+   "time": 0.03,
+   "command": "python scripts/projectq_dyadic_runs.py run qft 8 --canaries"
+  },
+  {
+   "family": "pq_exact_qft",
+   "n": 16,
+   "qubits": 16,
+   "gates": 136,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "reason": null,
+   "assumptions": [
+    "ProjectQ angles are accepted only as exactly round(p*pi/2^k mod period, 12) with k <= 38 (unique reading); a rotation that ProjectQ rounded to 0 cannot be told from no rotation, such a program is UNKNOWN"
+   ],
+   "angles": {
+    "count": 120,
+    "max_k": 15
+   },
+   "projectq": "0.8.0",
+   "global_phase": "0",
+   "dense_check": "skipped (n > 10)",
+   "time": 0.01,
+   "command": "python scripts/projectq_dyadic_runs.py run qft 16 --canaries"
+  },
+  {
+   "family": "pq_exact_qft",
+   "n": 32,
+   "qubits": 32,
+   "gates": 528,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "reason": null,
+   "assumptions": [
+    "ProjectQ angles are accepted only as exactly round(p*pi/2^k mod period, 12) with k <= 38 (unique reading); a rotation that ProjectQ rounded to 0 cannot be told from no rotation, such a program is UNKNOWN"
+   ],
+   "angles": {
+    "count": 496,
+    "max_k": 31
+   },
+   "projectq": "0.8.0",
+   "global_phase": "0",
+   "dense_check": "skipped (n > 10)",
+   "time": 0.02,
+   "command": "python scripts/projectq_dyadic_runs.py run qft 32 --canaries"
+  },
+  {
+   "family": "pq_exact_qft",
+   "n": 38,
+   "qubits": 38,
+   "gates": 741,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "reason": null,
+   "assumptions": [
+    "ProjectQ angles are accepted only as exactly round(p*pi/2^k mod period, 12) with k <= 38 (unique reading); a rotation that ProjectQ rounded to 0 cannot be told from no rotation, such a program is UNKNOWN"
+   ],
+   "angles": {
+    "count": 703,
+    "max_k": 37
+   },
+   "projectq": "0.8.0",
+   "global_phase": "0",
+   "dense_check": "skipped (n > 10)",
+   "time": 0.03,
+   "command": "python scripts/projectq_dyadic_runs.py run qft 38 --canaries"
+  },
+  {
+   "family": "pq_exact_qft",
+   "n": 39,
+   "qubits": 39,
+   "gates": 780,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "reason": null,
+   "assumptions": [
+    "ProjectQ angles are accepted only as exactly round(p*pi/2^k mod period, 12) with k <= 38 (unique reading); a rotation that ProjectQ rounded to 0 cannot be told from no rotation, such a program is UNKNOWN"
+   ],
+   "angles": {
+    "count": 741,
+    "max_k": 38
+   },
+   "projectq": "0.8.0",
+   "global_phase": "0",
+   "dense_check": "skipped (n > 10)",
+   "time": 0.04,
+   "command": "python scripts/projectq_dyadic_runs.py run qft 39 --canaries",
+   "canaries": [
+    {
+     "name": "smallest_rotation1/274877906944",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "smallest_rotation1/549755813888",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "smallest_rotation-1/549755813888",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "lost_smallest_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "lost_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "lost_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "lost_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "wrong_qubit",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "wrong_qubit",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.0
+    },
+    {
+     "name": "wrong_qubit",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.0
+    },
+    {
+     "name": "lost_h",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.0
+    },
+    {
+     "name": "junction_swap_order",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.0
+    },
+    {
+     "name": "global_phase_exact",
+     "verdict": "REFUTED",
+     "method": "normal-form",
+     "time": 0.02
+    },
+    {
+     "name": "rare_input_phase",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "rare_input_flip_all_ones",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    }
+   ],
+   "canaries_refuted": 21,
+   "canaries_proved": 0,
+   "product_check": {
+    "inputs": 20,
+    "bad": 0,
+    "entangling": 0
+   }
+  },
+  {
+   "family": "pq_exact_qft",
+   "n": 40,
+   "qubits": null,
+   "gates": null,
+   "verdict": "UNKNOWN",
+   "method": null,
+   "reason": "unsupported: ProjectQ angle 6e-12 is 0 or within 1e-11 of the period: it may be a rotation that ProjectQ rounded away (ambiguous)",
+   "assumptions": [],
+   "angles": null,
+   "projectq": null,
+   "global_phase": null,
+   "dense_check": null,
+   "time": 0.0,
+   "command": "python scripts/projectq_dyadic_runs.py run qft 40 --canaries"
+  },
+  {
+   "family": "pq_exact_qft",
+   "n": 43,
+   "qubits": null,
+   "gates": null,
+   "verdict": "UNKNOWN",
+   "method": null,
+   "reason": "unsupported: ProjectQ angle 6e-12 is 0 or within 1e-11 of the period: it may be a rotation that ProjectQ rounded away (ambiguous)",
+   "assumptions": [],
+   "angles": null,
+   "projectq": null,
+   "global_phase": null,
+   "dense_check": null,
+   "time": 0.0,
+   "command": "python scripts/projectq_dyadic_runs.py run qft 43 --canaries"
+  }
+ ],
+ "python": "3.12.16"
+}
