@@ -1,0 +1,600 @@
+{
+ "entries": [
+  {
+   "assumptions": [
+    "baseline = the reference circuit of the target"
+   ],
+   "baseline": {
+    "AND": 0,
+    "CX": 90,
+    "T": 0,
+    "qubits": 32
+   },
+   "best": {
+    "AND": 0,
+    "CX": 90,
+    "T": 0,
+    "qubits": 32
+   },
+   "claim": "every record is a candidate circuit proved equal to the reference of the target by the provers of qoptct.verify, with a simulation check and at least 20 canaries (all not proved)",
+   "front": [
+    {
+     "AND": 0,
+     "CX": 90,
+     "T": 0,
+     "qubits": 32
+    }
+   ],
+   "id": "loop/crypto_aes_mixcolumns_90cx",
+   "improves_baseline": false,
+   "n": null,
+   "name": "loop",
+   "records": 1,
+   "reproduce": "qoptct loop verify --state results/loop/state",
+   "status": "PROVED",
+   "target": "crypto_aes_mixcolumns_90cx"
+  },
+  {
+   "assumptions": [
+    "baseline = the reference circuit of the target"
+   ],
+   "baseline": {
+    "AND": 33,
+    "CX": 991,
+    "T": 132,
+    "qubits": 40
+   },
+   "best": {
+    "AND": 33,
+    "CX": 960,
+    "T": 132,
+    "qubits": 40
+   },
+   "claim": "every record is a candidate circuit proved equal to the reference of the target by the provers of qoptct.verify, with a simulation check and at least 20 canaries (all not proved)",
+   "front": [
+    {
+     "AND": 52,
+     "CX": 893,
+     "T": 208,
+     "qubits": 52
+    },
+    {
+     "AND": 57,
+     "CX": 765,
+     "T": 228,
+     "qubits": 38
+    },
+    {
+     "AND": 1120,
+     "CX": 4536,
+     "T": 4480,
+     "qubits": 32
+    },
+    {
+     "AND": 57,
+     "CX": 852,
+     "T": 228,
+     "qubits": 33
+    },
+    {
+     "AND": 57,
+     "CX": 834,
+     "T": 228,
+     "qubits": 34
+    },
+    {
+     "AND": 57,
+     "CX": 768,
+     "T": 228,
+     "qubits": 35
+    },
+    {
+     "AND": 51,
+     "CX": 901,
+     "T": 204,
+     "qubits": 54
+    },
+    {
+     "AND": 33,
+     "CX": 960,
+     "T": 132,
+     "qubits": 40
+    },
+    {
+     "AND": 36,
+     "CX": 1070,
+     "T": 144,
+     "qubits": 36
+    }
+   ],
+   "id": "loop/crypto_lookup_c6_w21_33and",
+   "improves_baseline": true,
+   "n": null,
+   "name": "loop",
+   "records": 23,
+   "reproduce": "qoptct loop verify --state results/loop/state",
+   "status": "PROVED",
+   "target": "crypto_lookup_c6_w21_33and"
+  },
+  {
+   "assumptions": [
+    "baseline = the reference circuit of the target"
+   ],
+   "baseline": {
+    "AND": 40,
+    "CX": 1477,
+    "T": 160,
+    "qubits": 47
+   },
+   "best": {
+    "AND": 40,
+    "CX": 1427,
+    "T": 160,
+    "qubits": 47
+   },
+   "claim": "every record is a candidate circuit proved equal to the reference of the target by the provers of qoptct.verify, with a simulation check and at least 20 canaries (all not proved)",
+   "front": [
+    {
+     "AND": 57,
+     "CX": 959,
+     "T": 228,
+     "qubits": 49
+    },
+    {
+     "AND": 57,
+     "CX": 1111,
+     "T": 228,
+     "qubits": 44
+    },
+    {
+     "AND": 57,
+     "CX": 1074,
+     "T": 228,
+     "qubits": 45
+    },
+    {
+     "AND": 57,
+     "CX": 960,
+     "T": 228,
+     "qubits": 46
+    },
+    {
+     "AND": 56,
+     "CX": 1249,
+     "T": 224,
+     "qubits": 65
+    },
+    {
+     "AND": 40,
+     "CX": 1427,
+     "T": 160,
+     "qubits": 47
+    },
+    {
+     "AND": 57,
+     "CX": 1242,
+     "T": 228,
+     "qubits": 43
+    },
+    {
+     "AND": 44,
+     "CX": 1269,
+     "T": 176,
+     "qubits": 51
+    }
+   ],
+   "id": "loop/crypto_lookup_c6_w32_40and",
+   "improves_baseline": true,
+   "n": null,
+   "name": "loop",
+   "records": 23,
+   "reproduce": "qoptct loop verify --state results/loop/state",
+   "status": "PROVED",
+   "target": "crypto_lookup_c6_w32_40and"
+  },
+  {
+   "assumptions": [
+    "baseline = the reference circuit of the target"
+   ],
+   "baseline": {
+    "AND": 26,
+    "CX": 347,
+    "T": 104,
+    "qubits": 25
+   },
+   "best": {
+    "AND": 21,
+    "CX": 360,
+    "T": 84,
+    "qubits": 27
+   },
+   "claim": "every record is a candidate circuit proved equal to the reference of the target by the provers of qoptct.verify, with a simulation check and at least 20 canaries (all not proved)",
+   "front": [
+    {
+     "AND": 26,
+     "CX": 347,
+     "T": 104,
+     "qubits": 25
+    },
+    {
+     "AND": 26,
+     "CX": 338,
+     "T": 104,
+     "qubits": 27
+    },
+    {
+     "AND": 26,
+     "CX": 329,
+     "T": 104,
+     "qubits": 28
+    },
+    {
+     "AND": 21,
+     "CX": 360,
+     "T": 84,
+     "qubits": 27
+    }
+   ],
+   "id": "loop/lookup_c5w16s1",
+   "improves_baseline": false,
+   "n": null,
+   "name": "loop",
+   "records": 8,
+   "reproduce": "qoptct loop verify --state results/loop/state",
+   "status": "PROVED",
+   "target": "lookup_c5w16s1"
+  },
+  {
+   "assumptions": [
+    "baseline = the reference circuit of the target"
+   ],
+   "baseline": {
+    "AND": 57,
+    "CX": 709,
+    "T": 228,
+    "qubits": 27
+   },
+   "best": {
+    "AND": 29,
+    "CX": 732,
+    "T": 116,
+    "qubits": 35
+   },
+   "claim": "every record is a candidate circuit proved equal to the reference of the target by the provers of qoptct.verify, with a simulation check and at least 20 canaries (all not proved)",
+   "front": [
+    {
+     "AND": 57,
+     "CX": 709,
+     "T": 228,
+     "qubits": 27
+    },
+    {
+     "AND": 57,
+     "CX": 696,
+     "T": 228,
+     "qubits": 33
+    },
+    {
+     "AND": 57,
+     "CX": 697,
+     "T": 228,
+     "qubits": 30
+    },
+    {
+     "AND": 36,
+     "CX": 943,
+     "T": 144,
+     "qubits": 31
+    },
+    {
+     "AND": 35,
+     "CX": 1003,
+     "T": 140,
+     "qubits": 31
+    },
+    {
+     "AND": 30,
+     "CX": 687,
+     "T": 120,
+     "qubits": 35
+    },
+    {
+     "AND": 29,
+     "CX": 732,
+     "T": 116,
+     "qubits": 35
+    }
+   ],
+   "id": "loop/lookup_c6w16s2",
+   "improves_baseline": false,
+   "n": null,
+   "name": "loop",
+   "records": 20,
+   "reproduce": "qoptct loop verify --state results/loop/state",
+   "status": "PROVED",
+   "target": "lookup_c6w16s2"
+  },
+  {
+   "assumptions": [
+    "baseline = the reference circuit of the target"
+   ],
+   "baseline": {
+    "AND": 120,
+    "CX": 990,
+    "T": 480,
+    "qubits": 21
+   },
+   "best": {
+    "AND": 66,
+    "CX": 863,
+    "T": 264,
+    "qubits": 73
+   },
+   "claim": "every record is a candidate circuit proved equal to the reference of the target by the provers of qoptct.verify, with a simulation check and at least 20 canaries (all not proved)",
+   "front": [
+    {
+     "AND": 120,
+     "CX": 990,
+     "T": 480,
+     "qubits": 21
+    },
+    {
+     "AND": 73,
+     "CX": 854,
+     "T": 292,
+     "qubits": 28
+    },
+    {
+     "AND": 66,
+     "CX": 863,
+     "T": 264,
+     "qubits": 73
+    }
+   ],
+   "id": "loop/lookup_c7w8s3",
+   "improves_baseline": false,
+   "n": null,
+   "name": "loop",
+   "records": 9,
+   "reproduce": "qoptct loop verify --state results/loop/state",
+   "status": "PROVED",
+   "target": "lookup_c7w8s3"
+  },
+  {
+   "assumptions": [
+    "baseline = the reference circuit of the target"
+   ],
+   "baseline": {
+    "AND": 34,
+    "CX": 459,
+    "T": 136,
+    "qubits": 40
+   },
+   "best": {
+    "AND": 33,
+    "CX": 454,
+    "T": 132,
+    "qubits": 40
+   },
+   "claim": "every record is a candidate circuit proved equal to the reference of the target by the provers of qoptct.verify, with a simulation check and at least 20 canaries (all not proved)",
+   "front": [
+    {
+     "AND": 42,
+     "CX": 435,
+     "T": 168,
+     "qubits": 40
+    },
+    {
+     "AND": 934,
+     "CX": 3602,
+     "T": 3738,
+     "qubits": 34
+    },
+    {
+     "AND": 33,
+     "CX": 454,
+     "T": 132,
+     "qubits": 40
+    },
+    {
+     "AND": 34,
+     "CX": 437,
+     "T": 136,
+     "qubits": 40
+    }
+   ],
+   "id": "loop/lookupadd_c5w12s1",
+   "improves_baseline": true,
+   "n": null,
+   "name": "loop",
+   "records": 12,
+   "reproduce": "qoptct loop verify --state results/loop/state",
+   "status": "PROVED",
+   "target": "lookupadd_c5w12s1"
+  },
+  {
+   "assumptions": [
+    "baseline = the reference circuit of the target"
+   ],
+   "baseline": {
+    "AND": 45,
+    "CX": 826,
+    "T": 180,
+    "qubits": 35
+   },
+   "best": {
+    "AND": 43,
+    "CX": 740,
+    "T": 172,
+    "qubits": 35
+   },
+   "claim": "every record is a candidate circuit proved equal to the reference of the target by the provers of qoptct.verify, with a simulation check and at least 20 canaries (all not proved)",
+   "front": [
+    {
+     "AND": 2264,
+     "CX": 8324,
+     "T": 9058,
+     "qubits": 28
+    },
+    {
+     "AND": 49,
+     "CX": 602,
+     "T": 196,
+     "qubits": 49
+    },
+    {
+     "AND": 72,
+     "CX": 621,
+     "T": 288,
+     "qubits": 29
+    },
+    {
+     "AND": 44,
+     "CX": 684,
+     "T": 176,
+     "qubits": 35
+    },
+    {
+     "AND": 43,
+     "CX": 740,
+     "T": 172,
+     "qubits": 35
+    }
+   ],
+   "id": "loop/lookupadd_c6w8s2",
+   "improves_baseline": true,
+   "n": null,
+   "name": "loop",
+   "records": 13,
+   "reproduce": "qoptct loop verify --state results/loop/state",
+   "status": "PROVED",
+   "target": "lookupadd_c6w8s2"
+  },
+  {
+   "assumptions": [
+    "for qc: targets the baseline is the first proved result of the optimizer, not the original file"
+   ],
+   "baseline": {
+    "AND": 6,
+    "CX": 24,
+    "T": 24,
+    "qubits": 7
+   },
+   "best": {
+    "AND": 3,
+    "CX": 20,
+    "T": 12,
+    "qubits": 10
+   },
+   "claim": "every record is a candidate circuit proved equal to the reference of the target by the provers of qoptct.verify, with a simulation check and at least 20 canaries (all not proved)",
+   "front": [
+    {
+     "AND": 6,
+     "CX": 24,
+     "T": 24,
+     "qubits": 7
+    },
+    {
+     "AND": 3,
+     "CX": 20,
+     "T": 12,
+     "qubits": 10
+    }
+   ],
+   "id": "loop/qc_barenco_tof_4",
+   "improves_baseline": false,
+   "n": null,
+   "name": "loop",
+   "records": 2,
+   "reproduce": "qoptct loop verify --state results/loop/state",
+   "status": "PROVED",
+   "target": "qc_barenco_tof_4"
+  },
+  {
+   "assumptions": [
+    "for qc: targets the baseline is the first proved result of the optimizer, not the original file"
+   ],
+   "baseline": {
+    "AND": 2,
+    "CX": 11,
+    "T": 8,
+    "qubits": 5
+   },
+   "best": {
+    "AND": 1,
+    "CX": 11,
+    "T": 4,
+    "qubits": 6
+   },
+   "claim": "every record is a candidate circuit proved equal to the reference of the target by the provers of qoptct.verify, with a simulation check and at least 20 canaries (all not proved)",
+   "front": [
+    {
+     "AND": 2,
+     "CX": 11,
+     "T": 8,
+     "qubits": 5
+    },
+    {
+     "AND": 1,
+     "CX": 11,
+     "T": 4,
+     "qubits": 6
+    }
+   ],
+   "id": "loop/qc_mod5_4",
+   "improves_baseline": false,
+   "n": null,
+   "name": "loop",
+   "records": 3,
+   "reproduce": "qoptct loop verify --state results/loop/state",
+   "status": "PROVED",
+   "target": "qc_mod5_4"
+  },
+  {
+   "assumptions": [
+    "for qc: targets the baseline is the first proved result of the optimizer, not the original file"
+   ],
+   "baseline": {
+    "AND": 7,
+    "CX": 24,
+    "T": 31,
+    "qubits": 9
+   },
+   "best": {
+    "AND": 4,
+    "CX": 20,
+    "T": 16,
+    "qubits": 13
+   },
+   "claim": "every record is a candidate circuit proved equal to the reference of the target by the provers of qoptct.verify, with a simulation check and at least 20 canaries (all not proved)",
+   "front": [
+    {
+     "AND": 7,
+     "CX": 24,
+     "T": 31,
+     "qubits": 9
+    },
+    {
+     "AND": 4,
+     "CX": 20,
+     "T": 16,
+     "qubits": 13
+    }
+   ],
+   "id": "loop/qc_tof_5",
+   "improves_baseline": false,
+   "n": null,
+   "name": "loop",
+   "records": 2,
+   "reproduce": "qoptct loop verify --state results/loop/state",
+   "status": "PROVED",
+   "target": "qc_tof_5"
+  }
+ ],
+ "journal": {
+  "file": "results/loop/state/journal.jsonl",
+  "records": 116,
+  "sha256": "1825a6a8e74b21ff63ef3b99ee77062f70e535d26e2dc5fb28eca2b3f7291a8e"
+ },
+ "schema": "qoptct.loop.registry/1"
+}

@@ -1,0 +1,659 @@
+{
+ "crypto_aes_mixcolumns_90cx": {
+  "baseline": {
+   "AND": 0,
+   "CX": 90,
+   "T": 0,
+   "qubits": 32
+  },
+  "best": {
+   "AND": 0,
+   "CX": 90,
+   "T": 0,
+   "qubits": 32
+  },
+  "front": [
+   {
+    "cand_sha": "039fcf44cc644669e1f306bdbd5c98d6d1e2eb8e9f47af504edfe0b3d9094748",
+    "cost": {
+     "AND": 0,
+     "CX": 90,
+     "T": 0,
+     "qubits": 32
+    },
+    "seq": 8
+   }
+  ],
+  "records": 1
+ },
+ "crypto_lookup_c6_w21_33and": {
+  "baseline": {
+   "AND": 33,
+   "CX": 991,
+   "T": 132,
+   "qubits": 40
+  },
+  "best": {
+   "AND": 33,
+   "CX": 960,
+   "T": 132,
+   "qubits": 40
+  },
+  "front": [
+   {
+    "cand_sha": "49bb089e1f6feac56e12796e414057fccc1e88e0f1bf755fde2a6a9458229243",
+    "cost": {
+     "AND": 52,
+     "CX": 893,
+     "T": 208,
+     "qubits": 52
+    },
+    "seq": 9
+   },
+   {
+    "cand_sha": "b7e1b889e333c91b2808ab1343084d03f2819dd8a0040d171071ab696dded4eb",
+    "cost": {
+     "AND": 57,
+     "CX": 765,
+     "T": 228,
+     "qubits": 38
+    },
+    "seq": 31
+   },
+   {
+    "cand_sha": "9bb54578bf76a010f674da39f5da44e81fc45f882cd7ab3e258a769e3ee82e1f",
+    "cost": {
+     "AND": 1120,
+     "CX": 4536,
+     "T": 4480,
+     "qubits": 32
+    },
+    "seq": 37
+   },
+   {
+    "cand_sha": "df889dd8d3f53039823e2141b51de3ec2cf1c323acd42f7b4a9b76c147bc30e4",
+    "cost": {
+     "AND": 57,
+     "CX": 852,
+     "T": 228,
+     "qubits": 33
+    },
+    "seq": 41
+   },
+   {
+    "cand_sha": "cb7c227ddad074bd2c09fa5d9f8a3a6dfb436f16e5390c10d653d66068f05ece",
+    "cost": {
+     "AND": 57,
+     "CX": 834,
+     "T": 228,
+     "qubits": 34
+    },
+    "seq": 47
+   },
+   {
+    "cand_sha": "784162e3a1491955705b11fecb02a45b2f116b5108915263ed71734d476648cc",
+    "cost": {
+     "AND": 57,
+     "CX": 768,
+     "T": 228,
+     "qubits": 35
+    },
+    "seq": 50
+   },
+   {
+    "cand_sha": "250fd848903d0af37581ee1cb1b8042d86a913ae6e4a610c5d1156f0d24a0e5f",
+    "cost": {
+     "AND": 51,
+     "CX": 901,
+     "T": 204,
+     "qubits": 54
+    },
+    "seq": 93
+   },
+   {
+    "cand_sha": "7d0c18f3bdcac552f89d79c431f2045042f166973168d2f46b96a8935d5de118",
+    "cost": {
+     "AND": 33,
+     "CX": 960,
+     "T": 132,
+     "qubits": 40
+    },
+    "seq": 104
+   },
+   {
+    "cand_sha": "e0b7f5a8adcd643222616cb12baf19ca5a86ac544597db4d0577d25ca1d934b8",
+    "cost": {
+     "AND": 36,
+     "CX": 1070,
+     "T": 144,
+     "qubits": 36
+    },
+    "seq": 116
+   }
+  ],
+  "records": 23
+ },
+ "crypto_lookup_c6_w32_40and": {
+  "baseline": {
+   "AND": 40,
+   "CX": 1477,
+   "T": 160,
+   "qubits": 47
+  },
+  "best": {
+   "AND": 40,
+   "CX": 1427,
+   "T": 160,
+   "qubits": 47
+  },
+  "front": [
+   {
+    "cand_sha": "e01b5fe57dae6742ecd15228053389fd4a080bf3c531bc5cb11b60981b82b7e8",
+    "cost": {
+     "AND": 57,
+     "CX": 959,
+     "T": 228,
+     "qubits": 49
+    },
+    "seq": 32
+   },
+   {
+    "cand_sha": "607d614f944d002a88b4876c33c7e8ba344095072aaf03a475a487ab5ba5e380",
+    "cost": {
+     "AND": 57,
+     "CX": 1111,
+     "T": 228,
+     "qubits": 44
+    },
+    "seq": 42
+   },
+   {
+    "cand_sha": "bb96f4d474f6c40bb7ddaa6b0b2e8315e1f9cfa3a55d56b597eb009ac136e99c",
+    "cost": {
+     "AND": 57,
+     "CX": 1074,
+     "T": 228,
+     "qubits": 45
+    },
+    "seq": 48
+   },
+   {
+    "cand_sha": "7ff9923a18a1632ae42925e4fef4328f742dc7fcf0a6a0626a8498132e6b8448",
+    "cost": {
+     "AND": 57,
+     "CX": 960,
+     "T": 228,
+     "qubits": 46
+    },
+    "seq": 51
+   },
+   {
+    "cand_sha": "62b830b8c3130ebe93c2dd81e1ec00e96b410873fee9c98ebb2daa2df217f08b",
+    "cost": {
+     "AND": 56,
+     "CX": 1249,
+     "T": 224,
+     "qubits": 65
+    },
+    "seq": 71
+   },
+   {
+    "cand_sha": "ad642dee56f2a3638af4800e4e66bb38effcefbd4f099763d18f1c9463d24da0",
+    "cost": {
+     "AND": 40,
+     "CX": 1427,
+     "T": 160,
+     "qubits": 47
+    },
+    "seq": 94
+   },
+   {
+    "cand_sha": "4b5eb10bfc2ad98f138211967705723129493173587ab36fe87fdf841254f85c",
+    "cost": {
+     "AND": 57,
+     "CX": 1242,
+     "T": 228,
+     "qubits": 43
+    },
+    "seq": 95
+   },
+   {
+    "cand_sha": "18440b7f8c16717f3a8f0338b23c987eea6d4bd2acc7f7b154ce8adc30394617",
+    "cost": {
+     "AND": 44,
+     "CX": 1269,
+     "T": 176,
+     "qubits": 51
+    },
+    "seq": 113
+   }
+  ],
+  "records": 23
+ },
+ "lookup_c5w16s1": {
+  "baseline": {
+   "AND": 26,
+   "CX": 347,
+   "T": 104,
+   "qubits": 25
+  },
+  "best": {
+   "AND": 21,
+   "CX": 360,
+   "T": 84,
+   "qubits": 27
+  },
+  "front": [
+   {
+    "cand_sha": "5b9c317bf6d0372c63f200b2d1c76c3b4a35220b2bbc3624d8b8ed0844455bdd",
+    "cost": {
+     "AND": 26,
+     "CX": 347,
+     "T": 104,
+     "qubits": 25
+    },
+    "seq": 3
+   },
+   {
+    "cand_sha": "f360fc180096282144c9fa9116d9bc9f0e830a9ab5daec12eff665b3ec58d9c4",
+    "cost": {
+     "AND": 26,
+     "CX": 338,
+     "T": 104,
+     "qubits": 27
+    },
+    "seq": 27
+   },
+   {
+    "cand_sha": "38f8d146f6c6fb69d6a3ff2b7d79c58ef190f7a2548de8eea53eb20eaadf5907",
+    "cost": {
+     "AND": 26,
+     "CX": 329,
+     "T": 104,
+     "qubits": 28
+    },
+    "seq": 33
+   },
+   {
+    "cand_sha": "ce9bb6651e0f03bf964bc73fc1bbeac9c77416fe5a661e2b4329e509263e5c89",
+    "cost": {
+     "AND": 21,
+     "CX": 360,
+     "T": 84,
+     "qubits": 27
+    },
+    "seq": 99
+   }
+  ],
+  "records": 8
+ },
+ "lookup_c6w16s2": {
+  "baseline": {
+   "AND": 57,
+   "CX": 709,
+   "T": 228,
+   "qubits": 27
+  },
+  "best": {
+   "AND": 29,
+   "CX": 732,
+   "T": 116,
+   "qubits": 35
+  },
+  "front": [
+   {
+    "cand_sha": "536e0a01b40632ed568bc2d98511242aa99cc4e7daac8e3917fc3e6cbc6e06e8",
+    "cost": {
+     "AND": 57,
+     "CX": 709,
+     "T": 228,
+     "qubits": 27
+    },
+    "seq": 4
+   },
+   {
+    "cand_sha": "2cb9699389c5cad0846c211bd79796a181bede7e9dc858e41754370f75c5164b",
+    "cost": {
+     "AND": 57,
+     "CX": 696,
+     "T": 228,
+     "qubits": 33
+    },
+    "seq": 34
+   },
+   {
+    "cand_sha": "2d55a1f6316fcfbc78222393263d5a95b00011b440502781b52f6a999253a060",
+    "cost": {
+     "AND": 57,
+     "CX": 697,
+     "T": 228,
+     "qubits": 30
+    },
+    "seq": 52
+   },
+   {
+    "cand_sha": "c3ab3104968ecf90da81438c05c7df50c2baf81f79e9d099400ba7fe39a9449b",
+    "cost": {
+     "AND": 36,
+     "CX": 943,
+     "T": 144,
+     "qubits": 31
+    },
+    "seq": 92
+   },
+   {
+    "cand_sha": "f37f9edc0f84a5760ca0979963a644879b9edd7fad49d9864e0f0b10265c91de",
+    "cost": {
+     "AND": 35,
+     "CX": 1003,
+     "T": 140,
+     "qubits": 31
+    },
+    "seq": 106
+   },
+   {
+    "cand_sha": "16bcd501bbac4059aebe44256763f8288935a1a53ac1f5da848b80256346d131",
+    "cost": {
+     "AND": 30,
+     "CX": 687,
+     "T": 120,
+     "qubits": 35
+    },
+    "seq": 111
+   },
+   {
+    "cand_sha": "1a564d019d2242a9981bdaefbbf91fa39e7ccc559296207adc89c9a866c0c3a5",
+    "cost": {
+     "AND": 29,
+     "CX": 732,
+     "T": 116,
+     "qubits": 35
+    },
+    "seq": 115
+   }
+  ],
+  "records": 20
+ },
+ "lookup_c7w8s3": {
+  "baseline": {
+   "AND": 120,
+   "CX": 990,
+   "T": 480,
+   "qubits": 21
+  },
+  "best": {
+   "AND": 66,
+   "CX": 863,
+   "T": 264,
+   "qubits": 73
+  },
+  "front": [
+   {
+    "cand_sha": "51f8fe84418f2c439c19208387de8ea226a45c1e92315f155d840f01d2e2df5a",
+    "cost": {
+     "AND": 120,
+     "CX": 990,
+     "T": 480,
+     "qubits": 21
+    },
+    "seq": 5
+   },
+   {
+    "cand_sha": "0d30913c03a085b6422bc19829569a52e92de0411cf2f23f05730783b2774735",
+    "cost": {
+     "AND": 73,
+     "CX": 854,
+     "T": 292,
+     "qubits": 28
+    },
+    "seq": 12
+   },
+   {
+    "cand_sha": "01814e67aa06cc48d7f9f0818838307582f9f25a1d036932bdfa67980fa1294d",
+    "cost": {
+     "AND": 66,
+     "CX": 863,
+     "T": 264,
+     "qubits": 73
+    },
+    "seq": 110
+   }
+  ],
+  "records": 9
+ },
+ "lookupadd_c5w12s1": {
+  "baseline": {
+   "AND": 34,
+   "CX": 459,
+   "T": 136,
+   "qubits": 40
+  },
+  "best": {
+   "AND": 33,
+   "CX": 454,
+   "T": 132,
+   "qubits": 40
+  },
+  "front": [
+   {
+    "cand_sha": "ea25cee930b6d57d273bf4840d922ae64fd0a58073108921c1f6a742ad4b0ea6",
+    "cost": {
+     "AND": 42,
+     "CX": 435,
+     "T": 168,
+     "qubits": 40
+    },
+    "seq": 29
+   },
+   {
+    "cand_sha": "9b0e884aab0c0738c2d6ebed62fb7bc3118082b26c78714833ecabdd48082fd1",
+    "cost": {
+     "AND": 934,
+     "CX": 3602,
+     "T": 3738,
+     "qubits": 34
+    },
+    "seq": 39
+   },
+   {
+    "cand_sha": "2ebc92a591f6ffbb814e4122167e63db65916bab2c74ac4ef8b9b2784439ca37",
+    "cost": {
+     "AND": 33,
+     "CX": 454,
+     "T": 132,
+     "qubits": 40
+    },
+    "seq": 97
+   },
+   {
+    "cand_sha": "0199055afc1e0eafe2b2ff2d37c397e9981b978e05cc0a7a3dd8143979717c33",
+    "cost": {
+     "AND": 34,
+     "CX": 437,
+     "T": 136,
+     "qubits": 40
+    },
+    "seq": 109
+   }
+  ],
+  "records": 12
+ },
+ "lookupadd_c6w8s2": {
+  "baseline": {
+   "AND": 45,
+   "CX": 826,
+   "T": 180,
+   "qubits": 35
+  },
+  "best": {
+   "AND": 43,
+   "CX": 740,
+   "T": 172,
+   "qubits": 35
+  },
+  "front": [
+   {
+    "cand_sha": "3b5e56cc59bc924f16f0c65e74afb0e7aaf3368fb3b55d0ea1f7ac6a0fbaec46",
+    "cost": {
+     "AND": 2264,
+     "CX": 8324,
+     "T": 9058,
+     "qubits": 28
+    },
+    "seq": 40
+   },
+   {
+    "cand_sha": "0ab0543cdd85f35b8c861956e2c0c8ce6f13c25f033c1d6cb059a505daaadf29",
+    "cost": {
+     "AND": 49,
+     "CX": 602,
+     "T": 196,
+     "qubits": 49
+    },
+    "seq": 44
+   },
+   {
+    "cand_sha": "29415fffb8bcbda7a34366fdf950a2b1e13b5b02f6c3eb7d2c41941bf39de419",
+    "cost": {
+     "AND": 72,
+     "CX": 621,
+     "T": 288,
+     "qubits": 29
+    },
+    "seq": 46
+   },
+   {
+    "cand_sha": "0dacff5d599b166625c3254cbc970dfdb964feea70301442944588b300496a5e",
+    "cost": {
+     "AND": 44,
+     "CX": 684,
+     "T": 176,
+     "qubits": 35
+    },
+    "seq": 89
+   },
+   {
+    "cand_sha": "9013744d9af573f9a3f3a63e58b442ca6a7e7e15484f8aacfbdb4f959989aa87",
+    "cost": {
+     "AND": 43,
+     "CX": 740,
+     "T": 172,
+     "qubits": 35
+    },
+    "seq": 100
+   }
+  ],
+  "records": 13
+ },
+ "qc_barenco_tof_4": {
+  "baseline": {
+   "AND": 6,
+   "CX": 24,
+   "T": 24,
+   "qubits": 7
+  },
+  "best": {
+   "AND": 3,
+   "CX": 20,
+   "T": 12,
+   "qubits": 10
+  },
+  "front": [
+   {
+    "cand_sha": "62003d2692bbfeff85774ba9ec2e1f669c092e11377f769781ef2ce8b3935bb7",
+    "cost": {
+     "AND": 6,
+     "CX": 24,
+     "T": 24,
+     "qubits": 7
+    },
+    "seq": 16
+   },
+   {
+    "cand_sha": "cbc119a375aad526bd4303336eadfb1041de2832c14fa26bd2739261273f3ea7",
+    "cost": {
+     "AND": 3,
+     "CX": 20,
+     "T": 12,
+     "qubits": 10
+    },
+    "seq": 23
+   }
+  ],
+  "records": 2
+ },
+ "qc_mod5_4": {
+  "baseline": {
+   "AND": 2,
+   "CX": 11,
+   "T": 8,
+   "qubits": 5
+  },
+  "best": {
+   "AND": 1,
+   "CX": 11,
+   "T": 4,
+   "qubits": 6
+  },
+  "front": [
+   {
+    "cand_sha": "cdbcd5a957274703c5a31b0b33fdf77868da9452e3f7af50f7fdb4d3204b38c6",
+    "cost": {
+     "AND": 2,
+     "CX": 11,
+     "T": 8,
+     "qubits": 5
+    },
+    "seq": 17
+   },
+   {
+    "cand_sha": "0cb7b1ecd015794ea6ca3030ee6f9616054350f4151042a8f7ce19001835e1b2",
+    "cost": {
+     "AND": 1,
+     "CX": 11,
+     "T": 4,
+     "qubits": 6
+    },
+    "seq": 36
+   }
+  ],
+  "records": 3
+ },
+ "qc_tof_5": {
+  "baseline": {
+   "AND": 7,
+   "CX": 24,
+   "T": 31,
+   "qubits": 9
+  },
+  "best": {
+   "AND": 4,
+   "CX": 20,
+   "T": 16,
+   "qubits": 13
+  },
+  "front": [
+   {
+    "cand_sha": "35ff73bb20c48b21bb791437c03fbb846262ace8560c672fc33a6835a651b698",
+    "cost": {
+     "AND": 7,
+     "CX": 24,
+     "T": 31,
+     "qubits": 9
+    },
+    "seq": 15
+   },
+   {
+    "cand_sha": "d07e4c9cfb4e267de297ea8338b34a0ce6734a1d4a81f2c9d38a53c22c068f7c",
+    "cost": {
+     "AND": 4,
+     "CX": 20,
+     "T": 16,
+     "qubits": 13
+    },
+    "seq": 22
+   }
+  ],
+  "records": 2
+ }
+}

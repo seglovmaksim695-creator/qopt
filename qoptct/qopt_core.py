@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""qoptct 0.7.0 (project "qopt") -- verified Clifford+T circuit optimizer.
+"""qoptct 0.8.0 (project "qopt") -- verified Clifford+T circuit optimizer.
 Install: pip install qoptct  (neural mode --net: pip install "qoptct[net]"). Python: import qoptct.
 
   qoptct optimize INPUT.qc [-o OUTPUT] [--mode cx|balanced|t] [--clean] [--meas] [--net] [--post] [--report r.json]
@@ -95,7 +95,7 @@ def limited(seconds, fn, *a):
             signal.setitimer(signal.ITIMER_REAL, max(0.001, _LIMITS[-1] - time.time()))
 from pathlib import Path
 
-__version__ = "0.7.0"
+__version__ = "0.8.0"
 TORCH_MSG = ('the neural mode (--net / net=True) needs PyTorch, which is an optional dependency of qoptct.\n'
              'Install it with:  pip install "qoptct[net]"   (or: pip install torch)')
 
@@ -1392,10 +1392,35 @@ def _main():
                   "(module qoptct.foreign.qualtran; needs the extra `qualtran`; `qoptct qualtran --help`)")
     sp.add_parser("loop", add_help=False, help="propose -> prove -> accumulate: journal of proved improvements "
                   "(module qoptct.loop; `qoptct loop --help`)")
+    sp.add_parser("qiskit", add_help=False, help="proofs about Qiskit library circuits: prove, list, fractional "
+                  "(module qoptct.foreign.qiskit; needs the package qiskit; `qoptct qiskit --help`)")
+    sp.add_parser("projectq", add_help=False, help="proofs about ProjectQ programs: prove, results "
+                  "(module qoptct.foreign.projectq; needs the extra `projectq`; `qoptct projectq --help`)")
+    sp.add_parser("dyadic", add_help=False, help="exact proofs for circuits with rotations pi*p/2^k (QFT, Fourier adders): "
+                  "prove, results (module qoptct.dyadic; `qoptct dyadic --help`)")
+    sp.add_parser("auto", add_help=False, help="generic proof of Qualtran blocks from their decomposition: prove, canaries, "
+                  "results (module qoptct.foreign.auto; needs the extra `qualtran`; `qoptct auto --help`)")
+    sp.add_parser("results", add_help=False, help="everything that is proved, over all registries "
+                  "(`qoptct results --help`)")
     sp.add_parser("version")
     if sys.argv[1:2] == ["loop"]:
         from .loop.cli import main as loop_main
         sys.exit(loop_main(sys.argv[2:]))
+    if sys.argv[1:2] == ["qiskit"]:
+        from .foreign.qiskit.__main__ import main as qiskit_main
+        sys.exit(qiskit_main(sys.argv[2:]))
+    if sys.argv[1:2] == ["projectq"]:
+        from .foreign.projectq.cli import main as projectq_main
+        sys.exit(projectq_main(sys.argv[2:]))
+    if sys.argv[1:2] == ["dyadic"]:
+        from .dyadic.cli import main as dyadic_main
+        sys.exit(dyadic_main(sys.argv[2:]))
+    if sys.argv[1:2] == ["auto"]:
+        from .foreign.auto.cli import main as auto_main
+        sys.exit(auto_main(sys.argv[2:]))
+    if sys.argv[1:2] == ["results"]:
+        from .results import main as results_main
+        sys.exit(results_main(sys.argv[2:]))
     if sys.argv[1:2] == ["qualtran"]:
         from .foreign.qualtran.cli import main as qualtran_main
         sys.exit(qualtran_main(sys.argv[2:]))

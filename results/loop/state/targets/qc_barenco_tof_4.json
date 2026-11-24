@@ -1,0 +1,8 @@
+{
+ "clean": false,
+ "gen": null,
+ "has_baseline": false,
+ "id": "qc_barenco_tof_4",
+ "ref_sha": "ba665da53fa3d7456f546fbb7945457b0b7129204c1a91e7d2a8e0133619aa96",
+ "spec": "qc:bench_qc/barenco_tof_4.qc"
+}

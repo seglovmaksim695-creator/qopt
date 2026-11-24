@@ -1,0 +1,361 @@
+{
+ "schema": "qoptct.dyadic.registry/1",
+ "note": "each entry: the largest proved size of a family, with its canaries; see docs/DYADIC.md",
+ "entries": [
+  {
+   "id": "dyadic/qft_n256",
+   "name": "qft",
+   "block": "Qiskit QFTGate",
+   "claim": "circuit = QFT (with the final reversal of the wires), up to a global phase",
+   "status": "PROVED",
+   "n": 256,
+   "qubits": 256,
+   "gates": 33024,
+   "method": "normal-form",
+   "global_phase": "0",
+   "canaries": {
+    "total": 22,
+    "refuted": 22,
+    "proved": 0
+   },
+   "product_check": {
+    "inputs": 20,
+    "bad": 0,
+    "entangling": 0
+   },
+   "assumptions": [],
+   "first_not_proved": null,
+   "versions": {},
+   "reproduce": "python scripts/dyadic_runs.py run qft 256 --canaries",
+   "evidence": {
+    "file": "results/dyadic/qft.json",
+    "sha256": "90e0faebdce04363fe5ff1b23b1af19d0f9f6f39c640d8c4a6aed2976aeb3791"
+   }
+  },
+  {
+   "id": "dyadic/qft_noswap_n256",
+   "name": "qft_noswap",
+   "block": "Qiskit synth_qft_full(do_swaps=False)",
+   "claim": "circuit = QFT without the final reversal, up to a global phase",
+   "status": "PROVED",
+   "n": 256,
+   "qubits": 256,
+   "gates": 32896,
+   "method": "normal-form",
+   "global_phase": "0",
+   "canaries": {
+    "total": 21,
+    "refuted": 21,
+    "proved": 0
+   },
+   "product_check": {
+    "inputs": 20,
+    "bad": 0,
+    "entangling": 0
+   },
+   "assumptions": [],
+   "first_not_proved": null,
+   "versions": {},
+   "reproduce": "python scripts/dyadic_runs.py run qft_noswap 256 --canaries",
+   "evidence": {
+    "file": "results/dyadic/qft_noswap.json",
+    "sha256": "03660b25126216454a7499c541de5d3883c6052179a384aa16f89349b01f801f"
+   }
+  },
+  {
+   "id": "dyadic/iqft_n256",
+   "name": "iqft",
+   "block": "Qiskit QFTGate.inverse()",
+   "claim": "circuit = inverse QFT, up to a global phase",
+   "status": "PROVED",
+   "n": 256,
+   "qubits": 256,
+   "gates": 33024,
+   "method": "normal-form",
+   "global_phase": "0",
+   "canaries": {
+    "total": 22,
+    "refuted": 22,
+    "proved": 0
+   },
+   "product_check": {
+    "inputs": 20,
+    "bad": 0,
+    "entangling": 0
+   },
+   "assumptions": [],
+   "first_not_proved": null,
+   "versions": {},
+   "reproduce": "python scripts/dyadic_runs.py run iqft 256 --canaries",
+   "evidence": {
+    "file": "results/dyadic/iqft.json",
+    "sha256": "f76b23ee17d49416dcd9ac49f749c9c13299d003566ee9942302bc3117fc1fad"
+   }
+  },
+  {
+   "id": "dyadic/qft_qftdg_n256",
+   "name": "qft_qftdg",
+   "block": "Qiskit QFTGate then its inverse",
+   "claim": "circuit = identity, up to a global phase",
+   "status": "PROVED",
+   "n": 256,
+   "qubits": 256,
+   "gates": 66048,
+   "method": "normal-form",
+   "global_phase": "0",
+   "canaries": {
+    "total": 22,
+    "refuted": 22,
+    "proved": 0
+   },
+   "product_check": null,
+   "assumptions": [],
+   "first_not_proved": null,
+   "versions": {},
+   "reproduce": "python scripts/dyadic_runs.py run qft_qftdg 256 --canaries",
+   "evidence": {
+    "file": "results/dyadic/qft_qftdg.json",
+    "sha256": "202774b2a81b14f6ca28830ea89476d3027f8e5edd05222e3d3581c2150ed9fc"
+   }
+  },
+  {
+   "id": "dyadic/draper_fixed_n256",
+   "name": "draper_fixed",
+   "block": "Qiskit DraperQFTAdder kind=fixed",
+   "claim": "b += a mod 2^n",
+   "status": "PROVED",
+   "n": 256,
+   "qubits": 512,
+   "gates": 98944,
+   "method": "normal-form",
+   "global_phase": "0",
+   "canaries": {
+    "total": 22,
+    "refuted": 22,
+    "proved": 0
+   },
+   "product_check": {
+    "inputs": 20,
+    "bad": 0,
+    "entangling": 0
+   },
+   "assumptions": [
+    "fourier-shift lemma: the exact Fourier path sum of an ArithSpec equals the classical map |x,s> -> |x,(s+G(x)) mod 2^m> (geometric sum; docs/DYADIC.md, Lemma 2)"
+   ],
+   "first_not_proved": null,
+   "versions": {},
+   "reproduce": "python scripts/dyadic_runs.py run draper_fixed 256 --canaries",
+   "evidence": {
+    "file": "results/dyadic/draper_fixed.json",
+    "sha256": "d49155ee47019b55c2d96075cf4cc1e112a7fcfe3a42a519b19ff8b91d02597d"
+   }
+  },
+  {
+   "id": "dyadic/draper_half_n256",
+   "name": "draper_half",
+   "block": "Qiskit DraperQFTAdder kind=half",
+   "claim": "(b, carry) += a",
+   "status": "PROVED",
+   "n": 256,
+   "qubits": 513,
+   "gates": 99714,
+   "method": "normal-form",
+   "global_phase": "0",
+   "canaries": {
+    "total": 22,
+    "refuted": 22,
+    "proved": 0
+   },
+   "product_check": {
+    "inputs": 20,
+    "bad": 0,
+    "entangling": 0
+   },
+   "assumptions": [
+    "fourier-shift lemma: the exact Fourier path sum of an ArithSpec equals the classical map |x,s> -> |x,(s+G(x)) mod 2^m> (geometric sum; docs/DYADIC.md, Lemma 2)"
+   ],
+   "first_not_proved": null,
+   "versions": {},
+   "reproduce": "python scripts/dyadic_runs.py run draper_half 256 --canaries",
+   "evidence": {
+    "file": "results/dyadic/draper_half.json",
+    "sha256": "b8472d400962388c386079fb5276e05fe15d957c9333e91e275f0786290e1136"
+   }
+  },
+  {
+   "id": "dyadic/cdraper_n10",
+   "name": "cdraper",
+   "block": "Qiskit DraperQFTAdder(n).control(1)",
+   "claim": "b += c*a mod 2^n",
+   "status": "PROVED",
+   "n": 10,
+   "qubits": 21,
+   "gates": 895,
+   "method": "normal-form",
+   "global_phase": "0",
+   "canaries": {
+    "total": 20,
+    "refuted": 20,
+    "proved": 0
+   },
+   "product_check": {
+    "inputs": 20,
+    "bad": 0,
+    "entangling": 8
+   },
+   "assumptions": [
+    "fourier-shift lemma: the exact Fourier path sum of an ArithSpec equals the classical map |x,s> -> |x,(s+G(x)) mod 2^m> (geometric sum; docs/DYADIC.md, Lemma 2)"
+   ],
+   "first_not_proved": null,
+   "versions": {},
+   "reproduce": "python scripts/dyadic_runs.py run cdraper 10 --canaries",
+   "evidence": {
+    "file": "results/dyadic/cdraper.json",
+    "sha256": "3fa32534e0fd0d1298ff6977b103fff9ff3236170f9a8aa54c6de05d4e20ec57"
+   }
+  },
+  {
+   "id": "dyadic/rgqft_n32",
+   "name": "rgqft",
+   "block": "Qiskit RGQFTMultiplier",
+   "claim": "out += a*b mod 2^(2n)",
+   "status": "PROVED",
+   "n": 32,
+   "qubits": 128,
+   "gates": 69760,
+   "method": "normal-form",
+   "global_phase": "0",
+   "canaries": {
+    "total": 22,
+    "refuted": 22,
+    "proved": 0
+   },
+   "product_check": {
+    "inputs": 20,
+    "bad": 0,
+    "entangling": 0
+   },
+   "assumptions": [
+    "fourier-shift lemma: the exact Fourier path sum of an ArithSpec equals the classical map |x,s> -> |x,(s+G(x)) mod 2^m> (geometric sum; docs/DYADIC.md, Lemma 2)"
+   ],
+   "first_not_proved": null,
+   "versions": {},
+   "reproduce": "python scripts/dyadic_runs.py run rgqft 32 --canaries",
+   "evidence": {
+    "file": "results/dyadic/rgqft.json",
+    "sha256": "b81069b10e3a5d2959c163a2db97b03d26e7b284f372a40253bebe5dd7b89de1"
+   }
+  },
+  {
+   "id": "dyadic/hrs_n7",
+   "name": "hrs",
+   "block": "Qiskit HRSCumulativeMultiplier",
+   "claim": "|a, b, 0> -> |a, b, a*b>",
+   "status": "PROVED",
+   "n": 7,
+   "qubits": 28,
+   "gates": 4634,
+   "method": "normal-form",
+   "global_phase": "0",
+   "canaries": {
+    "total": 20,
+    "refuted": 20,
+    "proved": 0
+   },
+   "product_check": {
+    "inputs": 20,
+    "bad": 0,
+    "entangling": 20
+   },
+   "assumptions": [],
+   "first_not_proved": {
+    "n": 8,
+    "verdict": "UNKNOWN",
+    "reason": "all strategies hit a limit"
+   },
+   "versions": {},
+   "reproduce": "python scripts/dyadic_runs.py run hrs 7 --canaries",
+   "evidence": {
+    "file": "results/dyadic/hrs.json",
+    "sha256": "e49293fe2a6f5debfe04674b04705e5aab2c6c7034de71af3d3b009f9ca6dc44"
+   }
+  },
+  {
+   "id": "dyadic/pq_exact_qft_n39",
+   "name": "pq_exact_qft",
+   "block": "ProjectQ QFT (exact-angle bridge)",
+   "claim": "program = QFT without the final reversal, up to a global phase",
+   "status": "PROVED",
+   "n": 39,
+   "qubits": 39,
+   "gates": 780,
+   "method": "normal-form",
+   "global_phase": "0",
+   "canaries": {
+    "total": 21,
+    "refuted": 21,
+    "proved": 0
+   },
+   "product_check": {
+    "inputs": 20,
+    "bad": 0,
+    "entangling": 0
+   },
+   "assumptions": [
+    "ProjectQ angles are accepted only as exactly round(p*pi/2^k mod period, 12) with k <= 38 (unique reading); a rotation that ProjectQ rounded to 0 cannot be told from no rotation, such a program is UNKNOWN"
+   ],
+   "first_not_proved": {
+    "n": 40,
+    "verdict": "UNKNOWN",
+    "reason": "unsupported: ProjectQ angle 6e-12 is 0 or within 1e-11 of the period: it may be a rotation that ProjectQ rounded away (ambiguous)"
+   },
+   "versions": {
+    "projectq": "0.8.0"
+   },
+   "reproduce": "python scripts/projectq_dyadic_runs.py run qft 39 --canaries",
+   "evidence": {
+    "file": "results/dyadic/pq_exact_qft.json",
+    "sha256": "45f157b8c949a5cb5b8c6ad83a1c1dbf8adf72b3441ea33086dee0992be1b5f5"
+   }
+  },
+  {
+   "id": "dyadic/pq_exact_addconst_n38",
+   "name": "pq_exact_addconst",
+   "block": "ProjectQ AddConstant (exact-angle bridge)",
+   "claim": "b += c mod 2^n for a fixed mixed-bit constant c",
+   "status": "PROVED",
+   "n": 38,
+   "qubits": 38,
+   "gates": 1961,
+   "method": "normal-form",
+   "global_phase": "0",
+   "canaries": {
+    "total": 21,
+    "refuted": 21,
+    "proved": 0
+   },
+   "product_check": {
+    "inputs": 20,
+    "bad": 0,
+    "entangling": 0
+   },
+   "assumptions": [
+    "fourier-shift lemma: the exact Fourier path sum of an ArithSpec equals the classical map |x,s> -> |x,(s+G(x)) mod 2^m> (geometric sum; docs/DYADIC.md, Lemma 2)",
+    "ProjectQ angles are accepted only as exactly round(p*pi/2^k mod period, 12) with k <= 38 (unique reading); a rotation that ProjectQ rounded to 0 cannot be told from no rotation, such a program is UNKNOWN"
+   ],
+   "first_not_proved": {
+    "n": 40,
+    "verdict": "UNKNOWN",
+    "reason": "unsupported: ProjectQ angle 6e-12 is 0 or within 1e-11 of the period: it may be a rotation that ProjectQ rounded away (ambiguous)"
+   },
+   "versions": {
+    "projectq": "0.8.0"
+   },
+   "reproduce": "python scripts/projectq_dyadic_runs.py run addconst 38 --canaries",
+   "evidence": {
+    "file": "results/dyadic/pq_exact_addconst.json",
+    "sha256": "5beb6584eeda23d9877abb2dbdf1295c339db1837943c7c563aeeff3bcad847a"
+   }
+  }
+ ]
+}

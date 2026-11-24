@@ -1,0 +1,8 @@
+{
+ "clean": false,
+ "gen": null,
+ "has_baseline": false,
+ "id": "qc_mod5_4",
+ "ref_sha": "9d32b6df9264366676c3e259211d43c8686b7b3cbcb215e0bfa9d81c3919b3a6",
+ "spec": "qc:bench_qc/mod5_4.qc"
+}

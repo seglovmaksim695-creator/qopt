@@ -30,7 +30,7 @@ def run_canaries(family, n, budget=120, count=None):
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(prog='python -m qoptct.foreign.qiskit')
+    ap = argparse.ArgumentParser(prog='qoptct qiskit')
     sub = ap.add_subparsers(dest='cmd', required=True)
     p = sub.add_parser('prove')
     p.add_argument('family', choices=sorted(FAMILIES))
