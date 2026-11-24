@@ -1,3 +1,16 @@
+# Выпуск 0.8.0 — заметки по пакету (24.11.2026)
+
+- Версия 0.8.0 во всех местах номера: `pyproject.toml`, `qoptct/__init__.py`, `qoptct/qopt_core.py`, `CITATION.cff`, `.zenodo.json` (DOI не менялся), README/README_RU, `tests/test_release.py`.
+- Новый extra `projectq = ["projectq==0.8.0"]`; extra `qualtran` обслуживает и `qoptct auto`; core-зависимости не менялись.
+- package-data добавлено: `foreign/qiskit/data/*.json`, `foreign/projectq/data/*.json`, `foreign/auto/data/*.json`, `dyadic/data/*.json`, `loop/data/*.json` (реестры). В архив исходников (`MANIFEST.in`) добавлены `results/dyadic|auto|projectq|loop`, скрипты `build_*_registry.py`, `dyadic_runs.py`, `projectq_dyadic_runs.py`, `docs/FOREIGN.md` и документы новых частей.
+- Реестры перестраиваются скриптами `scripts/build_{qualtran,projectq,auto,dyadic,loop}_registry.py` (у каждого `--check`); тесты сверяют их с файлами результатов (в колесе без исходного дерева такие тесты пропускаются). У Qiskit реестр — файл `data/registry.json` (собран агентом Q1, тест `test_registry_matches_families`).
+- Абсолютных путей Мака в пакете нет (проверяет `tests/test_release.py`); исходник Binary_ECC в пакет не входит; кэши — в `$QOPT_CACHE`.
+- В `NOTICE`: изменённые файлы Qualtran (Apache-2.0, Copyright Google LLC), Binary_ECC (EPL-2.0, не распространяется), ссылка на работу Amy о правилах dyadic.
+- Решение Максима о публикации (24.11.2026): всё выходит одной версией 0.8.0 после сборки и аудита; 0.5–0.7 отдельно не выкладываются; разработчикам Qualtran отдельно не сообщаем. Публикует только координатор: релиз на GitHub → `publish.yml` → PyPI.
+- Перед публикацией (не сделано): аудит сборки; тег и релиз v0.8.0; PyPI/Zenodo.
+
+---
+
 # Выпуск 0.7.0 — заметки по пакету (23.11.2026)
 
 - Версия 0.7.0 во всех местах номера: `pyproject.toml`, `qoptct/__init__.py`, `qoptct/qopt_core.py`, `CITATION.cff`, `.zenodo.json` (DOI не менялся), README/README_RU, `tests/test_release.py`.
