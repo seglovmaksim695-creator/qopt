@@ -166,4 +166,6 @@ def test_registry_matches_families():
     for r in d["rows"]:
         assert r["family"] in FAMILIES
         if r["status"] == "PROVED":
-            assert r["max_n_proved"] and r["canaries"] is not None or r["family"].startswith(("and", "or", "xor", "vbe-half", "comparator-gate")) or True
+            assert r["max_n_proved"] >= 16
+            if r["canaries"]:
+                assert r["canaries"]["proved_false"] == 0 and r["canaries"]["refuted"] >= 20
