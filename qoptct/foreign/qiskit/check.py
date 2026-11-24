@@ -33,6 +33,7 @@ class Spec:
     classical: Callable
     symbolic: Optional[Callable] = None
     description: str = ''
+    msb_first: bool = False      # variable order hint for the BDD prover (comparators)
 
 
 def _regs_info(tr, clean):
@@ -124,9 +125,9 @@ def classical_validate(tr, spec, clean, samples=64, seed=1, exhaustive_bits=EXHA
     return 'ok', dict(exhaustive=exhaustive, cases=len(cases))
 
 
-def _order(tr, inputs):
+def _order(tr, inputs, msb_first=False):
     """Interleave the input registers bit by bit (the order ripple carries need)."""
-    words = [tr.registers[n] for n in inputs]
+    words = [tr.registers[n][::-1] if msb_first else tr.registers[n] for n in inputs]
     m = max(map(len, words)) if words else 0
     return [w[i] for i in range(m) for w in words if i < len(w)]
 
@@ -152,7 +153,7 @@ def _prove_symbolic(tr, spec, clean, budget_sec, max_mb):
         path = os.path.join(d, 'c.qasm')
         with open(path, 'w') as f:
             f.write(tr.qasm())
-        return kprove(path, spec=full_spec, n=tr.nq, clean_wires=clean_wires, order=_order(tr, inputs),
+        return kprove(path, spec=full_spec, n=tr.nq, clean_wires=clean_wires, order=_order(tr, inputs, spec.msb_first),
                       budget_sec=budget_sec, max_mb=max_mb, sample=False, confirm=True)
 
 

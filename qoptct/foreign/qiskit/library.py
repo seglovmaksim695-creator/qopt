@@ -75,26 +75,6 @@ def vbe(n, kind='half'):
                 adder_spec(n, cin, cout, 'vbe-' + kind), ('helper',))
 
 
-def vbe_fixed_actual(n):
-    """Qiskit 2.6.2 VBERippleCarryAdder(kind='fixed') does NOT add into the top bit: b_{n-1} is untouched and
-    a_{n-1} is ignored, i.e. b := b with its low n-1 bits replaced by (a + b) mod 2^(n-1).  The documented
-    contract (b := (a+b) mod 2^n) is REFUTED (family 'vbe-fixed'); this spec states what the circuit really does."""
-    from qoptct.verify.ksym import SymInt
-    m = n - 1
-
-    def classical(v):
-        low = (v['a'] + v['b']) & ((1 << m) - 1)
-        return {'b': (v['b'] & (1 << m)) | low}
-
-    def symbolic(S, R):
-        s = SymInt(S.B, R['a'].bits[:m]).add(SymInt(S.B, R['b'].bits[:m])).resize(m)
-        return {'b': SymInt(S.B, s.bits + R['b'].bits[m:])}
-    qc = VBERippleCarryAdder(n, kind='fixed')
-    return Case('VBERippleCarryAdder-fixed-actual', n, qc,
-                Spec('vbe-fixed-actual', classical, symbolic, 'top bit of b untouched, low n-1 bits added'),
-                ('helper',), 'documented contract is refuted: see vbe-fixed')
-
-
 def _wrap(gate, layout):
     regs = [QuantumRegister(size, name) for name, size in layout]
     qc = QuantumCircuit(*regs, name=gate.name)
@@ -128,7 +108,7 @@ def comparator_spec(n, value, geq=True):
         lt = R['state'].lt(value)
         r = lt ^ 1 if geq else lt
         return {'compare': _bit(S, S.B.XOR(R['compare'].bits[0], r))}
-    return Spec('comparator', classical, symbolic, 'compare ^= [state %s %d]' % ('>=' if geq else '<', value))
+    return Spec('comparator', classical, symbolic, 'compare ^= [state %s %d]' % ('>=' if geq else '<', value), msb_first=True)
 
 
 def integer_comparator(n, value, geq=True):
@@ -201,7 +181,8 @@ def controlled(case):
     def symbolic(S, R):
         res = base.symbolic(S, {k: x for k, x in R.items() if k != 'ctrl'})
         return {k: S.mux(R['ctrl'].bits[0], v, R[k]) for k, v in res.items()}
-    spec = Spec('controlled-' + base.name, classical, symbolic, 'ctrl ? ' + base.description + ' : identity')
+    spec = Spec('controlled-' + base.name, classical, symbolic, 'ctrl ? ' + base.description + ' : identity',
+                msb_first=base.msb_first)
     return Case('c' + case.name, case.n, qc, spec, case.clean, 'controlled by .control(1) of each primitive')
 
 
@@ -217,12 +198,11 @@ FAMILIES = {
     'cdkm-half': lambda n: cdkm(n, 'half'), 'cdkm-full': lambda n: cdkm(n, 'full'),
     'cdkm-fixed': lambda n: cdkm(n, 'fixed'),
     'vbe-half': lambda n: vbe(n, 'half'), 'vbe-full': lambda n: vbe(n, 'full'), 'vbe-fixed': lambda n: vbe(n, 'fixed'),
-    'vbe-fixed-actual': vbe_fixed_actual,
     'half-adder-gate': half_adder_gate, 'full-adder-gate': full_adder_gate, 'modular-adder-gate': modular_adder_gate,
     'comparator-geq': lambda n: integer_comparator(n, (1 << n) // 3 + 1, True),
     'comparator-lt': lambda n: integer_comparator(n, (1 << n) // 3 + 1, False),
     'comparator-gate': lambda n: integer_comparator_gate(n, (1 << n) // 3 + 1, True),
     'and': and_gate, 'or': or_gate, 'xor-const': lambda n: bitwise_xor(n, (1 << n) // 5 * 3 + 1),
 }
-for _k in ('vbe-fixed-actual', 'cdkm-half', 'cdkm-full', 'cdkm-fixed', 'vbe-half', 'vbe-full', 'vbe-fixed'):
+for _k in ('cdkm-half', 'cdkm-full', 'cdkm-fixed', 'vbe-half', 'vbe-full', 'vbe-fixed'):
     FAMILIES['c-' + _k] = (lambda k: lambda n: controlled(FAMILIES[k](n)))(_k)
