@@ -523,3 +523,37 @@ def test_draper_64_and_canaries(kind):
     c.gphase = Fraction(1, 2 ** 62)
     assert prove_spec(c, spec, phase='exact')['verdict'] == 'REFUTED'
     assert cnt >= 40
+
+
+def _classical_adder(n, const=None):
+    """b += a (or b += const) with multi-controlled X only (controlled increments), no rotations."""
+    c = DCircuit(2 * n if const is None else n)
+    b = list(range(n, 2 * n)) if const is None else list(range(n))
+    for j in range(n):
+        ctrl = [j] if const is None else []
+        if const is not None and not (const >> j) & 1:
+            continue
+        for k in range(n - 1, j - 1, -1):            # add 2^j: flip b_k if b_j..b_(k-1) are all 1
+            c.add('mcx', tuple(ctrl + b[j:k] + [b[k]]))
+    return c
+
+
+@pytest.mark.parametrize('n', [1, 2, 3, 4, 5])
+def test_fourier_lemma_instances_on_classical_adders(n):
+    """Lemma 2 instances: a rotation-free classical adder is PROVED equal to the Fourier path sum of ArithSpec, so the
+    Fourier form is the classical map at these sizes (and the dense simulator agrees); a wrong classical adder is
+    REFUTED."""
+    c = _classical_adder(n)
+    spec = adder_spec(range(n), range(n, 2 * n))
+    r = prove_spec(c, spec, budget_sec=60)
+    assert r['verdict'] == 'PROVED', r
+    if 2 * n <= 10:
+        ok, lam = dense_equal(c, spec=spec)
+        assert ok
+    const = (0b10110 % (1 << n)) | 1
+    c = _classical_adder(n, const)
+    assert prove_spec(c, const_adder_spec(const, range(n)), budget_sec=60)['verdict'] == 'PROVED'
+    if n >= 2:
+        bad = _classical_adder(n)
+        del bad.ops[-1]
+        assert prove_spec(bad, spec, budget_sec=60)['verdict'] == 'REFUTED'

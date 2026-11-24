@@ -236,3 +236,96 @@ def run_fuzz(seed, cases, nmax=6, depth=(3, 14), selfcheck=False, budget_sec=20,
         if log is not None:
             log(t, r, ok)
     return st
+
+
+def _draper(n, kind='fixed'):
+    """Draper adder written out as in Qiskit (QFT on the sum register, CP(pi/2^k) from a, inverse QFT)."""
+    m = n if kind == 'fixed' else n + 1
+    nq = 2 * n + (0 if kind == 'fixed' else 1)
+    sumw = list(range(n, 2 * n)) + ([2 * n] if kind == 'half' else [])
+    c = qft_circuit(m, wires=sumw, nq=nq)
+    for j in range(n):
+        for k in range(m - j):
+            c.ops.append(('cp', (j, sumw[m - 1 - (j + k)]), (Fraction(1, 2 ** k),)))
+    c.ops += qft_circuit(m, wires=sumw, nq=nq, inverse=True).ops
+    return c, list(range(n)), list(range(n, 2 * n)), (2 * n if kind == 'half' else None)
+
+
+def _const_adder(m, const, ctrl):
+    """ProjectQ-style constant adder: QFT (no swaps), P(pi/2^(i-j)) per set bit, inverse QFT."""
+    n = m + (1 if ctrl else 0)
+    c = qft_circuit(m, swaps=False, nq=n)
+    for i in range(m):
+        for j in range(i, -1, -1):
+            if (const >> j) & 1:
+                q = m - 1 - i
+                if ctrl:
+                    c.ops.append(('cp', (m, q), (Fraction(1, 1 << (i - j)),)))
+                else:
+                    c.ops.append(('p', (q,), (Fraction(1, 1 << (i - j)),)))
+    c.ops += qft_circuit(m, swaps=False, nq=n, inverse=True).ops
+    return c
+
+
+def _rgqft(n):
+    """RGQFT multiplier written out as in Qiskit (QFT on out, CCP(2 pi 2^(2n-i-j-k)), inverse QFT)."""
+    m = 2 * n
+    out = list(range(2 * n, 4 * n))
+    c = qft_circuit(m, wires=out, nq=4 * n)
+    for j in range(1, n + 1):
+        for i in range(1, n + 1):
+            for k in range(1, m + 1):
+                ang = Fraction(2) * Fraction(2) ** (2 * n - i - j - k)
+                c.ops.append(('mcp', (n - j, 2 * n - i, out[m - k]), (ang,)))
+    c.ops += qft_circuit(m, wires=out, nq=4 * n, inverse=True).ops
+    return c
+
+
+def run_spec_fuzz(seed, cases, budget_sec=20, log=None):
+    """Specifications against the dense simulator: QFT variants, Draper adders, constant adders (controlled or not),
+    RGQFT multipliers, each correct or mutated, up to 10 qubits."""
+    from .api import prove_spec
+    from .spec import QFTSpec, adder_spec, const_adder_spec, multiplier_spec
+    rng = random.Random(seed)
+    st = dict(PROVED=0, REFUTED=0, UNKNOWN=0, equal=0, different=0, methods={}, bad=[], cases=cases, kinds={})
+    for t in range(cases):
+        kind = rng.choice(['qft', 'qft', 'draper', 'const', 'rgqft'])
+        if kind == 'qft':
+            n = rng.randint(1, 10)
+            m = rng.randint(1, n)
+            wires = rng.sample(range(n), m)
+            sw, inv = rng.random() < 0.5, rng.random() < 0.5
+            c = qft_circuit(m, swaps=sw, inverse=inv, wires=wires, nq=n)
+            spec = QFTSpec(wires, swaps=sw, inverse=inv)
+        elif kind == 'draper':
+            n = rng.randint(1, 4)
+            c, a, b, cout = _draper(n, rng.choice(['fixed', 'half']))
+            spec = adder_spec(a, b, cout)
+        elif kind == 'const':
+            m = rng.randint(1, 8)
+            const = rng.randrange(1 << m)
+            ctrl = rng.random() < 0.5
+            c = _const_adder(m, const, ctrl)
+            spec = const_adder_spec(const, list(range(m)), controls=(m,) if ctrl else ())
+        else:
+            n = rng.randint(1, 2)
+            c = _rgqft(n)
+            spec = multiplier_spec(range(n), range(n, 2 * n), range(2 * n, 4 * n))
+        if rng.random() < 0.5:
+            c = mutate(rng, c)
+        elif rng.random() < 0.5:
+            c = rewrite(rng, c)
+        r = prove_spec(c, spec, budget_sec=budget_sec, selfcheck=False)
+        ok, lam = dense_equal(c, spec=spec)
+        st['equal' if ok else 'different'] += 1
+        v = r['verdict']
+        st[v if v in ('PROVED', 'REFUTED', 'UNKNOWN') else 'UNKNOWN'] += 1
+        st['kinds'][kind] = st['kinds'].get(kind, 0) + 1
+        key = '%s/%s' % (v, r.get('method'))
+        st['methods'][key] = st['methods'].get(key, 0) + 1
+        if v in ('ERROR', 'INTERNAL') or not consistent(r, ok, lam):
+            st['bad'].append(dict(case=t, kind=kind, verdict=v, dense_equal=ok, reason=str(r.get('reason'))[:200],
+                                  circuit=c.to_qasm()))
+        if log is not None:
+            log(t, r, ok)
+    return st
