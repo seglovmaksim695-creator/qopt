@@ -4,7 +4,8 @@
     python scripts/dyadic_runs.py run FAMILY N [--canaries] [--budget S]     # one result as a JSON line
     python scripts/dyadic_runs.py registry [--families f1,f2] [--sizes 2,4,8] [--out results/dyadic]
 
-Families (Qiskit 2.x): qft, qft_noswap, iqft, qft_qftdg, draper_fixed, draper_half, rgqft, hrs;
+Families (Qiskit 2.x): qft, qft_noswap, iqft, qft_qftdg, draper_fixed, draper_half, cdraper (DraperQFTAdder
+.control(1)), rgqft, hrs;
 ProjectQ (needs dumps from scripts/dyadic_projectq_dump.py in results/dyadic/projectq/): pq_addconst, pq_qft,
 pq_addconst_basic, pq_qft_basic (decomposed further by ProjectQ), pq_addconst_opt (with ProjectQ's LocalOptimizer).
 Each run: build, translate to a DCircuit, check the translation against Qiskit's own Operator (<= 10 qubits), prove,
@@ -33,8 +34,10 @@ SIZES = {'qft': [2, 4, 8, 16, 32, 64, 128, 256], 'qft_noswap': [2, 4, 8, 16, 32,
          'iqft': [2, 4, 8, 16, 32, 64, 128, 256], 'qft_qftdg': [2, 4, 8, 16, 32, 64, 128, 256],
          'draper_fixed': [1, 2, 4, 8, 16, 32, 64, 128, 256], 'draper_half': [1, 2, 4, 8, 16, 32, 64, 128, 256],
          'rgqft': [1, 2, 3, 4, 6, 8, 12, 16, 24, 32], 'hrs': [1, 2, 3, 4, 5, 6, 7, 8],
+         'cdraper': [1, 2, 4, 6, 8, 9, 10],
          'pq_addconst': [2, 4, 8, 16, 32, 48, 64], 'pq_qft': [2, 4, 8, 16, 32, 48, 64],
-         'pq_addconst_basic': [2, 4, 8, 16, 32, 48, 64], 'pq_qft_basic': [2, 4, 8, 16, 32, 48, 64],
+         'pq_addconst_basic': [2, 4, 8, 16, 24, 28, 31, 32, 48, 64],
+         'pq_qft_basic': [2, 4, 8, 16, 24, 28, 31, 32, 48, 64],
          'pq_addconst_opt': [2, 4, 8, 16, 24, 32]}
 PQ_DIR = os.path.join(os.path.dirname(HERE), 'results', 'dyadic', 'projectq')
 
@@ -66,6 +69,8 @@ def qiskit_case(family, n):
         qc = synth_qft_full(n, do_swaps=False)
     elif family in ('draper_fixed', 'draper_half'):
         qc = adder_qft_d00(n, kind=family.split('_')[1])
+    elif family == 'cdraper':
+        qc = adder_qft_d00(n, kind='fixed').control(1, annotated=False)     # control = qubit 0
     elif family == 'rgqft':
         qc = multiplier_qft_r17(n)
     elif family == 'hrs':
@@ -90,6 +95,9 @@ def qiskit_case(family, n):
         spec = adder_spec(range(n), range(n, 2 * n))
     elif family == 'draper_half':
         spec = adder_spec(range(n), range(n, 2 * n), 2 * n)
+    elif family == 'cdraper':
+        from qoptct.dyadic import ArithSpec
+        spec = ArithSpec(range(1 + n, 1 + 2 * n), [(1 << j, (1 + j, 0)) for j in range(n)], name='controlled add')
     elif family == 'hrs':
         # HRS adds the partial products with half adders whose carry-out qubit must start in 0: the claim is
         # |a, b, 0> -> |a, b, a*b> (out register zero), checked against the classical map (no lemma)
@@ -226,7 +234,7 @@ def canaries(c, spec, family, n, rng):
 
 
 # ----------------------------------------------------------------------------- one run
-def run_one(family, n, do_canaries, budget, seed=1):
+def run_one(family, n, do_canaries, budget, seed=1, canary_budget=120.0):
     t0 = time.time()
     if family.startswith('pq_'):
         from qoptct.dyadic import NotDyadic, Unsupported
@@ -255,7 +263,7 @@ def run_one(family, n, do_canaries, budget, seed=1):
         cres = []
         for name, e, ph in canaries(c, spec, family, n, rng):
             t2 = time.time()
-            rr = prove(e, spec, min(budget, 120.0), phase=ph)
+            rr = prove(e, spec, min(budget, canary_budget), phase=ph)
             cres.append(dict(name=name, verdict=rr['verdict'], method=rr.get('method'),
                              time=round(time.time() - t2, 2)))
         res['canaries'] = cres
@@ -270,6 +278,31 @@ def run_one(family, n, do_canaries, budget, seed=1):
     return res
 
 
+def table(out):
+    """Markdown summary of <out>/<family>.json: largest proved size, its time / memory / canaries / checks."""
+    lines = ['| family | proved up to n | qubits | gates | prove s | peak MB | canaries REFUTED | product check | '
+             'first size not proved |', '|' + '---|' * 9]
+    for fam in SIZES:
+        p = os.path.join(out, fam + '.json')
+        if not os.path.exists(p):
+            continue
+        rows = json.load(open(p))['rows']
+        ok = [r for r in rows if r.get('verdict') == 'PROVED']
+        bad = [r for r in rows if r.get('verdict') != 'PROVED']
+        if not ok:
+            lines.append('| %s | - | | | | | | | %s %s |' % (fam, bad[0].get('n'), bad[0].get('verdict')))
+            continue
+        m = max(ok, key=lambda r: r['n'])
+        cans = m.get('canaries') or []
+        pc = m.get('product_check')
+        lines.append('| %s | %d | %s | %s | %s | %s | %s | %s | %s |' % (
+            fam, m['n'], m.get('qubits'), m.get('gates'), m.get('time_prove'), m.get('peak_mb'),
+            '%d / %d' % (m.get('canaries_refuted', 0), len(cans)) if cans else '-',
+            '%d inputs, %d bad' % (pc['inputs'] - pc['entangling'], pc['bad']) if pc else '-',
+            ('%s %s' % (bad[0].get('n'), bad[0].get('verdict'))) if bad else '-'))
+    return '\n'.join(lines)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     sub = ap.add_subparsers(dest='cmd', required=True)
@@ -278,6 +311,9 @@ def main(argv=None):
     p1.add_argument('n', type=int)
     p1.add_argument('--canaries', action='store_true')
     p1.add_argument('--budget', type=float, default=600.0)
+    p1.add_argument('--canary-budget', type=float, default=120.0)
+    p3 = sub.add_parser('table')
+    p3.add_argument('--out', default=os.path.join(os.path.dirname(HERE), 'results', 'dyadic'))
     p2 = sub.add_parser('registry')
     p2.add_argument('--families', default=','.join(f for f in SIZES if not f.startswith('pq_')))
     p2.add_argument('--sizes', default=None)
@@ -285,7 +321,10 @@ def main(argv=None):
     p2.add_argument('--out', default=os.path.join(os.path.dirname(HERE), 'results', 'dyadic'))
     a = ap.parse_args(argv)
     if a.cmd == 'run':
-        print(json.dumps(run_one(a.family, a.n, a.canaries, a.budget)), flush=True)
+        print(json.dumps(run_one(a.family, a.n, a.canaries, a.budget, canary_budget=a.canary_budget)), flush=True)
+        return 0
+    if a.cmd == 'table':
+        print(table(a.out))
         return 0
     os.makedirs(a.out, exist_ok=True)
     for fam in a.families.split(','):

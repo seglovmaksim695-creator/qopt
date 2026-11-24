@@ -1,0 +1,331 @@
+{
+ "family": "iqft",
+ "rows": [
+  {
+   "family": "iqft",
+   "n": 2,
+   "qubits": 2,
+   "gates": 4,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "step",
+   "K": 3,
+   "global_phase": "0",
+   "assumptions": null,
+   "dense_check": "agrees",
+   "translation_check": true,
+   "float_angles": {
+    "n_float": 1,
+    "max_abs_dev": 0.0
+   },
+   "reason": null,
+   "peak_terms": 3,
+   "time_build": 0.15,
+   "time_prove": 0.0,
+   "peak_mb": 72.8
+  },
+  {
+   "family": "iqft",
+   "n": 4,
+   "qubits": 4,
+   "gates": 12,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "step",
+   "K": 4,
+   "global_phase": "0",
+   "assumptions": null,
+   "dense_check": "agrees",
+   "translation_check": true,
+   "float_angles": {
+    "n_float": 6,
+    "max_abs_dev": 0.0
+   },
+   "reason": null,
+   "peak_terms": 10,
+   "time_build": 0.15,
+   "time_prove": 0.0,
+   "peak_mb": 72.7
+  },
+  {
+   "family": "iqft",
+   "n": 8,
+   "qubits": 8,
+   "gates": 40,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "step",
+   "K": 8,
+   "global_phase": "0",
+   "assumptions": null,
+   "dense_check": "agrees",
+   "translation_check": true,
+   "float_angles": {
+    "n_float": 28,
+    "max_abs_dev": 0.0
+   },
+   "reason": null,
+   "peak_terms": 36,
+   "time_build": 0.15,
+   "time_prove": 0.03,
+   "peak_mb": 78.9
+  },
+  {
+   "family": "iqft",
+   "n": 16,
+   "qubits": 16,
+   "gates": 144,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "step",
+   "K": 16,
+   "global_phase": "0",
+   "assumptions": null,
+   "dense_check": "skipped (n > 10)",
+   "translation_check": null,
+   "float_angles": {
+    "n_float": 120,
+    "max_abs_dev": 0.0
+   },
+   "reason": null,
+   "peak_terms": 136,
+   "time_build": 0.16,
+   "time_prove": 0.0,
+   "peak_mb": 72.9
+  },
+  {
+   "family": "iqft",
+   "n": 32,
+   "qubits": 32,
+   "gates": 544,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "step",
+   "K": 32,
+   "global_phase": "0",
+   "assumptions": null,
+   "dense_check": "skipped (n > 10)",
+   "translation_check": null,
+   "float_angles": {
+    "n_float": 496,
+    "max_abs_dev": 0.0
+   },
+   "reason": null,
+   "peak_terms": 528,
+   "time_build": 0.17,
+   "time_prove": 0.02,
+   "peak_mb": 73.4
+  },
+  {
+   "family": "iqft",
+   "n": 64,
+   "qubits": 64,
+   "gates": 2112,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "step",
+   "K": 64,
+   "global_phase": "0",
+   "assumptions": null,
+   "dense_check": "skipped (n > 10)",
+   "translation_check": null,
+   "float_angles": {
+    "n_float": 2016,
+    "max_abs_dev": 0.0
+   },
+   "reason": null,
+   "peak_terms": 2080,
+   "time_build": 0.19,
+   "time_prove": 0.06,
+   "peak_mb": 76.2
+  },
+  {
+   "family": "iqft",
+   "n": 128,
+   "qubits": 128,
+   "gates": 8320,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "step",
+   "K": 128,
+   "global_phase": "0",
+   "assumptions": null,
+   "dense_check": "skipped (n > 10)",
+   "translation_check": null,
+   "float_angles": {
+    "n_float": 8128,
+    "max_abs_dev": 0.0
+   },
+   "reason": null,
+   "peak_terms": 8256,
+   "time_build": 0.27,
+   "time_prove": 0.25,
+   "peak_mb": 86.9
+  },
+  {
+   "family": "iqft",
+   "n": 256,
+   "qubits": 256,
+   "gates": 33024,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "step",
+   "K": 256,
+   "global_phase": "0",
+   "assumptions": null,
+   "dense_check": "skipped (n > 10)",
+   "translation_check": null,
+   "float_angles": {
+    "n_float": 32640,
+    "max_abs_dev": 0.0
+   },
+   "reason": null,
+   "peak_terms": 32896,
+   "time_build": 0.73,
+   "time_prove": 1.03,
+   "peak_mb": 126.5,
+   "canaries": [
+    {
+     "name": "smallest_rotation1/57896044618658097711785492504343953926634992332820282019728792003956564819968",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.31
+    },
+    {
+     "name": "smallest_rotation1/115792089237316195423570985008687907853269984665640564039457584007913129639936",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.31
+    },
+    {
+     "name": "smallest_rotation-1/115792089237316195423570985008687907853269984665640564039457584007913129639936",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.3
+    },
+    {
+     "name": "lost_smallest_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.31
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.31
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.33
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.35
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.33
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.3
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.31
+    },
+    {
+     "name": "lost_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.31
+    },
+    {
+     "name": "lost_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.3
+    },
+    {
+     "name": "lost_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.3
+    },
+    {
+     "name": "wrong_qubit",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.3
+    },
+    {
+     "name": "wrong_qubit",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.3
+    },
+    {
+     "name": "wrong_qubit",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.3
+    },
+    {
+     "name": "lost_h",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.25
+    },
+    {
+     "name": "lost_swap",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.38
+    },
+    {
+     "name": "junction_swap_order",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.28
+    },
+    {
+     "name": "global_phase_exact",
+     "verdict": "REFUTED",
+     "method": "normal-form",
+     "time": 1.06
+    },
+    {
+     "name": "rare_input_phase",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.3
+    },
+    {
+     "name": "rare_input_flip_all_ones",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.3
+    }
+   ],
+   "canaries_refuted": 22,
+   "canaries_proved": 0,
+   "product_check": {
+    "inputs": 20,
+    "bad": 0,
+    "entangling": 0
+   }
+  }
+ ],
+ "python": "3.12.16"
+}

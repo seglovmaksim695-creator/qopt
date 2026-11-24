@@ -1,0 +1,310 @@
+{
+ "family": "cdraper",
+ "rows": [
+  {
+   "family": "cdraper",
+   "n": 1,
+   "qubits": 3,
+   "gates": 19,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "freeze",
+   "K": 3,
+   "global_phase": "0",
+   "assumptions": [
+    "fourier-shift lemma: the exact Fourier path sum of an ArithSpec equals the classical map |x,s> -> |x,(s+G(x)) mod 2^m> (geometric sum; docs/DYADIC.md, Lemma 2)"
+   ],
+   "dense_check": "agrees",
+   "translation_check": true,
+   "float_angles": {
+    "n_float": 3,
+    "max_abs_dev": 0.0
+   },
+   "reason": null,
+   "peak_terms": 12,
+   "time_build": 0.15,
+   "time_prove": 0.0,
+   "peak_mb": 74.5
+  },
+  {
+   "family": "cdraper",
+   "n": 2,
+   "qubits": 5,
+   "gates": 59,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "freeze",
+   "K": 3,
+   "global_phase": "0",
+   "assumptions": [
+    "fourier-shift lemma: the exact Fourier path sum of an ArithSpec equals the classical map |x,s> -> |x,(s+G(x)) mod 2^m> (geometric sum; docs/DYADIC.md, Lemma 2)"
+   ],
+   "dense_check": "agrees",
+   "translation_check": true,
+   "float_angles": {
+    "n_float": 15,
+    "max_abs_dev": 0.0
+   },
+   "reason": null,
+   "peak_terms": 27,
+   "time_build": 0.14,
+   "time_prove": 0.0,
+   "peak_mb": 74.8
+  },
+  {
+   "family": "cdraper",
+   "n": 4,
+   "qubits": 9,
+   "gates": 178,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "freeze",
+   "K": 5,
+   "global_phase": "0",
+   "assumptions": [
+    "fourier-shift lemma: the exact Fourier path sum of an ArithSpec equals the classical map |x,s> -> |x,(s+G(x)) mod 2^m> (geometric sum; docs/DYADIC.md, Lemma 2)"
+   ],
+   "dense_check": "agrees",
+   "translation_check": true,
+   "float_angles": {
+    "n_float": 66,
+    "max_abs_dev": 0.0
+   },
+   "reason": null,
+   "peak_terms": 111,
+   "time_build": 0.16,
+   "time_prove": 0.04,
+   "peak_mb": 104.6
+  },
+  {
+   "family": "cdraper",
+   "n": 6,
+   "qubits": 13,
+   "gates": 357,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "freeze",
+   "K": 7,
+   "global_phase": "0",
+   "assumptions": [
+    "fourier-shift lemma: the exact Fourier path sum of an ArithSpec equals the classical map |x,s> -> |x,(s+G(x)) mod 2^m> (geometric sum; docs/DYADIC.md, Lemma 2)"
+   ],
+   "dense_check": "skipped (n > 10)",
+   "translation_check": null,
+   "float_angles": {
+    "n_float": 153,
+    "max_abs_dev": 0.0
+   },
+   "reason": null,
+   "peak_terms": 756,
+   "time_build": 0.15,
+   "time_prove": 0.02,
+   "peak_mb": 75.0
+  },
+  {
+   "family": "cdraper",
+   "n": 8,
+   "qubits": 17,
+   "gates": 596,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "freeze",
+   "K": 9,
+   "global_phase": "0",
+   "assumptions": [
+    "fourier-shift lemma: the exact Fourier path sum of an ArithSpec equals the classical map |x,s> -> |x,(s+G(x)) mod 2^m> (geometric sum; docs/DYADIC.md, Lemma 2)"
+   ],
+   "dense_check": "skipped (n > 10)",
+   "translation_check": null,
+   "float_angles": {
+    "n_float": 276,
+    "max_abs_dev": 0.0
+   },
+   "reason": null,
+   "peak_terms": 5789,
+   "time_build": 0.15,
+   "time_prove": 0.48,
+   "peak_mb": 78.1
+  },
+  {
+   "family": "cdraper",
+   "n": 9,
+   "qubits": 19,
+   "gates": 735,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "freeze",
+   "K": 10,
+   "global_phase": "0",
+   "assumptions": [
+    "fourier-shift lemma: the exact Fourier path sum of an ArithSpec equals the classical map |x,s> -> |x,(s+G(x)) mod 2^m> (geometric sum; docs/DYADIC.md, Lemma 2)"
+   ],
+   "dense_check": "skipped (n > 10)",
+   "translation_check": null,
+   "float_angles": {
+    "n_float": 351,
+    "max_abs_dev": 0.0
+   },
+   "reason": null,
+   "peak_terms": 19180,
+   "time_build": 0.15,
+   "time_prove": 5.06,
+   "peak_mb": 88.4
+  },
+  {
+   "family": "cdraper",
+   "n": 10,
+   "qubits": 21,
+   "gates": 895,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "freeze",
+   "K": 11,
+   "global_phase": "0",
+   "assumptions": [
+    "fourier-shift lemma: the exact Fourier path sum of an ArithSpec equals the classical map |x,s> -> |x,(s+G(x)) mod 2^m> (geometric sum; docs/DYADIC.md, Lemma 2)"
+   ],
+   "dense_check": "skipped (n > 10)",
+   "translation_check": null,
+   "float_angles": {
+    "n_float": 435,
+    "max_abs_dev": 0.0
+   },
+   "reason": null,
+   "peak_terms": 64010,
+   "time_build": 0.17,
+   "time_prove": 48.19,
+   "peak_mb": 124.5,
+   "canaries": [
+    {
+     "name": "smallest_rotation1/1024",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "smallest_rotation1/2048",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "smallest_rotation-1/2048",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "lost_smallest_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "lost_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "lost_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "lost_rotation",
+     "verdict": "REFUTED",
+     "method": "normal-form",
+     "time": 47.34
+    },
+    {
+     "name": "wrong_qubit",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "wrong_qubit",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "wrong_qubit",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "lost_h",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.0
+    },
+    {
+     "name": "global_phase_exact",
+     "verdict": "REFUTED",
+     "method": "normal-form",
+     "time": 46.11
+    },
+    {
+     "name": "rare_input_phase",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "rare_input_flip_all_ones",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    }
+   ],
+   "canaries_refuted": 20,
+   "canaries_proved": 0,
+   "product_check": {
+    "inputs": 20,
+    "bad": 0,
+    "entangling": 8
+   }
+  }
+ ],
+ "python": "3.12.16"
+}

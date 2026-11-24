@@ -1,0 +1,41 @@
+{
+ "equal_vs_dense": {
+  "PROVED": 1831,
+  "REFUTED": 1160,
+  "UNKNOWN": 9,
+  "equal": 1901,
+  "different": 1099,
+  "methods": {
+   "REFUTED/witness": 992,
+   "PROVED/normal-form": 1829,
+   "UNKNOWN/rules-stuck": 9,
+   "REFUTED/enumeration": 71,
+   "REFUTED/normal-form": 97,
+   "PROVED/enumeration": 2
+  },
+  "bad": [],
+  "cases": 3000
+ },
+ "spec_vs_dense": {
+  "PROVED": 501,
+  "REFUTED": 499,
+  "UNKNOWN": 0,
+  "equal": 501,
+  "different": 499,
+  "methods": {
+   "REFUTED/witness": 493,
+   "PROVED/normal-form": 501,
+   "REFUTED/enumeration": 6
+  },
+  "bad": [],
+  "cases": 1000,
+  "kinds": {
+   "const": 212,
+   "rgqft": 182,
+   "qft": 397,
+   "draper": 209
+  }
+ },
+ "time_equal": 195.5,
+ "time_spec": 22.1
+}

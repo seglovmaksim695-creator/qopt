@@ -1,0 +1,358 @@
+{
+ "family": "pq_qft_basic",
+ "rows": [
+  {
+   "family": "pq_qft_basic",
+   "n": 2,
+   "qubits": 2,
+   "gates": 7,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "step",
+   "K": 4,
+   "global_phase": "0",
+   "assumptions": null,
+   "dense_check": "agrees",
+   "translation_check": null,
+   "float_angles": {
+    "n_float": 3,
+    "max_abs_dev": 5.516064029600651e-13
+   },
+   "reason": null,
+   "peak_terms": 5,
+   "time_build": 0.0,
+   "time_prove": 0.02,
+   "peak_mb": 31.0,
+   "source": {
+    "generator": "scripts/dyadic_projectq_dump.py",
+    "projectq_version": "0.8.0",
+    "engine": "basic"
+   }
+  },
+  {
+   "family": "pq_qft_basic",
+   "n": 4,
+   "qubits": 4,
+   "gates": 34,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "step",
+   "K": 6,
+   "global_phase": "0",
+   "assumptions": null,
+   "dense_check": "agrees",
+   "translation_check": null,
+   "float_angles": {
+    "n_float": 18,
+    "max_abs_dev": 7.241250985428171e-13
+   },
+   "reason": null,
+   "peak_terms": 12,
+   "time_build": 0.0,
+   "time_prove": 0.03,
+   "peak_mb": 31.0,
+   "source": {
+    "generator": "scripts/dyadic_projectq_dump.py",
+    "projectq_version": "0.8.0",
+    "engine": "basic"
+   }
+  },
+  {
+   "family": "pq_qft_basic",
+   "n": 8,
+   "qubits": 8,
+   "gates": 148,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "step",
+   "K": 10,
+   "global_phase": "0",
+   "assumptions": null,
+   "dense_check": "agrees",
+   "translation_check": null,
+   "float_angles": {
+    "n_float": 84,
+    "max_abs_dev": 7.241250985428171e-13
+   },
+   "reason": null,
+   "peak_terms": 38,
+   "time_build": 0.0,
+   "time_prove": 0.07,
+   "peak_mb": 37.6,
+   "source": {
+    "generator": "scripts/dyadic_projectq_dump.py",
+    "projectq_version": "0.8.0",
+    "engine": "basic"
+   }
+  },
+  {
+   "family": "pq_qft_basic",
+   "n": 16,
+   "qubits": 16,
+   "gates": 616,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "step",
+   "K": 18,
+   "global_phase": "0",
+   "assumptions": null,
+   "dense_check": "skipped (n > 10)",
+   "translation_check": null,
+   "float_angles": {
+    "n_float": 360,
+    "max_abs_dev": 7.241250985428171e-13
+   },
+   "reason": null,
+   "peak_terms": 138,
+   "time_build": 0.0,
+   "time_prove": 0.04,
+   "peak_mb": 31.4,
+   "source": {
+    "generator": "scripts/dyadic_projectq_dump.py",
+    "projectq_version": "0.8.0",
+    "engine": "basic"
+   }
+  },
+  {
+   "family": "pq_qft_basic",
+   "n": 24,
+   "qubits": 24,
+   "gates": 1404,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "step",
+   "K": 26,
+   "global_phase": "0",
+   "assumptions": null,
+   "dense_check": "skipped (n > 10)",
+   "translation_check": null,
+   "float_angles": {
+    "n_float": 828,
+    "max_abs_dev": 7.241250985428171e-13
+   },
+   "reason": null,
+   "peak_terms": 302,
+   "time_build": 0.0,
+   "time_prove": 0.06,
+   "peak_mb": 31.9,
+   "source": {
+    "generator": "scripts/dyadic_projectq_dump.py",
+    "projectq_version": "0.8.0",
+    "engine": "basic"
+   }
+  },
+  {
+   "family": "pq_qft_basic",
+   "n": 28,
+   "qubits": 28,
+   "gates": 1918,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "step",
+   "K": 30,
+   "global_phase": "0",
+   "assumptions": null,
+   "dense_check": "skipped (n > 10)",
+   "translation_check": null,
+   "float_angles": {
+    "n_float": 1134,
+    "max_abs_dev": 7.241250985428171e-13
+   },
+   "reason": null,
+   "peak_terms": 408,
+   "time_build": 0.01,
+   "time_prove": 0.07,
+   "peak_mb": 32.4,
+   "source": {
+    "generator": "scripts/dyadic_projectq_dump.py",
+    "projectq_version": "0.8.0",
+    "engine": "basic"
+   }
+  },
+  {
+   "family": "pq_qft_basic",
+   "n": 31,
+   "qubits": 31,
+   "gates": 2356,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "step",
+   "K": 33,
+   "global_phase": "0",
+   "assumptions": null,
+   "dense_check": "skipped (n > 10)",
+   "translation_check": null,
+   "float_angles": {
+    "n_float": 1395,
+    "max_abs_dev": 7.241250985428171e-13
+   },
+   "reason": null,
+   "peak_terms": 498,
+   "time_build": 0.01,
+   "time_prove": 0.08,
+   "peak_mb": 32.7,
+   "source": {
+    "generator": "scripts/dyadic_projectq_dump.py",
+    "projectq_version": "0.8.0",
+    "engine": "basic"
+   },
+   "canaries": [
+    {
+     "name": "smallest_rotation1/2147483648",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "smallest_rotation1/4294967296",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "smallest_rotation-1/4294967296",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "lost_smallest_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.02
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "lost_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "lost_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "lost_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "lost_h",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "global_phase_exact",
+     "verdict": "REFUTED",
+     "method": "normal-form",
+     "time": 0.06
+    },
+    {
+     "name": "rare_input_phase",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.02
+    },
+    {
+     "name": "rare_input_flip_all_ones",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.02
+    },
+    {
+     "name": "negated_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.02
+    },
+    {
+     "name": "negated_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "negated_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    }
+   ],
+   "canaries_refuted": 20,
+   "canaries_proved": 0,
+   "product_check": {
+    "inputs": 20,
+    "bad": 0,
+    "entangling": 0
+   }
+  },
+  {
+   "family": "pq_qft_basic",
+   "n": 32,
+   "verdict": "UNKNOWN",
+   "method": "input",
+   "reason": "float angle 7.32e-10 is below 64 x the tolerance 2e-11 of its source",
+   "time_build": 0.0,
+   "peak_mb": 21.1
+  },
+  {
+   "family": "pq_qft_basic",
+   "n": 48,
+   "verdict": "UNKNOWN",
+   "method": "input",
+   "reason": "float angle 7.32e-10 is below 64 x the tolerance 2e-11 of its source",
+   "time_build": 0.0,
+   "peak_mb": 22.2
+  },
+  {
+   "family": "pq_qft_basic",
+   "n": 64,
+   "verdict": "UNKNOWN",
+   "method": "input",
+   "reason": "float angle 7.32e-10 is below 64 x the tolerance 2e-11 of its source",
+   "time_build": 0.0,
+   "peak_mb": 24.0
+  }
+ ],
+ "python": "3.12.16"
+}

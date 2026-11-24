@@ -1,0 +1,313 @@
+{
+ "family": "pq_addconst_basic",
+ "rows": [
+  {
+   "family": "pq_addconst_basic",
+   "n": 2,
+   "qubits": 2,
+   "gates": 17,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "freeze",
+   "K": 4,
+   "global_phase": "0",
+   "assumptions": [
+    "fourier-shift lemma: the exact Fourier path sum of an ArithSpec equals the classical map |x,s> -> |x,(s+G(x)) mod 2^m> (geometric sum; docs/DYADIC.md, Lemma 2)"
+   ],
+   "dense_check": "agrees",
+   "translation_check": null,
+   "float_angles": {
+    "n_float": 9,
+    "max_abs_dev": 5.516064029600651e-13
+   },
+   "reason": null,
+   "peak_terms": 9,
+   "time_build": 0.0,
+   "time_prove": 0.03,
+   "peak_mb": 31.0,
+   "source": {
+    "generator": "scripts/dyadic_projectq_dump.py",
+    "projectq_version": "0.8.0",
+    "constant": 3,
+    "engine": "basic"
+   }
+  },
+  {
+   "family": "pq_addconst_basic",
+   "n": 4,
+   "qubits": 4,
+   "gates": 75,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "freeze",
+   "K": 6,
+   "global_phase": "0",
+   "assumptions": [
+    "fourier-shift lemma: the exact Fourier path sum of an ArithSpec equals the classical map |x,s> -> |x,(s+G(x)) mod 2^m> (geometric sum; docs/DYADIC.md, Lemma 2)"
+   ],
+   "dense_check": "agrees",
+   "translation_check": null,
+   "float_angles": {
+    "n_float": 43,
+    "max_abs_dev": 9.309121021185038e-13
+   },
+   "reason": null,
+   "peak_terms": 25,
+   "time_build": 0.0,
+   "time_prove": 0.03,
+   "peak_mb": 31.0,
+   "source": {
+    "generator": "scripts/dyadic_projectq_dump.py",
+    "projectq_version": "0.8.0",
+    "constant": 13,
+    "engine": "basic"
+   }
+  },
+  {
+   "family": "pq_addconst_basic",
+   "n": 8,
+   "qubits": 8,
+   "gates": 307,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "freeze",
+   "K": 10,
+   "global_phase": "0",
+   "assumptions": [
+    "fourier-shift lemma: the exact Fourier path sum of an ArithSpec equals the classical map |x,s> -> |x,(s+G(x)) mod 2^m> (geometric sum; docs/DYADIC.md, Lemma 2)"
+   ],
+   "dense_check": "agrees",
+   "translation_check": null,
+   "float_angles": {
+    "n_float": 179,
+    "max_abs_dev": 9.309121021185038e-13
+   },
+   "reason": null,
+   "peak_terms": 81,
+   "time_build": 0.0,
+   "time_prove": 0.05,
+   "peak_mb": 37.8,
+   "source": {
+    "generator": "scripts/dyadic_projectq_dump.py",
+    "projectq_version": "0.8.0",
+    "constant": 33,
+    "engine": "basic"
+   }
+  },
+  {
+   "family": "pq_addconst_basic",
+   "n": 16,
+   "qubits": 16,
+   "gates": 1292,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "freeze",
+   "K": 18,
+   "global_phase": "0",
+   "assumptions": [
+    "fourier-shift lemma: the exact Fourier path sum of an ArithSpec equals the classical map |x,s> -> |x,(s+G(x)) mod 2^m> (geometric sum; docs/DYADIC.md, Lemma 2)"
+   ],
+   "dense_check": "skipped (n > 10)",
+   "translation_check": null,
+   "float_angles": {
+    "n_float": 780,
+    "max_abs_dev": 9.309121021185038e-13
+   },
+   "reason": null,
+   "peak_terms": 289,
+   "time_build": 0.0,
+   "time_prove": 0.06,
+   "peak_mb": 32.0,
+   "source": {
+    "generator": "scripts/dyadic_projectq_dump.py",
+    "projectq_version": "0.8.0",
+    "constant": 14633,
+    "engine": "basic"
+   },
+   "canaries": [
+    {
+     "name": "smallest_rotation1/65536",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "smallest_rotation1/131072",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "smallest_rotation-1/131072",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "lost_smallest_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "lost_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.02
+    },
+    {
+     "name": "lost_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "lost_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "lost_h",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "junction_swap_order",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "global_phase_exact",
+     "verdict": "REFUTED",
+     "method": "normal-form",
+     "time": 0.03
+    },
+    {
+     "name": "rare_input_phase",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "rare_input_flip_all_ones",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "negated_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    },
+    {
+     "name": "negated_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.01
+    }
+   ],
+   "canaries_refuted": 20,
+   "canaries_proved": 0,
+   "product_check": {
+    "inputs": 20,
+    "bad": 0,
+    "entangling": 0
+   }
+  },
+  {
+   "family": "pq_addconst_basic",
+   "n": 24,
+   "verdict": "UNKNOWN",
+   "method": "input",
+   "reason": "float angle 3.141591155562 is not recognised as pi*p/2^k with |p| <= 2^20",
+   "time_build": 0.01,
+   "peak_mb": 21.8
+  },
+  {
+   "family": "pq_addconst_basic",
+   "n": 28,
+   "verdict": "UNKNOWN",
+   "method": "input",
+   "reason": "float angle 3.141591155562 is not recognised as pi*p/2^k with |p| <= 2^20",
+   "time_build": 0.01,
+   "peak_mb": 22.5
+  },
+  {
+   "family": "pq_addconst_basic",
+   "n": 31,
+   "verdict": "UNKNOWN",
+   "method": "input",
+   "reason": "float angle 3.141591155562 is not recognised as pi*p/2^k with |p| <= 2^20",
+   "time_build": 0.01,
+   "peak_mb": 23.1
+  },
+  {
+   "family": "pq_addconst_basic",
+   "n": 32,
+   "verdict": "UNKNOWN",
+   "method": "input",
+   "reason": "float angle 7.32e-10 is below 64 x the tolerance 2e-11 of its source",
+   "time_build": 0.0,
+   "peak_mb": 22.2
+  },
+  {
+   "family": "pq_addconst_basic",
+   "n": 48,
+   "verdict": "UNKNOWN",
+   "method": "input",
+   "reason": "float angle 7.32e-10 is below 64 x the tolerance 2e-11 of its source",
+   "time_build": 0.0,
+   "peak_mb": 24.6
+  },
+  {
+   "family": "pq_addconst_basic",
+   "n": 64,
+   "verdict": "UNKNOWN",
+   "method": "input",
+   "reason": "float angle 7.32e-10 is below 64 x the tolerance 2e-11 of its source",
+   "time_build": 0.0,
+   "peak_mb": 28.0
+  }
+ ],
+ "python": "3.12.16"
+}

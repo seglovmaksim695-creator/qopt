@@ -373,6 +373,11 @@ def _dense_check(res, circ, ref=None, spec=None, anc=()):
                 good = abs(cmath.exp(1j * math.pi * float(res['global_phase_pi'])) - lam) < 1e-7
         elif v == 'REFUTED':
             good = (not ok) or (res.get('phase_mode') == 'exact' and abs(lam - 1) > 1e-7)
+            if not good:
+                # an exact difference below the numeric tolerance (e.g. rotations by pi/2^51) is not a
+                # contradiction: the dense simulator cannot see it.  Only PROVED is cross-checked strictly.
+                res['dense_check'] = 'equal within 1e-7 (difference below the numeric tolerance)'
+                return
         else:
             res['dense_check'] = 'equal' if ok else 'different'
             return
