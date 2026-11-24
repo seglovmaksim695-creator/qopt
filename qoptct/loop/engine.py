@@ -31,7 +31,9 @@ def _run_child(state, job, timeout):
     jf, rf = os.path.join(wd, 'job.json'), os.path.join(wd, 'result.json')
     json.dump(job, open(jf, 'w'))
     try:
-        subprocess.run([sys.executable, '-m', 'qoptct.loop.worker', jf, rf], stdin=subprocess.DEVNULL,
+        env = dict(os.environ, PYTHONPATH=os.pathsep.join(
+            [os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))] + [os.environ.get('PYTHONPATH', '')]))
+        subprocess.run([sys.executable, '-m', 'qoptct.loop.worker', jf, rf], env=env, stdin=subprocess.DEVNULL,
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=timeout)
     except subprocess.TimeoutExpired:
         shutil.rmtree(wd, ignore_errors=True)
@@ -83,7 +85,7 @@ def run(state_dir, specs, names=('lookup', 'optimize'), hours=1.0, canaries=20, 
     for s in specs:
         d, base = register(state, s, repo_root)
         targets.append((d, base))
-    done = {a['key'] for a in state.read_attempts() if a.get('key')}
+    done = {a['key'] for a in state.read_attempts() if a.get('key') and a.get('outcome') not in ('error', 'timeout')}
     fronts, pinned = _fronts(state)
     # baselines (proved like everything else)
     for d, base in targets:

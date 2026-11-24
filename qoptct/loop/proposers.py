@@ -90,8 +90,10 @@ def optimize_build(target, params, workdir):
         cmd.append('--meas')
     if params['post']:
         cmd.append('--post')
+    env = dict(os.environ, PYTHONPATH=os.pathsep.join(
+        [os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))] + [os.environ.get('PYTHONPATH', '')]))
     try:
-        subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=params['secs'] * 3 + 300,
+        subprocess.run(cmd, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=params['secs'] * 3 + 300,
                        cwd=workdir)
     except subprocess.TimeoutExpired:
         return None
