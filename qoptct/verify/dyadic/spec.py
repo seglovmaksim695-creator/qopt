@@ -19,14 +19,15 @@ ArithSpec(target, terms)
     The frequency variables Y are frozen while the circuit is applied (strategy 'freeze'), so the rules first cancel
     the circuit's QFT against the specification and do not expand the carries of the classical map.
 
-PermutationSpec(n, func)        (small n only, at most PERM_MAX_QUBITS qubits)
-    |b> -> |func(b)> on all n qubits (b little endian over qubits 0..n-1); func must be a bijection (checked).  It is
-    checked without any lemma: the circuit's own path sum must reduce to a form without path variables whose wires are
-    the ANF of func (fast Moebius transform of the truth table) and whose phase is constant.
+ClassicalSpec(n, func, zero_wires=())  /  PermutationSpec(n, func)      (small n: at most PERM_MAX_QUBITS free inputs)
+    |b> -> |func(b)> for every basis state b whose zero_wires are 0 (b little endian over qubits 0..n-1); func must be
+    injective there (checked).  It is checked without any lemma: the circuit's own path sum (zero wires start in 0)
+    must reduce to a form without path variables whose wires are the ANF of func over the free inputs and whose phase
+    is constant.
 """
 from .core import ZERO, ONE, pmul
 
-__all__ = ['QFTSpec', 'ArithSpec', 'PermutationSpec', 'adder_spec', 'const_adder_spec', 'multiplier_spec',
+__all__ = ['QFTSpec', 'ArithSpec', 'PermutationSpec', 'ClassicalSpec', 'adder_spec', 'const_adder_spec', 'multiplier_spec',
            'PERM_MAX_QUBITS', 'anf_over_vars']
 
 PERM_MAX_QUBITS = 20
@@ -177,33 +178,55 @@ def multiplier_spec(a, b, out, controls=()):
     return ArithSpec(list(out), terms, name='mul')
 
 
-class PermutationSpec:
-    kind = 'perm'
+class ClassicalSpec:
+    """|b> -> |func(b)> for every basis state b whose zero_wires are 0 (little endian over qubits 0..n-1), for small
+    n (at most PERM_MAX_QUBITS free inputs).  func must be injective on that domain (checked), so the specification
+    is an isometry.  Checked without any lemma: the circuit's own path sum (zero_wires start in 0) must reduce to a
+    form without path variables whose wires are the ANF of the output bits of func as functions of the free inputs
+    (fast Moebius transform of the truth table) and whose phase is constant.  Example: an out-of-place multiplier
+    |a, b, 0> -> |a, b, a*b> with zero_wires = the output register."""
+    kind = 'classical'
     lemma = None
 
-    def __init__(self, n, func, name='perm'):
+    def __init__(self, n, func, zero_wires=(), name='classical'):
         self.n = int(n)
-        if self.n > PERM_MAX_QUBITS:
-            raise ValueError('PermutationSpec is limited to %d qubits' % PERM_MAX_QUBITS)
+        self.zero_wires = sorted(set(int(q) for q in zero_wires))
+        if any(q < 0 or q >= self.n for q in self.zero_wires):
+            raise ValueError('ClassicalSpec: zero wire out of range')
+        self.free = [q for q in range(self.n) if q not in self.zero_wires]
+        if len(self.free) > PERM_MAX_QUBITS:
+            raise ValueError('ClassicalSpec is limited to %d free inputs' % PERM_MAX_QUBITS)
         self.name = name
-        size = 1 << self.n
-        table = [int(func(b)) for b in range(size)]
-        if sorted(table) != list(range(size)):
-            raise ValueError('PermutationSpec: func is not a bijection of {0..2^n-1}')
+        table = []
+        for idx in range(1 << len(self.free)):
+            b = 0
+            for i, q in enumerate(self.free):
+                if (idx >> i) & 1:
+                    b |= 1 << q
+            v = int(func(b))
+            if v < 0 or v >> self.n:
+                raise ValueError('ClassicalSpec: func(%d) = %d is out of range' % (b, v))
+            table.append(v)
+        if len(set(table)) != len(table):
+            raise ValueError('ClassicalSpec: func is not injective on the inputs with zero_wires = 0')
         self.table = table
 
     def describe(self):
-        return '%s: permutation of %d qubits' % (self.name, self.n)
+        return '%s: classical map of %d qubits (%d zero wires)' % (self.name, self.n, len(self.zero_wires))
 
     def check(self, n):
         if n != self.n:
-            raise ValueError('PermutationSpec has %d qubits, the circuit %d' % (self.n, n))
+            raise ValueError('ClassicalSpec has %d qubits, the circuit %d' % (self.n, n))
 
     def needed_K(self):
         return 3
 
+    def index(self, b):
+        """Basis state with zero_wires 0 -> index into the truth table."""
+        return sum(((b >> q) & 1) << i for i, q in enumerate(self.free))
+
     def anf(self, q):
-        """ANF of output bit q as a list of masks over the input qubits (fast Moebius transform)."""
+        """ANF of output bit q over the free inputs, as masks over QUBITS (fast Moebius transform)."""
         t = [(v >> q) & 1 for v in self.table]
         h, size = 1, len(t)
         while h < size:
@@ -211,7 +234,20 @@ class PermutationSpec:
                 for j in range(i, i + h):
                     t[j + h] ^= t[j]
             h *= 2
-        return [m for m in range(size) if t[m]]
+        out = []
+        for m in range(size):
+            if t[m]:
+                mq = 0
+                for i, qq in enumerate(self.free):
+                    if (m >> i) & 1:
+                        mq |= 1 << qq
+                out.append(mq)
+        return out
+
+
+def PermutationSpec(n, func, name='perm'):
+    """A bijection of all 2^n basis states (ClassicalSpec without zero wires)."""
+    return ClassicalSpec(n, func, (), name=name)
 
 
 def anf_over_vars(masks, xv):

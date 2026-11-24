@@ -187,9 +187,11 @@ def spec_unitary(spec, n):
                 o = (o & ~(1 << t[j])) | (((v >> j) & 1) << t[j])
             U[o, b] = 1
         return U
-    if spec.kind == 'perm':
+    if spec.kind == 'classical':
         for b in range(d):
-            U[spec.table[b], b] = 1
+            if any((b >> q) & 1 for q in spec.zero_wires):
+                continue                      # columns outside the domain stay 0 (compared only on the domain)
+            U[spec.table[spec.index(b)], b] = 1
         return U
     raise ValueError('unknown specification kind')
 

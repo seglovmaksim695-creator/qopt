@@ -27,7 +27,7 @@ from fractions import Fraction
 
 from .core import DPathSum, Blowup, Timeout, ZERO, peval
 from .circuit import DCircuit, NotDyadic, Unsupported, invert_prims, needed_K, parse_qasm, from_qc, _mod2
-from .spec import QFTSpec, ArithSpec, PermutationSpec, anf_over_vars
+from .spec import QFTSpec, ArithSpec, ClassicalSpec, anf_over_vars
 
 __all__ = ['prove_equal', 'prove_spec', 'prove_qasm', 'VERDICTS', 'ENUM_MAX_VARS', 'MAX_SELFCHECK', 'LEMMA']
 
@@ -597,18 +597,19 @@ def prove_spec(circuit, spec, phase='global', ancillas=None, budget_sec=120.0, m
     if any(a < 0 or a >= n for a in anc):
         raise ValueError('ancilla wire out of range')
     spec.check(n)          # parameter domain before any computation (AUD7)
-    if isinstance(spec, PermutationSpec):
+    if isinstance(spec, ClassicalSpec):
         if anc:
-            raise ValueError('PermutationSpec acts on all wires; no ancillas')
+            raise ValueError('ClassicalSpec: give the zero wires in the specification, not as ancillas')
         K = max(needed_K(circuit.prims()), 3)
+        zero = set(spec.zero_wires)
 
         def want_fn(ps, xv):
             return [anf_over_vars(spec.anf(q), xv) for q in range(n)]
-        ext = (lambda res: _dense_check(res, circuit, spec=spec)) if selfcheck else None
+        ext = (lambda res: _dense_check(res, circuit, spec=spec, anc=zero)) if selfcheck else None
 
         def expected(x):
-            return spec.table[sum(b << q for q, b in x.items())]
-        return _prove(circuit, None, None, want_fn, K, n, anc, phase, budget_sec, max_terms,
+            return spec.table[spec.index(sum(b << q for q, b in x.items()))]
+        return _prove(circuit, None, None, want_fn, K, n, zero, phase, budget_sec, max_terms,
                       list(strategies or ('step', 'end', 'step-max')), None, ext, expected)
     if isinstance(spec, QFTSpec):
         touched = set(spec.wires)

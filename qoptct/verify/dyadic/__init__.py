@@ -13,9 +13,9 @@ multipliers) by a sum-over-paths whose phases are integers modulo 2^K (Amy, arXi
 The existing Clifford+T prover qoptct.verify.pathsum (phases in Z8) is not used or changed.  See docs/DYADIC.md.
 """
 from .circuit import DCircuit, Pi, NotDyadic, Unsupported, parse_qasm, from_qc, to_angle
-from .spec import QFTSpec, ArithSpec, PermutationSpec, adder_spec, const_adder_spec, multiplier_spec
+from .spec import QFTSpec, ArithSpec, PermutationSpec, ClassicalSpec, adder_spec, const_adder_spec, multiplier_spec
 from .api import prove_equal, prove_spec, prove_qasm, VERDICTS
 
 __all__ = ['DCircuit', 'Pi', 'NotDyadic', 'Unsupported', 'parse_qasm', 'from_qc', 'to_angle', 'QFTSpec',
-           'ArithSpec', 'PermutationSpec', 'adder_spec', 'const_adder_spec', 'multiplier_spec', 'prove_equal',
+           'ArithSpec', 'PermutationSpec', 'ClassicalSpec', 'adder_spec', 'const_adder_spec', 'multiplier_spec', 'prove_equal',
            'prove_spec', 'prove_qasm', 'VERDICTS']
