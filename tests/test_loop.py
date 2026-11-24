@@ -246,3 +246,25 @@ def test_prover_that_proves_everything_is_caught(good, tmp_path, monkeypatch):
     monkeypatch.setattr(prover, 'prove', lambda *a, **k: {'status': 'PROVED', 'prover': 'fake', 'method': 'x'})
     j = prover.judge(s.path(r['cand_sha'], '.qasm'), s.path(r['ref_sha'], '.qc'), True, str(tmp_path), canaries=20)
     assert not j['accepted'] and j.get('hole')
+
+
+def test_verify_fails_on_missing_or_empty_journal(tmp_path):
+    from qoptct.loop.cli import main
+    ok, probs, n = verify(str(tmp_path / 'nowhere'))
+    assert not ok and n == 0
+    d = tmp_path / 'empty'
+    d.mkdir()
+    ok, probs, n = verify(str(d))
+    assert not ok and 'not found' in probs[0]
+    (d / 'journal.jsonl').write_text('')
+    ok, probs, n = verify(str(d))
+    assert not ok and 'empty' in probs[0]
+    assert main(['verify', '--state', str(d)]) == 1
+    assert main(['verify', '--state', str(d), '--allow-empty']) == 0
+    assert main(['verify', '--state', str(tmp_path / 'nowhere')]) == 1
+
+
+def test_verify_counts_every_record(good, capsys):
+    from qoptct.loop.cli import main
+    assert main(['verify', '--state', good, '--no-reprove']) == 0
+    assert 'OK: %d records verified' % len(_recs(good)) in capsys.readouterr().out

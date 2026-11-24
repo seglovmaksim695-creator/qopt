@@ -36,6 +36,7 @@ def main(argv=None):
     v.add_argument('--state', required=True)
     v.add_argument('--no-reprove', action='store_true')
     v.add_argument('--budget', type=float, default=120.0)
+    v.add_argument('--allow-empty', action='store_true', help='an empty or missing journal is not an error')
     for n in ('table', 'status'):
         t = sp.add_parser(n)
         t.add_argument('--state', required=True)
@@ -56,7 +57,7 @@ def main(argv=None):
         return 0
     st = State(a.state)
     if a.cmd == 'verify':
-        ok, probs, n = verify(a.state, reprove=not a.no_reprove, budget=a.budget,
+        ok, probs, n = verify(a.state, reprove=not a.no_reprove, budget=a.budget, allow_empty=a.allow_empty,
                               log=(lambda m: print(m, flush=True)) if not a.no_reprove else None)
         if ok:
             print('OK: %d records verified' % n)

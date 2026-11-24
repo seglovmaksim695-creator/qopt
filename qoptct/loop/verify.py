@@ -15,10 +15,20 @@ from .journal import State, replay, sha256_file, table_from
 from .prover import prove, sim_check
 
 
-def verify(state_dir, reprove=True, budget=120.0, log=None):
-    """-> (ok, problems, n_records)."""
+def verify(state_dir, reprove=True, budget=120.0, log=None, allow_empty=False):
+    """-> (ok, problems, n_records). A missing or empty journal is a problem unless allow_empty (an empty check that
+    says OK is a false success); the number of records that went through the full check must equal the number of
+    records in the journal."""
     st = State(state_dir)
+    if not os.path.isdir(st.root):
+        return False, ['state directory not found: %s' % st.root], 0
+    if not os.path.exists(st.journal):
+        if not allow_empty:
+            return False, ['journal not found: %s' % st.journal], 0
     recs, probs = st.read()
+    if not recs and not allow_empty and not probs:
+        probs.append('journal is empty: nothing to verify (use --allow-empty if that is intended)')
+    checked = 0
     _, _, rp = replay(recs)
     probs = list(probs) + rp
     tdefs = {}
@@ -69,8 +79,11 @@ def verify(state_dir, reprove=True, budget=120.0, log=None):
                 probs.append('%s: the proof does not hold on re-check: %s %s' % (tag, p['status'], p.get('detail', '')[:120]))
             elif sim_check(cp, rpth, bool(td['clean'])) == 'mismatch':
                 probs.append('%s: the independent simulation refutes the candidate' % tag)
+        checked += 1
         if log:
             log('checked record %d of %d' % (i + 1, len(recs)))
+    if checked != len(recs) and not probs:
+        probs.append('only %d of %d records were checked' % (checked, len(recs)))
     # the table is a view of the journal
     try:
         want = table_from(recs)
