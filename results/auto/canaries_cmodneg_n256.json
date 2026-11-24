@@ -1,0 +1,527 @@
+{
+ "schema": "qoptct.auto.canaries/1",
+ "target": "cmodneg",
+ "params": {
+  "n": 256,
+  "p": 57896044618658097711785492504343953926634992332820282019728792003956564819949,
+  "cv": 1
+ },
+ "versions": {
+  "python": "3.12.16",
+  "qualtran": "0.7.0",
+  "z3-solver": "5.3.3.0",
+  "numpy": "2.5.5",
+  "z3": "5.3.3"
+ },
+ "qualtran_variant": {
+  "kind": "original",
+  "qualtran_file": "/Users/max/quantum-start/lab/work/v07/venv/lib/python3.12/site-packages/qualtran/__init__.py",
+  "qualtran_version": null,
+  "files_sha256_16": {
+   "bloqs/cryptography/ecc/ec_add.py": "71a3efc0368f7fca",
+   "bloqs/mod_arithmetic/mod_multiplication.py": "3873115b5cf6fd31",
+   "bloqs/data_loading/qrom_base.py": "5837d39f0c301dfc",
+   "bloqs/data_loading/select_swap_qrom.py": "1dd5d2aee856779c"
+  }
+ },
+ "source_sha256": "d80d01de696bdca5f3c8622505e033141fb7e51ce14e6a20f351971db8d95de9",
+ "canary_sha256": "d549063de2d25990302c5d59de548701720fd27a6f83842edd63332309c554be",
+ "program_ops_sha256": "1e80b93370558c73cbefb880fce627fde3b704e7c3717af03decb12a3e96bc10",
+ "total": 29,
+ "counted": 29,
+ "joints": 15,
+ "gates": 14,
+ "proved": [],
+ "rows": [
+  {
+   "name": "J1_swap_wires_of_a_child",
+   "family": "joint",
+   "mutation": "CModNeg/7:Controlled: register x: its first and last wire exchanged (input and output)",
+   "status": "NOT_PROVED",
+   "detail": "child CModNeg/7:Controlled (Controlled) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.6,
+   "counts": true
+  },
+  {
+   "name": "J2_swap_output_wires_of_a_child",
+   "family": "joint",
+   "mutation": "CModNeg/10:MultiControlX: output register controls: two wires exchanged (only on the output side)",
+   "status": "NOT_PROVED",
+   "detail": "child CModNeg/10:MultiControlX (MultiControlX) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.9,
+   "counts": true
+  },
+  {
+   "name": "J3_wires_exchanged_between_children",
+   "family": "joint",
+   "mutation": "CModNeg/1:XGate.q and CModNeg/6:MultiTargetCNOT.targets: wires 257 and 256 exchanged between the two children",
+   "status": "NOT_PROVED",
+   "detail": "child CModNeg/1:XGate (XGate) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J4_extra_operation_between_children",
+   "family": "joint",
+   "mutation": "X on input wire 0 inserted at 1, between CModNeg/1:XGate and the next child (owned by the root)",
+   "status": "NOT_PROVED",
+   "detail": "coverage: operations 1..2 of CModNeg belong to no child (or children overlap) before CModNeg/3:MultiControlX",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J5_extra_operation_inside_a_child",
+   "family": "joint",
+   "mutation": "X on wire 256 inserted inside CModNeg/3:MultiControlX at 768",
+   "status": "NOT_PROVED",
+   "detail": "child CModNeg/3:MultiControlX (MultiControlX) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J4b_extra_operation_before_the_first_child",
+   "family": "joint",
+   "mutation": "X on input wire 1 inserted at 0, before the first child CModNeg/1:XGate (owned by the root)",
+   "status": "NOT_PROVED",
+   "detail": "coverage: operations 0..1 of CModNeg belong to no child (or children overlap) before CModNeg/1:XGate",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J4c_extra_operation_after_the_last_child",
+   "family": "joint",
+   "mutation": "X on output wire 0 inserted at 6128, after the last child CModNeg/12:XGate (owned by the root)",
+   "status": "NOT_PROVED",
+   "detail": "coverage: operations 6128..6129 of CModNeg belong to no child",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J6_extra_operation_between_grandchildren",
+   "family": "joint",
+   "mutation": "X on wire 1 inserted between CModNeg/6:MultiTargetCNOT/1:CNOT and CModNeg/6:MultiTargetCNOT/2:CNOT (owned by CModNeg/6:MultiTargetCNOT)",
+   "status": "NOT_PROVED",
+   "detail": "child CModNeg/6:MultiTargetCNOT (MultiTargetCNOT) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.6,
+   "counts": true
+  },
+  {
+   "name": "J8_wrong_contract_of_child_XGate",
+   "family": "joint",
+   "mutation": "contract of XGate:9c761c8336b01810 replaced by a wrong one: X [WRONG: +1 on q]",
+   "status": "NOT_PROVED",
+   "detail": "child CModNeg/1:XGate (XGate) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J8_wrong_contract_of_child_MultiControlX",
+   "family": "joint",
+   "mutation": "contract of MultiControlX:86ce2e14e138a160 replaced by a wrong one: MultiControlX(256) [WRONG: +1 on target]",
+   "status": "NOT_PROVED",
+   "detail": "child CModNeg/3:MultiControlX (MultiControlX) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J8_wrong_contract_of_child_And",
+   "family": "joint",
+   "mutation": "contract of And:b0843f4bcf1160eb replaced by a wrong one: And(1,1) [WRONG: +1 on target]",
+   "status": "NOT_PROVED",
+   "detail": "child CModNeg/5:And (And) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.6,
+   "counts": true
+  },
+  {
+   "name": "J8b_child_claims_no_effect_XGate",
+   "family": "joint",
+   "mutation": "contract of XGate:9c761c8336b01810 replaced by a wrong one: X [WRONG: q unchanged]",
+   "status": "NOT_PROVED",
+   "detail": "child CModNeg/1:XGate (XGate) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J8b_child_claims_no_effect_MultiControlX",
+   "family": "joint",
+   "mutation": "contract of MultiControlX:86ce2e14e138a160 replaced by a wrong one: MultiControlX(256) [WRONG: target unchanged]",
+   "status": "NOT_PROVED",
+   "detail": "child CModNeg/3:MultiControlX (MultiControlX) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J9_root_precondition_weakened_0",
+   "family": "joint",
+   "mutation": "root precondition weakened",
+   "status": "NOT_PROVED",
+   "detail": "CModNeg/13:Free: freed register reg is 0: does not follow from the facts (counterexample found)",
+   "seconds": 0.8,
+   "counts": true
+  },
+  {
+   "name": "J10_child_domain_narrowed_MultiControlX",
+   "family": "joint",
+   "mutation": "contract of MultiControlX:86ce2e14e138a160 replaced by a wrong one: MultiControlX(256) [NARROW: controls < 2]",
+   "status": "NOT_PROVED",
+   "detail": "CModNeg/3:MultiControlX: precondition of MultiControlX(256) [NARROW: controls < 2] (part 0): does not follow from the facts (counterexample found)",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "G1_phase_correction_removed_MultiControlX",
+   "family": "gate",
+   "mutation": "op 1151: erase correction removed (phase)",
+   "status": "NOT_PROVED",
+   "detail": "child CModNeg/3:MultiControlX (MultiControlX) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 6,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "0",
+      "x": "0"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G2_phase_correction_moved_MultiControlX",
+   "family": "gate",
+   "mutation": "op 1151: erase correction moved to wire 256 (phase)",
+   "status": "NOT_PROVED",
+   "detail": "child CModNeg/3:MultiControlX (MultiControlX) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 4,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "0",
+      "x": "0"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G3_carry_cx_reversed_Controlled",
+   "family": "gate",
+   "mutation": "op 4588: control and target of a CX near the top of the carry chain exchanged",
+   "status": "NOT_PROVED",
+   "detail": "child CModNeg/7:Controlled (Controlled) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.7,
+   "witness": {
+    "mismatches": 22,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "1",
+      "x": "31168219094271431466522477514527384500047003057566498864462475101007102809250"
+     },
+     "phase": true,
+     "other_wires": true,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G4_high_carry_and_weakened_Controlled",
+   "family": "gate",
+   "mutation": "op 3312: the AND of a high carry replaced by a CX of one control (wrong only on rare inputs)",
+   "status": "NOT_PROVED",
+   "detail": "child CModNeg/7:Controlled (Controlled) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.6,
+   "witness": {
+    "mismatches": 1,
+    "cases": 24,
+    "first": {
+     "input": {
+      "ctrl": 1,
+      "x": 1
+     },
+     "expected": {
+      "ctrl": 1,
+      "x": 57896044618658097711785492504343953926634992332820282019728792003956564819951
+     },
+     "got": {
+      "ctrl": 1,
+      "x": 86844066927987146567678238756515930889952488499230423029593188005934847229935
+     },
+     "phase": true,
+     "other_wires_nonzero": false
+    },
+    "level": "leaf CModNeg/7:Controlled"
+   },
+   "counts": true
+  },
+  {
+   "name": "G5_x_removed_MultiControlX",
+   "family": "gate",
+   "mutation": "op 769: an X removed",
+   "status": "NOT_PROVED",
+   "detail": "child CModNeg/3:MultiControlX (MultiControlX) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 40,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "0",
+      "x": "0"
+     },
+     "phase": true,
+     "other_wires": true,
+     "outputs_differ": [
+      "x"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G6_noncommuting_swap_MultiTargetCNOT",
+   "family": "gate",
+   "mutation": "ops 1790, 1791: two non-commuting CX exchanged",
+   "status": "NOT_PROVED",
+   "detail": "child CModNeg/6:MultiTargetCNOT (MultiTargetCNOT) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.6,
+   "witness": {
+    "mismatches": 1,
+    "cases": 24,
+    "first": {
+     "input": {
+      "control": 1,
+      "targets": 115792089237316195423570985008687907853269984665640564039457584007913129639935
+     },
+     "expected": {
+      "control": 1,
+      "targets": 0
+     },
+     "got": {
+      "control": 1,
+      "targets": 7719472615821079694904732333912527190217998977709370935963838933860875309329
+     },
+     "phase": false,
+     "other_wires_nonzero": false
+    },
+    "level": "leaf CModNeg/6:MultiTargetCNOT"
+   },
+   "counts": true
+  },
+  {
+   "name": "G7_last_operation_removed",
+   "family": "gate",
+   "mutation": "op 6127 (the last one) removed",
+   "status": "NOT_PROVED",
+   "detail": "child CModNeg/12:XGate (XGate) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.8,
+   "witness": {
+    "mismatches": 40,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "0",
+      "x": "0"
+     },
+     "phase": false,
+     "other_wires": true,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_0_MultiTargetCNOT",
+   "family": "gate",
+   "mutation": "op 1927 in CModNeg/6:MultiTargetCNOT: ('cx', 8, 136) -> ('cx', 8, 37)",
+   "status": "NOT_PROVED",
+   "detail": "child CModNeg/6:MultiTargetCNOT (MultiTargetCNOT) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.6,
+   "witness": {
+    "mismatches": 18,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "0",
+      "x": "28819208787221897180871933157074728909108061990413969063077306941963249957873"
+     },
+     "phase": false,
+     "other_wires": false,
+     "outputs_differ": [
+      "x"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_1_MultiControlX",
+   "family": "gate",
+   "mutation": "op 4851 in CModNeg/10:MultiControlX: ('x', 87) -> ('x', 68)",
+   "status": "NOT_PROVED",
+   "detail": "child CModNeg/10:MultiControlX (MultiControlX) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.9,
+   "witness": {
+    "mismatches": 40,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "0",
+      "x": "0"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": [
+      "x"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_2_MultiControlX",
+   "family": "gate",
+   "mutation": "op 429 in CModNeg/3:MultiControlX: ('x', 144) -> ('x', 111)",
+   "status": "NOT_PROVED",
+   "detail": "child CModNeg/3:MultiControlX (MultiControlX) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 40,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "0",
+      "x": "0"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": [
+      "x"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_3_MultiTargetCNOT",
+   "family": "gate",
+   "mutation": "op 1685 in CModNeg/6:MultiTargetCNOT: ('cx', 21, 85) -> ('cx', 21, 161)",
+   "status": "NOT_PROVED",
+   "detail": "child CModNeg/6:MultiTargetCNOT (MultiTargetCNOT) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.6,
+   "witness": {
+    "mismatches": 18,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "0",
+      "x": "9243128757701285127119775924767448380630382764547401051677472517821006304465"
+     },
+     "phase": false,
+     "other_wires": false,
+     "outputs_differ": [
+      "x"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_4_MultiTargetCNOT",
+   "family": "gate",
+   "mutation": "op 1630 in CModNeg/6:MultiTargetCNOT: ('cx', 94, 222) -> ('cx', 94, 101)",
+   "status": "NOT_PROVED",
+   "detail": "child CModNeg/6:MultiTargetCNOT (MultiTargetCNOT) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.6,
+   "witness": {
+    "mismatches": 19,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "0",
+      "x": "9380779283420811897669947045216077060372217394291170429683286099127214393197"
+     },
+     "phase": false,
+     "other_wires": false,
+     "outputs_differ": [
+      "x"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_5_Controlled",
+   "family": "gate",
+   "mutation": "op 2136 in CModNeg/7:Controlled: ('cx', 513, 603) -> ('cx', 513, 185)",
+   "status": "NOT_PROVED",
+   "detail": "child CModNeg/7:Controlled (Controlled) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.6,
+   "witness": {
+    "mismatches": 20,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "1",
+      "x": "49575358373464916260824900534685969738864911954740567081813204534192342871606"
+     },
+     "phase": false,
+     "other_wires": true,
+     "outputs_differ": [
+      "x"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_6_MultiTargetCNOT",
+   "family": "gate",
+   "mutation": "op 2016 in CModNeg/6:MultiTargetCNOT: ('cx', 97, 225) -> ('cx', 97, 75)",
+   "status": "NOT_PROVED",
+   "detail": "child CModNeg/6:MultiTargetCNOT (MultiTargetCNOT) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.6,
+   "witness": {
+    "mismatches": 22,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "1",
+      "x": "2"
+     },
+     "phase": false,
+     "other_wires": false,
+     "outputs_differ": [
+      "x"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  }
+ ],
+ "ok": true,
+ "seconds": 14.5,
+ "not_proved": 29
+}

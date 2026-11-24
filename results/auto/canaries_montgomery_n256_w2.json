@@ -1,0 +1,572 @@
+{
+ "schema": "qoptct.auto.canaries/1",
+ "target": "montgomery",
+ "params": {
+  "n": 256,
+  "p": 57896044618658097711785492504343953926634992332820282019728792003956564819949,
+  "w": 2
+ },
+ "versions": {
+  "python": "3.12.16",
+  "qualtran": "0.7.0",
+  "z3-solver": "5.3.3.0",
+  "numpy": "2.5.5",
+  "z3": "5.3.3"
+ },
+ "qualtran_variant": {
+  "kind": "c",
+  "qualtran_file": "/Users/max/quantum-start/lab/work/v08/f8_auto/cache/qualtran_patched/c-0.7.0/qualtran/__init__.py",
+  "qualtran_version": null,
+  "files_sha256_16": {
+   "bloqs/cryptography/ecc/ec_add.py": "71a3efc0368f7fca",
+   "bloqs/mod_arithmetic/mod_multiplication.py": "c648332760a6f7c1",
+   "bloqs/data_loading/qrom_base.py": "fa02bc765c0aea68",
+   "bloqs/data_loading/select_swap_qrom.py": "6ff73893944bdfd5"
+  }
+ },
+ "source_sha256": "d80d01de696bdca5f3c8622505e033141fb7e51ce14e6a20f351971db8d95de9",
+ "canary_sha256": "e2aec3dddf01ba774cb3d956f4d01a1b071b8bafa3bcccea09a24bf2953816e6",
+ "program_ops_sha256": "ffd71399723c972aa70662a4eccc4b7095db4ba51142c6fb4f9c450683cc7482",
+ "total": 34,
+ "counted": 34,
+ "joints": 20,
+ "gates": 14,
+ "proved": [],
+ "rows": [
+  {
+   "name": "J1_swap_wires_of_a_child",
+   "family": "joint",
+   "mutation": "DirtyOutOfPlaceMontgomeryModMul/398:LessThanConstant: register x: its first and last wire exchanged (input and output)",
+   "status": "NOT_PROVED",
+   "detail": "child DirtyOutOfPlaceMontgomeryModMul/398:LessThanConstant (LessThanConstant) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 6.9,
+   "counts": true
+  },
+  {
+   "name": "J1b_swap_wires_of_a_later_child",
+   "family": "joint",
+   "mutation": "DirtyOutOfPlaceMontgomeryModMul/399:Controlled: register x: its first and last wire exchanged (input and output)",
+   "status": "NOT_PROVED",
+   "detail": "child DirtyOutOfPlaceMontgomeryModMul/399:Controlled (Controlled) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 9.4,
+   "counts": true
+  },
+  {
+   "name": "J2_swap_output_wires_of_a_child",
+   "family": "joint",
+   "mutation": "DirtyOutOfPlaceMontgomeryModMul/399:Controlled: output register x: two wires exchanged (only on the output side)",
+   "status": "NOT_PROVED",
+   "detail": "child DirtyOutOfPlaceMontgomeryModMul/399:Controlled (Controlled) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 10.0,
+   "counts": true
+  },
+  {
+   "name": "J3_wires_exchanged_between_children",
+   "family": "joint",
+   "mutation": "DirtyOutOfPlaceMontgomeryModMul/134:XGate.q and DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul.target: wires 1024 and 767 exchanged between the two children",
+   "status": "NOT_PROVED",
+   "detail": "child DirtyOutOfPlaceMontgomeryModMul/134:XGate (XGate) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 2.7,
+   "counts": true
+  },
+  {
+   "name": "J4_extra_operation_between_children",
+   "family": "joint",
+   "mutation": "X on input wire 255 inserted at 1, between DirtyOutOfPlaceMontgomeryModMul/134:XGate and the next child (owned by the root)",
+   "status": "NOT_PROVED",
+   "detail": "coverage: operations 1..2 of DirtyOutOfPlaceMontgomeryModMul belong to no child (or children overlap) before DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul",
+   "seconds": 2.6,
+   "counts": true
+  },
+  {
+   "name": "J5_extra_operation_inside_a_child",
+   "family": "joint",
+   "mutation": "X on wire 1026 inserted inside DirtyOutOfPlaceMontgomeryModMul/398:LessThanConstant at 1246333",
+   "status": "NOT_PROVED",
+   "detail": "child DirtyOutOfPlaceMontgomeryModMul/398:LessThanConstant (LessThanConstant) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 6.8,
+   "counts": true
+  },
+  {
+   "name": "J4b_extra_operation_before_the_first_child",
+   "family": "joint",
+   "mutation": "X on input wire 256 inserted at 0, before the first child DirtyOutOfPlaceMontgomeryModMul/134:XGate (owned by the root)",
+   "status": "NOT_PROVED",
+   "detail": "coverage: operations 0..1 of DirtyOutOfPlaceMontgomeryModMul belong to no child (or children overlap) before DirtyOutOfPlaceMontgomeryModMul/134:XGate",
+   "seconds": 2.6,
+   "counts": true
+  },
+  {
+   "name": "J4c_extra_operation_after_the_last_child",
+   "family": "joint",
+   "mutation": "X on output wire 255 inserted at 1249271, after the last child DirtyOutOfPlaceMontgomeryModMul/399:Controlled (owned by the root)",
+   "status": "NOT_PROVED",
+   "detail": "coverage: operations 1249271..1249272 of DirtyOutOfPlaceMontgomeryModMul belong to no child",
+   "seconds": 2.6,
+   "counts": true
+  },
+  {
+   "name": "J6_extra_operation_between_grandchildren",
+   "family": "joint",
+   "mutation": "X on wire 255 inserted between DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul/1:CAdd and DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul/4:CAdd (owned by DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul)",
+   "status": "NOT_PROVED",
+   "detail": "child DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul (SingleWindowModMul) is not proved: NOT_PROVED coverage: operations 2557..2558 of DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul belong to no child (or children overlap) before DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul",
+   "seconds": 2.7,
+   "counts": true
+  },
+  {
+   "name": "J7_operation_moved_across_a_boundary",
+   "family": "joint",
+   "mutation": "the last operation of DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul/1:CAdd attributed to DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul/4:CAdd",
+   "status": "NOT_PROVED",
+   "detail": "child DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul (SingleWindowModMul) is not proved: NOT_PROVED child DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul/1:CAdd (CAdd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 2.7,
+   "counts": true
+  },
+  {
+   "name": "J8_wrong_contract_of_child_XGate",
+   "family": "joint",
+   "mutation": "contract of XGate:9c761c8336b01810 replaced by a wrong one: X [WRONG: +1 on q]",
+   "status": "NOT_PROVED",
+   "detail": "child DirtyOutOfPlaceMontgomeryModMul/134:XGate (XGate) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 2.8,
+   "counts": true
+  },
+  {
+   "name": "J8_wrong_contract_of_child_CAdd",
+   "family": "joint",
+   "mutation": "contract of CAdd:905dc67cecbecda6 replaced by a wrong one: CAdd(256,257,cv=1) [WRONG: +1 on b]",
+   "status": "NOT_PROVED",
+   "detail": "child DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul (SingleWindowModMul) is not proved: NOT_PROVED child DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul/1:CAdd (CAdd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 2.8,
+   "counts": true
+  },
+  {
+   "name": "J8_wrong_contract_of_child_Xor",
+   "family": "joint",
+   "mutation": "contract of Xor:2a3b0860270eeb11 replaced by a wrong one: Xor(2) [WRONG: +1 on y]",
+   "status": "NOT_PROVED",
+   "detail": "child DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul (SingleWindowModMul) is not proved: NOT_PROVED child DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul/7:Xor (Xor) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 3.2,
+   "counts": true
+  },
+  {
+   "name": "J8b_child_claims_no_effect_XGate",
+   "family": "joint",
+   "mutation": "contract of XGate:9c761c8336b01810 replaced by a wrong one: X [WRONG: q unchanged]",
+   "status": "NOT_PROVED",
+   "detail": "child DirtyOutOfPlaceMontgomeryModMul/134:XGate (XGate) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 2.6,
+   "counts": true
+  },
+  {
+   "name": "J8b_child_claims_no_effect_CAdd",
+   "family": "joint",
+   "mutation": "contract of CAdd:905dc67cecbecda6 replaced by a wrong one: CAdd(256,257,cv=1) [WRONG: b unchanged]",
+   "status": "NOT_PROVED",
+   "detail": "child DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul (SingleWindowModMul) is not proved: NOT_PROVED child DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul/1:CAdd (CAdd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 2.8,
+   "counts": true
+  },
+  {
+   "name": "J9_root_precondition_weakened_0",
+   "family": "joint",
+   "mutation": "root precondition weakened",
+   "status": "NOT_PROVED",
+   "detail": "loop win: invariant before iteration 0: does not follow from the facts (counterexample found)",
+   "seconds": 3.9,
+   "counts": true
+  },
+  {
+   "name": "J10_child_domain_narrowed_CAdd",
+   "family": "joint",
+   "mutation": "contract of CAdd:905dc67cecbecda6 replaced by a wrong one: CAdd(256,257,cv=1) [NARROW: b < 2]",
+   "status": "NOT_PROVED",
+   "detail": "child DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul (SingleWindowModMul) is not proved: NOT_PROVED DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul/1:CAdd: precondition of CAdd(256,257,cv=1) [NARROW: b < 2] (part 0): does not follow from the facts (counterexample found)",
+   "seconds": 3.2,
+   "counts": true
+  },
+  {
+   "name": "J11_wrong_loop_invariant",
+   "family": "joint",
+   "mutation": "loop invariant replaced",
+   "status": "NOT_PROVED",
+   "detail": "loop win: invariant before iteration 0: does not follow from the facts (counterexample found)",
+   "seconds": 4.3,
+   "counts": true
+  },
+  {
+   "name": "J12_wrong_loop_step",
+   "family": "joint",
+   "mutation": "loop step (body contract) replaced",
+   "status": "NOT_PROVED",
+   "detail": "child DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul (SingleWindowModMul) is not proved: NOT_PROVED output target equals the contract: does not follow from the facts (counterexample found)",
+   "seconds": 3.5,
+   "counts": true
+  },
+  {
+   "name": "J13_loop_chain_broken",
+   "family": "joint",
+   "mutation": "DirtyOutOfPlaceMontgomeryModMul/141:SingleWindowModMul: carried register target read from exchanged wires (its two lowest bits)",
+   "status": "NOT_PROVED",
+   "detail": "child DirtyOutOfPlaceMontgomeryModMul/141:SingleWindowModMul (SingleWindowModMul) is not proved: NOT_PROVED output target equals the contract: does not follow from the facts (counterexample found)",
+   "seconds": 4.8,
+   "counts": true
+  },
+  {
+   "name": "G1_phase_correction_removed_CAdd",
+   "family": "gate",
+   "mutation": "op 2301: erase correction removed (phase)",
+   "status": "NOT_PROVED",
+   "detail": "child DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul (SingleWindowModMul) is not proved: NOT_PROVED child DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul/1:CAdd (CAdd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 2.7,
+   "witness": {
+    "mismatches": 17,
+    "cases": 40,
+    "first": {
+     "input": {
+      "x": "52004505290829910100128985030030353130514493334753846058960513362075021377963",
+      "y": "37"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G2_phase_correction_moved_CAdd",
+   "family": "gate",
+   "mutation": "op 2301: erase correction moved to wire 510 (phase)",
+   "status": "NOT_PROVED",
+   "detail": "child DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul (SingleWindowModMul) is not proved: NOT_PROVED child DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul/1:CAdd (CAdd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 2.9,
+   "witness": {
+    "mismatches": 7,
+    "cases": 40,
+    "first": {
+     "input": {
+      "x": "72237941059978734964119646199288049063324604738896898187346327933370575223947",
+      "y": "225"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G3_carry_cx_reversed_CAdd",
+   "family": "gate",
+   "mutation": "op 2297: control and target of a CX near the top of the carry chain exchanged",
+   "status": "NOT_PROVED",
+   "detail": "child DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul (SingleWindowModMul) is not proved: NOT_PROVED child DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul/1:CAdd (CAdd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 2.8,
+   "witness": {
+    "mismatches": 11,
+    "cases": 40,
+    "first": {
+     "input": {
+      "x": "115792089237316195423570985008687907853269984665640564039457584007913129639851",
+      "y": "1804816390111683671097499902638096567673593863755134401724294223107907186031"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G4_high_carry_and_weakened_CAdd",
+   "family": "gate",
+   "mutation": "op 1272: the AND of a high carry replaced by a CX of one control (wrong only on rare inputs)",
+   "status": "NOT_PROVED",
+   "detail": "child DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul (SingleWindowModMul) is not proved: NOT_PROVED child DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul/1:CAdd (CAdd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 2.8,
+   "witness": {
+    "mismatches": 6,
+    "cases": 40,
+    "first": {
+     "input": {
+      "x": "233",
+      "y": "36073186456279003613072288199932990784057642657457888740311209841483471501454"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": [
+      "target",
+      "qrom_indices"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G3_carry_cx_reversed_Add",
+   "family": "gate",
+   "mutation": "op 7935: control and target of a CX near the top of the carry chain exchanged",
+   "status": "NOT_PROVED",
+   "detail": "child DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul (SingleWindowModMul) is not proved: NOT_PROVED child DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul/11:Add (Add) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 3.2,
+   "witness": {
+    "mismatches": 18,
+    "cases": 40,
+    "first": {
+     "input": {
+      "x": "115792089237316195423570985008687907853269984665640564039457584007913129639694",
+      "y": "32928364995959369472955973942250607932446743153214464020922119822161182398587"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G4_high_carry_and_weakened_Add",
+   "family": "gate",
+   "mutation": "op 6905: the AND of a high carry replaced by a CX of one control (wrong only on rare inputs)",
+   "status": "NOT_PROVED",
+   "detail": "child DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul (SingleWindowModMul) is not proved: NOT_PROVED child DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul/11:Add (Add) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 3.1,
+   "witness": {
+    "mismatches": 3,
+    "cases": 40,
+    "first": {
+     "input": {
+      "x": "69813040455056104484313193290390478522316643938659575366354608362894310214687",
+      "y": "29089352878786198794150505829818841694874572865041966757336042255037109841527"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": [
+      "target"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G3_carry_cx_reversed_Controlled",
+   "family": "gate",
+   "mutation": "op 1249268: control and target of a CX near the top of the carry chain exchanged",
+   "status": "NOT_PROVED",
+   "detail": "child DirtyOutOfPlaceMontgomeryModMul/399:Controlled (Controlled) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 9.4,
+   "witness": {
+    "mismatches": 3,
+    "cases": 40,
+    "first": {
+     "input": {
+      "x": "38168507777594798445265102780221888170513126600455910143834460010171742251567",
+      "y": "25077207626870853691183856014635351441389109696195484481839339504399002544321"
+     },
+     "phase": false,
+     "other_wires": true,
+     "outputs_differ": [
+      "reduced"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G4_high_carry_and_weakened_Controlled",
+   "family": "gate",
+   "mutation": "op 1248241: the AND of a high carry replaced by a CX of one control (wrong only on rare inputs)",
+   "status": "NOT_PROVED",
+   "detail": "child DirtyOutOfPlaceMontgomeryModMul/399:Controlled (Controlled) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 9.1,
+   "witness": {
+    "mismatches": 1,
+    "cases": 24,
+    "first": {
+     "input": {
+      "ctrl": 1,
+      "x": 115792089237316195423570985008687907853269984665640564039457584007913129639935
+     },
+     "expected": {
+      "ctrl": 1,
+      "x": 57896044618658097711785492504343953926634992332820282019728792003956564819986
+     },
+     "got": {
+      "ctrl": 1,
+      "x": 28948022309329048855892746252171976963317496166410141009864396001978282410002
+     },
+     "phase": true,
+     "other_wires_nonzero": false
+    },
+    "level": "leaf DirtyOutOfPlaceMontgomeryModMul/399:Controlled"
+   },
+   "counts": true
+  },
+  {
+   "name": "G3_carry_cx_reversed_LessThanConstant",
+   "family": "gate",
+   "mutation": "op 1247217: control and target of a CX near the top of the carry chain exchanged",
+   "status": "NOT_PROVED",
+   "detail": "child DirtyOutOfPlaceMontgomeryModMul/398:LessThanConstant (LessThanConstant) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 6.9,
+   "witness": {
+    "mismatches": 15,
+    "cases": 40,
+    "first": {
+     "input": {
+      "x": "113183674251933446055598550447386407768240673106701642097646472011923599588256",
+      "y": "239"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G4_high_carry_and_weakened_LessThanConstant",
+   "family": "gate",
+   "mutation": "op 1246455: the AND of a high carry replaced by a CX of one control (wrong only on rare inputs)",
+   "status": "NOT_PROVED",
+   "detail": "child DirtyOutOfPlaceMontgomeryModMul/398:LessThanConstant (LessThanConstant) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 6.8,
+   "witness": {
+    "mismatches": 23,
+    "cases": 40,
+    "first": {
+     "input": {
+      "x": "91752407837133315090653637690526436660338269748754736087706085170124071307746",
+      "y": "44187552884907854417380894685422523990055752214252082834388043160925777646681"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": [
+      "target",
+      "reduced"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G5_x_removed_QROAMClean",
+   "family": "gate",
+   "mutation": "op 5374: an X removed",
+   "status": "NOT_PROVED",
+   "detail": "child DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul (SingleWindowModMul) is not proved: NOT_PROVED child DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul/9:QROAMClean (QROAMClean) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 3.1,
+   "witness": {
+    "mismatches": 40,
+    "cases": 40,
+    "first": {
+     "input": {
+      "x": "0",
+      "y": "0"
+     },
+     "phase": false,
+     "other_wires": false,
+     "outputs_differ": [
+      "target",
+      "qrom_indices"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G6_noncommuting_swap_CAdd",
+   "family": "gate",
+   "mutation": "ops 261, 262: two non-commuting CX exchanged",
+   "status": "NOT_PROVED",
+   "detail": "child DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul (SingleWindowModMul) is not proved: NOT_PROVED child DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul/1:CAdd (CAdd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 2.8,
+   "witness": {
+    "mismatches": 1,
+    "cases": 24,
+    "first": {
+     "input": {
+      "ctrl": 1,
+      "a": 115792089237316195423570985008687907853269984665640564039457584007913129639935,
+      "b": 231584178474632390847141970017375815706539969331281128078915168015826259279871
+     },
+     "expected": {
+      "ctrl": 1,
+      "a": 115792089237316195423570985008687907853269984665640564039457584007913129639935,
+      "b": 115792089237316195423570985008687907853269984665640564039457584007913129639934
+     },
+     "got": {
+      "ctrl": 1,
+      "a": 115792089237316195423570985008687907853269984665640564039457584007913129639935,
+      "b": 115792089237316195423570985008687907853269984665640564039457584007913129639930
+     },
+     "phase": true,
+     "other_wires_nonzero": false
+    },
+    "level": "leaf DirtyOutOfPlaceMontgomeryModMul/137:SingleWindowModMul/1:CAdd"
+   },
+   "counts": true
+  },
+  {
+   "name": "G7_last_operation_removed",
+   "family": "gate",
+   "mutation": "op 1249270 (the last one) removed",
+   "status": "NOT_PROVED",
+   "detail": "child DirtyOutOfPlaceMontgomeryModMul/399:Controlled (Controlled) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 9.8,
+   "witness": {
+    "mismatches": 5,
+    "cases": 40,
+    "first": {
+     "input": {
+      "x": "79276315900091549895553742262100196372193733291904548195743235482928529318993",
+      "y": "52007406961338734175225888865100759530856354512072110311785831575410323684831"
+     },
+     "phase": false,
+     "other_wires": true,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_0_QROAMCleanAdjoint",
+   "family": "gate",
+   "mutation": "op 27725 in DirtyOutOfPlaceMontgomeryModMul/141:SingleWindowModMul/12:QROAMCleanAdjointWrapper/0:QROAMCleanAdjoint: ('cx', 5662, 5661) -> ('cx', 5662, 5177)",
+   "status": "NOT_PROVED",
+   "detail": "child DirtyOutOfPlaceMontgomeryModMul/141:SingleWindowModMul (SingleWindowModMul) is not proved: NOT_PROVED child DirtyOutOfPlaceMontgomeryModMul/141:SingleWindowModMul/12:QROAMCleanAdjointWrapper (QROAMCleanAdjointWrapper) is not proved: NOT_PROVED child DirtyOutOfPlaceMontgomeryModMul/141:SingleWi",
+   "seconds": 4.3,
+   "witness": {
+    "mismatches": 15,
+    "cases": 40,
+    "first": {
+     "input": {
+      "x": "57",
+      "y": "11"
+     },
+     "phase": true,
+     "other_wires": true,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  }
+ ],
+ "ok": true,
+ "seconds": 1442.7,
+ "not_proved": 34
+}

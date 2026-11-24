@@ -1,0 +1,539 @@
+{
+ "schema": "qoptct.auto/1",
+ "target": "ctrlscalemodadd",
+ "params": {
+  "n": 8,
+  "p": 127,
+  "k": 110
+ },
+ "verdict": "PROVED",
+ "reasons": [],
+ "versions": {
+  "python": "3.12.16",
+  "qualtran": "0.7.0",
+  "z3-solver": "5.3.3.0",
+  "numpy": "2.5.5",
+  "z3": "5.3.3"
+ },
+ "qualtran_variant": {
+  "kind": "original",
+  "qualtran_file": "/Users/max/quantum-start/lab/work/v07/venv/lib/python3.12/site-packages/qualtran/__init__.py",
+  "qualtran_version": null,
+  "files_sha256_16": {
+   "bloqs/cryptography/ecc/ec_add.py": "71a3efc0368f7fca",
+   "bloqs/mod_arithmetic/mod_multiplication.py": "3873115b5cf6fd31",
+   "bloqs/data_loading/qrom_base.py": "5837d39f0c301dfc",
+   "bloqs/data_loading/select_swap_qrom.py": "1dd5d2aee856779c"
+  }
+ },
+ "source_sha256": "d80d01de696bdca5f3c8622505e033141fb7e51ce14e6a20f351971db8d95de9",
+ "assumptions": [
+  "the strict bridge of 0.7 (lower_bloqgraph + translate) and its rules A1 (controlled And) and C1 (QROAMCleanAdjoint as a primitive with a contract, assumptions A1-A4 of bridge/qroam_clean_adjoint.py); TwoBitCSwap, where it occurs, by the opt-in rule bridge/fredkin_rule.py (CX.CCX.CX)",
+  "the qoptct prover kprove (ROBDD path sum) with the exact AND/ERASE domain guard, and the gadget lemma for AND/erase",
+  "Z3 (linear integer arithmetic) for the composition of the contracts of the children",
+  "the specification of the root is the statement (formulas in qoptct/foreign/auto/specs.py); it is compared with call_classically of the same Qualtran on a small instance (spec_check of the verdict), not proved equal to it"
+ ],
+ "spec_check": {
+  "target": "ctrlscalemodadd",
+  "params": {
+   "n": "4",
+   "p": "7",
+   "k": "5"
+  },
+  "checked": 224,
+  "ok": true,
+  "first_mismatch": null
+ },
+ "spec": {
+  "name": "CtrlScaleModAdd(n=8, k=110, p=127)",
+  "sha256": "6a614c341782c26e8b84ee99497c2398b297a107b2278c1d405c3ff0806733ef",
+  "note": ""
+ },
+ "program": {
+  "nq": 585,
+  "ops": 2976,
+  "ops_sha256": "c57ca2671fe27cb25c18ab332c12f89a095971cff57ba16914ecde97d571b13a",
+  "bridge_scratch": [],
+  "source_nq": 585,
+  "program_inputs": {
+   "ctrl": [
+    0
+   ],
+   "x": [
+    8,
+    7,
+    6,
+    5,
+    4,
+    3,
+    2,
+    1
+   ],
+   "y": [
+    16,
+    15,
+    14,
+    13,
+    12,
+    11,
+    10,
+    9
+   ]
+  },
+  "program_outputs": {
+   "ctrl": [
+    0
+   ],
+   "x": [
+    8,
+    7,
+    6,
+    5,
+    4,
+    3,
+    2,
+    1
+   ],
+   "y": [
+    16,
+    15,
+    14,
+    13,
+    12,
+    11,
+    10,
+    9
+   ]
+  },
+  "retired_wires": 568
+ },
+ "lower_seconds": 0.3,
+ "prove_seconds": 17.0,
+ "root": {
+  "status": "PROVED",
+  "mode": "compose",
+  "detail": "24 children proved, 19 obligations (9 by Z3), 0 deferred to the parent",
+  "failure": null,
+  "obligations": 19,
+  "z3_calls": 9,
+  "deferred": 0,
+  "children": [
+   {
+    "type": "And",
+    "status": "PROVED",
+    "contract": "And(1,1)",
+    "count": 8
+   },
+   {
+    "type": "CModAddK",
+    "status": "PROVED",
+    "contract": "CModAddK(n=8, k=110, p=127)",
+    "count": 2
+   },
+   {
+    "type": "And",
+    "status": "PROVED",
+    "contract": "And^-1(1,1)",
+    "count": 8
+   },
+   {
+    "type": "CModAddK",
+    "status": "PROVED",
+    "contract": "CModAddK(n=8, k=55, p=127)",
+    "count": 1
+   },
+   {
+    "type": "CModAddK",
+    "status": "PROVED",
+    "contract": "CModAddK(n=8, k=91, p=127)",
+    "count": 1
+   },
+   {
+    "type": "CModAddK",
+    "status": "PROVED",
+    "contract": "CModAddK(n=8, k=109, p=127)",
+    "count": 1
+   },
+   {
+    "type": "CModAddK",
+    "status": "PROVED",
+    "contract": "CModAddK(n=8, k=118, p=127)",
+    "count": 1
+   },
+   {
+    "type": "CModAddK",
+    "status": "PROVED",
+    "contract": "CModAddK(n=8, k=59, p=127)",
+    "count": 1
+   },
+   {
+    "type": "CModAddK",
+    "status": "PROVED",
+    "contract": "CModAddK(n=8, k=93, p=127)",
+    "count": 1
+   }
+  ],
+  "folds": {},
+  "qasm_sha256": "0b13d65d96c315aaafdb1eb717e88a3977479acc1e18b6d8c36aedc4d8503dfb",
+  "layout_sha256": "a4fe2a8564d458d138a3698761eeb7ee7c96cee4de3698b4d235db07394d411b",
+  "seconds": 16.99
+ },
+ "pieces": [
+  {
+   "type": "CtrlScaleModAdd",
+   "mode": "compose",
+   "qasm_sha256": "0b13d65d96c315aaafdb1eb717e88a3977479acc1e18b6d8c36aedc4d8503dfb",
+   "contract": "CtrlScaleModAdd(n=8, k=110, p=127)",
+   "ops": 2976,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "CModAddK",
+   "mode": "compose",
+   "qasm_sha256": "78db4f0d851951eade849baca59013fbafdaec445edffc77aa4151ea5f3922ca",
+   "contract": "CModAddK(n=8, k=110, p=127)",
+   "ops": 370,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 2
+  },
+  {
+   "type": "CModAddK",
+   "mode": "compose",
+   "qasm_sha256": "7d86a60380b1a063bbe318c660c263fcea23880ceb9921e73c5a110bfc246277",
+   "contract": "CModAddK(n=8, k=55, p=127)",
+   "ops": 370,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "CModAddK",
+   "mode": "compose",
+   "qasm_sha256": "9f595b537ba59bcb141828998d57559c43a327bda8314a87f850ed1bba21a3ca",
+   "contract": "CModAddK(n=8, k=91, p=127)",
+   "ops": 370,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "CModAddK",
+   "mode": "compose",
+   "qasm_sha256": "c314f92851398f51dfd619a6d957c79d75f6623fb8ca4b969be711dd0541af11",
+   "contract": "CModAddK(n=8, k=109, p=127)",
+   "ops": 370,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "CModAddK",
+   "mode": "compose",
+   "qasm_sha256": "4ed56ab5da0e0568ed07fcba44212ce717bd7572ad988a502a735560adb9eeaf",
+   "contract": "CModAddK(n=8, k=118, p=127)",
+   "ops": 370,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "CModAddK",
+   "mode": "compose",
+   "qasm_sha256": "2fc7b7b5ceec7bc65b6e07801bc649b9c4b81d83993337859df46d623acad188",
+   "contract": "CModAddK(n=8, k=59, p=127)",
+   "ops": 370,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "CModAddK",
+   "mode": "compose",
+   "qasm_sha256": "55cecb1859d997f84c35fb093d320c1a40ef32dc6996c323cff45a83a7044913",
+   "contract": "CModAddK(n=8, k=93, p=127)",
+   "ops": 370,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "CModAdd",
+   "mode": "compose",
+   "qasm_sha256": "16ef61776733a8a12f9b28f2f9bec04bb98c08b5d0bb3f4c414ae279e3f09350",
+   "contract": "CModAdd(n=8, p=127, cv=1)",
+   "ops": 360,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 7
+  },
+  {
+   "type": "IntState",
+   "mode": "compose",
+   "qasm_sha256": "4f903a9876f54be87285949d401dc08589c3f81e63cc7920601ac85a3b4ca087",
+   "contract": "IntState(110, 8)",
+   "ops": 5,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntEffect",
+   "mode": "compose",
+   "qasm_sha256": "4f903a9876f54be87285949d401dc08589c3f81e63cc7920601ac85a3b4ca087",
+   "contract": "IntEffect(110, 8)",
+   "ops": 5,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntState",
+   "mode": "compose",
+   "qasm_sha256": "49a4e4e6806cfc86f30c1764941b3a57c3dcbfe3a9cb4a308c39aef036f6cb42",
+   "contract": "IntState(55, 8)",
+   "ops": 5,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntEffect",
+   "mode": "compose",
+   "qasm_sha256": "49a4e4e6806cfc86f30c1764941b3a57c3dcbfe3a9cb4a308c39aef036f6cb42",
+   "contract": "IntEffect(55, 8)",
+   "ops": 5,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntState",
+   "mode": "compose",
+   "qasm_sha256": "dd932155a904ffd87098d23408d8c3c8766b40c1243aa72f7d9d89d03aa32fd7",
+   "contract": "IntState(91, 8)",
+   "ops": 5,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntEffect",
+   "mode": "compose",
+   "qasm_sha256": "dd932155a904ffd87098d23408d8c3c8766b40c1243aa72f7d9d89d03aa32fd7",
+   "contract": "IntEffect(91, 8)",
+   "ops": 5,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntState",
+   "mode": "compose",
+   "qasm_sha256": "048aad1f9863433cd803c438ce14efedaa5898ae1f92cb7fcbb5342bc8b25a57",
+   "contract": "IntState(109, 8)",
+   "ops": 5,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntEffect",
+   "mode": "compose",
+   "qasm_sha256": "048aad1f9863433cd803c438ce14efedaa5898ae1f92cb7fcbb5342bc8b25a57",
+   "contract": "IntEffect(109, 8)",
+   "ops": 5,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntState",
+   "mode": "compose",
+   "qasm_sha256": "a6999c1537c9a29a1645e27d61c3dda4f1b715ddb9fc263ee706658ad406da2c",
+   "contract": "IntState(118, 8)",
+   "ops": 5,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntEffect",
+   "mode": "compose",
+   "qasm_sha256": "a6999c1537c9a29a1645e27d61c3dda4f1b715ddb9fc263ee706658ad406da2c",
+   "contract": "IntEffect(118, 8)",
+   "ops": 5,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntState",
+   "mode": "compose",
+   "qasm_sha256": "c719c9670475519d99ebeb5197c42b752c7eef015a01b1f7f8d439c5f74d8202",
+   "contract": "IntState(59, 8)",
+   "ops": 5,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntEffect",
+   "mode": "compose",
+   "qasm_sha256": "c719c9670475519d99ebeb5197c42b752c7eef015a01b1f7f8d439c5f74d8202",
+   "contract": "IntEffect(59, 8)",
+   "ops": 5,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntState",
+   "mode": "compose",
+   "qasm_sha256": "e5903918d0dc8d7fded4622d98bbb04dae7b4d96719d6eef143b1a008887840f",
+   "contract": "IntState(93, 8)",
+   "ops": 5,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntEffect",
+   "mode": "compose",
+   "qasm_sha256": "e5903918d0dc8d7fded4622d98bbb04dae7b4d96719d6eef143b1a008887840f",
+   "contract": "IntEffect(93, 8)",
+   "ops": 5,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "CLinearDepthGreaterThan",
+   "mode": "leaf",
+   "qasm_sha256": "6bdeb8b39fefed0cbd13b78b043e3eb1069d3f52112aeeab749728eb2ad8eb81",
+   "contract": "CLinearDepthGreaterThan(8,cv=1)",
+   "ops": 149,
+   "status": "PROVED",
+   "method": "kprove_bdd_exact_domains",
+   "count": 1
+  },
+  {
+   "type": "CAdd",
+   "mode": "leaf",
+   "qasm_sha256": "076c1283b0e57527ae144686b6d71cccb69e736d637feca06414f230cf01c653",
+   "contract": "CAdd(8,9,cv=1)",
+   "ops": 76,
+   "status": "PROVED",
+   "method": "kprove_bdd_exact_domains",
+   "count": 1
+  },
+  {
+   "type": "AddK",
+   "mode": "leaf",
+   "qasm_sha256": "42837321d250eecfdcea641d457d7ba5afdbdaec28b44e09bbc8284f46218151",
+   "contract": "AddK(9,-127)",
+   "ops": 67,
+   "status": "PROVED",
+   "method": "kprove_bdd_exact_domains",
+   "count": 1
+  },
+  {
+   "type": "Controlled",
+   "mode": "leaf",
+   "qasm_sha256": "be795733b79af15066006992ead2b02c28c1a859f315fdb022b42d5a10df2916",
+   "contract": "Controlled[AddK(8,127); ctrl=1]",
+   "ops": 67,
+   "status": "PROVED",
+   "method": "kprove_bdd_exact_domains",
+   "count": 1
+  },
+  {
+   "type": "And",
+   "mode": "leaf",
+   "qasm_sha256": "81c962b763b126f68afa8e294da8ef907385dc7d205bfebbf9e711a5f47c260e",
+   "contract": "And(1,1)",
+   "ops": 1,
+   "status": "PROVED",
+   "method": "kprove_bdd_exact_domains",
+   "count": 8
+  },
+  {
+   "type": "OneState",
+   "mode": "leaf",
+   "qasm_sha256": "241a9e2583f38a0e69eb5ad2db505f9d76add256b52738bf5913c8a531b5606d",
+   "contract": "OneState",
+   "ops": 1,
+   "status": "PROVED",
+   "method": "exhaustive_simulation_all_outcomes_with_phase",
+   "count": 35
+  },
+  {
+   "type": "XGate",
+   "mode": "leaf",
+   "qasm_sha256": "241a9e2583f38a0e69eb5ad2db505f9d76add256b52738bf5913c8a531b5606d",
+   "contract": "X",
+   "ops": 1,
+   "status": "PROVED",
+   "method": "kprove_bdd_exact_domains",
+   "count": 1
+  },
+  {
+   "type": "OneEffect",
+   "mode": "leaf",
+   "qasm_sha256": "241a9e2583f38a0e69eb5ad2db505f9d76add256b52738bf5913c8a531b5606d",
+   "contract": "OneEffect",
+   "ops": 1,
+   "status": "PROVED",
+   "method": "exhaustive_simulation_all_outcomes_with_phase",
+   "count": 35
+  },
+  {
+   "type": "And",
+   "mode": "leaf",
+   "qasm_sha256": "39d9a0f3045aede0380de9823b861946c1bdd2a5f25c054126a4a2ac9bfa74e2",
+   "contract": "And^-1(1,1)",
+   "ops": 1,
+   "status": "PROVED",
+   "method": "exhaustive_domain_simulation_all_outcomes_with_phase",
+   "count": 8
+  },
+  {
+   "type": "ZeroState",
+   "mode": "leaf",
+   "qasm_sha256": "f2f7b850092dc915c7d3f40d75674dd3da4726966b109b65d482c77dcf5f8856",
+   "contract": "ZeroState",
+   "ops": 0,
+   "status": "PROVED",
+   "method": "exhaustive_simulation_all_outcomes_with_phase",
+   "count": 21
+  },
+  {
+   "type": "ZeroEffect",
+   "mode": "leaf",
+   "qasm_sha256": "f2f7b850092dc915c7d3f40d75674dd3da4726966b109b65d482c77dcf5f8856",
+   "contract": "ZeroEffect",
+   "ops": 0,
+   "status": "PROVED",
+   "method": "exhaustive_simulation_all_outcomes_with_phase",
+   "count": 21
+  }
+ ],
+ "stats": {
+  "leaf_proofs": 11,
+  "leaf_cached": 122,
+  "compositions": 23,
+  "compositions_cached": 7,
+  "obligations": 121,
+  "z3_calls": 81,
+  "z3_seconds": 16.59
+ },
+ "end_to_end": {
+  "cases": 16,
+  "mismatches": 0,
+  "first": null,
+  "seconds": 0.0
+ },
+ "seconds": 17.4
+}

@@ -1,0 +1,587 @@
+# SPDX-License-Identifier: Apache-2.0
+"""Registry of contracts for Qualtran bloqs: primitives (proved directly) and composite specifications.
+
+``contract_for(bloq)`` returns a ``Contract`` or ``None``.  Kind ``primitive``: small arithmetic building blocks
+(addition, subtraction, comparison, copy, XOR, swap, table lookup, basis states ...) proved on their own operations
+by kprove.  Kind ``spec``: composite blocks proved from their children (``specs``).  Every entry is checked against
+the classical simulation of Qualtran (``bloq.call_classically``) on all inputs of small instances by ``selfcheck``.
+
+Only unsigned types (``QUInt``, ``QMontgomeryUInt``, ``BQUInt``, ``QAny`` where the operation is bitwise) get a
+contract; signed or symbolic parameters give ``None`` (the node is then derived from its children, or UNKNOWN).
+"""
+from __future__ import annotations
+
+from . import expr as X
+from . import specs as S
+from .contract import Contract
+
+__all__ = ['contract_for', 'selfcheck', 'SELFCHECK_INSTANCES', 'to_classical', 'from_classical']
+
+V = X.var
+
+
+def _int(v):
+    try:
+        iv = int(v)
+    except Exception:
+        return None
+    return iv if iv == v else None
+
+
+def _unsigned(dt):
+    from qualtran import QUInt, QMontgomeryUInt, BQUInt, QAny, QBit
+    return type(dt) in (QUInt, QMontgomeryUInt, BQUInt, QAny, QBit)
+
+
+def _wrapping(dt):
+    """addition modulo 2^n: the same bits for unsigned and two's complement registers (contracts read the bits of a
+    register as an unsigned integer; the self-check converts signed values)"""
+    from qualtran import QInt
+    return _unsigned(dt) or type(dt) is QInt
+
+
+def _prim(name, inputs, outputs, out, pre=1, defs=(), note=''):
+    return Contract(inputs=inputs, outputs=outputs, out=out, pre=pre, defs=list(defs), name=name, kind='primitive',
+                    note=note).validate()
+
+
+def _bits(dt):
+    n = _int(dt.num_qubits)
+    return n if n and n > 0 else None
+
+
+def contract_for(bloq):
+    """the registry contract of ``bloq`` or None"""
+    try:
+        return _contract_for(bloq)
+    except S.SpecDomainError:
+        return None
+
+
+def _contract_for(bloq):
+    from qualtran.bloqs.basic_gates import (XGate, CNOT, Toffoli, Swap, CSwap, TwoBitSwap, TwoBitCSwap, ZeroState,
+                                            OneState, ZeroEffect, OneEffect, IntState, IntEffect)
+    from qualtran.bloqs.mcmt import And, MultiTargetCNOT
+    from qualtran.bloqs.arithmetic import (Add, AddK, LessThanConstant, Xor, XorK, LessThanEqual, GreaterThan,
+                                           Equals, EqualsAConstant, BitwiseNot)
+    from qualtran.bloqs.arithmetic.comparison import LinearDepthGreaterThan, CLinearDepthGreaterThan
+    from qualtran.bloqs.arithmetic.controlled_addition import CAdd
+    from qualtran.bloqs.data_loading.qroam_clean import QROAMClean, QROAMCleanAdjoint, QROAMCleanAdjointWrapper
+    from qualtran.bloqs.mod_arithmetic import ModAdd, CModAdd, ModSub, CModSub, ModNeg, CModNeg, ModDbl
+    from qualtran.bloqs.mod_arithmetic.mod_multiplication import DirtyOutOfPlaceMontgomeryModMul
+    from qualtran import Controlled, QUInt
+    t = type(bloq)
+    # ---------------------------------------------------------------- single gates and basis states
+    if t is XGate:
+        return _prim('X', {'q': 1}, {'q': 1}, {'q': X.sub(1, V('q'))})
+    if t is CNOT:
+        return _prim('CNOT', {'ctrl': 1, 'target': 1}, {'ctrl': 1, 'target': 1},
+                     {'ctrl': V('ctrl'), 'target': X.bxor(V('target'), V('ctrl'))})
+    if t is Toffoli:
+        return _prim('Toffoli', {'ctrl': 2, 'target': 1}, {'ctrl': 2, 'target': 1},
+                     {'ctrl': V('ctrl'), 'target': X.bxor(V('target'), X.eq(V('ctrl'), 3))})
+    if t is And:
+        c1, c2 = _int(bloq.cv1), _int(bloq.cv2)
+        if c1 not in (0, 1) or c2 not in (0, 1):
+            return None
+        act = X.eq(V('ctrl'), 2 * c1 + c2)
+        if bloq.uncompute:
+            return _prim(f'And^-1({c1},{c2})', {'ctrl': 2, 'target': 1}, {'ctrl': 2}, {'ctrl': V('ctrl')},
+                         pre=X.eq(V('target'), act))
+        return _prim(f'And({c1},{c2})', {'ctrl': 2}, {'ctrl': 2, 'target': 1}, {'ctrl': V('ctrl'), 'target': act})
+    if t in (ZeroState, OneState):
+        return _prim(t.__name__, {}, {'q': 1}, {'q': 1 if t is OneState else 0})
+    if t in (ZeroEffect, OneEffect):
+        return _prim(t.__name__, {'q': 1}, {}, {}, pre=X.eq(V('q'), 1 if t is OneEffect else 0))
+    if t is IntState:
+        n, k = _int(bloq.bitsize), _int(bloq.val)
+        if not n or k is None or not 0 <= k < (1 << n):
+            return None
+        return Contract({}, {'val': n}, {'val': k}, name=f'IntState({k}, {n})', kind='spec').validate()
+    if t is IntEffect:
+        n, k = _int(bloq.bitsize), _int(bloq.val)
+        if not n or k is None or not 0 <= k < (1 << n):
+            return None
+        return Contract({'val': n}, {}, {}, pre=X.eq(V('val'), k), name=f'IntEffect({k}, {n})', kind='spec').validate()
+    if t in (TwoBitSwap,):
+        return _prim('TwoBitSwap', {'x': 1, 'y': 1}, {'x': 1, 'y': 1}, {'x': V('y'), 'y': V('x')})
+    if t in (TwoBitCSwap,):
+        c = X.eq(V('ctrl'), 1)
+        return _prim('TwoBitCSwap', {'ctrl': 1, 'x': 1, 'y': 1}, {'ctrl': 1, 'x': 1, 'y': 1},
+                     {'ctrl': V('ctrl'), 'x': X.ite(c, V('y'), V('x')), 'y': X.ite(c, V('x'), V('y'))})
+    if t is Swap:
+        n = _int(bloq.bitsize)
+        return _prim(f'Swap({n})', {'x': n, 'y': n}, {'x': n, 'y': n}, {'x': V('y'), 'y': V('x')}) if n else None
+    if t is CSwap:
+        n = _int(bloq.bitsize)
+        if not n:
+            return None
+        c = X.eq(V('ctrl'), 1)
+        return _prim(f'CSwap({n})', {'ctrl': 1, 'x': n, 'y': n}, {'ctrl': 1, 'x': n, 'y': n},
+                     {'ctrl': V('ctrl'), 'x': X.ite(c, V('y'), V('x')), 'y': X.ite(c, V('x'), V('y'))})
+    if t is MultiTargetCNOT:
+        n = _int(bloq.bitsize)
+        if not n:
+            return None
+        # XOR with all ones written as the complement (linear arithmetic)
+        return _prim(f'MultiTargetCNOT({n})', {'control': 1, 'targets': n}, {'control': 1, 'targets': n},
+                     {'control': V('control'),
+                      'targets': X.ite(X.eq(V('control'), 1), X.sub((1 << n) - 1, V('targets')), V('targets'))})
+    # ---------------------------------------------------------------- arithmetic primitives
+    if t is Add:
+        if not (_wrapping(bloq.a_dtype) and _wrapping(bloq.b_dtype)) or type(bloq.a_dtype) is not type(bloq.b_dtype):
+            return None
+        na, nb = _bits(bloq.a_dtype), _bits(bloq.b_dtype)
+        if not na or not nb:
+            return None
+        return _prim(f'Add({na},{nb})', {'a': na, 'b': nb}, {'a': na, 'b': nb},
+                     {'a': V('a'), 'b': X.mod(X.add(V('a'), V('b')), 1 << nb)})
+    if t is AddK:
+        n, k = _bits(bloq.dtype), _int(bloq.k)
+        if not _wrapping(bloq.dtype) or not n or k is None:
+            return None
+        return _prim(f'AddK({n},{k})', {'x': n}, {'x': n}, {'x': X.mod(X.add(V('x'), k), 1 << n)})
+    if t is CAdd:
+        if not (_unsigned(bloq.a_dtype) and _unsigned(bloq.b_dtype)):
+            return None
+        na, nb, cv = _bits(bloq.a_dtype), _bits(bloq.b_dtype), _int(bloq.cv)
+        if not na or not nb or cv not in (0, 1):
+            return None
+        return _prim(f'CAdd({na},{nb},cv={cv})', {'ctrl': 1, 'a': na, 'b': nb}, {'ctrl': 1, 'a': na, 'b': nb},
+                     {'ctrl': V('ctrl'), 'a': V('a'),
+                      'b': X.ite(X.eq(V('ctrl'), cv), X.mod(X.add(V('a'), V('b')), 1 << nb), V('b'))})
+    if t is LessThanConstant:
+        n, k = _int(bloq.bitsize), _int(bloq.less_than_val)
+        if not n or k is None:
+            return None
+        return _prim(f'LessThanConstant({n},{k})', {'x': n, 'target': 1}, {'x': n, 'target': 1},
+                     {'x': V('x'), 'target': X.bxor(V('target'), X.lt(V('x'), k))})
+    if t is EqualsAConstant:
+        n, k = _int(bloq.bitsize), _int(bloq.val)
+        if not n or k is None:
+            return None
+        return _prim(f'EqualsAConstant({n},{k})', {'x': n, 'target': 1}, {'x': n, 'target': 1},
+                     {'x': V('x'), 'target': X.bxor(V('target'), X.eq(V('x'), k))})
+    if t is LessThanEqual:
+        nx, ny = _int(bloq.x_bitsize), _int(bloq.y_bitsize)
+        if not nx or not ny:
+            return None
+        return _prim(f'LessThanEqual({nx},{ny})', {'x': nx, 'y': ny, 'target': 1}, {'x': nx, 'y': ny, 'target': 1},
+                     {'x': V('x'), 'y': V('y'), 'target': X.bxor(V('target'), X.le(V('x'), V('y')))})
+    if t is GreaterThan:
+        na, nb = _int(bloq.a_bitsize), _int(bloq.b_bitsize)
+        if not na or not nb:
+            return None
+        return _prim(f'GreaterThan({na},{nb})', {'a': na, 'b': nb, 'target': 1}, {'a': na, 'b': nb, 'target': 1},
+                     {'a': V('a'), 'b': V('b'), 'target': X.bxor(V('target'), X.lt(V('b'), V('a')))})
+    if t is LinearDepthGreaterThan:
+        n = _int(bloq.bitsize)
+        if not n or bloq.signed:
+            return None
+        return _prim(f'LinearDepthGreaterThan({n})', {'a': n, 'b': n, 'target': 1}, {'a': n, 'b': n, 'target': 1},
+                     {'a': V('a'), 'b': V('b'), 'target': X.bxor(V('target'), X.lt(V('b'), V('a')))})
+    if t is CLinearDepthGreaterThan:
+        n, cv = _bits(bloq.dtype), _int(bloq.cv)
+        if not n or not _unsigned(bloq.dtype) or cv not in (0, 1):
+            return None
+        return _prim(f'CLinearDepthGreaterThan({n},cv={cv})', {'ctrl': 1, 'a': n, 'b': n, 'target': 1},
+                     {'ctrl': 1, 'a': n, 'b': n, 'target': 1},
+                     {'ctrl': V('ctrl'), 'a': V('a'), 'b': V('b'),
+                      'target': X.bxor(V('target'), X.and_(X.eq(V('ctrl'), cv), X.lt(V('b'), V('a'))))})
+    if t is Equals:
+        n = _bits(bloq.dtype)
+        if not n:
+            return None
+        return _prim(f'Equals({n})', {'x': n, 'y': n, 'target': 1}, {'x': n, 'y': n, 'target': 1},
+                     {'x': V('x'), 'y': V('y'), 'target': X.bxor(V('target'), X.eq(V('x'), V('y')))})
+    if t is Xor:
+        n = _bits(bloq.dtype)
+        if not n:
+            return None
+        return _prim(f'Xor({n})', {'x': n, 'y': n}, {'x': n, 'y': n}, {'x': V('x'), 'y': X.bxor(V('x'), V('y'))})
+    if t is XorK:
+        n, k = _bits(bloq.dtype), _int(bloq.k)
+        if not n or k is None or not 0 <= k < (1 << n):
+            return None
+        return _prim(f'XorK({n},{k})', {'x': n}, {'x': n}, {'x': X.bxor(V('x'), k)})
+    if t is BitwiseNot:
+        n = _bits(bloq.dtype)
+        if not n or not _unsigned(bloq.dtype):
+            return None
+        return _prim(f'BitwiseNot({n})', {'x': n}, {'x': n}, {'x': X.sub((1 << n) - 1, V('x'))})
+    if t.__name__ == 'OnEach' and type(bloq.gate) is XGate:
+        regs = list(bloq.signature)
+        n = _int(bloq.n)
+        if not n or len(regs) != 1 or regs[0].shape or _bits(regs[0].dtype) != n or not _unsigned(regs[0].dtype):
+            return None
+        q = regs[0].name
+        return _prim(f'OnEach({n},X)', {q: n}, {q: n}, {q: X.sub((1 << n) - 1, V(q))})
+    # ---------------------------------------------------------------- table lookup (rule C1 for the adjoint)
+    if t in (QROAMClean, QROAMCleanAdjoint, QROAMCleanAdjointWrapper):
+        return _qroam(bloq)
+    # ---------------------------------------------------------------- controlled primitives, adjoints, Always
+    if t is Controlled or t.__name__ == 'ControlledViaAnd':
+        return _controlled(bloq)
+    if t.__name__ == 'MultiControlX':
+        cvs = [_int(c) for c in bloq.cvs]
+        n = len(cvs)
+        if not n or any(c not in (0, 1) for c in cvs):
+            return None
+        pat = sum(c << (n - 1 - k) for k, c in enumerate(cvs))
+        return _prim(f'MultiControlX({n})', {'controls': n, 'target': 1}, {'controls': n, 'target': 1},
+                     {'controls': V('controls'), 'target': X.bxor(V('target'), X.eq(V('controls'), pat))})
+    if t.__name__ == 'MultiAnd':
+        cvs = [_int(c) for c in bloq.cvs]
+        n = len(cvs)
+        if n < 3 or any(c not in (0, 1) for c in cvs):
+            return None
+        def prefix(k):          # the first k controls (the top k bits of the packed array) equal the pattern
+            pat = sum(c << (k - 1 - i) for i, c in enumerate(cvs[:k]))
+            return X.eq(X.slc(V('ctrl'), n - k, k), pat)
+        junk = X.sum_([X.shl(prefix(k + 2), n - 3 - k) if n - 3 - k else prefix(k + 2) for k in range(n - 2)])
+        return _prim(f'MultiAnd({n})', {'ctrl': n}, {'ctrl': n, 'junk': n - 2, 'target': 1},
+                     {'ctrl': V('ctrl'), 'junk': junk, 'target': prefix(n)})
+    from qualtran import Adjoint
+    if t is Adjoint:
+        return _adjoint(bloq.subbloq)
+    if t.__name__ == 'Always' and hasattr(bloq, 'subbloq'):
+        c = _contract_for(bloq.subbloq)
+        return c if c is not None and c.kind == 'primitive' else None
+    # ---------------------------------------------------------------- composite specifications
+    if t in (ModAdd,):
+        n, p = _int(bloq.bitsize), _int(bloq.mod)
+        return S.mod_add_spec(n, p) if n and p else None
+    if t is CModAdd:
+        n, p, cv = _bits(bloq.dtype), _int(bloq.mod), _int(bloq.cv)
+        return S.cmod_add_spec(n, p, cv) if n and p and _unsigned(bloq.dtype) else None
+    if t is ModSub:
+        n, p = _bits(bloq.dtype), _int(bloq.mod)
+        return S.mod_sub_spec(n, p) if n and p and _unsigned(bloq.dtype) else None
+    if t is CModSub:
+        n, p, cv = _bits(bloq.dtype), _int(bloq.mod), _int(getattr(bloq, 'cv', 1))
+        return S.cmod_sub_spec(n, p, cv) if n and p and _unsigned(bloq.dtype) else None
+    if t is ModNeg:
+        n, p = _bits(bloq.dtype), _int(bloq.mod)
+        return S.mod_neg_spec(n, p) if n and p and _unsigned(bloq.dtype) else None
+    if t is CModNeg:
+        n, p, cv = _bits(bloq.dtype), _int(bloq.mod), _int(getattr(bloq, 'cv', 1))
+        return S.cmod_neg_spec(n, p, cv) if n and p and _unsigned(bloq.dtype) else None
+    if t is ModDbl:
+        n, p = _bits(bloq.dtype), _int(bloq.mod)
+        return S.mod_dbl_spec(n, p) if n and p and _unsigned(bloq.dtype) else None
+    if t.__name__ in ('Subtract', 'SubtractFrom', 'Negate'):
+        dts = [bloq.a_dtype, bloq.b_dtype] if t.__name__ == 'Subtract' else [bloq.dtype]
+        n = _bits(dts[0])
+        if not n or any(type(d) is not QUInt or _bits(d) != n for d in dts):
+            return None
+        return {'Subtract': S.subtract_spec, 'SubtractFrom': S.subtract_from_spec, 'Negate': S.negate_spec}[t.__name__](n)
+    if t.__name__ == 'OutOfPlaceAdder':
+        n = _int(bloq.bitsize)
+        if not n or bloq.is_adjoint or not getattr(bloq, 'include_most_significant_bit', True):
+            return None
+        return _prim(f'OutOfPlaceAdder({n})', {'a': n, 'b': n}, {'a': n, 'b': n, 'c': n + 1},
+                     {'a': V('a'), 'b': V('b'), 'c': X.add(V('a'), V('b'))})
+    if t.__name__ == 'CModAddK':
+        n, k, p = _int(bloq.bitsize), _int(bloq.k), _int(bloq.mod)
+        return S.cmod_add_k_spec(n, k, p) if n and p and k is not None else None
+    if t.__name__ == 'CtrlScaleModAdd':
+        n, k, p = _int(bloq.bitsize), _int(bloq.k), _int(bloq.mod)
+        return S.ctrl_scale_mod_add_spec(n, k, p) if n and p and k is not None else None
+    if t.__name__ == 'CModMulK':
+        n, k, p = _bits(bloq.dtype), _int(bloq.k), _int(bloq.mod)
+        return S.cmod_mul_k_spec(n, k, p) if n and p and k is not None and _unsigned(bloq.dtype) else None
+    if t is DirtyOutOfPlaceMontgomeryModMul:
+        if bloq.uncompute:
+            return None
+        n, w, p = _int(bloq.bitsize), _int(bloq.window_size), _int(bloq.mod)
+        return S.montgomery_spec(n, w, p) if n and w and p else None
+    return None
+
+
+def _qroam(bloq):
+    from qualtran.bloqs.data_loading.qroam_clean import QROAMClean
+    try:
+        if not bloq.has_data():
+            return None
+        sel = list(bloq.selection_registers)
+        tgt = list(bloq.target_registers)
+        ctl = list(getattr(bloq, 'control_registers', ()))
+        datas = bloq.data_or_shape
+    except Exception:
+        return None
+    if len(sel) != 1 or len(tgt) != 1 or ctl or len(datas) != 1:
+        return None
+    s, tr = sel[0], tgt[0]
+    if s.shape or tuple(tr.shape) not in ((), (1,)):
+        return None
+    tname = tr.name if not tr.shape else tr.name + '[0]'
+    import numpy as np
+    d = np.asarray(datas[0], dtype=object).reshape(-1)
+    table = [_int(v) for v in d]
+    nt, ns = _int(tr.dtype.num_qubits), _int(s.dtype.num_qubits)
+    if any(v is None or v < 0 or v >> nt for v in table) or len(table) > (1 << ns):
+        return None
+    if len(table) < (1 << ns):
+        return None       # a selection outside the table: no contract (the iteration length would be a precondition)
+    names = {r.name for r in bloq.signature}
+    if type(bloq) is QROAMClean:
+        if names != {s.name, tr.name}:
+            return None   # junk registers (block size > 1): no contract
+        return _prim(f'QROAMClean(table of {len(table)})', {s.name: ns}, {s.name: ns, tname: nt},
+                     {s.name: V(s.name), tname: X.lut(V(s.name), table)})
+    if names != {s.name, tr.name}:
+        return None
+    return _prim(f'QROAMCleanAdjoint(table of {len(table)})', {s.name: ns, tname: nt}, {s.name: ns},
+                 {s.name: V(s.name)}, pre=X.eq(V(tname), X.lut(V(s.name), table)),
+                 note='measurement-based uncomputation (bridge rule C1, assumptions A1-A4)')
+
+
+_SELF_INVERSE = ('XGate', 'CNOT', 'Toffoli', 'Swap', 'CSwap', 'TwoBitSwap', 'TwoBitCSwap', 'MultiTargetCNOT', 'Xor', 'OnEach',
+                 'XorK', 'BitwiseNot', 'LessThanConstant', 'LessThanEqual', 'GreaterThan', 'LinearDepthGreaterThan',
+                 'CLinearDepthGreaterThan', 'Equals', 'EqualsAConstant')
+
+
+def _adjoint(sub):
+    """the inverse of a primitive: self-inverse gates and comparisons (an XOR into the target) keep their contract;
+    additions get the subtraction; Controlled and Always are unwrapped.  Checked against call_classically."""
+    from qualtran import Controlled
+    from qualtran.bloqs.arithmetic import Add, AddK
+    from qualtran.bloqs.arithmetic.controlled_addition import CAdd
+    t = type(sub)
+    if t.__name__ == 'Always' and hasattr(sub, 'subbloq'):
+        return _adjoint(sub.subbloq)
+    if t.__name__ in _SELF_INVERSE:
+        c = _contract_for(sub)
+        if c is None or c.inputs != c.outputs:
+            return None
+        return _prim(f'Adjoint[{c.name}]', c.inputs, c.outputs, c.out, pre=c.pre, defs=c.defs)
+    if t is AddK:
+        n, k = _bits(sub.dtype), _int(sub.k)
+        if not _wrapping(sub.dtype) or not n or k is None:
+            return None
+        return _prim(f'Adjoint[AddK({n},{k})]', {'x': n}, {'x': n}, {'x': X.mod(X.sub(V('x'), k), 1 << n)})
+    if t is Add:
+        if not (_unsigned(sub.a_dtype) and _unsigned(sub.b_dtype)):
+            return None
+        na, nb = _bits(sub.a_dtype), _bits(sub.b_dtype)
+        if not na or not nb:
+            return None
+        return _prim(f'Adjoint[Add({na},{nb})]', {'a': na, 'b': nb}, {'a': na, 'b': nb},
+                     {'a': V('a'), 'b': X.mod(X.sub(V('b'), V('a')), 1 << nb)})
+    if t is CAdd:
+        if not (_unsigned(sub.a_dtype) and _unsigned(sub.b_dtype)):
+            return None
+        na, nb, cv = _bits(sub.a_dtype), _bits(sub.b_dtype), _int(sub.cv)
+        if not na or not nb or cv not in (0, 1):
+            return None
+        return _prim(f'Adjoint[CAdd({na},{nb},cv={cv})]', {'ctrl': 1, 'a': na, 'b': nb}, {'ctrl': 1, 'a': na, 'b': nb},
+                     {'ctrl': V('ctrl'), 'a': V('a'),
+                      'b': X.ite(X.eq(V('ctrl'), cv), X.mod(X.sub(V('b'), V('a')), 1 << nb), V('b'))})
+    if t is Controlled or t.__name__ == 'ControlledViaAnd':
+        inner = _adjoint(sub.subbloq)
+        if inner is None:
+            return None
+        return _controlled(sub, sub_contract=inner, prefix='Adjoint')
+    c = _contract_for(sub)
+    if c is not None and c.kind == 'primitive' and not c.defs:
+        # compute into fresh registers: THRU inputs unchanged, RIGHT outputs f(inputs).  The adjoint takes the
+        # RIGHT registers back; its domain is exactly "they hold f(inputs)"
+        thru = {k for k in c.inputs if k in c.outputs}
+        right = [k for k in c.outputs if k not in c.inputs]
+        if thru == set(c.inputs) and c.identity_outputs() >= thru and right:
+            pre = X.all_([X.eq(V(r), c.out[r]) for r in right])
+            if c.pre != 1:
+                pre = X.and_(c.pre, pre)
+            return _prim(f'Adjoint[{c.name}]', {**c.inputs, **{r: c.outputs[r] for r in right}},
+                         {k: c.inputs[k] for k in c.inputs}, {k: V(k) for k in c.inputs}, pre=pre)
+    return None
+
+
+def _controlled(bloq, sub_contract=None, prefix=''):
+    """Controlled(sub) / ControlledViaAnd(sub): the sub-contract when every control register holds its control
+    value, identity otherwise.  Control registers of any unsigned width, scalar or of shape (1,).  Only for a
+    sub-contract whose outputs are exactly its inputs (THRU registers of equal width)."""
+    spec = bloq.ctrl_spec
+    try:
+        qdts = list(spec.qdtypes)
+        cvs = [__import__('numpy').asarray(c) for c in spec.cvs]
+    except Exception:
+        return None
+    sub = sub_contract if sub_contract is not None else _contract_for(bloq.subbloq)
+    if sub is None or sub.kind != 'primitive' or sub.inputs != sub.outputs or sub.folds:
+        return None
+    sig = {r.name: r for r in bloq.signature}
+    ctrl_regs = [r for r in bloq.signature if r.name not in sub.inputs]
+    if len(ctrl_regs) != len(qdts) or not ctrl_regs:
+        return None
+    acts, inputs = [], {}
+    for reg, dt, cv in zip(ctrl_regs, qdts, cvs):
+        if not _unsigned(dt) or tuple(reg.shape) not in ((), (1,)) or cv.size != 1:
+            return None
+        w = _bits(dt)
+        v = _int(cv.reshape(-1)[0])
+        if not w or v is None or not 0 <= v < (1 << w):
+            return None
+        nm = reg.name if not reg.shape else reg.name + '[0]'
+        inputs[nm] = w
+        acts.append(X.eq(V(nm), v))
+    act = X.all_(acts)
+    out = {nm: V(nm) for nm in inputs}
+    for r in sub.outputs:
+        out[r] = X.ite(act, sub.out[r], V(r))
+    pre = sub.pre if sub.pre == 1 else X.or_(X.not_(act), sub.pre)
+    inputs.update(sub.inputs)
+    cname = ','.join(f'{k}={X.to_json(a[2])}' for k, a in zip(inputs, acts))
+    return _prim(f'{prefix}Controlled[{sub.name}; {cname}]', inputs, dict(inputs), out, pre=pre, defs=sub.defs)
+
+
+# ------------------------------------------------------------------------------------------------ self-check
+def _elements(reg):
+    shape = tuple(int(x) for x in reg.shape)
+    if not shape or (len(shape) == 1 and int(reg.bitsize) == 1):
+        return None
+    return [(reg.name + '[' + ','.join(map(str, idx)) + ']', idx) for idx in reg.all_idxs()]
+
+
+def contract_names(reg):
+    """contract register names of one source register (as qualtran_adapter.register_words names them)"""
+    el = _elements(reg)
+    return [reg.name] if el is None else [nm for nm, _ in el]
+
+
+def to_classical(reg, vals):
+    """the classical value of register ``reg`` (as call_classically wants it) from contract values"""
+    import numpy as np
+    from qualtran import QInt
+    shape = tuple(int(x) for x in reg.shape)
+    el = _elements(reg)
+    if el is None:
+        if not shape:
+            v = vals[reg.name]
+            if type(reg.dtype) is QInt and v >> (int(reg.bitsize) - 1):
+                v -= 1 << int(reg.bitsize)
+            return v
+        m = shape[0]
+        return np.array([(vals[reg.name] >> (m - 1 - k)) & 1 for k in range(m)], dtype=object)
+    arr = np.empty(shape, dtype=object)
+    for nm, idx in el:
+        arr[idx] = vals[nm]
+    return arr
+
+
+def from_classical(reg, value):
+    """contract values {name: int} of register ``reg`` from a classical value"""
+    import numpy as np
+    shape = tuple(int(x) for x in reg.shape)
+    el = _elements(reg)
+    if el is None:
+        if not shape:
+            return {reg.name: int(value) % (1 << int(reg.bitsize))}
+        m = shape[0]
+        return {reg.name: sum(int(value[k]) << (m - 1 - k) for k in range(m))}
+    arr = np.asarray(value, dtype=object).reshape(shape)
+    return {nm: int(arr[idx]) for nm, idx in el}
+
+
+def _small_instances():
+    """small instances of every registry type: (bloq, domain(values) -> bool or None, kind of Qualtran or None)"""
+    import numpy as np
+    from qualtran import QUInt, QMontgomeryUInt, QInt
+    from qualtran.bloqs.basic_gates import (XGate, CNOT, Toffoli, Swap, CSwap, TwoBitSwap, TwoBitCSwap, IntState,
+                                            IntEffect)
+    from qualtran.bloqs.mcmt import And, MultiTargetCNOT
+    from qualtran.bloqs.arithmetic import (Add, AddK, LessThanConstant, Xor, XorK, LessThanEqual, GreaterThan,
+                                           Equals, EqualsAConstant, BitwiseNot)
+    from qualtran.bloqs.arithmetic.comparison import LinearDepthGreaterThan, CLinearDepthGreaterThan
+    from qualtran.bloqs.arithmetic.controlled_addition import CAdd
+    from qualtran.bloqs.data_loading.qroam_clean import QROAMClean
+    from qualtran.bloqs.mod_arithmetic import ModAdd, CModAdd, ModSub, CModSub, ModNeg, CModNeg, ModDbl
+    out = [XGate(), CNOT(), Toffoli(), TwoBitSwap(), TwoBitCSwap(), Swap(2), CSwap(2), MultiTargetCNOT(3)]
+    out += [And(a, b) for a in (0, 1) for b in (0, 1)] + [And(1, 0, uncompute=True), And(1, 1, uncompute=True)]
+    out += [IntState(5, 3), IntEffect(5, 3), IntState(0, 2)]
+    out += [Add(QUInt(3)), Add(QUInt(2), QUInt(3)), Add(QMontgomeryUInt(3)), AddK(QUInt(3), 5), AddK(QUInt(3), -5),
+            AddK(QUInt(4), -11), AddK(QUInt(3), 2).controlled(), AddK(QUInt(3), -3).controlled(),
+            AddK(QInt(4), -11), AddK(QInt(3), 3), Add(QInt(3)),
+            CAdd(QUInt(2), QUInt(3)), CAdd(QUInt(3), QUInt(3), cv=0), CAdd(QMontgomeryUInt(2), QMontgomeryUInt(3))]
+    out += [LessThanConstant(3, 5), LessThanConstant(3, 0), EqualsAConstant(3, 5),
+            LessThanEqual(3, 3), GreaterThan(3, 3), LinearDepthGreaterThan(3), CLinearDepthGreaterThan(QUInt(3)),
+            CLinearDepthGreaterThan(QUInt(3), cv=0), Equals(QUInt(3)), Xor(QUInt(3)), XorK(QUInt(3), 5),
+            BitwiseNot(QUInt(3))]
+    out += [AddK(QUInt(3), 5).adjoint(), AddK(QUInt(4), -11).adjoint(), Add(QUInt(3)).adjoint(),
+            Add(QUInt(2), QUInt(3)).adjoint(), CAdd(QUInt(2), QUInt(3)).adjoint(), CAdd(QUInt(3), QUInt(3), cv=0).adjoint(),
+            Xor(QUInt(3)).adjoint(), XorK(QUInt(3), 5).adjoint(), BitwiseNot(QUInt(3)).adjoint(),
+            LessThanConstant(3, 5).adjoint(), AddK(QUInt(3), 2).controlled().adjoint(), CNOT().adjoint()]
+    from qualtran import CtrlSpec
+    from qualtran.bloqs.mcmt import MultiControlX, MultiAnd
+    from qualtran.bloqs.mcmt.controlled_via_and import ControlledViaAnd
+    out += [MultiControlX(cvs=(1, 0, 1)), MultiControlX(cvs=(0, 0)), MultiAnd(cvs=(1, 0, 1, 1)), MultiAnd(cvs=(0, 0, 0)),
+            MultiAnd(cvs=(1, 0, 1, 1)).adjoint(), And(1, 0).adjoint(),
+            ControlledViaAnd(XGate(), CtrlSpec(qdtypes=(QUInt(3),), cvs=(np.array(0),))),
+            ControlledViaAnd(XGate(), CtrlSpec(qdtypes=(QUInt(3),), cvs=(5,))),
+            ControlledViaAnd(AddK(QUInt(3), 3), CtrlSpec(qdtypes=(QUInt(2),), cvs=(np.array(2),)))]
+    out += [QROAMClean([np.array([3, 10], dtype=object)], selection_bitsizes=(1,), target_bitsizes=(4,)),
+            QROAMClean([np.array([0, 9, 2, 15], dtype=object)], selection_bitsizes=(2,), target_bitsizes=(4,))]
+    out += [ModAdd(3, 7), ModAdd(4, 13), CModAdd(QUInt(3), 7), CModAdd(QUInt(4), 11, cv=0), ModSub(QUInt(3), 7),
+            CModSub(QUInt(3), 5), ModNeg(QUInt(3), 7), CModNeg(QUInt(3), 5), ModDbl(QUInt(4), 13)]
+    from qualtran.bloqs.arithmetic import Subtract, SubtractFrom, Negate, OutOfPlaceAdder
+    from qualtran.bloqs.mod_arithmetic import CModAddK, CtrlScaleModAdd, CModMulK
+    from qualtran.bloqs.basic_gates import OnEach
+    out += [OnEach(3, XGate()), OnEach(4, XGate(), target_dtype=QUInt(4)), Subtract(QUInt(3)), SubtractFrom(QUInt(3)),
+            Negate(QUInt(4)), OutOfPlaceAdder(3),
+            CModAddK(k=5, mod=13, bitsize=4), CModAddK(k=0, mod=7, bitsize=3), CtrlScaleModAdd(k=5, mod=13, bitsize=4),
+            CtrlScaleModAdd(k=3, mod=7, bitsize=3), CtrlScaleModAdd(k=-5, mod=13, bitsize=4),
+            CModMulK(QUInt(4), k=5, mod=13), CModMulK(QUInt(3), k=3, mod=7)]
+    return out
+
+
+def selfcheck(instances=None, *, max_inputs=1 << 14):
+    """For every instance with a registry contract: enumerate every input of its domain and compare the contract with
+    ``bloq.call_classically``.  Returns a list of dicts (``ok``, ``checked``, ``first_mismatch``)."""
+    import itertools
+    rows = []
+    for bloq in (instances if instances is not None else _small_instances()):
+        c = contract_for(bloq)
+        row = dict(bloq=repr(bloq)[:120], contract=c.name if c else None, ok=False, checked=0, first_mismatch=None)
+        if c is None:
+            row['why'] = 'no contract'
+            rows.append(row)
+            continue
+        lefts = list(bloq.signature.lefts())
+        rights = list(bloq.signature.rights())
+        names = [nm for r in lefts for nm in contract_names(r)]
+        if set(names) != set(c.inputs):
+            row['why'] = f'contract inputs {sorted(c.inputs)} != registers {names}'
+            rows.append(row)
+            continue
+        doms = [range(1 << c.inputs[n]) for n in names]
+        total = 1
+        for d in doms:
+            total *= len(d)
+        if total > max_inputs:
+            row['why'] = f'{total} inputs > {max_inputs}'
+            rows.append(row)
+            continue
+        bad = None
+        cnt = 0
+        for vals in itertools.product(*doms):
+            v = dict(zip(names, vals))
+            if not c.in_domain(v):
+                continue
+            want = c.evaluate(v)
+            try:
+                res = bloq.call_classically(**{r.name: to_classical(r, v) for r in lefts})
+            except Exception as e:  # noqa: BLE001
+                bad = dict(input=v, why=f'call_classically raised {type(e).__name__}: {e}')
+                break
+            if not isinstance(res, tuple):
+                res = (res,)
+            got = {}
+            for r, val in zip(rights, res):
+                got.update(from_classical(r, val))
+            cnt += 1
+            if got != want:
+                bad = dict(input=v, contract=want, qualtran=got)
+                break
+        row.update(checked=cnt, ok=bad is None and cnt > 0, first_mismatch=bad)
+        rows.append(row)
+    return rows

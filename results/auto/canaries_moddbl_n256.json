@@ -1,0 +1,522 @@
+{
+ "schema": "qoptct.auto.canaries/1",
+ "target": "moddbl",
+ "params": {
+  "n": 256,
+  "p": 57896044618658097711785492504343953926634992332820282019728792003956564819949
+ },
+ "versions": {
+  "python": "3.12.16",
+  "qualtran": "0.7.0",
+  "z3-solver": "5.3.3.0",
+  "numpy": "2.5.5",
+  "z3": "5.3.3"
+ },
+ "qualtran_variant": {
+  "kind": "original",
+  "qualtran_file": "/Users/max/quantum-start/lab/work/v07/venv/lib/python3.12/site-packages/qualtran/__init__.py",
+  "qualtran_version": null,
+  "files_sha256_16": {
+   "bloqs/cryptography/ecc/ec_add.py": "71a3efc0368f7fca",
+   "bloqs/mod_arithmetic/mod_multiplication.py": "3873115b5cf6fd31",
+   "bloqs/data_loading/qrom_base.py": "5837d39f0c301dfc",
+   "bloqs/data_loading/select_swap_qrom.py": "1dd5d2aee856779c"
+  }
+ },
+ "source_sha256": "d80d01de696bdca5f3c8622505e033141fb7e51ce14e6a20f351971db8d95de9",
+ "canary_sha256": "d549063de2d25990302c5d59de548701720fd27a6f83842edd63332309c554be",
+ "program_ops_sha256": "16a33bced9a4b3bb8f74867b603f517db64968b6edc48f547865d042661fe609",
+ "total": 29,
+ "counted": 29,
+ "joints": 15,
+ "gates": 14,
+ "proved": [],
+ "rows": [
+  {
+   "name": "J1_swap_wires_of_a_child",
+   "family": "joint",
+   "mutation": "ModDbl/4:AddK: register x: its first and last wire exchanged (input and output)",
+   "status": "NOT_PROVED",
+   "detail": "child ModDbl/4:AddK (AddK) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J1b_swap_wires_of_a_later_child",
+   "family": "joint",
+   "mutation": "ModDbl/7:Controlled: register x: its first and last wire exchanged (input and output)",
+   "status": "NOT_PROVED",
+   "detail": "child ModDbl/7:Controlled (Controlled) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.2,
+   "counts": true
+  },
+  {
+   "name": "J2_swap_output_wires_of_a_child",
+   "family": "joint",
+   "mutation": "ModDbl/7:Controlled: output register x: two wires exchanged (only on the output side)",
+   "status": "NOT_PROVED",
+   "detail": "child ModDbl/7:Controlled (Controlled) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.2,
+   "counts": true
+  },
+  {
+   "name": "J4_extra_operation_between_children",
+   "family": "joint",
+   "mutation": "X on input wire 255 inserted at 2065, between ModDbl/4:AddK and the next child (owned by the root)",
+   "status": "NOT_PROVED",
+   "detail": "coverage: operations 2065..2066 of ModDbl belong to no child (or children overlap) before ModDbl/7:Controlled",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J5_extra_operation_inside_a_child",
+   "family": "joint",
+   "mutation": "X on wire 256 inserted inside ModDbl/4:AddK at 1032",
+   "status": "NOT_PROVED",
+   "detail": "child ModDbl/4:AddK (AddK) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J4b_extra_operation_before_the_first_child",
+   "family": "joint",
+   "mutation": "X on input wire 0 inserted at 0, before the first child ModDbl/4:AddK (owned by the root)",
+   "status": "NOT_PROVED",
+   "detail": "coverage: operations 0..1 of ModDbl belong to no child (or children overlap) before ModDbl/4:AddK",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J4c_extra_operation_after_the_last_child",
+   "family": "joint",
+   "mutation": "X on output wire 256 inserted at 4619, after the last child ModDbl/11:XGate (owned by the root)",
+   "status": "NOT_PROVED",
+   "detail": "coverage: operations 4619..4620 of ModDbl belong to no child",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J6_extra_operation_between_grandchildren",
+   "family": "joint",
+   "mutation": "X on wire 515 inserted between ModDbl/4:AddK/1:XorK and ModDbl/4:AddK/2:Always (owned by ModDbl/4:AddK)",
+   "status": "NOT_PROVED",
+   "detail": "child ModDbl/4:AddK (AddK) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J8_wrong_contract_of_child_AddK",
+   "family": "joint",
+   "mutation": "contract of AddK:81a5f19868b73a5f replaced by a wrong one: AddK(258,-57896044618658097711785492504343953926634992332820282019728792003956564819949) [WRONG: +1 on x]",
+   "status": "NOT_PROVED",
+   "detail": "child ModDbl/4:AddK (AddK) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J8_wrong_contract_of_child_Controlled",
+   "family": "joint",
+   "mutation": "contract of Controlled:a40a8e719e3cf826 replaced by a wrong one: Controlled[AddK(257,57896044618658097711785492504343953926634992332820282019728792003956564819949); ctrl=1] [WRONG: +1 on x]",
+   "status": "NOT_PROVED",
+   "detail": "child ModDbl/7:Controlled (Controlled) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.2,
+   "counts": true
+  },
+  {
+   "name": "J8_wrong_contract_of_child_XGate",
+   "family": "joint",
+   "mutation": "contract of XGate:9c761c8336b01810 replaced by a wrong one: X [WRONG: +1 on q]",
+   "status": "NOT_PROVED",
+   "detail": "child ModDbl/9:XGate (XGate) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.4,
+   "counts": true
+  },
+  {
+   "name": "J8b_child_claims_no_effect_AddK",
+   "family": "joint",
+   "mutation": "contract of AddK:81a5f19868b73a5f replaced by a wrong one: AddK(258,-57896044618658097711785492504343953926634992332820282019728792003956564819949) [WRONG: x unchanged]",
+   "status": "NOT_PROVED",
+   "detail": "child ModDbl/4:AddK (AddK) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J8b_child_claims_no_effect_Controlled",
+   "family": "joint",
+   "mutation": "contract of Controlled:a40a8e719e3cf826 replaced by a wrong one: Controlled[AddK(257,57896044618658097711785492504343953926634992332820282019728792003956564819949); ctrl=1] [WRONG: x unchanged]",
+   "status": "NOT_PROVED",
+   "detail": "child ModDbl/7:Controlled (Controlled) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.2,
+   "counts": true
+  },
+  {
+   "name": "J9_root_precondition_weakened_0",
+   "family": "joint",
+   "mutation": "root precondition weakened",
+   "status": "NOT_PROVED",
+   "detail": "ModDbl/13:Free: freed register reg is 0: does not follow from the facts (counterexample found)",
+   "seconds": 0.5,
+   "counts": true
+  },
+  {
+   "name": "J10_child_domain_narrowed_AddK",
+   "family": "joint",
+   "mutation": "contract of AddK:81a5f19868b73a5f replaced by a wrong one: AddK(258,-57896044618658097711785492504343953926634992332820282019728792003956564819949) [NARROW: x < 2]",
+   "status": "NOT_PROVED",
+   "detail": "ModDbl/4:AddK: precondition of AddK(258,-57896044618658097711785492504343953926634992332820282019728792003956564819949) [NARROW: x < 2] (part 0): does not follow from the facts (counterexample found)",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "G2_phase_correction_moved_AddK",
+   "family": "gate",
+   "mutation": "op 1546: erase correction moved to wire 256 (phase)",
+   "status": "NOT_PROVED",
+   "detail": "child ModDbl/4:AddK (AddK) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 1,
+    "cases": 24,
+    "first": {
+     "input": {
+      "x": 463168356949264781694283940034751631413079938662562256157830336031652518559743
+     },
+     "expected": {
+      "x": 405272312330606683982498447530407677486444946329741974138101544027695953739794
+     },
+     "got": {
+      "x": 405272312330606683982498447530407677486444946329741974138101544027695953739794
+     },
+     "phase": true,
+     "other_wires_nonzero": false
+    },
+    "level": "leaf ModDbl/4:AddK"
+   },
+   "counts": true
+  },
+  {
+   "name": "G3_carry_cx_reversed_Controlled",
+   "family": "gate",
+   "mutation": "op 4613: control and target of a CX near the top of the carry chain exchanged",
+   "status": "NOT_PROVED",
+   "detail": "child ModDbl/7:Controlled (Controlled) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.2,
+   "witness": {
+    "mismatches": 22,
+    "cases": 40,
+    "first": {
+     "input": {
+      "x": "0"
+     },
+     "phase": false,
+     "other_wires": true,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G4_high_carry_and_weakened_Controlled",
+   "family": "gate",
+   "mutation": "op 3333: the AND of a high carry replaced by a CX of one control (wrong only on rare inputs)",
+   "status": "NOT_PROVED",
+   "detail": "child ModDbl/7:Controlled (Controlled) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.2,
+   "witness": {
+    "mismatches": 1,
+    "cases": 24,
+    "first": {
+     "input": {
+      "ctrl": 1,
+      "x": 2
+     },
+     "expected": {
+      "ctrl": 1,
+      "x": 57896044618658097711785492504343953926634992332820282019728792003956564819951
+     },
+     "got": {
+      "ctrl": 1,
+      "x": 115792089237316195423570985008687907853269984665640564039457584007913129639919
+     },
+     "phase": true,
+     "other_wires_nonzero": false
+    },
+    "level": "leaf ModDbl/7:Controlled"
+   },
+   "counts": true
+  },
+  {
+   "name": "G3_carry_cx_reversed_AddK",
+   "family": "gate",
+   "mutation": "op 2055: control and target of a CX near the top of the carry chain exchanged",
+   "status": "NOT_PROVED",
+   "detail": "child ModDbl/4:AddK (AddK) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 40,
+    "cases": 40,
+    "first": {
+     "input": {
+      "x": "0"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G4_high_carry_and_weakened_AddK",
+   "family": "gate",
+   "mutation": "op 1025: the AND of a high carry replaced by a CX of one control (wrong only on rare inputs)",
+   "status": "NOT_PROVED",
+   "detail": "child ModDbl/4:AddK (AddK) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 19,
+    "cases": 40,
+    "first": {
+     "input": {
+      "x": "0"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": [
+      "x"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G5_x_removed_AddK",
+   "family": "gate",
+   "mutation": "op 2059: an X removed",
+   "status": "NOT_PROVED",
+   "detail": "child ModDbl/4:AddK (AddK) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 40,
+    "cases": 40,
+    "first": {
+     "input": {
+      "x": "0"
+     },
+     "phase": false,
+     "other_wires": true,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G6_noncommuting_swap_AddK",
+   "family": "gate",
+   "mutation": "ops 10, 11: two non-commuting CX exchanged",
+   "status": "NOT_PROVED",
+   "detail": "child ModDbl/4:AddK (AddK) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 1,
+    "cases": 24,
+    "first": {
+     "input": {
+      "x": 463168356949264781694283940034751631413079938662562256157830336031652518559743
+     },
+     "expected": {
+      "x": 405272312330606683982498447530407677486444946329741974138101544027695953739794
+     },
+     "got": {
+      "x": 405272312330606683982498447530407677486444946329741974138101544027695953739798
+     },
+     "phase": false,
+     "other_wires_nonzero": true
+    },
+    "level": "leaf ModDbl/4:AddK"
+   },
+   "counts": true
+  },
+  {
+   "name": "G7_last_operation_removed",
+   "family": "gate",
+   "mutation": "op 4618 (the last one) removed",
+   "status": "NOT_PROVED",
+   "detail": "child ModDbl/11:XGate (XGate) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.5,
+   "witness": {
+    "mismatches": 40,
+    "cases": 40,
+    "first": {
+     "input": {
+      "x": "0"
+     },
+     "phase": false,
+     "other_wires": false,
+     "outputs_differ": [
+      "x"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_0_AddK",
+   "family": "gate",
+   "mutation": "op 679 in ModDbl/4:AddK: ('cx', 684, 346) -> ('cx', 684, 85)",
+   "status": "NOT_PROVED",
+   "detail": "child ModDbl/4:AddK (AddK) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 1,
+    "cases": 24,
+    "first": {
+     "input": {
+      "x": 463168356949264781694283940034751631413079938662562256157830336031652518559743
+     },
+     "expected": {
+      "x": 405272312330606683982498447530407677486444946329741974138101544027695953739794
+     },
+     "got": {
+      "x": 405272312330606683982498445285541162546178063968882071085890825836183567728658
+     },
+     "phase": false,
+     "other_wires_nonzero": true
+    },
+    "level": "leaf ModDbl/4:AddK"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_1_Controlled",
+   "family": "gate",
+   "mutation": "op 2879 in ModDbl/7:Controlled: ('cx', 1170, 888) -> ('cx', 1170, 104)",
+   "status": "NOT_PROVED",
+   "detail": "child ModDbl/7:Controlled (Controlled) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.2,
+   "witness": {
+    "mismatches": 22,
+    "cases": 40,
+    "first": {
+     "input": {
+      "x": "0"
+     },
+     "phase": false,
+     "other_wires": true,
+     "outputs_differ": [
+      "x"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_2_AddK",
+   "family": "gate",
+   "mutation": "op 1569 in ModDbl/4:AddK: ('cx', 637, 638) -> ('cx', 637, 152)",
+   "status": "NOT_PROVED",
+   "detail": "child ModDbl/4:AddK (AddK) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 1,
+    "cases": 24,
+    "first": {
+     "input": {
+      "x": 463168356949264781694283940034751631413079938662562256157830336031652518559743
+     },
+     "expected": {
+      "x": 405272312330606683982498447530407677486444946329741974138101544027695953739794
+     },
+     "got": {
+      "x": 405272312330606683982498447530407677486444946350024383741753214451643205025810
+     },
+     "phase": true,
+     "other_wires_nonzero": false
+    },
+    "level": "leaf ModDbl/4:AddK"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_3_Controlled",
+   "family": "gate",
+   "mutation": "op 3764 in ModDbl/7:Controlled: ('cx', 879, 106) -> ('cx', 879, 84)",
+   "status": "NOT_PROVED",
+   "detail": "child ModDbl/7:Controlled (Controlled) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.2,
+   "witness": {
+    "mismatches": 14,
+    "cases": 40,
+    "first": {
+     "input": {
+      "x": "0"
+     },
+     "phase": false,
+     "other_wires": false,
+     "outputs_differ": [
+      "x"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_4_Controlled",
+   "family": "gate",
+   "mutation": "op 2331 in ModDbl/7:Controlled: ('cx', 1033, 1025) -> ('cx', 1033, 169)",
+   "status": "NOT_PROVED",
+   "detail": "child ModDbl/7:Controlled (Controlled) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.3,
+   "witness": {
+    "mismatches": 18,
+    "cases": 40,
+    "first": {
+     "input": {
+      "x": "0"
+     },
+     "phase": false,
+     "other_wires": true,
+     "outputs_differ": [
+      "x"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_5_Controlled",
+   "family": "gate",
+   "mutation": "op 3318 in ModDbl/7:Controlled: ('cx', 1279, 1280) -> ('cx', 1279, 246)",
+   "status": "NOT_PROVED",
+   "detail": "child ModDbl/7:Controlled (Controlled) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.2,
+   "witness": {
+    "mismatches": 24,
+    "cases": 40,
+    "first": {
+     "input": {
+      "x": "0"
+     },
+     "phase": true,
+     "other_wires": true,
+     "outputs_differ": [
+      "x"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  }
+ ],
+ "ok": true,
+ "seconds": 11.5,
+ "not_proved": 29
+}

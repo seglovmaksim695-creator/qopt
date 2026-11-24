@@ -1,0 +1,898 @@
+{
+ "schema": "qoptct.auto/1",
+ "target": "ctrlscalemodadd",
+ "params": {
+  "n": 16,
+  "p": 32749,
+  "k": 23855
+ },
+ "verdict": "NOT_PROVED",
+ "reasons": [
+  "composition: UNKNOWN: output y equals the contract: Z3 returned unknown (time-out 120000 ms)"
+ ],
+ "versions": {
+  "python": "3.12.16",
+  "qualtran": "0.7.0",
+  "z3-solver": "5.3.3.0",
+  "numpy": "2.5.5",
+  "z3": "5.3.3"
+ },
+ "qualtran_variant": {
+  "kind": "original",
+  "qualtran_file": "/Users/max/quantum-start/lab/work/v07/venv/lib/python3.12/site-packages/qualtran/__init__.py",
+  "qualtran_version": null,
+  "files_sha256_16": {
+   "bloqs/cryptography/ecc/ec_add.py": "71a3efc0368f7fca",
+   "bloqs/mod_arithmetic/mod_multiplication.py": "3873115b5cf6fd31",
+   "bloqs/data_loading/qrom_base.py": "5837d39f0c301dfc",
+   "bloqs/data_loading/select_swap_qrom.py": "1dd5d2aee856779c"
+  }
+ },
+ "source_sha256": "d80d01de696bdca5f3c8622505e033141fb7e51ce14e6a20f351971db8d95de9",
+ "assumptions": [
+  "the strict bridge of 0.7 (lower_bloqgraph + translate) and its rules A1 (controlled And) and C1 (QROAMCleanAdjoint as a primitive with a contract, assumptions A1-A4 of bridge/qroam_clean_adjoint.py); TwoBitCSwap, where it occurs, by the opt-in rule bridge/fredkin_rule.py (CX.CCX.CX)",
+  "the qoptct prover kprove (ROBDD path sum) with the exact AND/ERASE domain guard, and the gadget lemma for AND/erase",
+  "Z3 (linear integer arithmetic) for the composition of the contracts of the children",
+  "the specification of the root is the statement (formulas in qoptct/foreign/auto/specs.py); it is compared with call_classically of the same Qualtran on a small instance (spec_check of the verdict), not proved equal to it"
+ ],
+ "spec_check": {
+  "target": "ctrlscalemodadd",
+  "params": {
+   "n": "4",
+   "p": "7",
+   "k": "5"
+  },
+  "checked": 224,
+  "ok": true,
+  "first_mismatch": null
+ },
+ "spec": {
+  "name": "CtrlScaleModAdd(n=16, k=23855, p=32749)",
+  "sha256": "74d8e68145b6ab2d5f5a6e831fd744a40ecf54850d9d097188bec1cabd4c9726",
+  "note": ""
+ },
+ "program": {
+  "nq": 2193,
+  "ops": 11700,
+  "ops_sha256": "94d785aba1a386cd8de69a1ed646c6c2929227fddbada48d41d51a8756e667ab",
+  "bridge_scratch": [],
+  "source_nq": 2193,
+  "program_inputs": {
+   "ctrl": [
+    0
+   ],
+   "x": [
+    16,
+    15,
+    14,
+    13,
+    12,
+    11,
+    10,
+    9,
+    8,
+    7,
+    6,
+    5,
+    4,
+    3,
+    2,
+    1
+   ],
+   "y": [
+    32,
+    31,
+    30,
+    29,
+    28,
+    27,
+    26,
+    25,
+    24,
+    23,
+    22,
+    21,
+    20,
+    19,
+    18,
+    17
+   ]
+  },
+  "program_outputs": {
+   "ctrl": [
+    0
+   ],
+   "x": [
+    16,
+    15,
+    14,
+    13,
+    12,
+    11,
+    10,
+    9,
+    8,
+    7,
+    6,
+    5,
+    4,
+    3,
+    2,
+    1
+   ],
+   "y": [
+    32,
+    31,
+    30,
+    29,
+    28,
+    27,
+    26,
+    25,
+    24,
+    23,
+    22,
+    21,
+    20,
+    19,
+    18,
+    17
+   ]
+  },
+  "retired_wires": 2160
+ },
+ "lower_seconds": 1.1,
+ "prove_seconds": 121.6,
+ "root": {
+  "status": "UNKNOWN",
+  "mode": "compose",
+  "detail": "output y equals the contract: Z3 returned unknown (time-out 120000 ms)",
+  "failure": {},
+  "obligations": 35,
+  "z3_calls": 17,
+  "deferred": 0,
+  "children": [
+   {
+    "type": "And",
+    "status": "PROVED",
+    "contract": "And(1,1)",
+    "count": 16
+   },
+   {
+    "type": "CModAddK",
+    "status": "PROVED",
+    "contract": "CModAddK(n=16, k=27508, p=32749)",
+    "count": 1
+   },
+   {
+    "type": "And",
+    "status": "PROVED",
+    "contract": "And^-1(1,1)",
+    "count": 16
+   },
+   {
+    "type": "CModAddK",
+    "status": "PROVED",
+    "contract": "CModAddK(n=16, k=13754, p=32749)",
+    "count": 1
+   },
+   {
+    "type": "CModAddK",
+    "status": "PROVED",
+    "contract": "CModAddK(n=16, k=6877, p=32749)",
+    "count": 1
+   },
+   {
+    "type": "CModAddK",
+    "status": "PROVED",
+    "contract": "CModAddK(n=16, k=19813, p=32749)",
+    "count": 1
+   },
+   {
+    "type": "CModAddK",
+    "status": "PROVED",
+    "contract": "CModAddK(n=16, k=26281, p=32749)",
+    "count": 1
+   },
+   {
+    "type": "CModAddK",
+    "status": "PROVED",
+    "contract": "CModAddK(n=16, k=29515, p=32749)",
+    "count": 1
+   },
+   {
+    "type": "CModAddK",
+    "status": "PROVED",
+    "contract": "CModAddK(n=16, k=31132, p=32749)",
+    "count": 1
+   },
+   {
+    "type": "CModAddK",
+    "status": "PROVED",
+    "contract": "CModAddK(n=16, k=15566, p=32749)",
+    "count": 1
+   },
+   {
+    "type": "CModAddK",
+    "status": "PROVED",
+    "contract": "CModAddK(n=16, k=7783, p=32749)",
+    "count": 1
+   },
+   {
+    "type": "CModAddK",
+    "status": "PROVED",
+    "contract": "CModAddK(n=16, k=20266, p=32749)",
+    "count": 1
+   },
+   {
+    "type": "CModAddK",
+    "status": "PROVED",
+    "contract": "CModAddK(n=16, k=10133, p=32749)",
+    "count": 1
+   },
+   {
+    "type": "CModAddK",
+    "status": "PROVED",
+    "contract": "CModAddK(n=16, k=21441, p=32749)",
+    "count": 1
+   },
+   {
+    "type": "CModAddK",
+    "status": "PROVED",
+    "contract": "CModAddK(n=16, k=27095, p=32749)",
+    "count": 1
+   },
+   {
+    "type": "CModAddK",
+    "status": "PROVED",
+    "contract": "CModAddK(n=16, k=29922, p=32749)",
+    "count": 1
+   },
+   {
+    "type": "CModAddK",
+    "status": "PROVED",
+    "contract": "CModAddK(n=16, k=14961, p=32749)",
+    "count": 1
+   },
+   {
+    "type": "CModAddK",
+    "status": "PROVED",
+    "contract": "CModAddK(n=16, k=23855, p=32749)",
+    "count": 1
+   }
+  ],
+  "folds": {},
+  "qasm_sha256": "ea15f75f917b57000acec9225a39b6a9a48d96c1b3d3d77184ef367df57ac44a",
+  "layout_sha256": "ddb237302c2835d1344877ad606d17ea233c533cc4bc9a7f9d9e005b3a94dc7e",
+  "seconds": 121.58
+ },
+ "pieces": [
+  {
+   "type": "CtrlScaleModAdd",
+   "mode": "compose",
+   "qasm_sha256": "ea15f75f917b57000acec9225a39b6a9a48d96c1b3d3d77184ef367df57ac44a",
+   "contract": "CtrlScaleModAdd(n=16, k=23855, p=32749)",
+   "ops": 11700,
+   "status": "UNKNOWN",
+   "method": "z3_lia_composition",
+   "count": 1,
+   "detail": "output y equals the contract: Z3 returned unknown (time-out 120000 ms)"
+  },
+  {
+   "type": "CModAddK",
+   "mode": "compose",
+   "qasm_sha256": "68000bae4e8f7619c63b1f9714169738f1d8aa394524543629b851abc610335d",
+   "contract": "CModAddK(n=16, k=27095, p=32749)",
+   "ops": 732,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "CModAddK",
+   "mode": "compose",
+   "qasm_sha256": "ebde8c69243fbc9953587160e8adac041467f696aa05632920fd27c507b70cfc",
+   "contract": "CModAddK(n=16, k=23855, p=32749)",
+   "ops": 732,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "CModAddK",
+   "mode": "compose",
+   "qasm_sha256": "4420800e4e8007696ee80f55f9e49a96e9819fd026cc1df61ff21eb72c512629",
+   "contract": "CModAddK(n=16, k=27508, p=32749)",
+   "ops": 730,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "CModAddK",
+   "mode": "compose",
+   "qasm_sha256": "252d14ce5641ac553725ef9b55db8e6f67a5f5e2321b37648f3e11d67fdaf3a3",
+   "contract": "CModAddK(n=16, k=13754, p=32749)",
+   "ops": 730,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "CModAddK",
+   "mode": "compose",
+   "qasm_sha256": "c39f5b170fe1def56c3bdb937519c596598f228049dd81a29a8c287684440b61",
+   "contract": "CModAddK(n=16, k=6877, p=32749)",
+   "ops": 730,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "CModAddK",
+   "mode": "compose",
+   "qasm_sha256": "18fe0a1ef7b4493059b825c6b19ead3212b6a3ff4239a273c62d87a365bf35a2",
+   "contract": "CModAddK(n=16, k=29515, p=32749)",
+   "ops": 730,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "CModAddK",
+   "mode": "compose",
+   "qasm_sha256": "2efb0a7ced0180e2563fbac8003c69f3182f80436dafd0a89d634798b7156a6f",
+   "contract": "CModAddK(n=16, k=31132, p=32749)",
+   "ops": 730,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "CModAddK",
+   "mode": "compose",
+   "qasm_sha256": "2c9d4772e75eff9b62f71a3e11f958939631c5e5b12f751f07493e0e78b93812",
+   "contract": "CModAddK(n=16, k=15566, p=32749)",
+   "ops": 730,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "CModAddK",
+   "mode": "compose",
+   "qasm_sha256": "c8bf43681677749d19f829955ec491ece7a960cffb3482b2722684cdbe1729c5",
+   "contract": "CModAddK(n=16, k=7783, p=32749)",
+   "ops": 730,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "CModAddK",
+   "mode": "compose",
+   "qasm_sha256": "c7ccb4c68f818d92d540a4e29b34b9d25141f50cc4f07534a4fa0625f96ded56",
+   "contract": "CModAddK(n=16, k=19813, p=32749)",
+   "ops": 728,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "CModAddK",
+   "mode": "compose",
+   "qasm_sha256": "46e477cc8bdf51f38573c75dc834fe36d13092079572a62586f6c1583156fe7e",
+   "contract": "CModAddK(n=16, k=26281, p=32749)",
+   "ops": 728,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "CModAddK",
+   "mode": "compose",
+   "qasm_sha256": "f38de31a5ed3c2192c302b391b6eefa32146811e4c59080f5f83acef28b651f6",
+   "contract": "CModAddK(n=16, k=20266, p=32749)",
+   "ops": 728,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "CModAddK",
+   "mode": "compose",
+   "qasm_sha256": "05ffceffe805a6ffac51242fd23d7ef103cb634b35a701a18bc5ae39d53c9299",
+   "contract": "CModAddK(n=16, k=10133, p=32749)",
+   "ops": 728,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "CModAddK",
+   "mode": "compose",
+   "qasm_sha256": "62100d555e76790418fb1788f2119cf9f005d1691b442fd5cb2f1d1f9e7746fe",
+   "contract": "CModAddK(n=16, k=29922, p=32749)",
+   "ops": 728,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "CModAddK",
+   "mode": "compose",
+   "qasm_sha256": "238ab9e2a8491cd2bcb80b5e237cc033f41912ef210cfad0ce2bc2614244a9c6",
+   "contract": "CModAddK(n=16, k=14961, p=32749)",
+   "ops": 728,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "CModAddK",
+   "mode": "compose",
+   "qasm_sha256": "b18070d212c99b3c8f50baee9b3f138c4da4262eb3d53e967b2b35e6b38c4c44",
+   "contract": "CModAddK(n=16, k=21441, p=32749)",
+   "ops": 726,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "CModAdd",
+   "mode": "compose",
+   "qasm_sha256": "b61e565eff0fe032fbe65b8de1a7d01d97d1cd2f7af040a608c27be05d4e07ac",
+   "contract": "CModAdd(n=16, p=32749, cv=1)",
+   "ops": 712,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 16
+  },
+  {
+   "type": "IntState",
+   "mode": "compose",
+   "qasm_sha256": "ccdc1eee0d2abb88d5d19fb3edf46920b607adec934954626a5c64f0c9ff02cf",
+   "contract": "IntState(27095, 16)",
+   "ops": 10,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntEffect",
+   "mode": "compose",
+   "qasm_sha256": "ccdc1eee0d2abb88d5d19fb3edf46920b607adec934954626a5c64f0c9ff02cf",
+   "contract": "IntEffect(27095, 16)",
+   "ops": 10,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntState",
+   "mode": "compose",
+   "qasm_sha256": "e084c7f51b34c9d7e3f290a22c96869100900736e886cec3b4f294567ec490ef",
+   "contract": "IntState(23855, 16)",
+   "ops": 10,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntEffect",
+   "mode": "compose",
+   "qasm_sha256": "e084c7f51b34c9d7e3f290a22c96869100900736e886cec3b4f294567ec490ef",
+   "contract": "IntEffect(23855, 16)",
+   "ops": 10,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntState",
+   "mode": "compose",
+   "qasm_sha256": "661bcab3fbc2edbd82ab8f07f492b2d0526ffa0794530110b09316ddb7010735",
+   "contract": "IntState(27508, 16)",
+   "ops": 9,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntEffect",
+   "mode": "compose",
+   "qasm_sha256": "661bcab3fbc2edbd82ab8f07f492b2d0526ffa0794530110b09316ddb7010735",
+   "contract": "IntEffect(27508, 16)",
+   "ops": 9,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntState",
+   "mode": "compose",
+   "qasm_sha256": "26f0c89a99451944a745a88ff7d89c0dea028f31f61f35b7d4a741300ca53b98",
+   "contract": "IntState(13754, 16)",
+   "ops": 9,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntEffect",
+   "mode": "compose",
+   "qasm_sha256": "26f0c89a99451944a745a88ff7d89c0dea028f31f61f35b7d4a741300ca53b98",
+   "contract": "IntEffect(13754, 16)",
+   "ops": 9,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntState",
+   "mode": "compose",
+   "qasm_sha256": "7b2b3fe5356bfc11254c4b8bdae63353800fd8a00d7625db07132bef9d80cf4b",
+   "contract": "IntState(6877, 16)",
+   "ops": 9,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntEffect",
+   "mode": "compose",
+   "qasm_sha256": "7b2b3fe5356bfc11254c4b8bdae63353800fd8a00d7625db07132bef9d80cf4b",
+   "contract": "IntEffect(6877, 16)",
+   "ops": 9,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntState",
+   "mode": "compose",
+   "qasm_sha256": "737a595d02be2ba6f03edf8108a0417eb5317eadc7a4ae9f62aef7ebab298eef",
+   "contract": "IntState(29515, 16)",
+   "ops": 9,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntEffect",
+   "mode": "compose",
+   "qasm_sha256": "737a595d02be2ba6f03edf8108a0417eb5317eadc7a4ae9f62aef7ebab298eef",
+   "contract": "IntEffect(29515, 16)",
+   "ops": 9,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntState",
+   "mode": "compose",
+   "qasm_sha256": "b7ba32b01adaa9c677dae9bc1238ae53be141b14244ecffa206001eaecd49843",
+   "contract": "IntState(31132, 16)",
+   "ops": 9,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntEffect",
+   "mode": "compose",
+   "qasm_sha256": "b7ba32b01adaa9c677dae9bc1238ae53be141b14244ecffa206001eaecd49843",
+   "contract": "IntEffect(31132, 16)",
+   "ops": 9,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntState",
+   "mode": "compose",
+   "qasm_sha256": "b87876f4eb44a61a47e17cdd3aefcac83af9907bd902ccdcdd22ba43a02d8495",
+   "contract": "IntState(15566, 16)",
+   "ops": 9,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntEffect",
+   "mode": "compose",
+   "qasm_sha256": "b87876f4eb44a61a47e17cdd3aefcac83af9907bd902ccdcdd22ba43a02d8495",
+   "contract": "IntEffect(15566, 16)",
+   "ops": 9,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntState",
+   "mode": "compose",
+   "qasm_sha256": "fed82509ed34f6564d6810284528fdf8d7fe8709529eee7bf01bb83da2075816",
+   "contract": "IntState(7783, 16)",
+   "ops": 9,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntEffect",
+   "mode": "compose",
+   "qasm_sha256": "fed82509ed34f6564d6810284528fdf8d7fe8709529eee7bf01bb83da2075816",
+   "contract": "IntEffect(7783, 16)",
+   "ops": 9,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntState",
+   "mode": "compose",
+   "qasm_sha256": "27649447f34a935d57ab4acce07010fe2dd7a72c7d8eac1024bce4cf3de6ef7c",
+   "contract": "IntState(19813, 16)",
+   "ops": 8,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntEffect",
+   "mode": "compose",
+   "qasm_sha256": "27649447f34a935d57ab4acce07010fe2dd7a72c7d8eac1024bce4cf3de6ef7c",
+   "contract": "IntEffect(19813, 16)",
+   "ops": 8,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntState",
+   "mode": "compose",
+   "qasm_sha256": "c7edfe50937184154e44b041c2586c498a3e0307a7048dcb98489647d17d762e",
+   "contract": "IntState(26281, 16)",
+   "ops": 8,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntEffect",
+   "mode": "compose",
+   "qasm_sha256": "c7edfe50937184154e44b041c2586c498a3e0307a7048dcb98489647d17d762e",
+   "contract": "IntEffect(26281, 16)",
+   "ops": 8,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntState",
+   "mode": "compose",
+   "qasm_sha256": "19107d24f71ca193f9d1f25b38d2450e91e03d2e41691ec28b4aca0ac8f29ab0",
+   "contract": "IntState(20266, 16)",
+   "ops": 8,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntEffect",
+   "mode": "compose",
+   "qasm_sha256": "19107d24f71ca193f9d1f25b38d2450e91e03d2e41691ec28b4aca0ac8f29ab0",
+   "contract": "IntEffect(20266, 16)",
+   "ops": 8,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntState",
+   "mode": "compose",
+   "qasm_sha256": "f67afecf5e5e1f611b9449262597e047ad1b232ed246284a924176ce2a21806e",
+   "contract": "IntState(10133, 16)",
+   "ops": 8,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntEffect",
+   "mode": "compose",
+   "qasm_sha256": "f67afecf5e5e1f611b9449262597e047ad1b232ed246284a924176ce2a21806e",
+   "contract": "IntEffect(10133, 16)",
+   "ops": 8,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntState",
+   "mode": "compose",
+   "qasm_sha256": "286d26f552e19e388e18739a0217be7c60755ec58d7b81d17645bddde566ff1e",
+   "contract": "IntState(29922, 16)",
+   "ops": 8,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntEffect",
+   "mode": "compose",
+   "qasm_sha256": "286d26f552e19e388e18739a0217be7c60755ec58d7b81d17645bddde566ff1e",
+   "contract": "IntEffect(29922, 16)",
+   "ops": 8,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntState",
+   "mode": "compose",
+   "qasm_sha256": "07e1ac84868a35aa5abe49b0c8ad9833385ebd7ab52b0358b3b9330f16c97ef2",
+   "contract": "IntState(14961, 16)",
+   "ops": 8,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntEffect",
+   "mode": "compose",
+   "qasm_sha256": "07e1ac84868a35aa5abe49b0c8ad9833385ebd7ab52b0358b3b9330f16c97ef2",
+   "contract": "IntEffect(14961, 16)",
+   "ops": 8,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntState",
+   "mode": "compose",
+   "qasm_sha256": "5510bbe0be1e972fe7a3bd37d3f96104c9b5a2b5511783209bebdefa75a6b10b",
+   "contract": "IntState(21441, 16)",
+   "ops": 7,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "IntEffect",
+   "mode": "compose",
+   "qasm_sha256": "5510bbe0be1e972fe7a3bd37d3f96104c9b5a2b5511783209bebdefa75a6b10b",
+   "contract": "IntEffect(21441, 16)",
+   "ops": 7,
+   "status": "PROVED",
+   "method": "z3_lia_composition",
+   "count": 1
+  },
+  {
+   "type": "CLinearDepthGreaterThan",
+   "mode": "leaf",
+   "qasm_sha256": "57fd6bd9b506f22969c96b6e48cbb556232a5ab8697f99d08ab4181cbce72dbb",
+   "contract": "CLinearDepthGreaterThan(16,cv=1)",
+   "ops": 277,
+   "status": "PROVED",
+   "method": "kprove_bdd_exact_domains",
+   "count": 1
+  },
+  {
+   "type": "CAdd",
+   "mode": "leaf",
+   "qasm_sha256": "294cfecec03d9e99087613cecba904e7faedf497fa859a438885e7cd693d05a4",
+   "contract": "CAdd(16,17,cv=1)",
+   "ops": 156,
+   "status": "PROVED",
+   "method": "kprove_bdd_exact_domains",
+   "count": 1
+  },
+  {
+   "type": "Controlled",
+   "mode": "leaf",
+   "qasm_sha256": "bdab179aa69130b107e566464c362efd3099f04696ffbeec7359d7c8ca81fbc3",
+   "contract": "Controlled[AddK(16,32749); ctrl=1]",
+   "ops": 143,
+   "status": "PROVED",
+   "method": "kprove_bdd_exact_domains",
+   "count": 1
+  },
+  {
+   "type": "AddK",
+   "mode": "leaf",
+   "qasm_sha256": "037abf33c82b467d86991de096fda5b63b1b4d3c6ca647cf86540c0240d2c15a",
+   "contract": "AddK(17,-32749)",
+   "ops": 135,
+   "status": "PROVED",
+   "method": "kprove_bdd_exact_domains",
+   "count": 1
+  },
+  {
+   "type": "And",
+   "mode": "leaf",
+   "qasm_sha256": "81c962b763b126f68afa8e294da8ef907385dc7d205bfebbf9e711a5f47c260e",
+   "contract": "And(1,1)",
+   "ops": 1,
+   "status": "PROVED",
+   "method": "kprove_bdd_exact_domains",
+   "count": 16
+  },
+  {
+   "type": "OneState",
+   "mode": "leaf",
+   "qasm_sha256": "241a9e2583f38a0e69eb5ad2db505f9d76add256b52738bf5913c8a531b5606d",
+   "contract": "OneState",
+   "ops": 1,
+   "status": "PROVED",
+   "method": "exhaustive_simulation_all_outcomes_with_phase",
+   "count": 138
+  },
+  {
+   "type": "XGate",
+   "mode": "leaf",
+   "qasm_sha256": "241a9e2583f38a0e69eb5ad2db505f9d76add256b52738bf5913c8a531b5606d",
+   "contract": "X",
+   "ops": 1,
+   "status": "PROVED",
+   "method": "kprove_bdd_exact_domains",
+   "count": 1
+  },
+  {
+   "type": "OneEffect",
+   "mode": "leaf",
+   "qasm_sha256": "241a9e2583f38a0e69eb5ad2db505f9d76add256b52738bf5913c8a531b5606d",
+   "contract": "OneEffect",
+   "ops": 1,
+   "status": "PROVED",
+   "method": "exhaustive_simulation_all_outcomes_with_phase",
+   "count": 138
+  },
+  {
+   "type": "And",
+   "mode": "leaf",
+   "qasm_sha256": "39d9a0f3045aede0380de9823b861946c1bdd2a5f25c054126a4a2ac9bfa74e2",
+   "contract": "And^-1(1,1)",
+   "ops": 1,
+   "status": "PROVED",
+   "method": "exhaustive_domain_simulation_all_outcomes_with_phase",
+   "count": 16
+  },
+  {
+   "type": "ZeroState",
+   "mode": "leaf",
+   "qasm_sha256": "f2f7b850092dc915c7d3f40d75674dd3da4726966b109b65d482c77dcf5f8856",
+   "contract": "ZeroState",
+   "ops": 0,
+   "status": "PROVED",
+   "method": "exhaustive_simulation_all_outcomes_with_phase",
+   "count": 118
+  },
+  {
+   "type": "ZeroEffect",
+   "mode": "leaf",
+   "qasm_sha256": "f2f7b850092dc915c7d3f40d75674dd3da4726966b109b65d482c77dcf5f8856",
+   "contract": "ZeroEffect",
+   "ops": 0,
+   "status": "PROVED",
+   "method": "exhaustive_simulation_all_outcomes_with_phase",
+   "count": 118
+  }
+ ],
+ "stats": {
+  "leaf_proofs": 11,
+  "leaf_cached": 538,
+  "compositions": 50,
+  "compositions_cached": 15,
+  "obligations": 391,
+  "z3_calls": 307,
+  "z3_seconds": 120.15
+ },
+ "end_to_end": {
+  "cases": 16,
+  "mismatches": 0,
+  "first": null,
+  "seconds": 0.1
+ },
+ "seconds": 122.9
+}

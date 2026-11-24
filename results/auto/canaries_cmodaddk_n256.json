@@ -1,0 +1,537 @@
+{
+ "schema": "qoptct.auto.canaries/1",
+ "target": "cmodaddk",
+ "params": {
+  "n": 256,
+  "p": 57896044618658097711785492504343953926634992332820282019728792003956564819949,
+  "k": 1546132562196033993109383389296863818106322566003
+ },
+ "versions": {
+  "python": "3.12.16",
+  "qualtran": "0.7.0",
+  "z3-solver": "5.3.3.0",
+  "numpy": "2.5.5",
+  "z3": "5.3.3"
+ },
+ "qualtran_variant": {
+  "kind": "original",
+  "qualtran_file": "/Users/max/quantum-start/lab/work/v07/venv/lib/python3.12/site-packages/qualtran/__init__.py",
+  "qualtran_version": null,
+  "files_sha256_16": {
+   "bloqs/cryptography/ecc/ec_add.py": "71a3efc0368f7fca",
+   "bloqs/mod_arithmetic/mod_multiplication.py": "3873115b5cf6fd31",
+   "bloqs/data_loading/qrom_base.py": "5837d39f0c301dfc",
+   "bloqs/data_loading/select_swap_qrom.py": "1dd5d2aee856779c"
+  }
+ },
+ "source_sha256": "d80d01de696bdca5f3c8622505e033141fb7e51ce14e6a20f351971db8d95de9",
+ "canary_sha256": "d549063de2d25990302c5d59de548701720fd27a6f83842edd63332309c554be",
+ "program_ops_sha256": "d583358058a742f00ea8cb436051cfd34356ba7acd96704ecad35920b9fecd8e",
+ "total": 30,
+ "counted": 30,
+ "joints": 16,
+ "gates": 14,
+ "proved": [],
+ "rows": [
+  {
+   "name": "J1_swap_wires_of_a_child",
+   "family": "joint",
+   "mutation": "CModAddK/1:CModAdd: register x: its first and last wire exchanged (input and output)",
+   "status": "NOT_PROVED",
+   "detail": "child CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED output y equals the contract: does not follow from the facts (counterexample found)",
+   "seconds": 1.1,
+   "counts": true
+  },
+  {
+   "name": "J1b_swap_wires_of_a_later_child",
+   "family": "joint",
+   "mutation": "CModAddK/2:IntEffect: register val: its first and last wire exchanged (input and output)",
+   "status": "NOT_PROVED",
+   "detail": "child CModAddK/2:IntEffect (IntEffect) is not proved: NOT_PROVED CModAddK/2:IntEffect/1:ZeroEffect: precondition of ZeroEffect (part 0): does not follow from the facts (counterexample found)",
+   "seconds": 1.1,
+   "counts": true
+  },
+  {
+   "name": "J2_swap_output_wires_of_a_child",
+   "family": "joint",
+   "mutation": "CModAddK/1:CModAdd: output register y: two wires exchanged (only on the output side)",
+   "status": "NOT_PROVED",
+   "detail": "child CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED output y equals the contract: does not follow from the facts (counterexample found)",
+   "seconds": 1.1,
+   "counts": true
+  },
+  {
+   "name": "J4_extra_operation_between_children",
+   "family": "joint",
+   "mutation": "X on input wire 0 inserted at 81, between CModAddK/0:IntState and the next child (owned by the root)",
+   "status": "NOT_PROVED",
+   "detail": "coverage: operations 81..82 of CModAddK belong to no child (or children overlap) before CModAddK/1:CModAdd",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J5_extra_operation_inside_a_child",
+   "family": "joint",
+   "mutation": "X on wire 0 inserted inside CModAddK/1:CModAdd at 5717",
+   "status": "NOT_PROVED",
+   "detail": "child CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED coverage: the operations of CModAddK/1:CModAdd/8:Controlled are not contiguous",
+   "seconds": 0.1,
+   "counts": true
+  },
+  {
+   "name": "J4b_extra_operation_before_the_first_child",
+   "family": "joint",
+   "mutation": "X on input wire 1 inserted at 0, before the first child CModAddK/0:IntState (owned by the root)",
+   "status": "NOT_PROVED",
+   "detail": "coverage: operations 0..1 of CModAddK belong to no child (or children overlap) before CModAddK/0:IntState",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J4c_extra_operation_after_the_last_child",
+   "family": "joint",
+   "mutation": "X on output wire 0 inserted at 11434, after the last child CModAddK/2:IntEffect (owned by the root)",
+   "status": "NOT_PROVED",
+   "detail": "coverage: operations 11434..11435 of CModAddK belong to no child",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J6_extra_operation_between_grandchildren",
+   "family": "joint",
+   "mutation": "X on wire 352 inserted between CModAddK/0:IntState/95:OneState and CModAddK/0:IntState/100:OneState (owned by CModAddK/0:IntState)",
+   "status": "NOT_PROVED",
+   "detail": "child CModAddK/0:IntState (IntState) is not proved: NOT_PROVED coverage: operations 1..2 of CModAddK/0:IntState belong to no child (or children overlap) before CModAddK/0:IntState/100:OneState",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J7_operation_moved_across_a_boundary",
+   "family": "joint",
+   "mutation": "the last operation of CModAddK/1:CModAdd/4:CAdd attributed to CModAddK/1:CModAdd/5:AddK",
+   "status": "NOT_PROVED",
+   "detail": "child CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CModAddK/1:CModAdd/4:CAdd (CAdd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.1,
+   "counts": true
+  },
+  {
+   "name": "J8_wrong_contract_of_child_OneState",
+   "family": "joint",
+   "mutation": "contract of OneState:c4837da1bf7828e8 replaced by a wrong one: OneState [WRONG: +1 on q]",
+   "status": "NOT_PROVED",
+   "detail": "child CModAddK/0:IntState (IntState) is not proved: NOT_PROVED child CModAddK/0:IntState/95:OneState (OneState) is not proved: REFUTED exhaustive simulation differs from the contract",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J8_wrong_contract_of_child_CAdd",
+   "family": "joint",
+   "mutation": "contract of CAdd:8f491d2b34121f6e replaced by a wrong one: CAdd(256,257,cv=1) [WRONG: +1 on b]",
+   "status": "NOT_PROVED",
+   "detail": "child CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CModAddK/1:CModAdd/4:CAdd (CAdd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.1,
+   "counts": true
+  },
+  {
+   "name": "J8_wrong_contract_of_child_AddK",
+   "family": "joint",
+   "mutation": "contract of AddK:6e3585e092110dc1 replaced by a wrong one: AddK(257,-57896044618658097711785492504343953926634992332820282019728792003956564819949) [WRONG: +1 on x]",
+   "status": "NOT_PROVED",
+   "detail": "child CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CModAddK/1:CModAdd/5:AddK (AddK) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.4,
+   "counts": true
+  },
+  {
+   "name": "J8b_child_claims_no_effect_OneState",
+   "family": "joint",
+   "mutation": "contract of OneState:c4837da1bf7828e8 replaced by a wrong one: OneState [WRONG: q unchanged]",
+   "status": "NOT_PROVED",
+   "detail": "child CModAddK/0:IntState (IntState) is not proved: NOT_PROVED child CModAddK/0:IntState/95:OneState (OneState) is not proved: REFUTED exhaustive simulation differs from the contract",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J8b_child_claims_no_effect_CAdd",
+   "family": "joint",
+   "mutation": "contract of CAdd:8f491d2b34121f6e replaced by a wrong one: CAdd(256,257,cv=1) [WRONG: b unchanged]",
+   "status": "NOT_PROVED",
+   "detail": "child CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CModAddK/1:CModAdd/4:CAdd (CAdd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.1,
+   "counts": true
+  },
+  {
+   "name": "J9_root_precondition_weakened_0",
+   "family": "joint",
+   "mutation": "root precondition weakened",
+   "status": "NOT_PROVED",
+   "detail": "CModAddK/1:CModAdd: precondition of CModAdd(n=256, p=57896044618658097711785492504343953926634992332820282019728792003956564819949, cv=1) (part 1): does not follow from the facts (counterexample found)",
+   "seconds": 1.1,
+   "counts": true
+  },
+  {
+   "name": "J10_child_domain_narrowed_CAdd",
+   "family": "joint",
+   "mutation": "contract of CAdd:8f491d2b34121f6e replaced by a wrong one: CAdd(256,257,cv=1) [NARROW: b < 2]",
+   "status": "NOT_PROVED",
+   "detail": "child CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED CModAddK/1:CModAdd/4:CAdd: precondition of CAdd(256,257,cv=1) [NARROW: b < 2] (part 0): does not follow from the facts (counterexample found)",
+   "seconds": 0.5,
+   "counts": true
+  },
+  {
+   "name": "G1_phase_correction_removed_CAdd",
+   "family": "gate",
+   "mutation": "op 2381: erase correction removed (phase)",
+   "status": "NOT_PROVED",
+   "detail": "child CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CModAddK/1:CModAdd/4:CAdd (CAdd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.1,
+   "witness": {
+    "mismatches": 24,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "1",
+      "x": "25077207626870853691183856014635351441389109696195484481839339504399002544321"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G2_phase_correction_moved_CAdd",
+   "family": "gate",
+   "mutation": "op 2381: erase correction moved to wire 511 (phase)",
+   "status": "NOT_PROVED",
+   "detail": "child CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CModAddK/1:CModAdd/4:CAdd (CAdd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.1,
+   "witness": {
+    "mismatches": 1,
+    "cases": 24,
+    "first": {
+     "input": {
+      "ctrl": 1,
+      "a": 115792089237316195423570985008687907853269984665640564039457584007913129639934,
+      "b": 205641952741073609346311512887570916710371609259035013088943375521115248655913
+     },
+     "expected": {
+      "ctrl": 1,
+      "a": 115792089237316195423570985008687907853269984665640564039457584007913129639934,
+      "b": 89849863503757413922740527878883008857101624593394449049485791513202119015975
+     },
+     "got": {
+      "ctrl": 1,
+      "a": 115792089237316195423570985008687907853269984665640564039457584007913129639934,
+      "b": 89849863503757413922740527878883008857101624593394449049485791513202119015975
+     },
+     "phase": true,
+     "other_wires_nonzero": false
+    },
+    "level": "leaf CModAddK/1:CModAdd/4:CAdd"
+   },
+   "counts": true
+  },
+  {
+   "name": "G3_carry_cx_reversed_CAdd",
+   "family": "gate",
+   "mutation": "op 2377: control and target of a CX near the top of the carry chain exchanged",
+   "status": "NOT_PROVED",
+   "detail": "child CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CModAddK/1:CModAdd/4:CAdd (CAdd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.1,
+   "witness": {
+    "mismatches": 20,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "1",
+      "x": "49523635632926782794811715316334637987146562163643264341562058219579831836796"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G4_high_carry_and_weakened_CAdd",
+   "family": "gate",
+   "mutation": "op 1352: the AND of a high carry replaced by a CX of one control (wrong only on rare inputs)",
+   "status": "NOT_PROVED",
+   "detail": "child CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CModAddK/1:CModAdd/4:CAdd (CAdd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.1,
+   "witness": {
+    "mismatches": 1,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "1",
+      "x": "57896044618658097711785492504343953926634992332820282019728792003956564819948"
+     },
+     "phase": true,
+     "other_wires": true,
+     "outputs_differ": [
+      "x"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G3_carry_cx_reversed_Controlled",
+   "family": "gate",
+   "mutation": "op 7232: control and target of a CX near the top of the carry chain exchanged",
+   "status": "NOT_PROVED",
+   "detail": "child CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CModAddK/1:CModAdd/8:Controlled (Controlled) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.6,
+   "witness": {
+    "mismatches": 39,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "0",
+      "x": "0"
+     },
+     "phase": false,
+     "other_wires": true,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G4_high_carry_and_weakened_Controlled",
+   "family": "gate",
+   "mutation": "op 5956: the AND of a high carry replaced by a CX of one control (wrong only on rare inputs)",
+   "status": "NOT_PROVED",
+   "detail": "child CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CModAddK/1:CModAdd/8:Controlled (Controlled) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.7,
+   "witness": {
+    "mismatches": 1,
+    "cases": 24,
+    "first": {
+     "input": {
+      "ctrl": 1,
+      "x": 1
+     },
+     "expected": {
+      "ctrl": 1,
+      "x": 57896044618658097711785492504343953926634992332820282019728792003956564819950
+     },
+     "got": {
+      "ctrl": 1,
+      "x": 86844066927987146567678238756515930889952488499230423029593188005934847229934
+     },
+     "phase": true,
+     "other_wires_nonzero": false
+    },
+    "level": "leaf CModAddK/1:CModAdd/8:Controlled"
+   },
+   "counts": true
+  },
+  {
+   "name": "G3_carry_cx_reversed_AddK",
+   "family": "gate",
+   "mutation": "op 4683: control and target of a CX near the top of the carry chain exchanged",
+   "status": "NOT_PROVED",
+   "detail": "child CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CModAddK/1:CModAdd/5:AddK (AddK) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.4,
+   "witness": {
+    "mismatches": 40,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "0",
+      "x": "0"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G4_high_carry_and_weakened_AddK",
+   "family": "gate",
+   "mutation": "op 3657: the AND of a high carry replaced by a CX of one control (wrong only on rare inputs)",
+   "status": "NOT_PROVED",
+   "detail": "child CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CModAddK/1:CModAdd/5:AddK (AddK) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.5,
+   "witness": {
+    "mismatches": 1,
+    "cases": 24,
+    "first": {
+     "input": {
+      "x": 231584178474632390847141970017375815706539969331281128078915168015826259279871
+     },
+     "expected": {
+      "x": 173688133855974293135356477513031861779904976998460846059186376011869694459922
+     },
+     "got": {
+      "x": 115792089237316195423570985008687907853269984665640564039457584007913129639954
+     },
+     "phase": true,
+     "other_wires_nonzero": false
+    },
+    "level": "leaf CModAddK/1:CModAdd/5:AddK"
+   },
+   "counts": true
+  },
+  {
+   "name": "G5_x_removed_AddK",
+   "family": "gate",
+   "mutation": "op 4687: an X removed",
+   "status": "NOT_PROVED",
+   "detail": "child CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CModAddK/1:CModAdd/5:AddK (AddK) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.4,
+   "witness": {
+    "mismatches": 40,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "0",
+      "x": "0"
+     },
+     "phase": false,
+     "other_wires": true,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G6_noncommuting_swap_CAdd",
+   "family": "gate",
+   "mutation": "ops 341, 342: two non-commuting CX exchanged",
+   "status": "NOT_PROVED",
+   "detail": "child CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CModAddK/1:CModAdd/4:CAdd (CAdd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.1,
+   "witness": {
+    "mismatches": 9,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "1",
+      "x": "13957042744717993467844489012260596675108338816791554369823079450408867439063"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": [
+      "x"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G7_last_operation_removed",
+   "family": "gate",
+   "mutation": "op 11433 (the last one) removed",
+   "status": "NOT_PROVED",
+   "detail": "child CModAddK/2:IntEffect (IntEffect) is not proved: NOT_PROVED child CModAddK/2:IntEffect/256:OneEffect (OneEffect) is not proved: REFUTED exhaustive simulation differs from the contract",
+   "seconds": 1.2,
+   "witness": {
+    "mismatches": 40,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "0",
+      "x": "0"
+     },
+     "phase": false,
+     "other_wires": true,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_0_Controlled",
+   "family": "gate",
+   "mutation": "op 5437 in CModAddK/1:CModAdd/8:Controlled: ('cx', 1917, 1918) -> ('cx', 1917, 200)",
+   "status": "NOT_PROVED",
+   "detail": "child CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CModAddK/1:CModAdd/8:Controlled (Controlled) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.7,
+   "witness": {
+    "mismatches": 39,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "0",
+      "x": "0"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": [
+      "x"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_1_CAdd",
+   "family": "gate",
+   "mutation": "op 649 in CModAddK/1:CModAdd/4:CAdd: ('cx', 847, 848) -> ('cx', 847, 455)",
+   "status": "NOT_PROVED",
+   "detail": "child CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CModAddK/1:CModAdd/4:CAdd (CAdd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.1,
+   "witness": {
+    "mismatches": 8,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "1",
+      "x": "57896044618658097711785492504343953926634992332820282019728792003956564819948"
+     },
+     "phase": true,
+     "other_wires": true,
+     "outputs_differ": [
+      "x"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_2_AddK",
+   "family": "gate",
+   "mutation": "op 2644 in CModAddK/1:CModAdd/5:AddK: ('cx', 1283, 255) -> ('cx', 1283, 3)",
+   "status": "NOT_PROVED",
+   "detail": "child CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CModAddK/1:CModAdd/5:AddK (AddK) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.5,
+   "witness": {
+    "mismatches": 18,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "1",
+      "x": "0"
+     },
+     "phase": false,
+     "other_wires": false,
+     "outputs_differ": [
+      "x"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  }
+ ],
+ "ok": true,
+ "seconds": 19.9,
+ "not_proved": 30
+}
