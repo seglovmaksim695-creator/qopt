@@ -27,7 +27,9 @@ P255 = 2 ** 255 - 19
 BLOCK = {
     'montgomery': 'DirtyOutOfPlaceMontgomeryModMul (Qualtran kind c)',
     'modadd': 'ModAdd', 'cmodadd': 'CModAdd', 'modsub': 'ModSub', 'cmodsub': 'CModSub', 'modneg': 'ModNeg',
-    'cmodneg': 'CModNeg', 'moddbl': 'ModDbl', 'ecadd_step1': '_ECAddStepOne of ECAdd (Qualtran kind e)'}
+    'cmodneg': 'CModNeg', 'moddbl': 'ModDbl', 'ecadd_step1': '_ECAddStepOne of ECAdd (Qualtran kind e)',
+    'subtract': 'Subtract', 'subtractfrom': 'SubtractFrom', 'negate': 'Negate', 'cmodaddk': 'CModAddK',
+    'ctrlscalemodadd': 'CtrlScaleModAdd', 'cmodmulk': 'CModMulK'}
 CLAIM = {
     'montgomery': 'for every n-bit x and every y < p: target = T_N - p*[T_N >= p], reduced = [T_N >= p], qrom_indices = '
                   'the digits m_i of the windows, x and y unchanged, every other wire clean, no phase; T_0 = 0, '
@@ -42,7 +44,15 @@ CLAIM = {
     'moddbl': 'x = 2x mod p, other wires clean, no phase; for x < p',
     'ecadd_step1': 'f1 = [a = x], f3 = [a = b = 0], f4 = [x = y = 0], ctrl = [not f3 and not f4 and not (f1 and '
                    'b = -y mod p)], f2 = [b = -y mod p] and not ctrl; a, b, x, y unchanged; other wires clean, no '
-                   'phase; for a, b, x, y < p (statement S1 of the 0.7 ECAdd proof)'}
+                   'phase; for a, b, x, y < p (statement S1 of the 0.7 ECAdd proof)',
+    'subtract': 'b = (a - b) mod 2^n, a unchanged, other wires clean, no phase; all inputs',
+    'subtractfrom': 'b = (b - a) mod 2^n, a unchanged, other wires clean, no phase; all inputs',
+    'negate': 'x = (-x) mod 2^n, other wires clean, no phase; all inputs',
+    'cmodaddk': 'x = (x + k) mod p if ctrl = 1 else x; ctrl unchanged; other wires clean, no phase; for x < p '
+                '(k = 3^101 mod p)',
+    'ctrlscalemodadd': 'y = (y + x k) mod p if ctrl = 1 else y; ctrl, x unchanged; other wires clean, no phase; '
+                       'for y < p (k = 3^101 mod p)',
+    'cmodmulk': 'x = x k mod p if ctrl = 1 else x; other wires clean, no phase; for x < p (k = 3^101 mod p)'}
 EXTRA = {
     'montgomery': ['Qualtran 0.7.0 with patch kind c (PR 1997 + exact-integer tables), as in 0.7',
                    'the statement is the recurrence; that T_N = x*y*2^-n (mod p) is the telescoping identity of '
@@ -72,10 +82,11 @@ def reproduce(target, params):
     cmd = f'python -m qoptct.foreign.auto prove {target} --n {n}'
     if target == 'montgomery':
         cmd += f" --w {params.get('w', 1)}"
-    p = int(params['p'])
-    default = P255 if n == 256 else None
-    if p != default:
-        cmd += f' --p {p}'
+    if params.get('p') is not None:
+        p = int(params['p'])
+        default = P255 if n == 256 else None
+        if p != default:
+            cmd += f' --p {p}'
     if params.get('cv', 1) != 1:
         cmd += f" --cv {params['cv']}"
     return cmd
@@ -133,7 +144,8 @@ def build():
                        source_sha256=d.get('source_sha256'), program_ops_sha256=d.get('program_ops_sha256'))
         qv = v.get('qualtran_variant') or {}
         e = dict(id=f"auto/{f[:-5]}", target=t, block=BLOCK.get(t, t), claim=CLAIM.get(t, v['spec']['name']),
-                 status=v['verdict'], reasons=v.get('reasons', []), n=params['n'], p=str(params['p']),
+                 status=v['verdict'], reasons=v.get('reasons', []), n=params['n'],
+                 p=str(params['p']) if params.get('p') is not None else None, k=params.get('k'),
                  w=params.get('w') if t == 'montgomery' else None, cv=params.get('cv'),
                  qualtran=dict(version=(v.get('versions') or {}).get('qualtran'), variant=qv.get('kind'),
                                files_sha256_16=qv.get('files_sha256_16')),

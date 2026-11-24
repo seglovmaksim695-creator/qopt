@@ -307,10 +307,13 @@ def joint_canaries(P0, spec, rng):
     # domain: the root precondition weakened (children called outside their domains)
     if spec.pre != 1:
         weak = _weaken(spec.pre)
-        # a weakening that the program really violates (the added inputs give other outputs); if there is none, the
-        # first one (a child is then called outside its domain although the outputs happen to agree)
+        # first a weakening that the program really violates (the added inputs give other outputs), then one that
+        # frees an input read by a descendant with a precondition (that child is then called outside its domain,
+        # although the outputs may happen to agree); a weakening of neither kind can give a TRUE statement (an input
+        # the circuit only compares) and is not used unless there is nothing else
         viol = [wp for wp in weak if _violated_outside(P0, spec, wp, rng)]
-        for j, wp in enumerate(viol[:2] if viol else weak[:1]):
+        guarded = [wp for wp in weak if wp not in viol and _guarded(P0, spec.pre, wp)]
+        for j, wp in enumerate((viol + guarded)[:2] or weak[:1]):
             sp = replace(spec, pre=wp)
             out.append((f'J9_root_precondition_weakened_{j}', 'joint', lambda P: 'root precondition weakened', sp))
     # domain: a child contract with a narrower domain
@@ -479,6 +482,37 @@ def _weaken(pre):
     if len(cs) < 2:
         return [1]
     return [X.all_(cs[:j] + cs[j + 1:]) if len(cs) > 2 else cs[1 - j] for j in range(len(cs))]
+
+
+def _guarded(P0, pre, wp, max_nodes=3000):
+    """does a node below the root, with a registry contract that has a precondition, read a wire of a register
+    whose condition the weakening wp drops?"""
+    from . import registry as R
+
+    def flat(e):
+        if type(e) is tuple and e[0] == 'and':
+            return flat(e[1]) + flat(e[2])
+        return [e]
+    key = lambda c: json.dumps(X.to_json(c), sort_keys=True)   # noqa: E731
+    kept = {key(c) for c in flat(wp)} if wp != 1 else set()
+    dropped = [c for c in flat(pre) if key(c) not in kept]
+    regs = set()
+    for c in dropped:
+        regs |= set(X.refs_of(c, 'var'))
+    wires = {q for r in regs for q in P0.root.ins.get(r, ())}
+    if not wires:
+        return False
+    todo, seen = [P0.root], 0
+    while todo and seen < max_nodes:
+        node = todo.pop(0)
+        for k in _proper_children(P0, node):
+            seen += 1
+            c = R.contract_for(k.obj)
+            if c is not None and c.pre != 1 and wires & set(k.in_wires()):
+                return True
+            if c is None or c.kind != 'primitive':
+                todo.append(k)
+    return False
 
 
 def _violated_outside(P0, spec, wp, rng, cases=8):
