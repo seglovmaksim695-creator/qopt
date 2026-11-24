@@ -1,0 +1,320 @@
+{
+ "family": "hrs",
+ "rows": [
+  {
+   "family": "hrs",
+   "n": 1,
+   "qubits": 4,
+   "gates": 32,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "step",
+   "K": 4,
+   "global_phase": "0",
+   "assumptions": null,
+   "dense_check": "agrees",
+   "translation_check": true,
+   "float_angles": {
+    "n_float": 15,
+    "max_abs_dev": 0.0
+   },
+   "reason": null,
+   "peak_terms": 7,
+   "time_build": 0.16,
+   "time_prove": 0.0,
+   "peak_mb": 74.4
+  },
+  {
+   "family": "hrs",
+   "n": 2,
+   "qubits": 8,
+   "gates": 200,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "step",
+   "K": 4,
+   "global_phase": "0",
+   "assumptions": null,
+   "dense_check": "agrees",
+   "translation_check": true,
+   "float_angles": {
+    "n_float": 90,
+    "max_abs_dev": 0.0
+   },
+   "reason": null,
+   "peak_terms": 13,
+   "time_build": 0.15,
+   "time_prove": 0.02,
+   "peak_mb": 79.8
+  },
+  {
+   "family": "hrs",
+   "n": 3,
+   "qubits": 12,
+   "gates": 501,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "step",
+   "K": 4,
+   "global_phase": "0",
+   "assumptions": null,
+   "dense_check": "skipped (n > 10)",
+   "translation_check": null,
+   "float_angles": {
+    "n_float": 225,
+    "max_abs_dev": 0.0
+   },
+   "reason": null,
+   "peak_terms": 38,
+   "time_build": 0.15,
+   "time_prove": 0.01,
+   "peak_mb": 74.7
+  },
+  {
+   "family": "hrs",
+   "n": 4,
+   "qubits": 16,
+   "gates": 1160,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "step",
+   "K": 4,
+   "global_phase": "0",
+   "assumptions": null,
+   "dense_check": "skipped (n > 10)",
+   "translation_check": null,
+   "float_angles": {
+    "n_float": 420,
+    "max_abs_dev": 0.0
+   },
+   "reason": null,
+   "peak_terms": 188,
+   "time_build": 0.15,
+   "time_prove": 0.03,
+   "peak_mb": 75.3
+  },
+  {
+   "family": "hrs",
+   "n": 5,
+   "qubits": 20,
+   "gates": 2070,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "step",
+   "K": 4,
+   "global_phase": "0",
+   "assumptions": null,
+   "dense_check": "skipped (n > 10)",
+   "translation_check": null,
+   "float_angles": {
+    "n_float": 675,
+    "max_abs_dev": 0.0
+   },
+   "reason": null,
+   "peak_terms": 1003,
+   "time_build": 0.16,
+   "time_prove": 0.25,
+   "peak_mb": 76.8
+  },
+  {
+   "family": "hrs",
+   "n": 6,
+   "qubits": 24,
+   "gates": 3228,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "step",
+   "K": 4,
+   "global_phase": "0",
+   "assumptions": null,
+   "dense_check": "skipped (n > 10)",
+   "translation_check": null,
+   "float_angles": {
+    "n_float": 990,
+    "max_abs_dev": 0.0
+   },
+   "reason": null,
+   "peak_terms": 4302,
+   "time_build": 0.16,
+   "time_prove": 5.99,
+   "peak_mb": 79.8
+  },
+  {
+   "family": "hrs",
+   "n": 7,
+   "qubits": 28,
+   "gates": 4634,
+   "verdict": "PROVED",
+   "method": "normal-form",
+   "strategy": "step",
+   "K": 4,
+   "global_phase": "0",
+   "assumptions": null,
+   "dense_check": "skipped (n > 10)",
+   "translation_check": null,
+   "float_angles": {
+    "n_float": 1365,
+    "max_abs_dev": 0.0
+   },
+   "reason": null,
+   "peak_terms": 25159,
+   "time_build": 0.17,
+   "time_prove": 166.22,
+   "peak_mb": 92.1,
+   "canaries": [
+    {
+     "name": "smallest_rotation1/8",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.03
+    },
+    {
+     "name": "smallest_rotation1/16",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.03
+    },
+    {
+     "name": "smallest_rotation-1/16",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.03
+    },
+    {
+     "name": "lost_smallest_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.03
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.03
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.04
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.03
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.02
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.04
+    },
+    {
+     "name": "shifted_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.02
+    },
+    {
+     "name": "lost_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.03
+    },
+    {
+     "name": "lost_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.02
+    },
+    {
+     "name": "lost_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.02
+    },
+    {
+     "name": "lost_h",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.02
+    },
+    {
+     "name": "junction_swap_order",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.02
+    },
+    {
+     "name": "global_phase_exact",
+     "verdict": "REFUTED",
+     "method": "normal-form",
+     "time": 177.08
+    },
+    {
+     "name": "rare_input_phase",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.03
+    },
+    {
+     "name": "rare_input_flip_all_ones",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.03
+    },
+    {
+     "name": "negated_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.03
+    },
+    {
+     "name": "negated_rotation",
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.04
+    }
+   ],
+   "canaries_refuted": 20,
+   "canaries_proved": 0,
+   "product_check": {
+    "inputs": 20,
+    "bad": 0,
+    "entangling": 20
+   }
+  },
+  {
+   "family": "hrs",
+   "n": 8,
+   "qubits": 32,
+   "gates": 6288,
+   "verdict": "UNKNOWN",
+   "method": "limit",
+   "strategy": null,
+   "K": 4,
+   "global_phase": null,
+   "assumptions": null,
+   "dense_check": "skipped (n > 10)",
+   "translation_check": null,
+   "float_angles": {
+    "n_float": 1800,
+    "max_abs_dev": 0.0
+   },
+   "reason": "all strategies hit a limit",
+   "peak_terms": null,
+   "time_build": 0.23,
+   "time_prove": 600.07,
+   "peak_mb": 366.8
+  }
+ ],
+ "python": "3.12.16",
+ "note": "row n=7 rerun with canary budget 600 s and the fixed canary generator (reachable rare-input triggers)"
+}

@@ -1,0 +1,2 @@
+# ProjectQ gate lists: regenerate with scripts/dyadic_projectq_dump.py (needs projectq)
+projectq/
