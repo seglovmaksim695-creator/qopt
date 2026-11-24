@@ -203,9 +203,15 @@ def _contract_for(bloq):
     # ---------------------------------------------------------------- table lookup (rule C1 for the adjoint)
     if t in (QROAMClean, QROAMCleanAdjoint, QROAMCleanAdjointWrapper):
         return _qroam(bloq)
-    # ---------------------------------------------------------------- controlled primitives
+    # ---------------------------------------------------------------- controlled primitives, adjoints, Always
     if t is Controlled:
         return _controlled(bloq)
+    from qualtran import Adjoint
+    if t is Adjoint:
+        return _adjoint(bloq.subbloq)
+    if t.__name__ == 'Always' and hasattr(bloq, 'subbloq'):
+        c = _contract_for(bloq.subbloq)
+        return c if c is not None and c.kind == 'primitive' else None
     # ---------------------------------------------------------------- composite specifications
     if t in (ModAdd,):
         n, p = _int(bloq.bitsize), _int(bloq.mod)
@@ -274,7 +280,56 @@ def _qroam(bloq):
                  note='measurement-based uncomputation (bridge rule C1, assumptions A1-A4)')
 
 
-def _controlled(bloq):
+_SELF_INVERSE = ('XGate', 'CNOT', 'Toffoli', 'Swap', 'CSwap', 'TwoBitSwap', 'TwoBitCSwap', 'MultiTargetCNOT', 'Xor',
+                 'XorK', 'BitwiseNot', 'LessThanConstant', 'LessThanEqual', 'GreaterThan', 'LinearDepthGreaterThan',
+                 'CLinearDepthGreaterThan', 'Equals', 'EqualsAConstant')
+
+
+def _adjoint(sub):
+    """the inverse of a primitive: self-inverse gates and comparisons (an XOR into the target) keep their contract;
+    additions get the subtraction; Controlled and Always are unwrapped.  Checked against call_classically."""
+    from qualtran import Controlled
+    from qualtran.bloqs.arithmetic import Add, AddK
+    from qualtran.bloqs.arithmetic.controlled_addition import CAdd
+    t = type(sub)
+    if t.__name__ == 'Always' and hasattr(sub, 'subbloq'):
+        return _adjoint(sub.subbloq)
+    if t.__name__ in _SELF_INVERSE:
+        c = _contract_for(sub)
+        if c is None or c.inputs != c.outputs:
+            return None
+        return _prim(f'Adjoint[{c.name}]', c.inputs, c.outputs, c.out, pre=c.pre, defs=c.defs)
+    if t is AddK:
+        n, k = _bits(sub.dtype), _int(sub.k)
+        if not _unsigned(sub.dtype) or not n or k is None:
+            return None
+        return _prim(f'Adjoint[AddK({n},{k})]', {'x': n}, {'x': n}, {'x': X.mod(X.sub(V('x'), k), 1 << n)})
+    if t is Add:
+        if not (_unsigned(sub.a_dtype) and _unsigned(sub.b_dtype)):
+            return None
+        na, nb = _bits(sub.a_dtype), _bits(sub.b_dtype)
+        if not na or not nb:
+            return None
+        return _prim(f'Adjoint[Add({na},{nb})]', {'a': na, 'b': nb}, {'a': na, 'b': nb},
+                     {'a': V('a'), 'b': X.mod(X.sub(V('b'), V('a')), 1 << nb)})
+    if t is CAdd:
+        if not (_unsigned(sub.a_dtype) and _unsigned(sub.b_dtype)):
+            return None
+        na, nb, cv = _bits(sub.a_dtype), _bits(sub.b_dtype), _int(sub.cv)
+        if not na or not nb or cv not in (0, 1):
+            return None
+        return _prim(f'Adjoint[CAdd({na},{nb},cv={cv})]', {'ctrl': 1, 'a': na, 'b': nb}, {'ctrl': 1, 'a': na, 'b': nb},
+                     {'ctrl': V('ctrl'), 'a': V('a'),
+                      'b': X.ite(X.eq(V('ctrl'), cv), X.mod(X.sub(V('b'), V('a')), 1 << nb), V('b'))})
+    if t is Controlled:
+        inner = _adjoint(sub.subbloq)
+        if inner is None:
+            return None
+        return _controlled(sub, sub_contract=inner, prefix='Adjoint')
+    return None
+
+
+def _controlled(bloq, sub_contract=None, prefix=''):
     """Controlled(sub) with one QBit control: the sub-contract when the control is active, identity otherwise.
     Only for a sub-contract whose outputs are exactly its inputs (THRU registers of equal width)."""
     from qualtran import QBit
@@ -287,7 +342,7 @@ def _controlled(bloq):
         return None
     if len(qdts) != 1 or type(qdts[0]) is not QBit or cvs[0] not in (0, 1) or shapes[0] != ():
         return None
-    sub = _contract_for(bloq.subbloq)
+    sub = sub_contract if sub_contract is not None else _contract_for(bloq.subbloq)
     if sub is None or sub.kind != 'primitive' or sub.inputs != sub.outputs or sub.folds:
         return None
     names = [r.name for r in bloq.signature]
@@ -303,7 +358,7 @@ def _controlled(bloq):
         out[r] = X.ite(act, sub.out[r], V(r))
     pre = sub.pre if sub.pre == 1 else X.or_(X.not_(act), sub.pre)
     inputs = {c: 1, **sub.inputs}
-    return _prim(f'Controlled[{sub.name}, cv={cvs[0]}]', inputs, dict(inputs), out, pre=pre, defs=sub.defs)
+    return _prim(f'{prefix}Controlled[{sub.name}, cv={cvs[0]}]', inputs, dict(inputs), out, pre=pre, defs=sub.defs)
 
 
 # ------------------------------------------------------------------------------------------------ self-check
@@ -349,6 +404,10 @@ def _small_instances():
             LessThanEqual(3, 3), GreaterThan(3, 3), LinearDepthGreaterThan(3), CLinearDepthGreaterThan(QUInt(3)),
             CLinearDepthGreaterThan(QUInt(3), cv=0), Equals(QUInt(3)), Xor(QUInt(3)), XorK(QUInt(3), 5),
             BitwiseNot(QUInt(3))]
+    out += [AddK(QUInt(3), 5).adjoint(), AddK(QUInt(4), -11).adjoint(), Add(QUInt(3)).adjoint(),
+            Add(QUInt(2), QUInt(3)).adjoint(), CAdd(QUInt(2), QUInt(3)).adjoint(), CAdd(QUInt(3), QUInt(3), cv=0).adjoint(),
+            Xor(QUInt(3)).adjoint(), XorK(QUInt(3), 5).adjoint(), BitwiseNot(QUInt(3)).adjoint(),
+            LessThanConstant(3, 5).adjoint(), AddK(QUInt(3), 2).controlled().adjoint(), CNOT().adjoint()]
     out += [QROAMClean([np.array([3, 10], dtype=object)], selection_bitsizes=(1,), target_bitsizes=(4,)),
             QROAMClean([np.array([0, 9, 2, 15], dtype=object)], selection_bitsizes=(2,), target_bitsizes=(4,))]
     out += [ModAdd(3, 7), ModAdd(4, 13), CModAdd(QUInt(3), 7), CModAdd(QUInt(4), 11, cv=0), ModSub(QUInt(3), 7),

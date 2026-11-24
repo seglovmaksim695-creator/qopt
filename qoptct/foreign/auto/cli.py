@@ -68,6 +68,8 @@ def main(argv=None):
     pp.add_argument('--out', default=None)
     pp.add_argument('--e2e-cases', default='16')
     pp.add_argument('--inprocess', action='store_true', help='run here (the Qualtran on the path must be the right one)')
+    pp.add_argument('--drop-invariant', action='store_true',
+                    help='test only: replace every loop invariant of the specification by "true" (must not be PROVED)')
     pp.add_argument('-v', '--verbose', action='store_true')
     sc = sub.add_parser('selfcheck', help='check every registry contract against call_classically (small instances)')
     sc.add_argument('--out', default=None)
@@ -104,13 +106,21 @@ def main(argv=None):
             return 0 if res.get('ok') else 1
         cv = _num(a.cv)
         if not a.inprocess:
-            v = prove_target(a.target, n, p, w=w, cv=cv, out=a.out, e2e_cases=_num(a.e2e_cases))
+            v = prove_target(a.target, n, p, w=w, cv=cv, out=a.out, e2e_cases=_num(a.e2e_cases),
+                             extra=(['--drop-invariant'] if a.drop_invariant else []))
             _print_summary(v)
             return 0 if v.get('verdict') == 'PROVED' else 1
         from .api import build_target, prove_bloq
         bloq, kind, params = build_target(a.target, n, p, w=w, cv=cv)
+        spec = None
+        if a.drop_invariant:
+            from dataclasses import replace
+            from .registry import contract_for
+            spec = contract_for(bloq)
+            spec = replace(spec, folds=[replace(f, invariant=1) for f in spec.folds])
+            params = dict(params, drop_invariant=True)
         log = (lambda m: print('  ', m, flush=True)) if a.verbose else None
-        v = prove_bloq(bloq, target=a.target, params=params, expect_variant=kind or 'original', log=log,
+        v = prove_bloq(bloq, spec=spec, target=a.target, params=params, expect_variant=kind or 'original', log=log,
                        e2e_cases=_num(a.e2e_cases), out=a.out)
         if not a.out:
             _print_summary(v)

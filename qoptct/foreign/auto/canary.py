@@ -144,20 +144,32 @@ def joint_canaries(P0, spec, rng):
     if multi:
         out.append(('J2_swap_output_wires_of_a_child', 'joint', swap_out(multi[-1].path), None))
 
-    if len(big) >= 2:
-        a, b = big[0], big[1]
+    pair = None
+    for i in range(len(big)):
+        for j in range(i + 1, len(big)):
+            wa, wb = set(big[i].in_wires()), set(big[j].in_wires())
+            if wa - wb and wb - wa:
+                pair = (big[i], big[j])
+                break
+        if pair:
+            break
+    if pair is not None:
+        a, b = pair
 
         def exch(P):
             ea, eb = _mut_event(P, a.path), _mut_event(P, b.path)
-            ra = max(ea['inputs_msb'], key=lambda k: len(ea['inputs_msb'][k]))
-            rb = max(eb['inputs_msb'], key=lambda k: len(eb['inputs_msb'][k]))
-            qa, qb = ea['inputs_msb'][ra][-1], eb['inputs_msb'][rb][-1]
+            wa = {q for v in ea['inputs_msb'].values() for q in v}
+            wb = {q for v in eb['inputs_msb'].values() for q in v}
+            ra = max(ea['inputs_msb'], key=lambda k: len([q for q in ea['inputs_msb'][k] if q not in wb]))
+            rb = max(eb['inputs_msb'], key=lambda k: len([q for q in eb['inputs_msb'][k] if q not in wa]))
+            qa = [q for q in ea['inputs_msb'][ra] if q not in wb][-1]
+            qb = [q for q in eb['inputs_msb'][rb] if q not in wa][-1]
             for e, r, old, new in ((ea, ra, qa, qb), (eb, rb, qb, qa)):
                 for side in ('inputs_msb', 'outputs_msb'):
                     if r in e[side]:
                         e[side][r] = [new if q == old else q for q in e[side][r]]
             _refresh(P)
-            return f'{a.path}.{ra} and {b.path}.{rb}: one wire exchanged between the two children'
+            return f'{a.path}.{ra} and {b.path}.{rb}: wires {qa} and {qb} exchanged between the two children'
         out.append(('J3_wires_exchanged_between_children', 'joint', exch, None))
 
     if len(big) >= 2:
