@@ -2,7 +2,7 @@
 
 Independent verification caught several incorrect circuits: one produced by our own earlier pipeline, others
 by, or through pitfalls of, third-party tools. They matter for how published numbers should be compared.
-Reproduction scripts are in `docs/findings/` (re-run on 2026-11-12 with the versions below).
+Reproduction scripts are in `docs/findings/` (re-run on 2026-11-12 with the versions below; `f6_projectq_decomposition_bugs.py` and `f7_qiskit_vbe_fixed.py` of 0.8 were run on 2026-11-24 with ProjectQ 0.8.0 and Qiskit 2.6.2: wrong decompositions of ProjectQ `ComparatorQuantum` / `MultiplyQuantum`, and Qiskit `VBERippleCarryAdder(kind='fixed')` is not (a+b) mod 2^n for n >= 2).
 
 Tool versions: Qiskit 2.6.1, PyZX 0.10.8, pytket 2.18.5, Cirq 1.7, Qualtran 0.7.0, Qrisp 0.9.10, PennyLane 0.45.1,
 qsharp 1.31.0, pyLIQTR 1.0.1. Each third-party tool was installed in its own virtual environment; none of them

@@ -78,7 +78,7 @@ little theorem and the value is not a point addition. The registry is `data/regi
 
 AddQuantum (plain, with carry, controlled), SubtractQuantum, ComparatorQuantum, MultiplyQuantum, DivideQuantum, multi-controlled
 X, controlled swap and `libs.revkit.PermutationOracle`, each against plain Python arithmetic. Findings about ProjectQ 0.8.0
-itself (decomposition rules, not our code; reproduction in `FINDINGS/` of the round folder, nothing was sent upstream):
+itself (decomposition rules, not our code; reproduction without qoptct: `docs/findings/f6_projectq_decomposition_bugs.py`; nothing was sent upstream):
 `ComparatorQuantum` decomposes wrongly for n = 1 and for n >= 3 (for n >= 3 a and b are changed; n = 2 is correct), `MultiplyQuantum` decomposes wrongly when b >= 2.
 The gate itself (its `math_fun`) is correct; the disagreement is between the gate and its decomposition.
 

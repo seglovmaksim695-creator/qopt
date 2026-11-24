@@ -45,7 +45,8 @@ fourier-shift lemma (a geometric sum, proved in `DYADIC.md`, Lemma 2; the circui
 arithmetic is checked by the machine); for ProjectQ the exact angle reading above.  The proofs are about the circuit with the exact
 dyadic angles; the real floats of the libraries differ from them by their rounding.
 
-Findings on the way (described in the documents of the parts): Qiskit 2.6.2 `VBERippleCarryAdder(kind='fixed')` is wrong for n >= 2 (an
+Findings on the way (described in the documents of the parts; minimal reproductions without qoptct: `docs/findings/f6_projectq_decomposition_bugs.py`,
+`docs/findings/f7_qiskit_vbe_fixed.py`): Qiskit 2.6.2 `VBERippleCarryAdder(kind='fixed')` is wrong for n >= 2 (an
 open Qiskit pull request exists); Qiskit 2.6.2 `control()` of a `CPhase` with an angle of at most pi/2^51 gives wrong angles
 (`DraperQFTAdder(64).control(1)` is REFUTED); ProjectQ 0.8.0 `ComparatorQuantum` is wrong for n = 1 and n >= 3 and `MultiplyQuantum` for b >= 2;
 Qiskit `transpile` with the default `qubits_initially_zero=True` keeps only the action on |0...0>.
