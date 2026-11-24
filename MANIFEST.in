@@ -12,3 +12,7 @@ include results/crypto/*.qasm results/crypto/*.qc results/crypto/*.json
 include results/qualtran/*.json
 include scripts/build_qualtran_registry.py
 include docs/QUALTRAN*.md
+include results/dyadic/*.json results/auto/*.json results/projectq/*.json
+recursive-include results/loop *.json *.jsonl *.md *.qasm
+include scripts/build_*_registry.py scripts/dyadic_runs.py scripts/projectq_dyadic_runs.py
+include docs/FOREIGN.md docs/QISKIT.md docs/PROJECTQ.md docs/DYADIC.md docs/AUTO.md docs/LOOP.md
