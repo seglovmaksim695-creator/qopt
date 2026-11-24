@@ -40,14 +40,45 @@ class Logical:
         self.scratch = scratch
         self.mode = mode
         self.source = source              # SHA-256 of the recording this program was made from
+        self.qasm_edits = []              # canary tool only: (old, new, occurrence) text edits applied to the QASM
 
     def copy(self, ops=None):
-        return Logical(list(self.ops if ops is None else ops), self.nq, {k: list(v) for k, v in self.inputs.items()},
-                       {k: list(v) for k, v in self.outputs.items()}, {k: list(v) for k, v in self.garbage.items()},
-                       list(self.free_wires), list(self.scratch), self.mode, self.source)
+        c = Logical(list(self.ops if ops is None else ops), self.nq, {k: list(v) for k, v in self.inputs.items()},
+                    {k: list(v) for k, v in self.outputs.items()}, {k: list(v) for k, v in self.garbage.items()},
+                    list(self.free_wires), list(self.scratch), self.mode, self.source)
+        c.qasm_edits = list(self.qasm_edits)
+        return c
 
     def qasm(self):
-        return emit_qasm(self.nq, self.ops)
+        text = emit_qasm(self.nq, self.ops)
+        for old, new, occurrence in self.qasm_edits:
+            at = -1
+            for _ in range(occurrence + 1):
+                at = text.index(old, at + 1)
+            text = text[:at] + new + text[at + len(old):]
+        return text
+
+    def parsed_ops(self):
+        """The classical program as the exact2 parser reads the QASM text (so the text itself is what is simulated):
+        ('x', t), ('cx', c, t), ('and', p, q, t), ('erase', t, (('cz', p, q),))."""
+        from ...verify.exact2 import parse
+        try:
+            n, ops = parse(self.qasm())
+        except ValueError as e:
+            raise Unsupported(f'the QASM text is not in the classical language of exact2: {e}') from e
+        out = []
+        for o in ops:
+            if o[0] == 'c':
+                out.append(('cx', o[1], o[2]))
+            elif o[0] == 'x':
+                out.append(('x', o[1]))
+            elif o[0] == 'a':
+                out.append(('and', o[1], o[2], o[3]))
+            elif o[0] == 'e':
+                out.append(('erase', o[3], (('cz', o[1], o[2]),)))
+            else:
+                raise Unsupported(f'unexpected operation {o[0]}')
+        return out
 
     def sha256(self):
         blob = json.dumps([self.mode, self.nq, self.ops, sorted(self.inputs.items()), sorted(self.outputs.items()),

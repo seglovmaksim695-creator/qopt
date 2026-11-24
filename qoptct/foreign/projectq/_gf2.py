@@ -15,6 +15,7 @@ from __future__ import annotations
 import hashlib
 import random
 
+from ._record import Unsupported
 from ._sim import PreconditionError, masks_w2, masks_full, simulate, w2_monomials
 
 __all__ = ['GarbagePin', 'rabin_irreducible', 'poly_mod', 'mulmod', 'pin_gf2', 'check_gf2_mul', 'reference_text']
@@ -177,7 +178,9 @@ def sample_check(lg, m, poly, pin=None, count=96, seed=1):
     for i, w in enumerate(lg.inputs['y']):
         init[w] = sum(((b >> i) & 1) << j for j, (_, b) in enumerate(pairs))
     try:
-        st = simulate(lg.ops, lg.nq, init, full)
+        st = simulate(lg.parsed_ops(), lg.nq, init, full)
+    except Unsupported as e:
+        return False, str(e)
     except PreconditionError as e:
         return False, f'precondition on the sample lanes: {e}'
     for j, (a, b) in enumerate(pairs):

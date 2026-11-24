@@ -12,6 +12,7 @@ The AND gadget needs a clean target and its erasure needs ``target = p AND q`` o
 from __future__ import annotations
 
 from ._logical import Logical
+from ._record import Unsupported
 from ._gf2 import GarbagePin
 from ._sim import PreconditionError, masks_full, simulate
 
@@ -101,7 +102,9 @@ def check_classical(lg: Logical, spec: ClassicalSpec, pin=None, max_input_bits=2
         return dict(out, status='UNKNOWN', detail=str(e))
     init, full = _init(lg, n)
     try:
-        st = simulate(lg.ops, lg.nq, init, full)
+        st = simulate(lg.parsed_ops(), lg.nq, init, full)
+    except Unsupported as e:
+        return dict(out, status='UNKNOWN', detail=str(e))
     except PreconditionError as e:
         return dict(out, status='UNKNOWN', detail=f'AND/erasure precondition does not hold on every input: {e}')
     off, _ = _offsets(lg)
