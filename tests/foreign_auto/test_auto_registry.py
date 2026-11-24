@@ -3,10 +3,14 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[2]
 
 
 def test_registry_is_a_fresh_build_of_the_results():
+    if not (ROOT / 'qoptct' / 'foreign' / 'auto' / 'data' / 'registry.json').exists():
+        pytest.skip('the source tree is not here (tests run against an installed wheel)')
     r = subprocess.run([sys.executable, str(ROOT / 'scripts' / 'build_auto_registry.py'), '--check'],
                        capture_output=True, text=True)
     assert r.returncode == 0, r.stderr

@@ -88,7 +88,7 @@ def test_loop_verify_of_the_shipped_journal():
 
 @pytest.mark.parametrize('script', ['build_dyadic_registry.py', 'build_loop_registry.py'])
 def test_registry_matches_results(script):
-    if not (ROOT / 'results' / 'dyadic').is_dir():
-        pytest.skip('results/ is not part of the installed package')
+    if not (ROOT / 'results' / 'dyadic').is_dir() or not (ROOT / 'qoptct' / 'dyadic' / 'data').is_dir():
+        pytest.skip('the source tree is not here (tests run against an installed wheel)')
     r = subprocess.run([sys.executable, str(ROOT / 'scripts' / script), '--check'], capture_output=True, text=True)
     assert r.returncode == 0, r.stdout + r.stderr

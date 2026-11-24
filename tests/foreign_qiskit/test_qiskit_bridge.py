@@ -40,7 +40,15 @@ def test_fractional_phase_is_unknown_not_proved():
     assert r["status"] == "UNKNOWN" and r["needs"] == "fractional_phases"
     qc = QuantumCircuit(1)
     qc.p(math.pi / 8, 0)
-    assert check_qiskit(qc, reference=QuantumCircuit(1))["status"] == "UNKNOWN"
+    # 0.8: a reference circuit is a target for the dyadic prover, which decides (a rotation by pi/8 is not the identity)
+    r = check_qiskit(qc, reference=QuantumCircuit(1))
+    assert r["status"] == "REFUTED" and r["method"].startswith("dyadic") and r.get("witness") is not None, r
+    same = QuantumCircuit(1)
+    same.p(math.pi / 8, 0)
+    assert check_qiskit(qc, reference=same)["status"] == "PROVED"
+    off = QuantumCircuit(1)
+    off.p(math.pi / 8 + 1e-6, 0)           # not a multiple of pi/2^k: never PROVED, never REFUTED by guessing
+    assert check_qiskit(qc, reference=off)["status"] == "UNKNOWN"
 
 
 def test_rejects_unsupported():
