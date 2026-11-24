@@ -29,11 +29,12 @@ from qoptct.verify.dyadic import (DCircuit, Pi, prove_equal, prove_spec, QFTSpec
 
 BASIS = ['h', 'x', 'y', 'z', 's', 'sdg', 't', 'tdg', 'sx', 'sxdg', 'cx', 'cz', 'cy', 'ccx', 'ccz', 'p', 'cp', 'rz',
          'rx', 'ry', 'u', 'swap', 'cswap', 'crz', 'cs', 'csdg']
-SIZES = {'qft': [2, 4, 8, 16, 32, 48, 64], 'qft_noswap': [2, 4, 8, 16, 32, 64], 'iqft': [2, 4, 8, 16, 32, 64],
-         'qft_qftdg': [2, 4, 8, 16, 32, 64], 'draper_fixed': [1, 2, 4, 8, 16, 32, 48, 64],
-         'draper_half': [1, 2, 4, 8, 16, 32, 64], 'rgqft': [1, 2, 3, 4, 6, 8, 12, 16],
-         'hrs': [1, 2, 3, 4, 5, 6, 8], 'pq_addconst': [2, 4, 8, 16, 32, 64], 'pq_qft': [2, 4, 8, 16, 32, 64],
-         'pq_addconst_basic': [2, 4, 8, 16, 32, 48, 64], 'pq_qft_basic': [2, 4, 8, 16, 32, 64],
+SIZES = {'qft': [2, 4, 8, 16, 32, 64, 128, 256], 'qft_noswap': [2, 4, 8, 16, 32, 64, 128, 256],
+         'iqft': [2, 4, 8, 16, 32, 64, 128, 256], 'qft_qftdg': [2, 4, 8, 16, 32, 64, 128, 256],
+         'draper_fixed': [1, 2, 4, 8, 16, 32, 64, 128, 256], 'draper_half': [1, 2, 4, 8, 16, 32, 64, 128, 256],
+         'rgqft': [1, 2, 3, 4, 6, 8, 12, 16, 24, 32], 'hrs': [1, 2, 3, 4, 5, 6, 7, 8],
+         'pq_addconst': [2, 4, 8, 16, 32, 48, 64], 'pq_qft': [2, 4, 8, 16, 32, 48, 64],
+         'pq_addconst_basic': [2, 4, 8, 16, 32, 48, 64], 'pq_qft_basic': [2, 4, 8, 16, 32, 48, 64],
          'pq_addconst_opt': [2, 4, 8, 16, 24, 32]}
 PQ_DIR = os.path.join(os.path.dirname(HERE), 'results', 'dyadic', 'projectq')
 
@@ -255,6 +256,12 @@ def run_one(family, n, do_canaries, budget, seed=1):
         res['canaries'] = cres
         res['canaries_refuted'] = sum(1 for x in cres if x['verdict'] == 'REFUTED')
         res['canaries_proved'] = sum(1 for x in cres if x['verdict'] == 'PROVED')
+        # independent numeric check at the largest size (product-state simulator, random basis inputs; not a proof)
+        if not isinstance(spec, DCircuit):
+            from qoptct.verify.dyadic import prodsim
+            chk = prodsim.check_qft if spec.kind == 'qft' else prodsim.check_arith
+            t, bad, ent = chk(c, spec, 20, random.Random(seed))
+            res['product_check'] = dict(inputs=t, bad=bad, entangling=ent)
     return res
 
 
@@ -295,7 +302,7 @@ def main(argv=None):
             row = one(n, False)
             rows.append(row)
             print(fam, n, row.get('verdict'), row.get('time_prove'), row.get('peak_mb'), flush=True)
-            if row.get('verdict') != 'PROVED':
+            if row.get('verdict') != 'PROVED' and not fam.startswith('pq_'):
                 break
         ok = [i for i, r in enumerate(rows) if r.get('verdict') == 'PROVED']
         if ok:
