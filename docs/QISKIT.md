@@ -42,7 +42,7 @@ mutants).  All rows below are PROVED by the BDD prover for **every** input and e
 | `vbe-half/full` (VBERippleCarryAdder) | same | 256 |
 | `half-adder-gate`, `full-adder-gate`, `modular-adder-gate` | sum of the gate, `ModularAdderGate` is Clifford+T (h, t, tdg) | 256 (`modular-adder-gate`: canaries at n = 32 only, mutants at n = 256 exceed the prover's memory) |
 | `comparator-geq`, `comparator-lt` (IntegerComparator) | `compare ^= [state >= v]` / `< v` | 256 |
-| `comparator-gate` (IntegerComparatorGate) | same | 16 (the BDD exceeds 3 GB at 64); **no canaries** (one proof of its 415 073 gates takes tens of minutes; `prove comparator-gate 16 --canaries --sample 26` produces them) |
+| `comparator-gate` (IntegerComparatorGate) | same | 16 (the BDD exceeds 3 GB at 64); **no canaries** (one proof of its 415 073 gates takes 46 minutes; `prove comparator-gate 16 --canaries --sample 26` produces them) |
 | `and`, `or`, `xor-const` (AndGate, OrGate, BitwiseXorGate) | boolean function | 256 |
 | `c-cdkm-*`, `c-vbe-half/full` | controlled versions, see below | 256 |
 

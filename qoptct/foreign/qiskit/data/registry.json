@@ -224,7 +224,7 @@
    ],
    "canaries": null,
    "command": "python -m qoptct.foreign.qiskit prove comparator-gate 16",
-   "canaries_note": "none: a single proof at n = 16 (415 073 gates) takes tens of minutes and 26 mutants would take about a day; the same circuit family is covered by comparator-geq / comparator-lt with 33+ canaries at n = 256; to produce them: python -m qoptct.foreign.qiskit prove comparator-gate 16 --canaries --sample 26"
+   "canaries_note": "none: one proof at n = 16 (415 073 gates, replay of all 131 072 inputs) takes 46 minutes, so 26 mutants would take about a day; the same kind of circuit is covered by comparator-geq / comparator-lt with 33+ canaries at n = 256; to produce them: python -m qoptct.foreign.qiskit prove comparator-gate 16 --canaries --sample 26"
   },
   {
    "family": "comparator-geq",
