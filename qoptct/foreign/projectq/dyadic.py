@@ -73,6 +73,29 @@ def exact_angle(stored, period):
                       'such value)' % (stored, MAX_K))
 
 
+def _exact(g, *classes):
+    """True only for an instance of exactly one of ``classes`` (no subclass, no look-alike with the same name): a
+    user gate that overrides a standard one must never be read as the standard gate."""
+    return type(g) in classes
+
+
+def _small_phase_gate(g):
+    """'s' / 'sdg' / 't' / 'tdg' for the ProjectQ S, Sdag, T, Tdag gates (identified by class, never by str(g)), else None."""
+    from projectq.ops import DaggeredGate
+    from projectq.ops._gates import SGate, TGate
+    if type(g) is SGate:
+        return 's'
+    if type(g) is TGate:
+        return 't'
+    if type(g) is DaggeredGate:
+        inner = getattr(g, '_gate', None)
+        if type(inner) is SGate:
+            return 'sdg'
+        if type(inner) is TGate:
+            return 'tdg'
+    return None
+
+
 def _make_recorder():
     from projectq.cengines import BasicEngine
     from projectq.meta import get_control_count
@@ -89,15 +112,15 @@ def _make_recorder():
             if isinstance(g, (AllocateQubitGate, DeallocateQubitGate, FlushGate)):
                 return True
             k = get_control_count(cmd)
-            if isinstance(g, XGate):
+            if _exact(g, XGate):
                 return k <= 2
-            if isinstance(g, (HGate, YGate, ZGate)) or str(g) in ('S', 'Sdag', 'T', 'Tdag'):
+            if _exact(g, HGate, YGate, ZGate) or _small_phase_gate(g):
                 return k == 0
-            if isinstance(g, SwapGate):
+            if _exact(g, SwapGate):
                 return k == 0
-            if isinstance(g, R):
+            if _exact(g, R):
                 return k <= 1
-            if isinstance(g, (Rz, Rx, Ry, Ph)):
+            if _exact(g, Rz, Rx, Ry, Ph):
                 return k == 0
             return False
 
@@ -146,27 +169,27 @@ def record_dyadic(program):
         ctrl = [q.id for q in cmd.control_qubits]
         tgt = [q.id for qr in cmd.qubits for q in qr]
         k = len(ctrl)
-        if isinstance(g, XGate):
+        if _exact(g, XGate):
             ops.append(('x' if k == 0 else 'cx' if k == 1 else 'ccx', ctrl + tgt, ()))
-        elif isinstance(g, HGate):
+        elif _exact(g, HGate):
             ops.append(('h', tgt, ()))
-        elif isinstance(g, YGate):
+        elif _exact(g, YGate):
             ops.append(('y', tgt, ()))
-        elif isinstance(g, ZGate):
+        elif _exact(g, ZGate):
             ops.append(('z', tgt, ()))
-        elif str(g) in ('S', 'Sdag', 'T', 'Tdag'):
-            ops.append(({'S': 's', 'Sdag': 'sdg', 'T': 't', 'Tdag': 'tdg'}[str(g)], tgt, ()))
-        elif isinstance(g, SwapGate):
+        elif _small_phase_gate(g):
+            ops.append((_small_phase_gate(g), tgt, ()))
+        elif _exact(g, SwapGate):
             ops.append(('swap', tgt, ()))
-        elif isinstance(g, (R, Rz, Rx, Ry, Ph)):
-            period = 2 * math.pi if isinstance(g, (R, Ph)) else 4 * math.pi
+        elif _exact(g, R, Rz, Rx, Ry, Ph):
+            period = 2 * math.pi if _exact(g, R, Ph) else 4 * math.pi
             r = exact_angle(g.angle, period)
             nang += 1
             ks.append(r.denominator.bit_length() - 1)
-            name = {R: 'p', Rz: 'rz', Rx: 'rx', Ry: 'ry'}.get(type(g)) if not isinstance(g, Ph) else 'gphase'
-            if isinstance(g, Ph):
+            name = {R: 'p', Rz: 'rz', Rx: 'rx', Ry: 'ry'}.get(type(g)) if not _exact(g, Ph) else 'gphase'
+            if _exact(g, Ph):
                 ops.append(('gphase', [], (Pi(r.numerator, r.denominator),)))
-            elif isinstance(g, R) and k == 1:
+            elif _exact(g, R) and k == 1:
                 ops.append(('cp', ctrl + tgt, (Pi(r.numerator, r.denominator),)))
             else:
                 ops.append((name, tgt, (Pi(r.numerator, r.denominator),)))

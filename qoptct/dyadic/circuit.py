@@ -29,7 +29,7 @@ from fractions import Fraction
 __all__ = ['Pi', 'NotDyadic', 'Unsupported', 'DCircuit', 'to_angle', 'expand', 'invert_prims', 'needed_K',
            'parse_qasm', 'from_qc', 'GATES', 'FLOAT_MAX_NUM', 'FLOAT_ULPS', 'recognise_float']
 
-FLOAT_MAX_NUM = 1 << 20       # largest numerator p of a float angle pi*p/2^k (after reduction to (-pi, pi])
+FLOAT_MAX_NUM = 1 << 20       # largest numerator p of a float angle pi*p/2^k (after reduction to (-2 pi, 2 pi])
 FLOAT_ULPS = 32               # tolerance of a float angle, in units in the last place of theta/pi
 AMBIGUITY_RATIO = 64          # with an absolute tolerance (rounding source), nonzero angles must exceed 64 x tolerance
 MAX_K = 4096                  # largest 2-power denominator accepted for an exact angle
@@ -75,6 +75,26 @@ def _mod4(r):
     return r - 4 * (r.numerator // (4 * r.denominator))
 
 
+def _pi_fraction(bits=1300):
+    """pi to 2^-bits as a Fraction (Machin: pi = 16 atan(1/5) - 4 atan(1/239), integer arithmetic)."""
+    one = 1 << (bits + 20)
+
+    def atan_inv(n):
+        term = one // n
+        total, k, sign = term, 1, 1
+        n2 = n * n
+        while term:
+            term //= n2
+            k += 2
+            sign = -sign
+            total += sign * (term // k)
+        return total
+    return Fraction(16 * atan_inv(5) - 4 * atan_inv(239), 1 << 20) / (1 << bits)
+
+
+_PI_HP = _pi_fraction()
+
+
 def recognise_float(theta, rec=None, abs_tol=None):
     """theta (radians, float) -> Fraction r in [0, 4) with theta = pi*r up to the float precision; NotDyadic if none.
     x = theta/pi is reduced to (-2, 2]; the tolerance is FLOAT_ULPS units in the last place of x (a float carries no
@@ -88,11 +108,23 @@ def recognise_float(theta, rec=None, abs_tol=None):
     if theta == 0.0:
         return Fraction(0)
     x = theta / math.pi
-    tol = FLOAT_ULPS * math.ulp(x)
-    if abs_tol:
-        tol = max(tol, abs_tol / math.pi)
-    m = round(x / 4.0)
-    xr = x - 4.0 * m
+    if abs(x) > 4.0:
+        # a large angle: reduce it EXACTLY (theta is a float, its value is exact) modulo 4 pi with a high-precision pi
+        # before any tolerance is applied; the tolerance is then that of the reduced angle.  A float that far from 0 has
+        # an absolute error of ulp(theta) which is far above the tolerance, so it is read only if it happens to be
+        # within the tolerance of a dyadic angle exactly, otherwise NotDyadic (UNKNOWN), never an approximate PROVED.
+        xe = Fraction(theta) / _PI_HP
+        xr = float(xe - 4 * round(xe / 4))
+        tol = FLOAT_ULPS * math.ulp(xr)
+        if abs_tol:
+            tol = max(tol, abs_tol / math.pi)
+        m = 0
+    else:
+        tol = FLOAT_ULPS * math.ulp(x)
+        if abs_tol:
+            tol = max(tol, abs_tol / math.pi)
+        m = round(x / 4.0)
+        xr = x - 4.0 * m
     r = dev = None
     amb = AMBIGUITY_RATIO * tol
     for o in (0, 2, -2):
