@@ -90,8 +90,15 @@ def _vectors(widths, count, seed):
 def native_check(program, spec, widths, count=24, seed=7, exhaustive_bits=10):
     """Compare the native run with ``spec.fn`` on ``count`` inputs (all inputs when there are <= ``exhaustive_bits`` input
     bits).  -> dict(ok, tested, detail)."""
+    dec = None                            # None: the simulator runs the gates itself; 2: after ProjectQ's decomposition
     try:
-        _, in_ids = run_native(program)
+        try:
+            _, in_ids = run_native(program)
+        except ValueError as e:
+            if 'Only support' not in str(e):
+                raise
+            dec = 2                       # e.g. Swap: the simulator has no rule, ProjectQ's own decomposition then
+            _, in_ids = run_native(program, decompose=dec)
     except Unsupported:
         raise
     except Exception as e:  # noqa: BLE001
@@ -113,7 +120,7 @@ def native_check(program, spec, widths, count=24, seed=7, exhaustive_bits=10):
         if spec.promise is not None and not spec.promise(v):
             continue
         try:
-            got, ids2 = run_native(program, v, in_ids)
+            got, ids2 = run_native(program, v, in_ids, decompose=dec)
         except Exception as e:  # noqa: BLE001
             return dict(ok=False, tested=tested, detail=f'native run failed on {v}: {type(e).__name__}: {e}')
         if ids2 != in_ids:
@@ -124,5 +131,5 @@ def native_check(program, spec, widths, count=24, seed=7, exhaustive_bits=10):
                 return dict(ok=False, tested=tested, detail=f'on input {v} register {name} is {got.get(name)}, specification says {val}',
                             witness=v)
         tested += 1
-    return dict(ok=True, tested=tested, detail=f'{tested} inputs agree with ProjectQ ClassicalSimulator'
+    return dict(ok=True, tested=tested, via='decomposition' if dec else 'gates', detail=f'{tested} inputs agree with ProjectQ ClassicalSimulator'
                                                + (' (all inputs)' if total <= exhaustive_bits else ' (sampled)'))

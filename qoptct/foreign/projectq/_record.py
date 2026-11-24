@@ -64,9 +64,23 @@ def _atoms():
     return _ATOMS
 
 
+_FAST = None
+
+
+def _fast():
+    global _FAST
+    if _FAST is None:
+        from projectq.ops import _gates
+        _FAST = {_gates.XGate: 'x', _gates.ZGate: 'z', _gates.HGate: 'h', _gates.SGate: 's', _gates.TGate: 't'}
+    return _FAST
+
+
 def atom_of(gate):
     """Name of the atom whose matrix is exactly the matrix of ``gate`` (no global phase allowed), or None."""
     import numpy as np
+    fast = _fast()
+    if type(gate) in fast:                  # the fixed gates have a fixed matrix: no need to build it for every command
+        return fast[type(gate)]
     try:
         m = np.array(gate.matrix, dtype=complex)
     except Exception:  # noqa: BLE001 - gates without a matrix
