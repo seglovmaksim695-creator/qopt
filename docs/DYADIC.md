@@ -200,7 +200,7 @@ REFUTED for n ≥ 2, which is correct).
 | Qiskit `DraperQFTAdder` half | `adder_spec` with carry (+ lemma) | n = 256 | 513 / 99 714 | 9.9 s, 191 MB | 22 / 22 | — |
 | Qiskit `DraperQFTAdder(n).control(1)` | controlled `ArithSpec` (+ lemma) | n = 10 | 21 / 895 | 48 s, 125 MB | 20 / 20 | REFUTED at n = 64 (see below) |
 | Qiskit `RGQFTMultiplier` | `multiplier_spec` (+ lemma) | n = 32 | 128 / 69 760 | 1.8 s, 163 MB | 22 / 22 | — |
-| Qiskit `HRSCumulativeMultiplier` (p(±π/8)) | `ClassicalSpec`, out = 0 | n = 7 | 28 / 4 634 | 175 s, 92 MB | see registry | n = 8 UNKNOWN (time) |
+| Qiskit `HRSCumulativeMultiplier` (p(±π/8)) | `ClassicalSpec`, out = 0 | n = 7 | 28 / 4 634 | 166 s, 92 MB | 20 / 20 | n = 8 UNKNOWN (time) |
 | ProjectQ `QFT` (native) | `QFTSpec(swaps=False)` | n = 32 | 32 / 528 | 0.04 s | 21 / 21 | n = 48 UNKNOWN (angles) |
 | ProjectQ `AddConstant(c)` (native) | `const_adder_spec` (+ lemma) | n = 32 | 32 / 1 351 | 0.07 s | 21 / 21 | n = 48 UNKNOWN (angles) |
 | ProjectQ `QFT` (basic: CNOT + 1-qubit) | `QFTSpec(swaps=False)` | n = 31 | 31 / 2 356 | 0.08 s | 20 / 20 | n = 32 UNKNOWN (angles) |

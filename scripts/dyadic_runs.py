@@ -213,13 +213,21 @@ def canaries(c, spec, family, n, rng):
     e.gphase = (e.gphase + Fraction(1, 2 ** min(n + 1, 60))) % 2
     out.append(('global_phase_exact', e, 'exact'))
     # rare inputs: a phase or a flip that acts only when many inputs are 1
-    qs_all = list(range(min(c.n, 8)))
+    zero_w = set(getattr(spec, 'zero_wires', ()))
+    qs_all = [q for q in range(c.n) if q not in zero_w][:8]      # reachable: free inputs only
     if len(qs_all) >= 2:
         e = c.copy()
         e.ops.append(('mcp', tuple(qs_all), (Fraction(1, 2 ** min(n, 30)),)))
         out.append(('rare_input_phase', e, 'global'))
         e = c.copy()
-        e.ops.append(('mcx', tuple(range(c.n)), ()))
+        zero = list(getattr(spec, 'zero_wires', ()))
+        if zero:
+            # domain with zero wires: flip a zero wire when all free inputs are 1 (an output state that the circuit
+            # really reaches; a flip conditioned on the whole register could be unreachable and then no canary)
+            free = [q for q in range(c.n) if q not in zero]
+            e.ops.append(('mcx', tuple(free) + (zero[0],), ()))
+        else:
+            e.ops.append(('mcx', tuple(range(c.n)), ()))
         out.append(('rare_input_flip_all_ones', e, 'global'))
     guard = 0
     while len(out) < 20 and rot and guard < 200:

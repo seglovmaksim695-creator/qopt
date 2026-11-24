@@ -158,9 +158,9 @@
    },
    "reason": null,
    "peak_terms": 25159,
-   "time_build": 0.26,
-   "time_prove": 175.02,
-   "peak_mb": 92.3,
+   "time_build": 0.17,
+   "time_prove": 166.22,
+   "peak_mb": 92.1,
    "canaries": [
     {
      "name": "smallest_rotation1/8",
@@ -254,9 +254,9 @@
     },
     {
      "name": "global_phase_exact",
-     "verdict": "UNKNOWN",
-     "method": "limit",
-     "time": 120.11
+     "verdict": "REFUTED",
+     "method": "normal-form",
+     "time": 177.08
     },
     {
      "name": "rare_input_phase",
@@ -266,9 +266,9 @@
     },
     {
      "name": "rare_input_flip_all_ones",
-     "verdict": "UNKNOWN",
-     "method": "limit",
-     "time": 120.06
+     "verdict": "REFUTED",
+     "method": "witness",
+     "time": 0.03
     },
     {
      "name": "negated_rotation",
@@ -283,7 +283,7 @@
      "time": 0.04
     }
    ],
-   "canaries_refuted": 18,
+   "canaries_refuted": 20,
    "canaries_proved": 0,
    "product_check": {
     "inputs": 20,
@@ -315,5 +315,6 @@
    "peak_mb": 366.8
   }
  ],
- "python": "3.12.16"
+ "python": "3.12.16",
+ "note": "row n=7 rerun with canary budget 600 s and the fixed canary generator (reachable rare-input triggers)"
 }
