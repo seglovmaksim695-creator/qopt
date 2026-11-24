@@ -189,3 +189,25 @@ def mod_dbl_spec(n, p):
     _odd_modulus(n, p)
     return Contract(inputs={'x': n}, outputs={'x': n}, pre=X.lt(V('x'), p),
                     out={'x': X.mod(X.shl(V('x'), 1), p)}, name=f'ModDbl(n={n}, p={p})', kind='spec')
+
+
+# ------------------------------------------------------------------------------------------------ ECAdd, step 1
+def ecadd_step1_spec(n, p):
+    """``_ECAddStepOne(n, p)`` of the fixed ECAdd (patch E05, Qualtran kind 'e'): for a, b, x, y < p it sets the
+    flags f1 = [a = x], f3 = [(a, b) = (0, 0)], f4 = [(x, y) = (0, 0)], ctrl = [f3 = f4 = 0 and not (f1 and
+    b = -y)], f2 = [b = -y] and not ctrl; a, b, x, y unchanged (the same statement as step 1 of the 0.7 proof,
+    ``ecadd.ispecs.S1``)."""
+    _odd_modulus(n, p, two_p=True)
+    e1 = X.eq(V('a'), V('x'))
+    e2 = X.eq(V('b'), X.mod(X.sub(0, V('y')), p))
+    e3 = X.and_(X.eq(V('a'), 0), X.eq(V('b'), 0))
+    e4 = X.and_(X.eq(V('x'), 0), X.eq(V('y'), 0))
+    ctrl = X.and_(X.not_(X.ref('e3')), X.and_(X.not_(X.ref('e4')), X.not_(X.and_(X.ref('e1'), X.ref('e2')))))
+    return Contract(
+        inputs={'a': n, 'b': n, 'x': n, 'y': n},
+        outputs={'f1': 1, 'f2': 1, 'f3': 1, 'f4': 1, 'ctrl': 1, 'a': n, 'b': n, 'x': n, 'y': n},
+        pre=X.all_([X.lt(V(k), p) for k in 'abxy']),
+        defs=[('e1', e1), ('e2', e2), ('e3', e3), ('e4', e4), ('ctrl', ctrl)],
+        out={'f1': X.ref('e1'), 'f2': X.and_(X.ref('e2'), X.not_(X.ref('ctrl'))), 'f3': X.ref('e3'),
+             'f4': X.ref('e4'), 'ctrl': X.ref('ctrl'), 'a': V('a'), 'b': V('b'), 'x': V('x'), 'y': V('y')},
+        name=f'ECAdd step 1 (n={n}, p={p}, fixed)', kind='spec')

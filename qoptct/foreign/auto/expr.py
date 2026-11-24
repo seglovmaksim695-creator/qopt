@@ -411,6 +411,12 @@ class Z3Terms:
                     t = b if op != 'band' else zero
                 elif type(e[2]) is int and e[2] == 0:
                     t = a if op != 'band' else zero
+                elif op == 'bxor' and (type(e[2]) is int or type(e[1]) is int) and \
+                        _all_ones_of(e[2] if type(e[2]) is int else e[1],
+                                     self.bounds(e[1] if type(e[2]) is int else e[2])):
+                    # x xor (2^w - 1) = (2^w - 1) - x for 0 <= x < 2^w
+                    k, other = (e[2], a) if type(e[2]) is int else (e[1], b)
+                    t = k - other
                 else:
                     la, lb = self.bounds(e[1]), self.bounds(e[2])
                     if la[0] < 0 or lb[0] < 0:
@@ -437,6 +443,10 @@ class Z3Terms:
     def cond(self, e):
         """z3 Bool for a 0/1 expression"""
         return self.term(e) == 1
+
+
+def _all_ones_of(k, bnd):
+    return k > 0 and not (k & (k + 1)) and bnd[0] >= 0 and bnd[1] <= k
 
 
 # ----------------------------------------------------------------------------------------------- ROBDD words

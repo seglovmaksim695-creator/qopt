@@ -21,7 +21,11 @@ __all__ = ['main', 'prove_target', 'variant_of']
 
 
 def variant_of(target):
-    return 'c' if target == 'montgomery' else None
+    if target == 'montgomery':
+        return 'c'
+    if target.startswith('ecadd_step'):
+        return 'e'
+    return None
 
 
 def _num(s):
@@ -110,13 +114,11 @@ def main(argv=None):
                              extra=(['--drop-invariant'] if a.drop_invariant else []))
             _print_summary(v)
             return 0 if v.get('verdict') == 'PROVED' else 1
-        from .api import build_target, prove_bloq
+        from .api import build_target, prove_bloq, target_spec
         bloq, kind, params = build_target(a.target, n, p, w=w, cv=cv)
-        spec = None
+        spec = target_spec(a.target, bloq, params)
         if a.drop_invariant:
             from dataclasses import replace
-            from .registry import contract_for
-            spec = contract_for(bloq)
             spec = replace(spec, folds=[replace(f, invariant=1) for f in spec.folds])
             params = dict(params, drop_invariant=True)
         log = (lambda m: print('  ', m, flush=True)) if a.verbose else None

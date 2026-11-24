@@ -43,6 +43,21 @@ def _versions():
     return out
 
 
+def source_digest():
+    """SHA-256 of the sources a verdict depends on: this package, the bridge and the qoptct provers"""
+    from hashlib import sha256
+    import os
+    here = Path(os.path.abspath(__file__)).parent
+    pkg = here.parent
+    files = sorted(here.glob('*.py')) + sorted((pkg / 'qualtran' / 'bridge').glob('*.py')) + \
+        sorted((pkg.parent / 'verify').glob('*.py')) + [pkg / 'qualtran' / 'montgomery' / '_core.py']
+    h = sha256()
+    for f in files:
+        h.update(str(f.relative_to(pkg.parent)).encode())
+        h.update(f.read_bytes())
+    return h.hexdigest()
+
+
 def _variant():
     try:
         from ..qualtran._variant import detect_variant
@@ -117,7 +132,8 @@ def prove_bloq(bloq, spec=None, *, target=None, params=None, expect_variant=None
     t0 = time.time()
     say = log or (lambda m: None)
     v = dict(schema=SCHEMA, target=target, params=params or {}, verdict='NOT_PROVED', reasons=[],
-             versions=_versions(), qualtran_variant=_variant(), assumptions=list(ASSUMPTIONS))
+             versions=_versions(), qualtran_variant=_variant(), source_sha256=source_digest(),
+             assumptions=list(ASSUMPTIONS))
     if expect_variant is not None and v['qualtran_variant'].get('kind') != expect_variant:
         v['reasons'].append(f"Qualtran variant {v['qualtran_variant'].get('kind')!r}, the proof needs {expect_variant!r}")
     try:
@@ -218,7 +234,22 @@ def build_target(name, n, p=None, w=1, cv=1, k=None):
         return M.CModNeg(QUInt(n), p, cv=cv), None, params
     if name == 'moddbl':
         return M.ModDbl(QUInt(n), p), None, params
+    if name.startswith('ecadd_step'):
+        from qualtran.bloqs.cryptography.ecc.ec_add import ECAdd
+        k = int(name[len('ecadd_step'):])
+        steps = [bi.bloq for bi in sorted(ECAdd(n, p, w).decompose_bloq().bloq_instances, key=lambda b: b.i)
+                 if type(bi.bloq).__name__.startswith('_ECAddStep')]
+        return steps[k - 1], 'e', params
     raise ValueError(f'unknown target {name}')
 
 
-TARGETS = ('montgomery', 'modadd', 'cmodadd', 'modsub', 'cmodsub', 'modneg', 'cmodneg', 'moddbl')
+TARGETS = ('montgomery', 'modadd', 'cmodadd', 'modsub', 'cmodsub', 'modneg', 'cmodneg', 'moddbl', 'ecadd_step1')
+
+
+def target_spec(name, bloq, params):
+    """the specification of a named target (the registry one, or a specification by name)"""
+    from . import registry as R
+    from . import specs as S
+    if name == 'ecadd_step1':
+        return S.ecadd_step1_spec(params['n'], params['p'])
+    return R.contract_for(bloq)

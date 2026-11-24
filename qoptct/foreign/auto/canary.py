@@ -536,13 +536,14 @@ def _witness(P, spec, rng, E, cases=40):
 
 
 def run_canaries(target, n, p=None, *, w=1, only=None, out=None, seed=5, log=None, min_count=20):
-    from .api import build_target, _versions, _variant
+    from .api import build_target, _versions, _variant, source_digest
     from .qualtran_adapter import lower
     from . import registry as R
     say = log or (lambda m: print(m, flush=True))
     t0 = time.time()
+    from .api import target_spec
     bloq, kind, params = build_target(target, n, p, w=w)
-    spec = R.contract_for(bloq)
+    spec = target_spec(target, bloq, params)
     rng = random.Random(seed)
     P0 = lower(bloq)
     say(f'lowered {target} {params}: {len(P0.ops)} ops ({time.time() - t0:.0f} s)')
@@ -583,7 +584,8 @@ def run_canaries(target, n, p=None, *, w=1, only=None, out=None, seed=5, log=Non
     proved = [r['name'] for r in rows if r['status'] == 'PROVED']
     counted = [r for r in rows if r.get('counts')]
     res = dict(schema='qoptct.auto.canaries/1', target=target, params=params, versions=_versions(),
-               qualtran_variant=_variant(), program_ops_sha256=P0.meta['ops_sha256'], total=len(rows),
+               qualtran_variant=_variant(), source_sha256=source_digest(), program_ops_sha256=P0.meta['ops_sha256'],
+               total=len(rows),
                counted=len(counted), joints=sum(1 for r in counted if r['family'] == 'joint'),
                gates=sum(1 for r in counted if r['family'] == 'gate'), proved=proved, rows=rows,
                ok=(not proved and len(counted) >= min_count), seconds=round(time.time() - t0, 1))

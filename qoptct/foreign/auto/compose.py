@@ -218,6 +218,12 @@ class _Comp:
                 if ta.eq(tb) or z3.simplify(ta - tb).eq(z3.IntVal(0)):
                     return True
             c = self.T.cond(cond)
+            if self.derived and not must:
+                # a node without a contract: its open conditions go to its precondition (sound: the parent must
+                # prove them); no solver call here (in context they are usually syntactic)
+                self.deferred.append((cond, what))
+                self.global_facts.append(c)
+                return True
             facts = self.facts_for(cond)
         except X.ExprError as e:
             raise ProofFail(f'{what}: not expressible in linear integer arithmetic: {e}', status='UNKNOWN')
@@ -531,8 +537,9 @@ class Engine:
         for nm, e in kc.defs:
             env_ref[nm] = cp.instantiate(e, env, env_ref, None, memo)
         if kc.pre != 1:
-            cp.obligation(cp.instantiate(kc.pre, env, env_ref, None, memo),
-                          f'{kid.path}: precondition of {kc.name}', must=False)
+            pre = cp.instantiate(kc.pre, env, env_ref, None, memo)
+            for j, conj in enumerate(_conjuncts(pre)):
+                cp.obligation(conj, f'{kid.path}: precondition of {kc.name} (part {j})', must=False)
         self._write_outputs(cp, kid, kc, env, env_ref, memo, touched)
 
     def _write_outputs(self, cp, kid, kc, env, env_ref, memo, touched, override=None):
@@ -693,6 +700,18 @@ class Engine:
                      name=f'derived:{node.type}', kind='derived',
                      note='outputs = composition of the proved children; pre = their deferred preconditions')
         return c.validate()
+
+
+def _conjuncts(e):
+    out, stack = [], [e]
+    while stack:
+        x = stack.pop()
+        if type(x) is tuple and x[0] == 'and':
+            stack.append(x[2])
+            stack.append(x[1])
+        elif x != 1:
+            out.append(x)
+    return out
 
 
 def _inline(leaf, dmap):
