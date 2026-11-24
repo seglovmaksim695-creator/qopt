@@ -51,7 +51,7 @@ def main(argv=None):
         else:
             print(registry.format_table(es))
         return 0 if es else 4
-    from . import QFTSpec, parse_qasm, prove_qasm
+    from . import NotDyadic, QFTSpec, Unsupported, parse_qasm, prove_qasm
     from .api import prove_spec
     phase = 'exact' if a.exact_phase else 'global'
     try:
@@ -61,8 +61,11 @@ def main(argv=None):
             c = parse_qasm(open(a.circuit, encoding='utf8').read() if '\n' not in a.circuit else a.circuit)
             wires = [int(x) for x in a.wires.split(',')] if a.wires else list(range(c.n))
             r = prove_spec(c, QFTSpec(wires, swaps=not a.no_swaps, inverse=a.inverse), phase=phase, budget_sec=a.budget)
-    except OSError as e:
-        print('error: %s' % e, file=sys.stderr)
+    except (NotDyadic, Unsupported) as e:           # an angle that is not pi*p/2^k, a gate that is not supported
+        print('UNKNOWN  (input)\nreason: %s' % e)
+        return 2
+    except (OSError, ValueError, TypeError, KeyError, IndexError) as e:
+        print('error: %s: %s' % (type(e).__name__, e), file=sys.stderr)
         return 4
     v = r.get('verdict', 'ERROR')
     if a.json:
