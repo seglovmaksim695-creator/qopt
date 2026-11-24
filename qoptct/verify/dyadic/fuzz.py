@@ -37,8 +37,9 @@ def qft_circuit(n, swaps=True, inverse=False, wires=None, nq=None):
 
 
 def rand_angle(rng, kmax=5):
+    """pi * p / 2^k with |p / 2^k| < 2 (angles in (-2 pi, 2 pi): the 4 pi period of the half-angle gates matters)."""
     k = rng.randint(0, kmax)
-    return Fraction(rng.randrange(-(1 << k), 1 << k) or 1, 1 << k)
+    return Fraction(rng.randrange(-(2 << k), 2 << k) or 1, 1 << k)
 
 
 def rand_circuit(rng, n, depth, kmax=5, names=None):

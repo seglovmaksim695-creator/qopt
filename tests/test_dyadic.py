@@ -35,25 +35,47 @@ from qoptct.verify.dyadic.fuzz import (qft_circuit, dense_equal, consistent, ran
 # ----------------------------------------------------------------------------- angles and parsing
 def test_angle_recognition():
     assert recognise_float(math.pi / 4) == Fraction(1, 4)
-    assert recognise_float(-math.pi / 2 ** 40) == 2 - Fraction(1, 2 ** 40)
+    assert recognise_float(-math.pi / 2 ** 40) == 4 - Fraction(1, 2 ** 40)
     assert recognise_float(math.pi / 2 ** 63) == Fraction(1, 2 ** 63)
     assert recognise_float(2 * math.pi * 2 ** 40) == 0
     assert recognise_float(2 * math.pi - math.pi / 2 ** 45) == 2 - Fraction(1, 2 ** 45)
+    assert recognise_float(4 * math.pi - math.pi / 2 ** 45) == 4 - Fraction(1, 2 ** 45)
+    assert recognise_float(round(math.pi / 2 ** 30, 12), abs_tol=6e-13) == Fraction(1, 2 ** 30)   # ProjectQ rounding
+    with pytest.raises(NotDyadic):
+        recognise_float(round(math.pi / 2 ** 30, 12))
     assert recognise_float(3 * math.pi / 8) == Fraction(3, 8)
     for bad in (0.1, 1.0, math.e, math.pi / 3, math.pi * (2 ** 21 + 1) / 2 ** 22):
         with pytest.raises(NotDyadic):
             recognise_float(bad)
     assert to_angle('pi/4') == Fraction(1, 4)
-    assert to_angle('-3*pi/8') == Fraction(13, 8)
+    assert to_angle('-3*pi/8') == Fraction(29, 8)
     assert to_angle('pi*2**-5') == Fraction(1, 32)
     assert to_angle('2*pi/2^5') == Fraction(1, 16)
-    assert to_angle(Pi(-1, 2)) == Fraction(3, 2)
+    assert to_angle(Pi(-1, 2)) == Fraction(7, 2)
     with pytest.raises(NotDyadic):
         to_angle('pi/3')
     with pytest.raises(TypeError):
         to_angle(Fraction(1, 4))           # ambiguous: refused
     with pytest.raises(NotDyadic):
         to_angle('__import__("os")')
+
+
+def test_half_angle_gates_have_period_4pi():
+    """RZ(t + 2 pi) = -RZ(t); CRZ(t + 2 pi) has a relative phase -1 on the control: angles are kept modulo 4 pi."""
+    for g, qs in (('rz', (0,)), ('rx', (0,)), ('ry', (0,)), ('u', (0,)), ('crz', (0, 1)), ('rzz', (0, 1))):
+        args = (Pi(1, 4), Pi(1, 2), Pi(1, 8)) if g == 'u' else (Pi(1, 4),)
+        args2 = (Pi(9, 4),) + args[1:]
+        c1 = DCircuit(2).add(g, qs, *args)
+        c2 = DCircuit(2).add(g, qs, *args2)
+        r_exact = prove_equal(c1, c2, phase='exact')
+        r_glob = prove_equal(c1, c2)
+        assert r_exact['verdict'] == 'REFUTED', (g, r_exact)
+        if g == 'crz':
+            assert r_glob['verdict'] == 'REFUTED', r_glob
+        else:
+            assert r_glob['verdict'] == 'PROVED' and r_glob['global_phase'] == 'pi*1/1', (g, r_glob)
+        c3 = DCircuit(2).add(g, qs, *((Pi(17, 4),) + args[1:]))      # t + 4 pi: the same gate
+        assert prove_equal(c1, c3, phase='exact')['verdict'] == 'PROVED'
 
 
 def test_qasm_parser_and_unsupported():
@@ -410,3 +432,51 @@ def test_audit_circuits_not_proved():
     for name in ('hole1_mirror', 'hole2_virtual_carry'):
         r = prove_qasm(os.path.join(audit, name + '.qasm'), 'OPENQASM 3.0;\nqubit[1] q;\n')
         assert r['verdict'] != 'PROVED'
+
+
+# ----------------------------------------------------------------------------- translation from Qiskit vs Qiskit itself
+def test_qiskit_translation_matches_qiskit_operator():
+    """Random Qiskit circuits (angles in (-4 pi, 4 pi), library blocks): Qiskit's own Operator of the original circuit
+    equals the dense unitary of the translated DCircuit, global phase included (external check of qiskit_io, of the
+    angle reading and of sim.py)."""
+    qiskit = pytest.importorskip('qiskit')
+    import numpy as np
+    from qiskit import QuantumCircuit
+    from qiskit.quantum_info import Operator
+    from qiskit.circuit.library import QFTGate, MCPhaseGate, MCXGate
+    from qoptct.verify.dyadic.qiskit_io import from_qiskit
+    rng = random.Random(4)
+    one = ['h', 'x', 'y', 'z', 's', 'sdg', 't', 'tdg', 'sx', 'sxdg']
+    par1 = ['p', 'rz', 'rx', 'ry']
+    for t in range(80):
+        n = rng.randint(1, 4)
+        qc = QuantumCircuit(n, global_phase=rng.choice([0, math.pi / 8, -math.pi / 2]))
+        for _ in range(rng.randint(1, 12)):
+            ang = math.pi * rng.randrange(-31, 32) / 8
+            k = rng.random()
+            if k < 0.3:
+                getattr(qc, rng.choice(one))(rng.randrange(n))
+            elif k < 0.6:
+                getattr(qc, rng.choice(par1))(ang, rng.randrange(n))
+            elif k < 0.7:
+                qc.u(ang, ang / 2, -ang / 4, rng.randrange(n))
+            elif n >= 2 and k < 0.85:
+                a, b = rng.sample(range(n), 2)
+                g = rng.choice(['cx', 'cz', 'cy', 'swap', 'cp', 'crz', 'rzz', 'cs', 'csx'])
+                if g in ('cp', 'crz', 'rzz'):
+                    getattr(qc, g)(ang, a, b)
+                else:
+                    getattr(qc, g)(a, b)
+            elif n >= 3 and k < 0.92:
+                qs = rng.sample(range(n), 3)
+                rng.choice([lambda: qc.ccx(*qs), lambda: qc.cswap(*qs), lambda: qc.ccz(*qs),
+                            lambda: qc.append(MCPhaseGate(ang, 2), qs),
+                            lambda: qc.append(MCXGate(2, ctrl_state=rng.randrange(4)), qs)])()
+            else:
+                m = rng.randint(1, n)
+                qs = rng.sample(range(n), m)
+                qc.append(QFTGate(m) if rng.random() < 0.5 else QFTGate(m).inverse(), qs)
+        c = from_qiskit(qc)
+        U = Operator(qc).data
+        V = sim.unitary(c)
+        assert np.max(np.abs(U - V)) < 1e-9, (t, qc)

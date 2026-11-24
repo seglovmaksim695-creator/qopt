@@ -31,7 +31,8 @@ BASIS = ['h', 'x', 'y', 'z', 's', 'sdg', 't', 'tdg', 'sx', 'sxdg', 'cx', 'cz', '
 SIZES = {'qft': [2, 4, 8, 16, 32, 48, 64], 'qft_noswap': [2, 4, 8, 16, 32, 64], 'iqft': [2, 4, 8, 16, 32, 64],
          'qft_qftdg': [2, 4, 8, 16, 32, 64], 'draper_fixed': [1, 2, 4, 8, 16, 32, 48, 64],
          'draper_half': [1, 2, 4, 8, 16, 32, 64], 'rgqft': [1, 2, 3, 4, 6, 8, 12, 16],
-         'hrs': [1, 2, 3, 4], 'pq_addconst': [2, 4, 8, 16, 32, 64], 'pq_qft': [2, 4, 8, 16, 32, 64]}
+         'hrs': [1, 2, 3, 4, 5, 6, 8], 'pq_addconst': [2, 4, 8, 16, 32, 64], 'pq_qft': [2, 4, 8, 16, 32, 64],
+         'pq_addconst_basic': [2, 4, 8, 16, 32, 64], 'pq_qft_basic': [2, 4, 8, 16, 32, 64]}
 PQ_DIR = os.path.join(os.path.dirname(HERE), 'results', 'dyadic', 'projectq')
 
 
@@ -101,12 +102,13 @@ def projectq_case(family, n):
     """ProjectQ circuits from the JSON dumps of scripts/dyadic_projectq_dump.py."""
     path = os.path.join(PQ_DIR, '%s_%d.json' % (family, n))
     d = json.load(open(path))
-    c = DCircuit(d['n'])
+    # ProjectQ rounds rotation angles to 12 decimals (ANGLE_PRECISION); tolerance 6e-13 rad
+    c = DCircuit(d['n'], float_abs_tol=6e-13)
     for nm, qs, angles in d['ops']:
         c.add(nm, qs, *angles)                    # float radians, as ProjectQ has them
     if d.get('global_phase'):
         c.add_global_phase(d['global_phase'])
-    if family == 'pq_addconst':
+    if family.startswith('pq_addconst'):
         spec = const_adder_spec(d['constant'], d['b'])
     else:
         spec = QFTSpec(d['wires'], swaps=d.get('swaps', False))

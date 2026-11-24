@@ -4,6 +4,7 @@
 Angles.  An angle is kept as an exact multiple of pi: theta = pi * r with r a Fraction (reduced modulo 2).  Inputs:
   * Pi(p, q)            exact: pi * p / q;
   * str                 an expression in radians such as "pi/4", "-3*pi/8", "pi*2**-5", "0.5*pi" (own parser, no eval);
+  Angles are kept modulo 4*pi: half-angle gates (RZ, RX, RY, U, CRZ, RZZ) have period 4*pi.
   * float / int         radians.  A float is accepted only if theta/pi, reduced to (-1, 1], equals p/2^k with
                         0 < |p| <= 2^20 within 32 units in the last place of theta/pi (FLOAT_MAX_NUM, FLOAT_ULPS);
                         the count and the largest deviation of recognised float angles are recorded.  Every float is
@@ -62,15 +63,23 @@ def _dyadic(r):
 
 
 def _mod2(r):
-    """r modulo 2 (exp(i pi r) has period 2 in r), in [0, 2)."""
+    """r modulo 2 (exp(i pi r) has period 2 in r), in [0, 2): for phases (primitives, global phase)."""
     return r - 2 * (r.numerator // (2 * r.denominator))
 
 
-def recognise_float(theta, rec=None):
-    """theta (radians, float) -> Fraction r in [0, 2) with theta = pi*r up to the float precision; NotDyadic if none.
-    x = theta/pi is reduced to (-1, 1]; the tolerance is FLOAT_ULPS units in the last place of x (a float carries no
-    more information than that); the simplest candidate p/2^k (smallest k) with 0 < |p| <= FLOAT_MAX_NUM within the
-    tolerance is taken; x within the tolerance of an even integer reads 0."""
+def _mod4(r):
+    """r modulo 4, in [0, 4): gate angles.  Half-angle gates (RZ, RX, RY, U, CRZ, RZZ) have period 4*pi, not 2*pi:
+    RZ(t + 2 pi) = -RZ(t) and CRZ(t + 2 pi) differs from CRZ(t) by a relative phase, so angles are never reduced
+    modulo 2*pi."""
+    return r - 4 * (r.numerator // (4 * r.denominator))
+
+
+def recognise_float(theta, rec=None, abs_tol=None):
+    """theta (radians, float) -> Fraction r in [0, 4) with theta = pi*r up to the float precision; NotDyadic if none.
+    x = theta/pi is reduced to (-2, 2]; the tolerance is FLOAT_ULPS units in the last place of x (a float carries no
+    more information than that), or abs_tol radians if larger (sources that round angles, e.g. ProjectQ keeps 12
+    decimals); the simplest candidate p/2^k (smallest k) with 0 < |p| <= FLOAT_MAX_NUM within the tolerance is
+    taken; x within the tolerance of a multiple of 4 reads 0."""
     theta = float(theta)
     if theta != theta or theta in (float('inf'), float('-inf')):
         raise NotDyadic('angle %r is not finite' % theta)
@@ -78,41 +87,52 @@ def recognise_float(theta, rec=None):
         return Fraction(0)
     x = theta / math.pi
     tol = FLOAT_ULPS * math.ulp(x)
-    m = round(x / 2.0)
-    xr = x - 2.0 * m
+    if abs_tol:
+        tol = max(tol, abs_tol / math.pi)
+    m = round(x / 4.0)
+    xr = x - 4.0 * m
+    r = dev = None
     if abs(xr) <= tol:
-        r = Fraction(0)
-        dev = abs(xr)
+        r, dev = Fraction(0), abs(xr)
     else:
-        r = None
-        for k in range(0, 1100):
-            p = round(math.ldexp(xr, k))
-            if abs(p) > FLOAT_MAX_NUM:
+        # x = o + p/2^k with o in {0, 2, -2}: near +-2 (angles near +-2 pi of the half-angle gates) the simple part
+        # is the distance to +-2
+        for o in (0, 2, -2):
+            y = xr - o
+            if o and abs(y) > 1.0:
+                continue
+            if o and abs(y) <= tol:
+                r, dev = Fraction(o), abs(y)
                 break
-            if p and abs(xr - math.ldexp(p, -k)) <= tol:
-                r = Fraction(p, 1 << k)
-                dev = abs(xr - math.ldexp(p, -k))
+            for k in range(0, 1100):
+                p = round(math.ldexp(y, k))
+                if abs(p) > FLOAT_MAX_NUM:
+                    break
+                if p and abs(y - math.ldexp(p, -k)) <= tol:
+                    r, dev = o + Fraction(p, 1 << k), abs(y - math.ldexp(p, -k))
+                    break
+            if r is not None:
                 break
-        if r is None:
-            raise NotDyadic('float angle %r is not recognised as pi*p/2^k with |p| <= 2^20' % theta)
+    if r is None:
+        raise NotDyadic('float angle %r is not recognised as pi*p/2^k with |p| <= 2^20' % theta)
     if rec is not None:
         rec['n_float'] = rec.get('n_float', 0) + 1
         rec['max_abs_dev'] = max(rec.get('max_abs_dev', 0.0), dev * math.pi)
-    return _mod2(r)
+    return _mod4(r)
 
 
-def to_angle(v, rec=None):
-    """Angle -> Fraction r (multiple of pi), reduced modulo 2."""
+def to_angle(v, rec=None, abs_tol=None):
+    """Angle -> Fraction r (multiple of pi), reduced modulo 4 (period 4*pi of the half-angle gates)."""
     if isinstance(v, Pi):
-        return _mod2(_dyadic(v.r))
+        return _mod4(_dyadic(v.r))
     if isinstance(v, str):
-        return expr_angle(v, rec=rec)
+        return expr_angle(v, rec=rec, abs_tol=abs_tol)
     if isinstance(v, (Fraction, bool)):
         raise TypeError('bad angle %r: use Pi(p, q) for pi*p/q, a float for radians or a string' % (v,))
     if isinstance(v, int):
-        return Fraction(0) if v == 0 else recognise_float(float(v), rec)
+        return Fraction(0) if v == 0 else recognise_float(float(v), rec, abs_tol)
     try:
-        return recognise_float(float(v), rec)        # floats, numpy floats
+        return recognise_float(float(v), rec, abs_tol)        # floats, numpy floats
     except (TypeError, ValueError) as e:
         if isinstance(e, NotDyadic):
             raise
@@ -247,14 +267,14 @@ def eval_expr(s, env=None):
     return v
 
 
-def val_angle(v, rec=None):
+def val_angle(v, rec=None, abs_tol=None):
     if isinstance(v.b, Fraction) and v.b == 0:
-        return _mod2(_dyadic(Fraction(v.a)))
-    return recognise_float(float(v.a) * math.pi + float(v.b), rec)
+        return _mod4(_dyadic(Fraction(v.a)))
+    return recognise_float(float(v.a) * math.pi + float(v.b), rec, abs_tol)
 
 
-def expr_angle(s, env=None, rec=None):
-    return val_angle(eval_expr(s, env), rec)
+def expr_angle(s, env=None, rec=None, abs_tol=None):
+    return val_angle(eval_expr(s, env), rec, abs_tol)
 
 
 # ----------------------------------------------------------------------------- gate set
@@ -369,15 +389,18 @@ class DCircuit:
     """A unitary circuit on n qubits with exact dyadic angles.
         DCircuit(n, ops=[(name, qubits, *angles), ...], global_phase=0)
         c.add('cp', (0, 1), 'pi/4');  c.add('h', (2,));  c.add('mcp', (0, 1, 2), Pi(1, 8))
-    Angles: see the module docstring (Pi, str, float radians).  global_phase: a circuit-level factor exp(i*g)."""
+    Angles: see the module docstring (Pi, str, float radians; kept modulo 4*pi).  global_phase: a circuit-level
+    factor exp(i*g).  float_abs_tol: tolerance (radians) for float angles from a source that rounds them."""
 
-    def __init__(self, n, ops=None, global_phase=0, name=None):
+    def __init__(self, n, ops=None, global_phase=0, name=None, float_abs_tol=None):
         self.n = int(n)
         if self.n < 0:
             raise ValueError('negative number of qubits')
         self.ops = []
         self.angle_rec = {}
-        self.gphase = Fraction(0) if not global_phase else to_angle(global_phase, self.angle_rec)
+        self.float_abs_tol = float_abs_tol
+        self.gphase = Fraction(0) if not global_phase else _mod2(to_angle(global_phase, self.angle_rec,
+                                                                           float_abs_tol))
         self.name = name
         for op in ops or ():
             self.add(op[0], op[1], *op[2:])
@@ -397,12 +420,12 @@ class DCircuit:
             raise ValueError('%s acts on %d qubit(s), got %d' % (nm, arity, len(qs)))
         if any(q < 0 or q >= self.n for q in qs) or len(set(qs)) != len(qs):
             raise ValueError('bad qubit operands for %s: %s (n=%d)' % (nm, list(qs), self.n))
-        rs = tuple(to_angle(a, self.angle_rec) for a in angles)
+        rs = tuple(to_angle(a, self.angle_rec, self.float_abs_tol) for a in angles)
         self.ops.append((nm, qs, rs))
         return self
 
     def add_global_phase(self, angle):
-        self.gphase = _mod2(self.gphase + to_angle(angle, self.angle_rec))
+        self.gphase = _mod2(self.gphase + to_angle(angle, self.angle_rec, self.float_abs_tol))
         return self
 
     def __len__(self):
@@ -417,7 +440,7 @@ class DCircuit:
         return out
 
     def copy(self):
-        c = DCircuit(self.n, name=self.name)
+        c = DCircuit(self.n, name=self.name, float_abs_tol=self.float_abs_tol)
         c.ops = list(self.ops)
         c.gphase = self.gphase
         c.angle_rec = dict(self.angle_rec)
@@ -426,7 +449,7 @@ class DCircuit:
     def to_qasm(self):
         """OpenQASM 3 text with exact angles written as pi*p/q."""
         def ang(r):
-            r = _mod2(r)
+            r = _mod4(r)
             return '0' if not r else 'pi*%d/%d' % (r.numerator, r.denominator)
         lines = ['OPENQASM 3.0;', 'include "stdgates.inc";', 'qubit[%d] q;' % self.n]
         if self.gphase:
