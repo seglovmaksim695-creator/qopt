@@ -1,0 +1,414 @@
+{
+ "qiskit": "2.6.2",
+ "contract": "for all inputs; dirty outputs xor-ed; clean ancillas return to 0; up to global phase",
+ "rows": [
+  {
+   "family": "and",
+   "status": "PROVED",
+   "max_n_proved": 256,
+   "sizes_run": [
+    3,
+    4,
+    6,
+    16,
+    64,
+    256
+   ],
+   "canaries": null,
+   "command": "python -m qoptct.foreign.qiskit prove and 256"
+  },
+  {
+   "family": "c-cdkm-fixed",
+   "status": "PROVED",
+   "max_n_proved": 256,
+   "sizes_run": [
+    3,
+    4,
+    6,
+    16,
+    64,
+    256
+   ],
+   "canaries": null,
+   "command": "python -m qoptct.foreign.qiskit prove c-cdkm-fixed 256"
+  },
+  {
+   "family": "c-cdkm-full",
+   "status": "PROVED",
+   "max_n_proved": 256,
+   "sizes_run": [
+    3,
+    4,
+    6,
+    16,
+    64,
+    256
+   ],
+   "canaries": {
+    "n": 256,
+    "mutants": 34,
+    "refuted": 33,
+    "equivalent": 1,
+    "unknown": 0,
+    "proved_false": 0
+   },
+   "command": "python -m qoptct.foreign.qiskit prove c-cdkm-full 256"
+  },
+  {
+   "family": "c-cdkm-half",
+   "status": "PROVED",
+   "max_n_proved": 256,
+   "sizes_run": [
+    3,
+    4,
+    6,
+    16,
+    64,
+    256
+   ],
+   "canaries": {
+    "n": 256,
+    "mutants": 34,
+    "refuted": 29,
+    "equivalent": 5,
+    "unknown": 0,
+    "proved_false": 0
+   },
+   "command": "python -m qoptct.foreign.qiskit prove c-cdkm-half 256"
+  },
+  {
+   "family": "c-vbe-fixed",
+   "status": "REFUTED (Qiskit defect, witness replayed)",
+   "max_n_proved": null,
+   "sizes_run": [
+    3,
+    4,
+    6
+   ],
+   "canaries": null,
+   "command": "python -m qoptct.foreign.qiskit prove c-vbe-fixed 3"
+  },
+  {
+   "family": "c-vbe-full",
+   "status": "PROVED",
+   "max_n_proved": 256,
+   "sizes_run": [
+    3,
+    4,
+    6,
+    16,
+    64,
+    256
+   ],
+   "canaries": {
+    "n": 256,
+    "mutants": 33,
+    "refuted": 31,
+    "equivalent": 2,
+    "unknown": 0,
+    "proved_false": 0
+   },
+   "command": "python -m qoptct.foreign.qiskit prove c-vbe-full 256"
+  },
+  {
+   "family": "c-vbe-half",
+   "status": "PROVED",
+   "max_n_proved": 256,
+   "sizes_run": [
+    3,
+    4,
+    6,
+    16,
+    64,
+    256
+   ],
+   "canaries": {
+    "n": 256,
+    "mutants": 34,
+    "refuted": 32,
+    "equivalent": 2,
+    "unknown": 0,
+    "proved_false": 0
+   },
+   "command": "python -m qoptct.foreign.qiskit prove c-vbe-half 256"
+  },
+  {
+   "family": "cdkm-fixed",
+   "status": "PROVED",
+   "max_n_proved": 256,
+   "sizes_run": [
+    3,
+    4,
+    6,
+    16,
+    64,
+    256
+   ],
+   "canaries": {
+    "n": 256,
+    "mutants": 34,
+    "refuted": 30,
+    "equivalent": 4,
+    "unknown": 0,
+    "proved_false": 0
+   },
+   "command": "python -m qoptct.foreign.qiskit prove cdkm-fixed 256"
+  },
+  {
+   "family": "cdkm-full",
+   "status": "PROVED",
+   "max_n_proved": 256,
+   "sizes_run": [
+    3,
+    4,
+    6,
+    16,
+    64,
+    256
+   ],
+   "canaries": {
+    "n": 256,
+    "mutants": 33,
+    "refuted": 32,
+    "equivalent": 1,
+    "unknown": 0,
+    "proved_false": 0
+   },
+   "command": "python -m qoptct.foreign.qiskit prove cdkm-full 256"
+  },
+  {
+   "family": "cdkm-half",
+   "status": "PROVED",
+   "max_n_proved": 256,
+   "sizes_run": [
+    3,
+    4,
+    6,
+    16,
+    64,
+    256
+   ],
+   "canaries": {
+    "n": 256,
+    "mutants": 33,
+    "refuted": 29,
+    "equivalent": 4,
+    "unknown": 0,
+    "proved_false": 0
+   },
+   "command": "python -m qoptct.foreign.qiskit prove cdkm-half 256"
+  },
+  {
+   "family": "comparator-gate",
+   "status": "PROVED",
+   "max_n_proved": 16,
+   "sizes_run": [
+    3,
+    4,
+    6,
+    16
+   ],
+   "canaries": null,
+   "command": "python -m qoptct.foreign.qiskit prove comparator-gate 16"
+  },
+  {
+   "family": "comparator-geq",
+   "status": "PROVED",
+   "max_n_proved": 256,
+   "sizes_run": [
+    3,
+    4,
+    6,
+    16,
+    64,
+    256
+   ],
+   "canaries": {
+    "n": 256,
+    "mutants": 34,
+    "refuted": 32,
+    "equivalent": 2,
+    "unknown": 0,
+    "proved_false": 0
+   },
+   "command": "python -m qoptct.foreign.qiskit prove comparator-geq 256"
+  },
+  {
+   "family": "comparator-lt",
+   "status": "PROVED",
+   "max_n_proved": 256,
+   "sizes_run": [
+    3,
+    4,
+    6,
+    16,
+    64,
+    256
+   ],
+   "canaries": {
+    "n": 256,
+    "mutants": 34,
+    "refuted": 32,
+    "equivalent": 2,
+    "unknown": 0,
+    "proved_false": 0
+   },
+   "command": "python -m qoptct.foreign.qiskit prove comparator-lt 256"
+  },
+  {
+   "family": "full-adder-gate",
+   "status": "PROVED",
+   "max_n_proved": 256,
+   "sizes_run": [
+    3,
+    4,
+    6,
+    16,
+    64,
+    256
+   ],
+   "canaries": {
+    "n": 256,
+    "mutants": 33,
+    "refuted": 31,
+    "equivalent": 2,
+    "unknown": 0,
+    "proved_false": 0
+   },
+   "command": "python -m qoptct.foreign.qiskit prove full-adder-gate 256"
+  },
+  {
+   "family": "half-adder-gate",
+   "status": "PROVED",
+   "max_n_proved": 256,
+   "sizes_run": [
+    3,
+    4,
+    6,
+    16,
+    64,
+    256
+   ],
+   "canaries": {
+    "n": 256,
+    "mutants": 33,
+    "refuted": 30,
+    "equivalent": 3,
+    "unknown": 0,
+    "proved_false": 0
+   },
+   "command": "python -m qoptct.foreign.qiskit prove half-adder-gate 256"
+  },
+  {
+   "family": "modular-adder-gate",
+   "status": "PROVED",
+   "max_n_proved": 256,
+   "sizes_run": [
+    3,
+    4,
+    6,
+    16,
+    64,
+    256
+   ],
+   "canaries": {
+    "n": 32,
+    "mutants": 33,
+    "refuted": 30,
+    "equivalent": 1,
+    "unknown": 2,
+    "proved_false": 0
+   },
+   "command": "python -m qoptct.foreign.qiskit prove modular-adder-gate 256"
+  },
+  {
+   "family": "or",
+   "status": "PROVED",
+   "max_n_proved": 256,
+   "sizes_run": [
+    3,
+    4,
+    6,
+    16,
+    64,
+    256
+   ],
+   "canaries": null,
+   "command": "python -m qoptct.foreign.qiskit prove or 256"
+  },
+  {
+   "family": "vbe-fixed",
+   "status": "REFUTED (Qiskit defect, witness replayed)",
+   "max_n_proved": null,
+   "sizes_run": [
+    3,
+    4,
+    6,
+    16,
+    64,
+    256
+   ],
+   "canaries": null,
+   "command": "python -m qoptct.foreign.qiskit prove vbe-fixed 3"
+  },
+  {
+   "family": "vbe-full",
+   "status": "PROVED",
+   "max_n_proved": 256,
+   "sizes_run": [
+    3,
+    4,
+    6,
+    16,
+    64,
+    256
+   ],
+   "canaries": {
+    "n": 256,
+    "mutants": 34,
+    "refuted": 32,
+    "equivalent": 2,
+    "unknown": 0,
+    "proved_false": 0
+   },
+   "command": "python -m qoptct.foreign.qiskit prove vbe-full 256"
+  },
+  {
+   "family": "vbe-half",
+   "status": "PROVED",
+   "max_n_proved": 256,
+   "sizes_run": [
+    3,
+    4,
+    6,
+    16,
+    64,
+    256
+   ],
+   "canaries": {
+    "n": 256,
+    "mutants": 33,
+    "refuted": 31,
+    "equivalent": 2,
+    "unknown": 0,
+    "proved_false": 0
+   },
+   "command": "python -m qoptct.foreign.qiskit prove vbe-half 256"
+  },
+  {
+   "family": "xor-const",
+   "status": "PROVED",
+   "max_n_proved": 256,
+   "sizes_run": [
+    3,
+    4,
+    6,
+    16,
+    64,
+    256
+   ],
+   "canaries": null,
+   "command": "python -m qoptct.foreign.qiskit prove xor-const 256"
+  }
+ ]
+}
