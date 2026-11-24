@@ -81,6 +81,8 @@ qoptct results --json                # the same as data
 qoptct results --all                 # also the rows of the registries that are not proved
 ```
 
+`qoptct results --all` lists 125 rows in the 6 registries (33 Qualtran, 31 ProjectQ, 21 Qiskit, 18 auto, 11 loop, 11 dyadic); the table without `--all` has only the proved ones.
+
 The registries are data files of the package (`foreign/qualtran`, `foreign/qiskit`, `foreign/projectq`, `foreign/auto`, `dyadic`, `loop`),
 built from the result files of the repository by the `scripts/build_*_registry.py` scripts (each has `--check`); the table needs no
 optional library.  Exit code 0 when the table was printed.
