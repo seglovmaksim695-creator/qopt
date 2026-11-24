@@ -272,6 +272,7 @@ class Engine:
         self.seed = seed
         self.cache = {}
         self.records = []
+        self.failed_leaves = []
         self.z3_seconds = 0.0
         self.identity = identity or _identity
         self.leaf_prover = leaf_prover or prove_leaf
@@ -302,19 +303,29 @@ class Engine:
             r = dict(hit)
             r.update(path=node.path, dedup_of=hit['path'])
             self.stats['leaf_cached' if hit.get('mode') == 'leaf' else 'compositions_cached'] += 1
+            self.records.append({k: r.get(k) for k in ('path', 'type', 'status', 'mode', 'method', 'qasm_sha256', 'ops',
+                                                        'contract_source', 'contract_name', 'detail', 'dedup_of')})
             return r
         children = None
         if contract is not None and contract.kind in ('primitive', 'box') and node.nops <= self.leaf_max_ops:
             mode = 'leaf'
         else:
-            children = self.P.children(node)
+            try:
+                children = self.P.children(node)
+            except Exception as e:  # noqa: BLE001
+                return dict(status='UNKNOWN', path=node.path, type=node.type, mode='compose',
+                            detail=f'children not available: {type(e).__name__}: {e}')
             mode = 'compose' if children else 'leaf'
         if mode == 'leaf' and contract is None:
             r = dict(status='UNKNOWN', mode='leaf', detail='no contract in the registry and no decomposition')
         elif mode == 'leaf':
             r = self._leaf(node, contract)
             if r['status'] not in ('PROVED', 'REFUTED'):
-                children = self.P.children(node)
+                try:
+                    children = self.P.children(node)
+                except Exception as e:  # noqa: BLE001  (e.g. the events below a primitive were not kept)
+                    children = None
+                    r['detail'] = (r.get('detail') or '') + f'; no fallback to the children: {e}'
                 if children:
                     self.log(f'{node.path}: leaf proof {r["status"]} ({(r.get("detail") or "")[:80]}); '
                              f'trying the children')
@@ -339,6 +350,8 @@ class Engine:
         out = dict(status=r['status'], mode='leaf', method=r.get('method'), detail=r.get('detail'),
                    contract=contract, contract_name=contract.name, contract_sha256=contract.digest(),
                    sim_cases=r.get('sim_cases'), witness=r.get('witness'), leaf=r)
+        if r['status'] != 'PROVED':
+            self.failed_leaves.append((node, contract, r))
         self.log(f'leaf {node.path} [{contract.name}] {r["status"]} ops={r.get("ops")} {r.get("wall")}s')
         return out
 

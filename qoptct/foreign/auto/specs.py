@@ -128,19 +128,26 @@ def _xy_lt_p(p):
     return X.and_(X.lt(V('x'), p), X.lt(V('y'), p))
 
 
+def _x_le_p_y_lt_p(p):
+    # Qualtran: "the construction still works when at most one of inputs equals mod"; the circuit does so for x = p
+    # (y < p) -- for y = p it leaves its ancilla dirty, so y = p is NOT part of this domain
+    return X.and_(X.le(V('x'), p), X.lt(V('y'), p))
+
+
 def mod_add_spec(n, p):
-    """ModAdd(n, p): y' = (x + y) mod p, x unchanged, for x, y < p"""
+    """ModAdd(n, p): y' = (x + y) mod p, x unchanged, for x <= p, y < p"""
     _odd_modulus(n, p)
-    return Contract(inputs={'x': n, 'y': n}, outputs={'x': n, 'y': n}, pre=_xy_lt_p(p),
+    return Contract(inputs={'x': n, 'y': n}, outputs={'x': n, 'y': n}, pre=_x_le_p_y_lt_p(p),
                     out={'x': V('x'), 'y': X.mod(X.add(V('x'), V('y')), p)}, name=f'ModAdd(n={n}, p={p})', kind='spec')
 
 
 def cmod_add_spec(n, p, cv=1):
-    """CModAdd(QUInt(n), p, cv): y' = (x + y) mod p when ctrl == cv, else unchanged; x, ctrl unchanged; x, y < p"""
+    """CModAdd(QUInt(n), p, cv): y' = (x + y) mod p when ctrl == cv, else unchanged; x, ctrl unchanged;
+    x <= p, y < p"""
     _odd_modulus(n, p)
     _need(cv in (0, 1), 'cv must be 0 or 1')
     act = X.eq(V('ctrl'), cv)
-    return Contract(inputs={'ctrl': 1, 'x': n, 'y': n}, outputs={'ctrl': 1, 'x': n, 'y': n}, pre=_xy_lt_p(p),
+    return Contract(inputs={'ctrl': 1, 'x': n, 'y': n}, outputs={'ctrl': 1, 'x': n, 'y': n}, pre=_x_le_p_y_lt_p(p),
                     out={'ctrl': V('ctrl'), 'x': V('x'), 'y': X.ite(act, X.mod(X.add(V('x'), V('y')), p), V('y'))},
                     name=f'CModAdd(n={n}, p={p}, cv={cv})', kind='spec')
 

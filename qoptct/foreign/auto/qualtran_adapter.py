@@ -53,13 +53,16 @@ def register_words(regs, flat):
     return out
 
 
-def _spans(trace):
-    """path -> ((start, end), contiguous) for every prefix of every leaf path that produced operations"""
+def _spans(trace, keep=None):
+    """path -> ((start, end), contiguous) for every prefix of every leaf path that produced operations
+    (only the paths in ``keep`` when given)"""
     spans = {}
     stack = []
 
     def close(entry):
         pf, st, cnt, end = entry
+        if keep is not None and pf not in keep:
+            return
         if pf in spans:
             a, b, c, _ = spans[pf]
             spans[pf] = (min(a, st), max(b, end), c + cnt, False)
@@ -103,26 +106,61 @@ def ops_digest(ops):
 
 
 class QualtranAdapter:
-    def __init__(self, bloq, low, tr, registry=None):
+    def __init__(self, bloq, low, tr, registry=None, prune=True):
         self.root_bloq = bloq
         self.registry = registry
-        self.events = {e['path']: e for e in low['graph_events']}
-        if len(self.events) != len(low['graph_events']):
-            raise AdapterError('repeated event paths')
+        events = low['graph_events']
         self.root_path = type(bloq).__name__
+        self._bloq = {self.root_path: bloq}
+        self._decomp = {}
+        self._nodes = {}
+        self._prim = {}
+        self.pruned = 0
+        # keep the events of the calls the prover can visit: it never descends below a registry primitive (a
+        # primitive is proved on its own operations); this keeps the memory of very large programs small
+        self.events = {}
+        for e in events:
+            p = e['path']
+            if not prune or self._visible(p):
+                if p in self.events:
+                    raise AdapterError('repeated event paths')
+                self.events[p] = e
+            else:
+                self.pruned += 1
+        del events[:]
         if self.root_path not in self.events:
             raise AdapterError('no event for the root')
         self.kids = {}
         for p in self.events:
             if '/' in p:
-                parent = p.rsplit('/', 1)[0]
-                self.kids.setdefault(parent, []).append(p)
+                self.kids.setdefault(p.rsplit('/', 1)[0], []).append(p)
         for v in self.kids.values():
             v.sort(key=lambda q: int(q.rsplit('/', 1)[1].split(':', 1)[0]))
-        self.spans = _spans(tr['trace'])
-        self._bloq = {self.root_path: bloq}
-        self._decomp = {}
-        self._nodes = {}
+        self.spans = _spans(tr['trace'], keep=set(self.events) if prune else None)
+        gc.collect()
+
+    def _is_primitive(self, path):
+        r = self._prim.get(path)
+        if r is None:
+            from . import registry as R
+            reg = self.registry or R
+            try:
+                c = reg.contract_for(self.bloq_of(path))
+            except Exception:
+                c = None
+            r = bool(c is not None and c.kind in ('primitive', 'box'))
+            self._prim[path] = r
+        return r
+
+    def _visible(self, path):
+        """True when no proper ancestor of path (other than the root) is a registry primitive"""
+        parts = path.split('/')
+        pf = parts[0]
+        for c in parts[1:-1]:
+            pf = pf + '/' + c
+            if self._is_primitive(pf):
+                return False
+        return True
 
     # ------------------------------------------------------------------ bloq objects of the paths
     def bloq_of(self, path):
@@ -177,13 +215,17 @@ class QualtranAdapter:
         return nd
 
     def children(self, node):
-        return [self.node(p) for p in self.kids.get(node.path, [])]
+        kids = self.kids.get(node.path, [])
+        if kids and any(p not in self.events for p in kids):
+            raise AdapterError(f'{node.path}: the children of this call were not kept (pruned below a primitive)')
+        return [self.node(p) for p in kids]
 
     def contract(self, node):
         if self.registry is None:
             from . import registry as R
             self.registry = R
         return self.registry.contract_for(node.obj)
+
 
     def release(self, node):
         """forget the cached children of a proved subtree (memory)"""
@@ -194,7 +236,8 @@ class QualtranAdapter:
             del self._decomp[p]
 
 
-def lower(bloq, *, registry=None, max_leaves=8_000_000, max_nodes=30_000_000, basis_states=True, log=None):
+def lower(bloq, *, registry=None, max_leaves=8_000_000, max_nodes=30_000_000, basis_states=True, log=None,
+          prune=True):
     """Lower ``bloq`` with the strict bridge (as in 0.7) and return a ``Program`` with its Qualtran adapter."""
     from ..qualtran.bridge.qualtran_layout import lower_bloqgraph
     from ..qualtran.bridge.qroam_clean_adjoint import chained_atom_rule
@@ -210,17 +253,30 @@ def lower(bloq, *, registry=None, max_leaves=8_000_000, max_nodes=30_000_000, ba
     else:
         rule = chain
     low = lower_bloqgraph(bloq, extra_atom_rule=rule, max_leaves=max_leaves, max_nodes=max_nodes)
-    tr = translate(low, low['inputs'], low['outputs'], light=True)
+    import os
+    old_skip = os.environ.get('BRIDGE_SKIP_QASM')
+    os.environ['BRIDGE_SKIP_QASM'] = '1'       # no QASM text of the whole program (memory), as the 0.7 clients
+    try:
+        tr = translate(low, low['inputs'], low['outputs'], light=True)
+    finally:
+        if old_skip is None:
+            os.environ.pop('BRIDGE_SKIP_QASM', None)
+        else:
+            os.environ['BRIDGE_SKIP_QASM'] = old_skip
     if log:
         log(f'lowered: nq={tr["nq"]} ops={len(tr["ops"])} events={len(low["graph_events"])}')
-    ad = QualtranAdapter(bloq, low, tr, registry=registry)
+    n_events = len(low['graph_events'])
     meta = dict(nq=tr['nq'], ops=len(tr['ops']), ops_sha256=ops_digest(tr['ops']),
                 bridge_scratch=tr['layout'].get('bridge_scratch'), source_nq=low['nq'],
                 program_inputs={k: list(v) for k, v in low['inputs'].items()},
                 program_outputs={k: list(v) for k, v in low['outputs'].items()},
-                retired_wires=len(low.get('retired_wires', ())), events=len(low['graph_events']))
+                retired_wires=len(low.get('retired_wires', ())), events=n_events)
+    for key in ('wire_names', 'leaves'):
+        low.pop(key, None)
+    tr['layout'].pop('source_wire_names', None)
+    ad = QualtranAdapter(bloq, low, tr, registry=registry, prune=prune)
+    meta['events_kept'] = len(ad.events)
     ops = tr['ops']
-    del low['graph_events'][:]
     low.clear()
     tr['trace'] = None
     gc.collect()
