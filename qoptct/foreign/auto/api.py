@@ -44,14 +44,21 @@ def _versions():
     return out
 
 
+# files of this package that do not take part in a verdict (the canary generator, the registry of results and the
+# cross-check with 0.7): a change there does not change what a verdict means; canary files record canary.py apart
+_NOT_IN_VERDICT = ('canary.py', 'results.py', 'crosscheck.py')
+
+
 def source_digest():
-    """SHA-256 of the sources a verdict depends on: this package, the bridge and the qoptct provers"""
+    """SHA-256 of the sources a verdict depends on: this package (without the canary generator and the results
+    registry), the bridge and the qoptct provers"""
     from hashlib import sha256
     import os
     here = Path(os.path.abspath(__file__)).parent
     pkg = here.parent
-    files = sorted(here.glob('*.py')) + sorted((pkg / 'qualtran' / 'bridge').glob('*.py')) + \
-        sorted((pkg.parent / 'verify').glob('*.py')) + [pkg / 'qualtran' / 'montgomery' / '_core.py']
+    files = sorted(f for f in here.glob('*.py') if f.name not in _NOT_IN_VERDICT) + \
+        sorted((pkg / 'qualtran' / 'bridge').glob('*.py')) + \
+        sorted((pkg.parent / 'verify').rglob('*.py')) + [pkg / 'qualtran' / 'montgomery' / '_core.py']
     h = sha256()
     for f in files:
         h.update(str(f.relative_to(pkg.parent)).encode())
@@ -279,7 +286,7 @@ def spec_selfcheck(target, n=None, *, w=1, cv=1, max_inputs=1 << 16):
     of its domain at a small width (n = 6 for Montgomery, 4 otherwise).  Must run with the target's Qualtran variant."""
     import itertools
     from . import registry as R
-    n = n or (6 if target == 'montgomery' else 4)
+    n = n or ((6 + w - 1) // w * w if target == 'montgomery' else 4)
     bloq, _kind, params = build_target(target, n, None, w=w, cv=cv)
     spec = target_spec(target, bloq, params)
     res = dict(target=target, params={k: str(v) for k, v in params.items()}, checked=0, ok=False, first_mismatch=None)

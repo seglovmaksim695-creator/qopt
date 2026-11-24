@@ -90,15 +90,19 @@ def _proper_children(P, node):
     return [k for k in P.children(node) if k.kind == 'op']
 
 
-def _leaves(P, node, out, depth=0, limit=40):
-    """registry leaves (primitives) below node, in program order"""
+def _leaves(P, node, out, depth=0, limit=40, per_type=4, _count=None):
+    """registry leaves (primitives) below node, in program order, at most ``per_type`` of one type (a block that
+    starts with 160 X gates loading a constant still gets its adders and comparators among the leaves)"""
     from . import registry as R
+    count = {} if _count is None else _count
     for k in _proper_children(P, node):
         c = R.contract_for(k.obj)
         if c is not None and c.kind == 'primitive' and k.nops:
-            out.append(k)
+            if count.get(k.type, 0) < per_type:
+                count[k.type] = count.get(k.type, 0) + 1
+                out.append(k)
         elif k.nops and depth < 6:
-            _leaves(P, k, out, depth + 1, limit)
+            _leaves(P, k, out, depth + 1, limit, per_type, count)
         if len(out) >= limit:
             return out
     return out
@@ -145,8 +149,9 @@ def joint_canaries(P0, spec, rng):
             _refresh(P)
             return f'{path}: output register {nm}: two wires exchanged (only on the output side)'
         return f
-    if multi:
-        out.append(('J2_swap_output_wires_of_a_child', 'joint', swap_out(multi[-1].path), None))
+    with_out = [k for k in multi if any(len(ws) >= 2 for ws in k.outs.values())]
+    if with_out:
+        out.append(('J2_swap_output_wires_of_a_child', 'joint', swap_out(with_out[-1].path), None))
 
     pair = None
     for i in range(len(big)):
@@ -186,11 +191,21 @@ def joint_canaries(P0, spec, rng):
             return f'X on input wire {q} inserted at {pos}, between {k1.path} and the next child (owned by the root)'
         out.append(('J4_extra_operation_between_children', 'joint', extra_between, None))
 
-        def extra_inside(P):
-            pos = k1.span[0] + max(1, k1.nops // 2)
-            q = k1.in_wires()[0]
-            insert_op(P, pos, ('x', q), k1.path)
-            return f'X on wire {q} inserted inside {k1.path} at {pos}'
+    cand5 = [k for k in big if k.in_wires() and k.nops >= 2]
+    k5 = None
+    for k in cand5:
+        mid = max(1, k.nops // 2)
+        if _leaf_differs(P0, k, lambda o, mid=mid, q=k.in_wires()[0]: o.insert(mid, ('x', q)), rng):
+            k5 = k
+            break
+    if k5 is None and cand5:
+        k5 = cand5[0]
+    if k5 is not None:
+        def extra_inside(P, k5=k5):
+            pos = k5.span[0] + max(1, k5.nops // 2)
+            q = k5.in_wires()[0]
+            insert_op(P, pos, ('x', q), k5.path)
+            return f'X on wire {q} inserted inside {k5.path} at {pos}'
         out.append(('J5_extra_operation_inside_a_child', 'joint', extra_inside, None))
 
     if big:
@@ -292,7 +307,10 @@ def joint_canaries(P0, spec, rng):
     # domain: the root precondition weakened (children called outside their domains)
     if spec.pre != 1:
         weak = _weaken(spec.pre)
-        for j, wp in enumerate(weak[:2]):
+        # a weakening that the program really violates (the added inputs give other outputs); if there is none, the
+        # first one (a child is then called outside its domain although the outputs happen to agree)
+        viol = [wp for wp in weak if _violated_outside(P0, spec, wp, rng)]
+        for j, wp in enumerate(viol[:2] if viol else weak[:1]):
             sp = replace(spec, pre=wp)
             out.append((f'J9_root_precondition_weakened_{j}', 'joint', lambda P: 'root precondition weakened', sp))
     # domain: a child contract with a narrower domain
@@ -452,10 +470,27 @@ def _narrow(c):
 
 
 def _weaken(pre):
-    """conjuncts dropped one at a time; for a single condition: always true"""
-    if type(pre) is tuple and pre[0] == 'and':
-        return [pre[2], pre[1]]
-    return [1]
+    """the precondition with one of its conjuncts dropped, for every conjunct; for a single condition: always true"""
+    def flat(e):
+        if type(e) is tuple and e[0] == 'and':
+            return flat(e[1]) + flat(e[2])
+        return [e]
+    cs = flat(pre)
+    if len(cs) < 2:
+        return [1]
+    return [X.all_(cs[:j] + cs[j + 1:]) if len(cs) > 2 else cs[1 - j] for j in range(len(cs))]
+
+
+def _violated_outside(P0, spec, wp, rng, cases=8):
+    """does the program differ from the specification somewhere in the part that the weaker precondition adds
+    (simulation of the whole program on sample inputs of wp and not pre)?"""
+    from .api import end_to_end
+    try:
+        r = end_to_end(P0, replace(spec, pre=X.and_(wp, X.not_(spec.pre))), cases=cases,
+                       seed=rng.randrange(1 << 30))
+    except Exception:  # noqa: BLE001
+        return False
+    return bool(r.get('mismatches'))
 
 
 def _weaken_inv(inv):
@@ -750,8 +785,10 @@ def run_canaries(target, n, p=None, *, w=1, only=None, out=None, seed=5, log=Non
         say(f"{name}: {st} {('witness' if row.get('witness', {}).get('mismatches') else '')} {det[:140]}")
     proved = [r['name'] for r in rows if r['status'] == 'PROVED']
     counted = [r for r in rows if r.get('counts')]
+    from hashlib import sha256
     res = dict(schema='qoptct.auto.canaries/1', target=target, params=params, versions=_versions(),
-               qualtran_variant=_variant(), source_sha256=source_digest(), program_ops_sha256=P0.meta['ops_sha256'],
+               qualtran_variant=_variant(), source_sha256=source_digest(),
+               canary_sha256=sha256(Path(__file__).read_bytes()).hexdigest(), program_ops_sha256=P0.meta['ops_sha256'],
                total=len(rows),
                counted=len(counted), joints=sum(1 for r in counted if r['family'] == 'joint'),
                gates=sum(1 for r in counted if r['family'] == 'gate'), proved=proved, rows=rows,
