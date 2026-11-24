@@ -43,6 +43,14 @@ def record_hash(rec):
     return sha256_bytes(canon(body).encode())
 
 
+def flags_hash(tdef):
+    """SHA-256 of the flags that give the proofs of a target their meaning: the model (``clean``), the target spec string,
+    the generator parameters and the reference hash.  Every new journal record carries it; ``verify`` compares it with the
+    target definition on disk, so that flipping ``clean`` (or the spec) after the proofs is caught."""
+    body = {'clean': bool(tdef.get('clean')), 'spec': tdef.get('spec'), 'gen': tdef.get('gen'), 'ref_sha': tdef.get('ref_sha')}
+    return sha256_bytes(canon(body).encode())
+
+
 def utc_now():
     return time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
 
@@ -159,7 +167,7 @@ class State:
 def replay(records):
     """Re-derive the state from the records alone, checking every rule. -> (fronts, pinned, problems).
     fronts: target -> list of cost dicts; pinned: target -> ref sha256."""
-    probs, fronts, pinned = [], {}, {}
+    probs, fronts, pinned, flags = [], {}, {}, {}
     prev = GENESIS
     for i, r in enumerate(records):
         tag = 'record %d' % (i + 1)
@@ -176,6 +184,12 @@ def replay(records):
         if not t or not isinstance(after, dict):
             probs.append('%s: no target or cost_after' % tag)
             continue
+        fl = r.get('flags_sha')
+        if t in flags:
+            if flags[t] != fl:
+                probs.append('%s: the flags hash of %s differs from the one of the earlier records of that target' % (tag, t))
+        else:
+            flags[t] = fl
         pv = r.get('prover') or {}
         if pv.get('status') != 'PROVED':
             probs.append('%s: not proved (prover status %r): a candidate without a proof is never accepted' % (tag, pv.get('status')))

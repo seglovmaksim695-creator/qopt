@@ -11,7 +11,7 @@ import uuid
 
 from . import proposers
 from .costs import best_of, dominates, front_insert
-from .journal import State, replay, sha256_file, utc_now, write_table
+from .journal import State, flags_hash, replay, sha256_file, utc_now, write_table
 from .targets import register
 
 
@@ -56,7 +56,7 @@ def _accept(state, tid, tdef, res, wd, role, params, before):
     cl = j['canaries']
     clean = ' --clean' if tdef['clean'] else ''
     kind = 'baseline' if before is None else ('dominates' if dominates(res['cost'], before) else 'tradeoff')
-    rec = dict(role=role, kind=kind, target=tid, ref_sha=tdef['ref_sha'], cand_sha=sha, cost_before=before, cost_after=res['cost'],
+    rec = dict(role=role, kind=kind, target=tid, ref_sha=tdef['ref_sha'], flags_sha=flags_hash(tdef), cand_sha=sha, cost_before=before, cost_after=res['cost'],
                prover={'name': j['prover']['prover'], 'version': res['prover_version'], 'status': j['status'],
                        'method': j['prover'].get('method'), 'time': j['prover'].get('time')},
                sim=j['sim'], canaries={k: cl[k] for k in ('detected', 'equivalent', 'undecided', 'by_class', 'tried')},

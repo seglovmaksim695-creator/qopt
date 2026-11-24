@@ -43,19 +43,22 @@ def make_mutants(circuit, rare_wires=None, count=None):
         add('dup-move[%d]' % i, ops[:i] + [ops[i], ops[i]] + ops[i + 1:] if False else ops[:i] + ops[i + 1:] + [ops[i]])
     # swap two adjacent gates at the middle seam
     m = n // 2
-    if ops[m] != ops[m + 1]:
+    if m + 1 < n and ops[m] != ops[m + 1]:
         add('swap-adjacent[%d]' % m, ops[:m] + [ops[m + 1], ops[m]] + ops[m + 2:])
     # wrong control / wrong target on the first, middle and last multi-qubit gates
     multi = [i for i, o in enumerate(ops) if o[0] in ('cx', 'ccx', 'mcx')]
-    for i in sorted({multi[0], multi[len(multi) // 4], multi[len(multi) // 2], multi[(3 * len(multi)) // 4], multi[-1]}):
+    for i in sorted({multi[0], multi[len(multi) // 4], multi[len(multi) // 2], multi[(3 * len(multi)) // 4],
+                     multi[-1]} if multi else ()):
         o = ops[i]
         wires = set(range(tr.nq))
-        alt = next(w for w in sorted(wires - set(o[1:])))
+        alt = next((w for w in sorted(wires - set(o[1:]))), None)
+        if alt is None:               # the gate touches every wire: no other wire to move to
+            continue
         add('wrong-control[%d]' % i, ops[:i] + [(o[0], alt) + tuple(o[2:])] + ops[i + 1:])
         add('wrong-target[%d]' % i, ops[:i] + [(o[0],) + tuple(o[1:-1]) + (alt,)] + ops[i + 1:])
-    j = multi[len(multi) // 2]
+    j = multi[len(multi) // 2] if multi else 0
     o = ops[j]
-    if o[0] == 'ccx':
+    if multi and o[0] == 'ccx':
         add('ccx-to-cx[%d]' % j, ops[:j] + [('cx', o[1], o[3])] + ops[j + 1:])
     # extra gates: bit flip, extra cnot, left-over on an ancilla
     last = max(w for w in range(tr.nq))
@@ -69,8 +72,33 @@ def make_mutants(circuit, rare_wires=None, count=None):
     # a defect on a single rare input: flips wire 0's register bit only when the whole register is all ones
     if rare_wires:
         rw = list(rare_wires)
-        other = next(w for w in range(tr.nq) if w not in rw)
-        add('rare-allones', ops + [('mcx',) + tuple(rw) + (other,)] if len(rw) >= 3 else ops + [('ccx', rw[0], rw[1], other)])
+        other = next((w for w in range(tr.nq) if w not in rw), None)
+        if other is not None:
+            add('rare-allones', ops + [('mcx',) + tuple(rw) + (other,)] if len(rw) >= 3 else ops + [('ccx', rw[0], rw[1], other)])
+    if len(out) < 24:
+        # short circuits (a single wide AND, a row of X gates, ...): defects that do not need many positions
+        def named(wires):
+            k = len(wires) - 1
+            return ('x', 'cx', 'ccx')[k] if k < 3 else 'mcx'
+        for i in sorted({0, n // 2, n - 1}):
+            o = ops[i]
+            if o[0] in ('cx', 'ccx', 'mcx'):
+                for k in sorted({1, (len(o) - 1) // 2, len(o) - 2}):      # one control removed (first, middle, last)
+                    w = o[1:k] + o[k + 1:]
+                    add('drop-control[%d,%d]' % (i, k), ops[:i] + [(named(w),) + w] + ops[i + 1:])
+                free = [w for w in range(tr.nq) if w not in o[1:]]
+                if free:
+                    add('control-to-free[%d]' % i, ops[:i] + [(o[0], free[0]) + tuple(o[2:])] + ops[i + 1:])
+                    add('target-to-free[%d]' % i, ops[:i] + [(o[0],) + tuple(o[1:-1]) + (free[-1],)] + ops[i + 1:])
+            elif o[0] == 'x':
+                add('x-shift[%d]' % i, ops[:i] + [('x', (o[1] + 1) % tr.nq)] + ops[i + 1:])
+        for w in sorted({0, tr.nq // 4, tr.nq // 2, (3 * tr.nq) // 4, tr.nq - 1}):
+            add('extra-x-end[%d]' % w, ops + [('x', w)])
+            add('extra-x-start[%d]' % w, [('x', w)] + ops)
+            add('extra-z-end[%d]' % w, ops + [('z', w)])
+        if n > 8:
+            for i in range(0, n, max(1, n // 6)):
+                add('drop-s[%d]' % i, ops[:i] + ops[i + 1:])
     if count:
         out = out[:count]
     return out

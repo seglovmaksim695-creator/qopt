@@ -268,3 +268,37 @@ def test_verify_counts_every_record(good, capsys):
     from qoptct.loop.cli import main
     assert main(['verify', '--state', good, '--no-reprove']) == 0
     assert 'OK: %d records verified' % len(_recs(good)) in capsys.readouterr().out
+
+
+def test_records_carry_the_flags_hash_and_a_changed_flag_is_caught(st):
+    recs = _recs(st)
+    assert all(len(r.get('flags_sha', '')) == 64 for r in recs)
+    assert verify(st, reprove=False)[0]
+    tdir = os.path.join(st, 'targets')
+    files = sorted(os.listdir(tdir))
+    # flip `clean` of one target after the proofs (the record hashes and the journal stay intact)
+    p = os.path.join(tdir, files[0])
+    td = json.load(open(p))
+    td['clean'] = not td['clean']
+    json.dump(td, open(p, 'w'))
+    ok, probs, _ = verify(st, reprove=False)
+    assert not ok and any('flags of target' in x for x in probs), probs
+
+
+def test_a_changed_spec_string_is_caught(st):
+    tdir = os.path.join(st, 'targets')
+    p = os.path.join(tdir, sorted(os.listdir(tdir))[0])
+    td = json.load(open(p))
+    td['spec'] = td['spec'] + 'x'
+    json.dump(td, open(p, 'w'))
+    ok, probs, _ = verify(st, reprove=False)
+    assert not ok and any('flags of target' in x for x in probs), probs
+
+
+def test_flags_hash_must_be_the_same_in_all_records_of_a_target(st):
+    recs = _recs(st)
+    i = _imp(recs)
+    recs[i]['flags_sha'] = '0' * 64
+    _write(st, recs)
+    ok, probs, _ = verify(st, reprove=False)
+    assert not ok and any('flags hash' in x for x in probs), probs

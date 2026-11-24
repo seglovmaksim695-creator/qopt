@@ -11,7 +11,7 @@ import os
 import tempfile
 
 from .costs import qasm_cost
-from .journal import State, replay, sha256_file, table_from
+from .journal import State, flags_hash, replay, sha256_file, table_from
 from .prover import prove, sim_check
 
 
@@ -64,6 +64,9 @@ def verify(state_dir, reprove=True, budget=120.0, log=None, allow_empty=False):
             continue
         if td['ref_sha'] != rsha:
             probs.append('%s: reference hash differs from the target definition of %s' % (tag, t))
+        if 'flags_sha' in r and r['flags_sha'] != flags_hash(td):
+            probs.append('%s: the flags of target %s (clean / spec / generator) differ from those the proofs were made with'
+                         % (tag, t))
         if not bad:
             try:
                 real = qasm_cost(open(cp).read())
