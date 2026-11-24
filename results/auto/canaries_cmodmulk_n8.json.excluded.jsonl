@@ -1,0 +1,2 @@
+{"candidate": "exchange of the first and last wire of an input register of CtrlScaleModAdd (pick 0)", "filter": "D13", "reason": "no difference on 24 sample inputs of the contract (judged by sampling, not proved equivalent)", "site": "joint_canaries:147"}
+{"candidate": "exchange of the first and last wire of an input register of CtrlScaleModAdd (pick 0)", "filter": "D13", "reason": "no difference on 24 sample inputs of the contract (judged by sampling, not proved equivalent)", "site": "joint_canaries:147"}

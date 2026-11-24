@@ -1278,7 +1278,19 @@
      "contract": "ZeroEffect"
     }
    ],
-   "canaries": null,
+   "canaries": {
+    "file": "canaries_cmodmulk_n8.json",
+    "sha256": "d1c4cb1257a42f4e0f3ef84e60daf7d7aa48ae2fd9c4a7be9a685fe9423b36bb",
+    "total": 30,
+    "counted": 30,
+    "joints": 16,
+    "gates": 14,
+    "not_proved": 30,
+    "proved": [],
+    "ok": true,
+    "source_sha256": "d80d01de696bdca5f3c8622505e033141fb7e51ce14e6a20f351971db8d95de9",
+    "program_ops_sha256": "5f3a89150f3c55a2f0a7e6d4dad1e169da0a738efacbd58214d2d5dddeb25686"
+   },
    "compare_07": null,
    "assumptions": [
     "the strict bridge of 0.7 (lower_bloqgraph + translate) and its rules A1 (controlled And) and C1 (QROAMCleanAdjoint as a primitive with a contract, assumptions A1-A4 of bridge/qroam_clean_adjoint.py); TwoBitCSwap, where it occurs, by the opt-in rule bridge/fredkin_rule.py (CX.CCX.CX)",
@@ -2569,7 +2581,19 @@
      "contract": "ZeroEffect"
     }
    ],
-   "canaries": null,
+   "canaries": {
+    "file": "canaries_ctrlscalemodadd_n8.json",
+    "sha256": "3a083b5b8277b32bc7daf09504f50e553a6c6c8ce978ac0f7e850b762db42698",
+    "total": 31,
+    "counted": 31,
+    "joints": 17,
+    "gates": 14,
+    "not_proved": 31,
+    "proved": [],
+    "ok": true,
+    "source_sha256": "d80d01de696bdca5f3c8622505e033141fb7e51ce14e6a20f351971db8d95de9",
+    "program_ops_sha256": "c57ca2671fe27cb25c18ab332c12f89a095971cff57ba16914ecde97d571b13a"
+   },
    "compare_07": null,
    "assumptions": [
     "the strict bridge of 0.7 (lower_bloqgraph + translate) and its rules A1 (controlled And) and C1 (QROAMCleanAdjoint as a primitive with a contract, assumptions A1-A4 of bridge/qroam_clean_adjoint.py); TwoBitCSwap, where it occurs, by the opt-in rule bridge/fredkin_rule.py (CX.CCX.CX)",

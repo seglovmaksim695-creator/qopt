@@ -1,0 +1,775 @@
+{
+ "schema": "qoptct.auto.canaries/1",
+ "target": "ctrlscalemodadd",
+ "params": {
+  "n": 8,
+  "p": 127,
+  "k": 110
+ },
+ "versions": {
+  "python": "3.12.16",
+  "qualtran": "0.7.0",
+  "z3-solver": "5.4.1.0",
+  "numpy": "2.5.5",
+  "z3": "5.4.1"
+ },
+ "qualtran_variant": {
+  "kind": "original",
+  "qualtran_file": "/Users/max/quantum-start/lab/work/v08/f8_build/venvB/lib/python3.12/site-packages/qualtran/__init__.py",
+  "qualtran_version": null,
+  "files_sha256_16": {
+   "bloqs/cryptography/ecc/ec_add.py": "71a3efc0368f7fca",
+   "bloqs/mod_arithmetic/mod_multiplication.py": "3873115b5cf6fd31",
+   "bloqs/data_loading/qrom_base.py": "5837d39f0c301dfc",
+   "bloqs/data_loading/select_swap_qrom.py": "1dd5d2aee856779c"
+  }
+ },
+ "source_sha256": "d80d01de696bdca5f3c8622505e033141fb7e51ce14e6a20f351971db8d95de9",
+ "canary_sha256": "260dab767358ed700615140b5d3f41a7a5887e8ad9604cabe72b48f3bb8a5b3a",
+ "program_ops_sha256": "c57ca2671fe27cb25c18ab332c12f89a095971cff57ba16914ecde97d571b13a",
+ "total": 31,
+ "counted": 31,
+ "joints": 17,
+ "gates": 14,
+ "proved": [],
+ "rows": [
+  {
+   "name": "J1_swap_wires_of_a_child",
+   "family": "joint",
+   "mutation": "CtrlScaleModAdd/2:CModAddK: register x: its first and last wire exchanged (input and output)",
+   "status": "NOT_PROVED",
+   "detail": "child CtrlScaleModAdd/2:CModAddK (CModAddK) is not proved: NOT_PROVED CtrlScaleModAdd/2:CModAddK/1:CModAdd: precondition of CModAdd(n=8, p=127, cv=1) (part 1): does not follow from the facts (counterexample found)",
+   "seconds": 0.1,
+   "counts": true
+  },
+  {
+   "name": "J1b_swap_wires_of_a_later_child",
+   "family": "joint",
+   "mutation": "CtrlScaleModAdd/14:CModAddK: register x: its first and last wire exchanged (input and output)",
+   "status": "NOT_PROVED",
+   "detail": "child CtrlScaleModAdd/14:CModAddK (CModAddK) is not proved: NOT_PROVED CtrlScaleModAdd/14:CModAddK/1:CModAdd: precondition of CModAdd(n=8, p=127, cv=1) (part 1): does not follow from the facts (counterexample found)",
+   "seconds": 0.1,
+   "counts": true
+  },
+  {
+   "name": "J2_swap_output_wires_of_a_child",
+   "family": "joint",
+   "mutation": "CtrlScaleModAdd/24:And: output register ctrl: two wires exchanged (only on the output side)",
+   "status": "NOT_PROVED",
+   "detail": "child CtrlScaleModAdd/24:And (And) is not proved: REFUTED simulation of a domain point differs",
+   "seconds": 0.1,
+   "counts": true
+  },
+  {
+   "name": "J3_wires_exchanged_between_children",
+   "family": "joint",
+   "mutation": "CtrlScaleModAdd/1:And.ctrl and CtrlScaleModAdd/2:CModAddK.x: wires 1 and 16 exchanged between the two children",
+   "status": "NOT_PROVED",
+   "detail": "child CtrlScaleModAdd/1:And (And) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J4_extra_operation_between_children",
+   "family": "joint",
+   "mutation": "X on input wire 0 inserted at 1, between CtrlScaleModAdd/1:And and the next child (owned by the root)",
+   "status": "NOT_PROVED",
+   "detail": "coverage: operations 1..2 of CtrlScaleModAdd belong to no child (or children overlap) before CtrlScaleModAdd/2:CModAddK",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J5_extra_operation_inside_a_child",
+   "family": "joint",
+   "mutation": "X on wire 17 inserted inside CtrlScaleModAdd/2:CModAddK at 186",
+   "status": "NOT_PROVED",
+   "detail": "child CtrlScaleModAdd/2:CModAddK (CModAddK) is not proved: NOT_PROVED coverage: the operations of CtrlScaleModAdd/2:CModAddK/1:CModAdd are not contiguous",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J4b_extra_operation_before_the_first_child",
+   "family": "joint",
+   "mutation": "X on input wire 9 inserted at 0, before the first child CtrlScaleModAdd/1:And (owned by the root)",
+   "status": "NOT_PROVED",
+   "detail": "coverage: operations 0..1 of CtrlScaleModAdd belong to no child (or children overlap) before CtrlScaleModAdd/1:And",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J4c_extra_operation_after_the_last_child",
+   "family": "joint",
+   "mutation": "X on output wire 0 inserted at 2976, after the last child CtrlScaleModAdd/24:And (owned by the root)",
+   "status": "NOT_PROVED",
+   "detail": "coverage: operations 2976..2977 of CtrlScaleModAdd belong to no child",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J6_extra_operation_between_grandchildren",
+   "family": "joint",
+   "mutation": "X on wire 25 inserted between CtrlScaleModAdd/2:CModAddK/0:IntState and CtrlScaleModAdd/2:CModAddK/1:CModAdd (owned by CtrlScaleModAdd/2:CModAddK)",
+   "status": "NOT_PROVED",
+   "detail": "child CtrlScaleModAdd/2:CModAddK (CModAddK) is not proved: NOT_PROVED coverage: operations 6..7 of CtrlScaleModAdd/2:CModAddK belong to no child (or children overlap) before CtrlScaleModAdd/2:CModAddK/1:CModAdd",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J7_operation_moved_across_a_boundary",
+   "family": "joint",
+   "mutation": "the last operation of CtrlScaleModAdd/2:CModAddK/0:IntState attributed to CtrlScaleModAdd/2:CModAddK/1:CModAdd",
+   "status": "NOT_PROVED",
+   "detail": "child CtrlScaleModAdd/2:CModAddK (CModAddK) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/0:IntState (IntState) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/0:IntState/6:OneState (OneState) is not proved: REFUTED exhaustive simulation differs from the contract",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J8_wrong_contract_of_child_And",
+   "family": "joint",
+   "mutation": "contract of And:b0843f4bcf1160eb replaced by a wrong one: And(1,1) [WRONG: +1 on target]",
+   "status": "NOT_PROVED",
+   "detail": "child CtrlScaleModAdd/1:And (And) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J8_wrong_contract_of_child_OneState",
+   "family": "joint",
+   "mutation": "contract of OneState:c4837da1bf7828e8 replaced by a wrong one: OneState [WRONG: +1 on q]",
+   "status": "NOT_PROVED",
+   "detail": "child CtrlScaleModAdd/2:CModAddK (CModAddK) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/0:IntState (IntState) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/0:IntState/1:OneState (OneState) is not proved: REFUTED exhaustive simulation differs from the contract",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J8_wrong_contract_of_child_CAdd",
+   "family": "joint",
+   "mutation": "contract of CAdd:4c0783fc4b184b7e replaced by a wrong one: CAdd(8,9,cv=1) [WRONG: +1 on b]",
+   "status": "NOT_PROVED",
+   "detail": "child CtrlScaleModAdd/2:CModAddK (CModAddK) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/1:CModAdd/4:CAdd (CAdd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J8b_child_claims_no_effect_And",
+   "family": "joint",
+   "mutation": "contract of And:b0843f4bcf1160eb replaced by a wrong one: And(1,1) [WRONG: target unchanged]",
+   "status": "NOT_PROVED",
+   "detail": "child CtrlScaleModAdd/1:And (And) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J8b_child_claims_no_effect_OneState",
+   "family": "joint",
+   "mutation": "contract of OneState:c4837da1bf7828e8 replaced by a wrong one: OneState [WRONG: q unchanged]",
+   "status": "NOT_PROVED",
+   "detail": "child CtrlScaleModAdd/2:CModAddK (CModAddK) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/0:IntState (IntState) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/0:IntState/1:OneState (OneState) is not proved: REFUTED exhaustive simulation differs from the contract",
+   "seconds": 0.0,
+   "counts": true
+  },
+  {
+   "name": "J9_root_precondition_weakened_0",
+   "family": "joint",
+   "mutation": "root precondition weakened",
+   "status": "NOT_PROVED",
+   "detail": "CtrlScaleModAdd/2:CModAddK: precondition of CModAddK(n=8, k=110, p=127) (part 0): does not follow from the facts (counterexample found)",
+   "seconds": 0.1,
+   "counts": true
+  },
+  {
+   "name": "J10_child_domain_narrowed_CAdd",
+   "family": "joint",
+   "mutation": "contract of CAdd:4c0783fc4b184b7e replaced by a wrong one: CAdd(8,9,cv=1) [NARROW: b < 2]",
+   "status": "NOT_PROVED",
+   "detail": "child CtrlScaleModAdd/2:CModAddK (CModAddK) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED CtrlScaleModAdd/2:CModAddK/1:CModAdd/4:CAdd: precondition of CAdd(8,9,cv=1) [NARROW: b < 2] (part 0): does not follow from the facts (counterexample fo",
+   "seconds": 0.1,
+   "counts": true
+  },
+  {
+   "name": "G1_phase_correction_removed_CAdd",
+   "family": "gate",
+   "mutation": "op 74: erase correction removed (phase)",
+   "status": "NOT_PROVED",
+   "detail": "child CtrlScaleModAdd/2:CModAddK (CModAddK) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/1:CModAdd/4:CAdd (CAdd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 1,
+    "cases": 24,
+    "first": {
+     "input": {
+      "ctrl": 1,
+      "a": 255,
+      "b": 511
+     },
+     "expected": {
+      "ctrl": 1,
+      "a": 255,
+      "b": 254
+     },
+     "got": {
+      "ctrl": 1,
+      "a": 255,
+      "b": 254
+     },
+     "phase": true,
+     "other_wires_nonzero": false
+    },
+    "level": "leaf CtrlScaleModAdd/2:CModAddK/1:CModAdd/4:CAdd"
+   },
+   "counts": true
+  },
+  {
+   "name": "G2_phase_correction_moved_CAdd",
+   "family": "gate",
+   "mutation": "op 74: erase correction moved to wire 24 (phase)",
+   "status": "NOT_PROVED",
+   "detail": "child CtrlScaleModAdd/2:CModAddK (CModAddK) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/1:CModAdd/4:CAdd (CAdd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 9,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "1",
+      "x": "255",
+      "y": "82"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G3_carry_cx_reversed_CAdd",
+   "family": "gate",
+   "mutation": "op 70: control and target of a CX near the top of the carry chain exchanged",
+   "status": "NOT_PROVED",
+   "detail": "child CtrlScaleModAdd/2:CModAddK (CModAddK) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/1:CModAdd/4:CAdd (CAdd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 11,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "1",
+      "x": "255",
+      "y": "110"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G4_high_carry_and_weakened_CAdd",
+   "family": "gate",
+   "mutation": "op 37: the AND of a high carry replaced by a CX of one control (wrong only on rare inputs)",
+   "status": "NOT_PROVED",
+   "detail": "child CtrlScaleModAdd/2:CModAddK (CModAddK) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/1:CModAdd/4:CAdd (CAdd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 1,
+    "cases": 24,
+    "first": {
+     "input": {
+      "ctrl": 1,
+      "a": 46,
+      "b": 353
+     },
+     "expected": {
+      "ctrl": 1,
+      "a": 46,
+      "b": 399
+     },
+     "got": {
+      "ctrl": 1,
+      "a": 46,
+      "b": 271
+     },
+     "phase": true,
+     "other_wires_nonzero": false
+    },
+    "level": "leaf CtrlScaleModAdd/2:CModAddK/1:CModAdd/4:CAdd"
+   },
+   "counts": true
+  },
+  {
+   "name": "G3_carry_cx_reversed_Controlled",
+   "family": "gate",
+   "mutation": "op 213: control and target of a CX near the top of the carry chain exchanged",
+   "status": "NOT_PROVED",
+   "detail": "child CtrlScaleModAdd/2:CModAddK (CModAddK) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/1:CModAdd/8:Controlled (Controlled) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 30,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "0",
+      "x": "0",
+      "y": "0"
+     },
+     "phase": false,
+     "other_wires": true,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G4_high_carry_and_weakened_Controlled",
+   "family": "gate",
+   "mutation": "op 175: the AND of a high carry replaced by a CX of one control (wrong only on rare inputs)",
+   "status": "NOT_PROVED",
+   "detail": "child CtrlScaleModAdd/2:CModAddK (CModAddK) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/1:CModAdd/8:Controlled (Controlled) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 1,
+    "cases": 24,
+    "first": {
+     "input": {
+      "ctrl": 1,
+      "x": 128
+     },
+     "expected": {
+      "ctrl": 1,
+      "x": 255
+     },
+     "got": {
+      "ctrl": 1,
+      "x": 63
+     },
+     "phase": true,
+     "other_wires_nonzero": false
+    },
+    "level": "leaf CtrlScaleModAdd/2:CModAddK/1:CModAdd/8:Controlled"
+   },
+   "counts": true
+  },
+  {
+   "name": "G3_carry_cx_reversed_AddK",
+   "family": "gate",
+   "mutation": "op 142: control and target of a CX near the top of the carry chain exchanged",
+   "status": "NOT_PROVED",
+   "detail": "child CtrlScaleModAdd/2:CModAddK (CModAddK) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/1:CModAdd/5:AddK (AddK) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 22,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "1",
+      "x": "145",
+      "y": "111"
+     },
+     "phase": true,
+     "other_wires": true,
+     "outputs_differ": [
+      "y"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G4_high_carry_and_weakened_AddK",
+   "family": "gate",
+   "mutation": "op 108: the AND of a high carry replaced by a CX of one control (wrong only on rare inputs)",
+   "status": "NOT_PROVED",
+   "detail": "child CtrlScaleModAdd/2:CModAddK (CModAddK) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/1:CModAdd/5:AddK (AddK) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 1,
+    "cases": 24,
+    "first": {
+     "input": {
+      "x": 511
+     },
+     "expected": {
+      "x": 384
+     },
+     "got": {
+      "x": 256
+     },
+     "phase": true,
+     "other_wires_nonzero": false
+    },
+    "level": "leaf CtrlScaleModAdd/2:CModAddK/1:CModAdd/5:AddK"
+   },
+   "counts": true
+  },
+  {
+   "name": "G5_x_removed_AddK",
+   "family": "gate",
+   "mutation": "op 146: an X removed",
+   "status": "NOT_PROVED",
+   "detail": "child CtrlScaleModAdd/2:CModAddK (CModAddK) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/1:CModAdd/5:AddK (AddK) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 40,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "0",
+      "x": "0",
+      "y": "0"
+     },
+     "phase": false,
+     "other_wires": true,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G6_noncommuting_swap_CAdd",
+   "family": "gate",
+   "mutation": "ops 18, 19: two non-commuting CX exchanged",
+   "status": "NOT_PROVED",
+   "detail": "child CtrlScaleModAdd/2:CModAddK (CModAddK) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/1:CModAdd/4:CAdd (CAdd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 1,
+    "cases": 24,
+    "first": {
+     "input": {
+      "ctrl": 1,
+      "a": 255,
+      "b": 511
+     },
+     "expected": {
+      "ctrl": 1,
+      "a": 255,
+      "b": 254
+     },
+     "got": {
+      "ctrl": 1,
+      "a": 255,
+      "b": 250
+     },
+     "phase": true,
+     "other_wires_nonzero": false
+    },
+    "level": "leaf CtrlScaleModAdd/2:CModAddK/1:CModAdd/4:CAdd"
+   },
+   "counts": true
+  },
+  {
+   "name": "G7_last_operation_removed",
+   "family": "gate",
+   "mutation": "op 2975 (the last one) removed",
+   "status": "NOT_PROVED",
+   "detail": "child CtrlScaleModAdd/24:And (And) is not proved: REFUTED simulation of a domain point differs",
+   "seconds": 0.1,
+   "witness": {
+    "mismatches": 4,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "1",
+      "x": "255",
+      "y": "53"
+     },
+     "phase": false,
+     "other_wires": true,
+     "outputs_differ": []
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_0_AddK",
+   "family": "gate",
+   "mutation": "op 114 in CtrlScaleModAdd/2:CModAddK/1:CModAdd/5:AddK: ('cx', 59, 26) -> ('cx', 59, 9)",
+   "status": "NOT_PROVED",
+   "detail": "child CtrlScaleModAdd/2:CModAddK (CModAddK) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/1:CModAdd/5:AddK (AddK) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 5,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "1",
+      "x": "145",
+      "y": "106"
+     },
+     "phase": true,
+     "other_wires": true,
+     "outputs_differ": [
+      "y"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_1_CAdd",
+   "family": "gate",
+   "mutation": "op 1124 in CtrlScaleModAdd/11:CModAddK/1:CModAdd/4:CAdd: ('and', 230, 233, 242) -> ('and', 239, 233, 242)",
+   "status": "NOT_PROVED",
+   "detail": "child CtrlScaleModAdd/11:CModAddK (CModAddK) is not proved: NOT_PROVED child CtrlScaleModAdd/11:CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CtrlScaleModAdd/11:CModAddK/1:CModAdd/4:CAdd (CAdd) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.1,
+   "witness": {
+    "mismatches": 12,
+    "cases": 40,
+    "first": {
+     "input": {
+      "ctrl": "1",
+      "x": "144",
+      "y": "126"
+     },
+     "phase": true,
+     "other_wires": false,
+     "outputs_differ": [
+      "y"
+     ]
+    },
+    "level": "end-to-end"
+   },
+   "counts": true
+  },
+  {
+   "name": "G8_random_2_AddK",
+   "family": "gate",
+   "mutation": "op 105 in CtrlScaleModAdd/2:CModAddK/1:CModAdd/5:AddK: ('cx', 56, 57) -> ('cx', 56, 12)",
+   "status": "NOT_PROVED",
+   "detail": "child CtrlScaleModAdd/2:CModAddK (CModAddK) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/1:CModAdd (CModAdd) is not proved: NOT_PROVED child CtrlScaleModAdd/2:CModAddK/1:CModAdd/5:AddK (AddK) is not proved: REFUTED the independent simulation differs from the contract",
+   "seconds": 0.0,
+   "witness": {
+    "mismatches": 1,
+    "cases": 24,
+    "first": {
+     "input": {
+      "x": 511
+     },
+     "expected": {
+      "x": 384
+     },
+     "got": {
+      "x": 336
+     },
+     "phase": true,
+     "other_wires_nonzero": false
+    },
+    "level": "leaf CtrlScaleModAdd/2:CModAddK/1:CModAdd/5:AddK"
+   },
+   "counts": true
+  }
+ ],
+ "ok": true,
+ "seconds": 3.6,
+ "not_proved": 31,
+ "excluded_candidates": 33,
+ "excluded": [
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 0)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 1)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 0)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 1)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 0)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 1)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 0)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 1)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 0)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 1)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 0)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 1)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 0)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 1)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 0)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 1)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 0)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 1)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 0)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 1)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 0)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 1)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 0)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 1)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 0)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 1)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 0)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 1)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 0)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 1)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 0)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D13",
+   "candidate": "exchange of the first and last wire of an input register of And (pick 1)",
+   "reason": "no difference on 4 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "joint_canaries:147"
+  },
+  {
+   "filter": "D19",
+   "candidate": "edit of the leaf CLinearDepthGreaterThan, operations (960, 1109)",
+   "reason": "no difference on 200 sample inputs of the contract (judged by sampling, not proved equivalent)",
+   "site": "gate_canaries:739"
+  }
+ ]
+}
