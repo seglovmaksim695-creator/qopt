@@ -36,7 +36,14 @@
     64,
     256
    ],
-   "canaries": null,
+   "canaries": {
+    "n": 256,
+    "mutants": 33,
+    "refuted": 28,
+    "equivalent": 5,
+    "unknown": 0,
+    "proved_false": 0
+   },
    "command": "python -m qoptct.foreign.qiskit prove c-cdkm-fixed 256"
   },
   {

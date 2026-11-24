@@ -25,15 +25,19 @@ def rebuild(circuit, ops):
     return qc
 
 
-def make_mutants(circuit, rare_wires=None, count=None):
-    """-> list of (label, QuantumCircuit).  rare_wires: wires of one input register (for the rare-input mutant)."""
+def make_mutants(circuit, rare_wires=None, count=None, sample=None):
+    """-> list of (label, QuantumCircuit).  rare_wires: wires of one input register (for the rare-input mutant).
+    sample=N: only N mutants, evenly spread over the whole list (seams, wires, phase, rare input), returned as a generator that
+    builds one circuit at a time (for very large circuits, where all mutants together would not fit in memory)."""
     tr = translate(circuit)
     ops = list(tr.ops)
     n = len(ops)
     out = []
 
+    lazy = sample is not None
+
     def add(label, new):
-        out.append((label, rebuild(circuit, new)))
+        out.append((label, new if lazy else rebuild(circuit, new)))
     pos = sorted({0, 1, n // 8, n // 4, (3 * n) // 8, n // 2 - 1, n // 2, n // 2 + 1, (5 * n) // 8, (3 * n) // 4,
                   (7 * n) // 8, n - 2, n - 1})
     for i in pos:
@@ -99,6 +103,10 @@ def make_mutants(circuit, rare_wires=None, count=None):
         if n > 8:
             for i in range(0, n, max(1, n // 6)):
                 add('drop-s[%d]' % i, ops[:i] + ops[i + 1:])
+    if lazy:
+        k = min(int(sample), len(out))
+        idx = sorted({round(i * (len(out) - 1) / max(1, k - 1)) for i in range(k)})
+        return ((out[i][0], rebuild(circuit, out[i][1])) for i in idx)
     if count:
         out = out[:count]
     return out

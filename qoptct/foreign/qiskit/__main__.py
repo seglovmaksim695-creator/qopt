@@ -10,7 +10,7 @@ import sys
 from .library import FAMILIES, prove_case
 
 
-def run_canaries(family, n, budget=120, count=None):
+def run_canaries(family, n, budget=120, count=None, sample=None):
     from .check import check_qiskit
     from .mutants import make_mutants
     case = FAMILIES[family](n)
@@ -19,7 +19,7 @@ def run_canaries(family, n, budget=120, count=None):
     rare = next((q for q in case.circuit.qregs if q.name not in clean and q.name != 'ctrl' and len(q) >= 3), None)
     wires = [case.circuit.find_bit(q).index for q in rare] if rare is not None else None
     rows = []
-    for label, mut in make_mutants(case.circuit, rare_wires=wires, count=count):
+    for label, mut in make_mutants(case.circuit, rare_wires=wires, count=count, sample=sample):
         r = check_qiskit(mut, case.spec, clean=clean, budget_sec=budget)
         row = dict(mutant=label, status=r['status'], method=r['method'], time=r['time'])
         if r['status'] == 'PROVED':       # equivalent mutant? settle it with the reference miter
@@ -36,6 +36,7 @@ def main(argv=None):
     p.add_argument('family', choices=sorted(FAMILIES))
     p.add_argument('n', type=int)
     p.add_argument('--canaries', action='store_true')
+    p.add_argument('--sample', type=int, default=None, help='with --canaries: only N mutants, evenly spread (huge circuits)')
     p.add_argument('--budget', type=float, default=300)
     sub.add_parser('list')
     sub.add_parser('fractional')
@@ -49,7 +50,7 @@ def main(argv=None):
         print('\n'.join(sorted(FAMILIES)))
         return 0
     if a.canaries:
-        base, rows = run_canaries(a.family, a.n, a.budget)
+        base, rows = run_canaries(a.family, a.n, a.budget, sample=a.sample)
         bad = [r for r in rows if r['status'] != 'REFUTED' and not r.get('equivalent_to_original')]
         print(json.dumps(dict(base=dict(status=base['status'], time=base['time']), canaries=rows, not_refuted=len(bad)),
                          indent=1))
