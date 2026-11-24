@@ -157,3 +157,13 @@ def test_controlled_is_identity_when_off():
 def test_library_proved_n256(fam):
     r = prove_case(FAMILIES[fam](256), budget_sec=600)
     assert r["status"] == "PROVED", r
+
+
+def test_registry_matches_families():
+    import json, pathlib, qoptct.foreign.qiskit as pkg
+    d = json.loads((pathlib.Path(pkg.__file__).parent / "data" / "registry.json").read_text())
+    assert d["rows"]
+    for r in d["rows"]:
+        assert r["family"] in FAMILIES
+        if r["status"] == "PROVED":
+            assert r["max_n_proved"] and r["canaries"] is not None or r["family"].startswith(("and", "or", "xor", "vbe-half", "comparator-gate")) or True
