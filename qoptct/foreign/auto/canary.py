@@ -346,14 +346,15 @@ def joint_canaries(P0, spec, rng):
             st = f.state[0]
 
             def break_chain(P, it=it, st=st):
+                # the two least significant wires: the top wires of a carried register can be always 0 (headroom)
                 e = _mut_event(P, it.path)
                 v = e['inputs_msb'][st]
-                v[0], v[1] = v[1], v[0]
+                v[-1], v[-2] = v[-2], v[-1]
                 if st in e['outputs_msb']:
                     w = e['outputs_msb'][st]
-                    w[0], w[1] = w[1], w[0]
+                    w[-1], w[-2] = w[-2], w[-1]
                 _refresh(P)
-                return f'{it.path}: carried register {st} read from exchanged wires'
+                return f'{it.path}: carried register {st} read from exchanged wires (its two lowest bits)'
             out.append(('J13_loop_chain_broken', 'joint', break_chain, None))
     return out
 
@@ -544,8 +545,8 @@ def _wrong_body(bc):
             inner = e[1]
             if type(inner[2]) is tuple and inner[2][0] == 'lut':
                 tab = list(inner[2][2])
-                if len(tab) > 1:
-                    tab[1] += 2
+                if len(tab) > 1 and type(e[2]) is int and e[2] > 0:
+                    tab[1] += e[2]      # exactly one more after the division (a smaller change can vanish in it)
                     e2 = ('div', ('add', inner[1], ('lut', inner[2][1], tuple(tab))), e[2])
                     defs = [(a, e2 if a == nm else b) for a, b in bc.defs]
                     return replace(bc, defs=defs, name=bc.name + ' [WRONG table entry]')
