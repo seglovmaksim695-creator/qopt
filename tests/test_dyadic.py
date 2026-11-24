@@ -37,7 +37,9 @@ def test_angle_recognition():
     assert recognise_float(math.pi / 4) == Fraction(1, 4)
     assert recognise_float(-math.pi / 2 ** 40) == 4 - Fraction(1, 2 ** 40)
     assert recognise_float(math.pi / 2 ** 63) == Fraction(1, 2 ** 63)
-    assert recognise_float(2 * math.pi * 2 ** 40) == 0
+    # |theta| > 4 pi: reduced exactly first; the float 2*pi*2^40 is 2^41 * fl(pi), which is 2.7e-4 rad away from a multiple of 4 pi
+    with pytest.raises(NotDyadic):
+        recognise_float(2 * math.pi * 2 ** 40)
     assert recognise_float(2 * math.pi - math.pi / 2 ** 45) == 2 - Fraction(1, 2 ** 45)
     assert recognise_float(4 * math.pi - math.pi / 2 ** 45) == 4 - Fraction(1, 2 ** 45)
     assert recognise_float(round(math.pi / 2 ** 30, 12), abs_tol=2e-11) == Fraction(1, 2 ** 30)   # ProjectQ rounding
