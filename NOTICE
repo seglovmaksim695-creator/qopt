@@ -21,3 +21,9 @@ Third-party material:
   files in qoptct/foreign/qualtran/patches/manifest.json. At run time the patched files are written into a copy
   of the installed Qualtran in $QOPT_CACHE; Qualtran itself is not distributed with qoptct and the installed
   Qualtran is not modified.
+* qoptct/foreign/projectq: the Binary_ECC sources (multipliers and point addition for binary elliptic curves, Eclipse Public
+  License 2.0) are NOT part of qoptct and are not distributed with it. The registry names the file and its SHA-256; to reproduce
+  a result, give the folder with --source or $QOPT_BINARY_ECC. ProjectQ (Apache-2.0) and Qiskit (Apache-2.0) are used at run time
+  and are not distributed with qoptct; neither is Qualtran.
+* qoptct/dyadic implements rules of M. Amy, "Towards Large-scale Functional Verification of Universal Quantum Circuits"
+  (arXiv:1805.06908) in a generalised form; it contains no code of that work.

@@ -180,15 +180,21 @@ REFUTED for n ≥ 2, which is correct).
    Qiskit: `qoptct.dyadic.qiskit_io.from_qiskit(qc)` unrolls library blocks by their definitions (and checks
    control states).  Do not `transpile` with the default `qubits_initially_zero=True`: it may use idle qubits as
    clean ancillas and keeps only the action on |0…0⟩; use `qubits_initially_zero=False`.
-   ProjectQ: rotation angles are rounded to 12 decimals by ProjectQ itself; pass `float_abs_tol=2e-11` (or recover
-   exact angles from the decomposition).  Rotations below 5·10^{−13} rad are rounded to 0 by ProjectQ, so its QFT and
-   AddConstant on more than about 42 qubits are not exact (QFT on 64 qubits: 231 of 2016 controlled R have angle 0).
+   ProjectQ: rotation angles are rounded to 12 decimals by ProjectQ itself.  The bridge of 0.8
+   (`qoptct.foreign.projectq.dyadic`, `check_projectq_dyadic`) accepts an angle only if it is exactly what ProjectQ stores for
+   p·π/2^k with k ≤ 38 (the multiples of π/2^k are then further apart than the rounding step, so the reading is unique) and
+   refuses 0, angles within 1e-11 of 0 or of the period, and everything else (`UNKNOWN`), and does not use the tolerance
+   `float_abs_tol` that the dump scripts of the first round used.  Rotations below 5·10^{−13} rad are rounded to 0 by ProjectQ, so its
+   QFT and AddConstant on 40 or more qubits are `UNKNOWN` (QFT on 64 qubits: 231 of 2016 controlled R have angle 0).
+   Qiskit: `check_qiskit(circuit, spec_or_reference)` calls the prover itself (`qoptct/foreign/qiskit/dyadic_bridge.py`).
 2. Call `prove_dyadic(c, spec_or_reference)`.  Only `verdict == 'PROVED'` is a proof; report `assumptions`
    (the Fourier lemma for ArithSpec), `global_phase` and `float_angles` with it.
 3. A circuit outside the gate set or with measurements: UNKNOWN with the reason; convert first or use the Clifford+T
    provers.
 
-## 6. Results (registry `results/dyadic/*.json` from `scripts/dyadic_runs.py`, lab Mac, one process)
+## 6. Results (registry `results/dyadic/*.json` from `scripts/dyadic_runs.py` and `scripts/projectq_dyadic_runs.py`, lab Mac, one process)
+
+Command line (0.8): `qoptct dyadic prove CIRCUIT.qasm --reference REF.qasm` or `--qft`, `qoptct dyadic results`; exit code 0 only for PROVED.
 
 | circuit (library) | specification | proved up to | qubits / gates at max | prove time, peak memory | canaries at max | first size not proved |
 |---|---|---|---|---|---|---|
@@ -201,8 +207,10 @@ REFUTED for n ≥ 2, which is correct).
 | Qiskit `DraperQFTAdder(n).control(1)` | controlled `ArithSpec` (+ lemma) | n = 10 | 21 / 895 | 48 s, 125 MB | 20 / 20 | REFUTED at n = 64 (see below) |
 | Qiskit `RGQFTMultiplier` | `multiplier_spec` (+ lemma) | n = 32 | 128 / 69 760 | 1.8 s, 163 MB | 22 / 22 | — |
 | Qiskit `HRSCumulativeMultiplier` (p(±π/8)) | `ClassicalSpec`, out = 0 | n = 7 | 28 / 4 634 | 166 s, 92 MB | 20 / 20 | n = 8 UNKNOWN (time) |
-| ProjectQ `QFT` (native) | `QFTSpec(swaps=False)` | n = 32 | 32 / 528 | 0.04 s | 21 / 21 | n = 48 UNKNOWN (angles) |
-| ProjectQ `AddConstant(c)` (native) | `const_adder_spec` (+ lemma) | n = 32 | 32 / 1 351 | 0.07 s | 21 / 21 | n = 48 UNKNOWN (angles) |
+| ProjectQ `QFT`, exact-angle bridge (`pq_exact_qft`) | `QFTSpec(swaps=False)` | n = 39 | 39 / 780 | 0.2 s | 21 / 21 | n = 40 UNKNOWN (angle 6e-12 is ambiguous) |
+| ProjectQ `QFT` (native, first round, tolerance 2e-11) | `QFTSpec(swaps=False)` | n = 32 | 32 / 528 | 0.04 s | 21 / 21 | n = 48 UNKNOWN (angles) |
+| ProjectQ `AddConstant(c)`, exact-angle bridge (`pq_exact_addconst`) | `const_adder_spec` (+ lemma) | n = 38 | 38 / 1 961 | 0.3 s | 21 / 21 | n = 40 UNKNOWN |
+| ProjectQ `AddConstant(c)` (native, first round) | `const_adder_spec` (+ lemma) | n = 32 | 32 / 1 351 | 0.07 s | 21 / 21 | n = 48 UNKNOWN (angles) |
 | ProjectQ `QFT` (basic: CNOT + 1-qubit) | `QFTSpec(swaps=False)` | n = 31 | 31 / 2 356 | 0.08 s | 20 / 20 | n = 32 UNKNOWN (angles) |
 | ProjectQ `AddConstant(c)` (basic) | `const_adder_spec` (+ lemma) | n = 16 | 16 / 1 292 | 0.06 s | 20 / 20 | n = 24 UNKNOWN (angle numerator > 2^20) |
 

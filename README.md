@@ -15,7 +15,7 @@ measurement-based output is proven equal by the exact prover `qoptct.verify` or,
 re-checked by independent simulators over many sampled inputs and measurement outcomes before it is written
 (the JSON report says which).
 
-Repository: <https://github.com/seglovmaksim695-creator/qopt>  · Version 0.7.0 (unreleased) · License Apache-2.0 (benchmark files: see `bench_qc/SOURCES.md`) · Author: Maksym Shchehlov
+Repository: <https://github.com/seglovmaksim695-creator/qopt>  · Version 0.8.0 (unreleased) · License Apache-2.0 (benchmark files: see `bench_qc/SOURCES.md`) · Author: Maksym Shchehlov
 
 ## Installation
 
@@ -23,7 +23,8 @@ Repository: <https://github.com/seglovmaksim695-creator/qopt>  · Version 0.7.0 
 pip install qoptct              # Python 3.11+, macOS or Linux; provides the `qoptct` command and the Qiskit plugin
 pip install "qoptct[net]"       # optional: + PyTorch for the neural mode --net
 pip install "qoptct[qcec]"      # optional: + MQT QCEC as an extra equivalence checker for unitary circuits
-pip install "qoptct[qualtran]"  # optional: + Qualtran 0.7.0 and z3-solver for `qoptct qualtran` (0.7)
+pip install "qoptct[qualtran]"  # optional: + Qualtran 0.7.0 and z3-solver for `qoptct qualtran` and `qoptct auto`
+pip install "qoptct[projectq]"  # optional: + ProjectQ 0.8.0 for `qoptct projectq`
 ```
 
 Dependencies: numpy, qiskit ≥ 2.0, pyzx. PyTorch is needed only for `--net`; without it every other mode works
@@ -508,6 +509,33 @@ Every result states its Qualtran variant (the proofs of the multiplier and of th
 installed Qualtran is never modified), its hashes, assumptions and the command that reproduces it.  The Kaliski proof at n = 256
 uses canary evidence shipped with the package and accepted only for exactly this client.  Details, table and assumptions:
 [`docs/QUALTRAN.md`](docs/QUALTRAN.md).
+
+## Proofs about other libraries, rotations, the circle (new in 0.8)
+
+qoptct 0.8 teaches its exact provers the circuits of other libraries.  Each part is a command; the exit code is 0 only for PROVED.
+
+```
+qoptct qiskit prove cdkm-half 256        # Qiskit library adders, comparators, AND / OR / XOR gates (all inputs)
+qoptct projectq results                  # ProjectQ: Binary_ECC multipliers m = 8 ... 283, libs.math blocks (extra `projectq`)
+qoptct dyadic prove qft.qasm --qft       # circuits with rotations pi*p/2^k: QFT, Draper adders, QFT multipliers
+qoptct auto results                      # Qualtran blocks proved from their decomposition, no code per block (n = 256)
+qoptct loop verify --state results/loop/state   # propose -> prove -> accumulate: journal of proved improvements
+qoptct results                           # one table of everything proved, over all registries
+```
+
+* **Qiskit and ProjectQ** are proved gate by gate; rotations that are not multiples of pi/4 (the QFT, Draper adders, QFT multipliers,
+  `AddConstant`) go to the new prover `qoptct.dyadic`.  A float angle is read as pi*p/2^k only if it is exactly (ProjectQ: exactly
+  what ProjectQ stores) such a value; otherwise the answer is UNKNOWN.
+* **`qoptct.dyadic`** is a path-sum prover with phases modulo 2^K.  Qiskit QFT and the Draper adder are proved up to n = 256, the QFT
+  multiplier up to n = 32, ProjectQ's QFT up to 39 qubits.  Adders and multipliers in the Fourier basis rest on a stated lemma (a
+  geometric sum), listed in the answer.
+* **`qoptct auto`** descends into the decomposition of a Qualtran block and proves it by composing the contracts of its parts; 14
+  results at n = 256 (the 0.7 results are repeated with equal program hashes).
+* **`qoptct loop`** lets proposers suggest circuits, proves them, and keeps a hash-chained journal; the shipped journal has 116 proved
+  records and re-checks with `qoptct loop verify`.
+
+Every PROVED at the largest size comes with at least 20 canaries (damaged variants that must not be proved).  Overview, assumptions and
+reproduction commands: [`docs/FOREIGN.md`](docs/FOREIGN.md); details in `docs/QISKIT.md`, `PROJECTQ.md`, `DYADIC.md`, `AUTO.md`, `LOOP.md`.
 
 ## Hardware check (IBM Quantum)
 

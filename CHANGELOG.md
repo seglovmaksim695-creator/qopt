@@ -1,6 +1,53 @@
 # Changelog
 
-## 0.7.0 — unreleased
+Versions 0.5.0, 0.6.0, 0.7.0 and 0.8.0 are published together as one release, 0.8.0; 0.5.0 to 0.7.0 were not released separately.
+
+## 0.8.0 — unreleased
+
+### Added
+* **`qoptct.dyadic`** and **`qoptct dyadic prove|results`**: exact proofs for circuits with rotations pi*p/2^k (QFT, Draper adders, QFT
+  multipliers), a sum over paths whose phases are integers modulo 2^K (Amy, arXiv:1805.06908v2; rules Elim, HH and omega generalised from
+  Z8, applied only when their condition is checked exactly; the Clifford+T prover `qoptct.verify.pathsum` is unchanged).  API: `prove_dyadic`,
+  `prove_equal`, `prove_spec`, `prove_qasm`; specifications `QFTSpec`, `ArithSpec` (`adder_spec`, `const_adder_spec`, `multiplier_spec`; the
+  fourier-shift lemma is reported under `assumptions`), `ClassicalSpec` / `PermutationSpec`.  Registry: Qiskit QFT, inverse QFT, QFT·QFT^-1 and
+  `DraperQFTAdder` (fixed, half) up to n = 256, `RGQFTMultiplier` up to n = 32, controlled Draper adder up to n = 10,
+  `HRSCumulativeMultiplier` up to n = 7; 20-22 canaries at every largest size, all REFUTED; 4000 random circuits against a dense simulator.
+* **`qoptct qiskit`** (`qoptct.foreign.qiskit`): Qiskit circuits against a classical or symbolic specification or a reference circuit:
+  CDKM, VBE, `HalfAdderGate`, `FullAdderGate`, `ModularAdderGate`, `IntegerComparator`, `AndGate`, `OrGate`, `BitwiseXorGate` and controlled
+  adders at n = 256 for all inputs (`IntegerComparatorGate` up to n = 16); 33-34 canaries per family.  Rotations that are not multiples of
+  pi/4 are proved by `qoptct.dyadic` when the call gives a dyadic specification or a reference circuit (otherwise `UNKNOWN`, `needs ==
+  'fractional_phases'`).
+* **`qoptct projectq`** (`qoptct.foreign.projectq`, extra `qoptct[projectq]`: `projectq==0.8.0`): ProjectQ programs against a classical
+  specification (`check_projectq`) in NCT and Clifford+T modes; Binary_ECC multipliers m = 8, 16, 127, 163, 233, 283 and point addition m = 8
+  (the source is not part of the package: `--source` or `$QOPT_BINARY_ECC`; the garbage wires are pinned to the original program, which
+  closes a hole of the first method: one mutant at m = 163 was proved); `libs.math` and `libs.revkit` blocks; 24 canaries per size.
+  `check_projectq_dyadic` proves programs with rotations through `qoptct.dyadic`; an angle is accepted only if it is exactly what ProjectQ
+  stores for p*pi/2^k with k <= 38, otherwise `UNKNOWN` (QFT up to 39 qubits, `AddConstant` up to 38).
+* **`qoptct auto`** (`qoptct.foreign.auto`, extra `qoptct[qualtran]`): a generic proof of Qualtran blocks from their decomposition, without
+  code per block: leaves by the existing exact prover, nodes by composing the contracts of the children in Z3 with wire-flow, coverage,
+  freshness and domain checks; loops need an invariant.  14 results at n = 256 (Montgomery w = 1 and 2 and the first step of ECAdd with the same
+  program hashes as in 0.7; `ModAdd`, `CModAdd`, `ModSub`, `CModSub`, `ModNeg`, `CModNeg`, `ModDbl`, `CModAddK`, `Subtract`, `SubtractFrom`,
+  `Negate`), 416 canaries, none proved.  `CtrlScaleModAdd` and `CModMulK` are proved at n = 8 only.
+* **`qoptct loop run|verify|table|status`** (`qoptct.loop`): propose, prove, accumulate.  Proposers suggest circuits for a target; only a
+  candidate that is PROVED, agrees with an independent simulation and survives at least 20 canaries enters the journal (JSONL, hash chain);
+  the table of the best known circuits is built from the journal only; `verify` re-checks the chain, the file hashes, the costs and every
+  proof, and fails on a missing or empty journal.  A run of 4263 proposals gave 116 proved records (`results/loop/state`).
+* **`qoptct results`**: one table over all registries (Qualtran, Qiskit, ProjectQ, dyadic, auto, loop), `--long`, `--json`, `--library`.
+* **Documentation**: `docs/FOREIGN.md` (overview), `docs/QISKIT.md`, `docs/PROJECTQ.md`, `docs/DYADIC.md`, `docs/AUTO.md`, `docs/LOOP.md`.
+
+### Findings (described in the documents of the parts)
+* Qiskit 2.6.2: `VBERippleCarryAdder(kind='fixed')` is wrong for n >= 2 (an open pull request exists); `control()` of `CPhase(theta)` with
+  |theta| <= pi/2^51 gives the angles (theta, theta, theta) instead of (theta/2, -theta/2, theta/2); `transpile` with the default
+  `qubits_initially_zero=True` keeps only the action on |0...0>.
+* ProjectQ 0.8.0: `ComparatorQuantum` is wrong for n = 1 and n >= 3, `MultiplyQuantum` for b >= 2; angles are stored with 12 decimals and
+  rotations below 5e-13 become 0.
+* Qualtran: the findings of 0.7 (see below) are published with this release; nothing was reported to the developers separately.
+
+### Changed
+* `qoptct/qopt_core.py`: the subcommands `qiskit`, `projectq`, `dyadic`, `auto`, `results`, `loop`.  `qoptct/verify/*` and
+  `qoptct/foreign/qualtran/*` are unchanged (the proofs and the Kaliski canary evidence of 0.7 stay valid).
+
+## 0.7.0 — published together with 0.8.0 (not released separately)
 
 ### Added
 * **`qoptct qualtran`** (`qoptct.foreign.qualtran`, optional extra `qoptct[qualtran]`: `qualtran==0.7.0`, `z3-solver`): exact
@@ -33,7 +80,7 @@
   statistics are equal to the earlier results).
 * `qoptct/qopt_core.py`: the subcommand `qualtran`. `qoptct/verify/*` is unchanged.
 
-## 0.6.0 — unreleased
+## 0.6.0 — published together with 0.8.0 (not released separately)
 
 ### Added
 * **`qoptct.verify.algebra`** and the subcommand **`qoptct aprove CIRCUIT.qasm SPEC.json [--budget S] [--json]`**
@@ -142,7 +189,7 @@ Protocol and results: `docs/real_runs/2026-11-20_ibm_kingston/`.
 * `qoptct hw`: all fidelity figures are model estimates from calibration snapshots; the portfolio keeps the Qiskit
   candidate where the qoptct one is worse.
 
-## 0.5.0 — unreleased (release candidate)
+## 0.5.0 — published together with 0.8.0 (not released separately)
 
 ### Added
 * **`qoptct.verify.kprove`** and the subcommand **`qoptct kprove CIRCUIT.qasm REF.qc [--clean] [--budget S]

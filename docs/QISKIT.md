@@ -65,9 +65,22 @@ mutant that the prover accepts must also be accepted by the reference miter (gen
 `s` on a clean ancilla at the start, or the last CNOT of the 2-CNOT UMA when the carry-in is 0); everything else must
 be `REFUTED`.  Evidence at n=256: `evidence/` in the round folder.
 
-## Qiskit circuits that need fractional phases (Q2)
+## Qiskit circuits with fractional phases: the dyadic prover (0.8)
 
-`python -m qoptct.foreign.qiskit fractional` prints the current list.  At n=4 these give `UNKNOWN` ("needs
+`qoptct qiskit fractional` prints the list below.  Such a circuit stays `UNKNOWN` (`needs == 'fractional_phases'`) while the call
+gives no target; with a dyadic specification (`QFTSpec`, `ArithSpec` via `adder_spec` / `multiplier_spec`, `ClassicalSpec` from
+`qoptct.dyadic`) or a reference `QuantumCircuit`, `check_qiskit` hands the circuit to `qoptct.dyadic.prove_dyadic`
+(`qoptct/foreign/qiskit/dyadic_bridge.py`):
+
+```python
+from qoptct.dyadic import QFTSpec, adder_spec
+check_qiskit(QFTGate(8) in a circuit, QFTSpec(range(8)))["status"]                 # PROVED
+check_qiskit(DraperQFTAdder(4, kind="fixed").decompose(), adder_spec(range(4), range(4, 8)))   # PROVED, assumptions: fourier-shift lemma
+```
+
+The answer carries `method == 'dyadic:...'`, the answer of the prover under `r['dyadic']` and its `assumptions`.  Clean registers are
+ancillas.  A float angle that is not (within a few ulp) a multiple of pi/2^k, an unsupported gate or a measurement give `UNKNOWN`.
+Overview: [FOREIGN.md](FOREIGN.md); results: `qoptct dyadic results`.  At n=4 the following give `UNKNOWN` without a target ("needs
 fractional phases"): `DraperQFTAdder` (half, fixed), `RGQFTMultiplier`, `HRSCumulativeMultiplier`, `MultiplierGate`,
 `QFTGate`, `QuadraticForm`, `LinearPauliRotations`, `PiecewiseLinearPauliRotations`, `PolynomialPauliRotations`,
 `ExactReciprocalGate`, and every native `Gate.control(1)` of `CDKMRippleCarryAdder`, `VBERippleCarryAdder`,

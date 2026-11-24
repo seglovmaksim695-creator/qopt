@@ -85,8 +85,14 @@ The gate itself (its `math_fun`) is correct; the disagreement is between the gat
 ## Blocks with rotations (not here)
 
 AddConstant / SubConstant, AddConstantModN / SubConstantModN, MultiplyByConstantModN (Draper QFT adder with phases R(pi/2^k)),
-QFT, Rx / Ry / Rz / R / Ph with angles that are not multiples of pi/4. They need the fractional-phase prover. `PhaseOracle`
-of `libs.revkit` produces phase gates and is not covered either.
+QFT, Rx / Ry / Rz / R / Ph with angles that are not multiples of pi/4. They are not handled by `check_projectq` but by
+`qoptct.foreign.projectq.dyadic.check_projectq_dyadic(program, target)` (0.8), which records the program with ProjectQ's own
+decomposition rules (no optimizer) and proves it with `qoptct.dyadic`.  An angle is accepted only if it is exactly what ProjectQ
+stores (12 decimals) for p*pi/2^k with k <= 38; an angle of 0, within 1e-11 of 0 or of the period, or one that matches no such value
+(a sum of two rounded angles, a corrupted angle) gives `UNKNOWN`.  Proved: QFT up to 39 qubits and `AddConstant` up to 38
+(`qoptct dyadic results`, `scripts/projectq_dyadic_runs.py`), 21 canaries each, all REFUTED; from 40 qubits the program is `UNKNOWN`
+(R(pi/2^39) is stored as 6e-12, R(pi/2^43) as 0).  See [FOREIGN.md](FOREIGN.md).  `PhaseOracle`
+of `libs.revkit` produces phase gates and is not covered.
 
 ## Assumptions
 
