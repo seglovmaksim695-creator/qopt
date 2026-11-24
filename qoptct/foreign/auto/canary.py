@@ -126,10 +126,14 @@ def joint_canaries(P0, spec, rng):
             _refresh(P)
             return f'{path}: register {nm}: its first and last wire exchanged (input and output)'
         return f
-    if multi:
-        out.append(('J1_swap_wires_of_a_child', 'joint', swap_in(multi[0].path), None))
-        if len(multi) > 2:
-            out.append(('J1b_swap_wires_of_a_later_child', 'joint', swap_in(multi[len(multi) // 2].path, 1), None))
+    # only children for which the exchange changes the function (by their contract): exchanging two wires of a
+    # bitwise NOT, say, gives the same program, and such a canary would rightly be proved
+    eff = [(k, j) for k in multi for j in range(2) if _swap_effective(k, j, rng)]
+    if eff:
+        out.append(('J1_swap_wires_of_a_child', 'joint', swap_in(eff[0][0].path, eff[0][1]), None))
+        later = [e for e in eff[len(eff) // 2:] if e[0].path != eff[0][0].path]
+        if later:
+            out.append(('J1b_swap_wires_of_a_later_child', 'joint', swap_in(later[0][0].path, later[0][1]), None))
 
     def swap_out(path):
         def f(P):
@@ -189,24 +193,61 @@ def joint_canaries(P0, spec, rng):
             return f'X on wire {q} inserted inside {k1.path} at {pos}'
         out.append(('J5_extra_operation_inside_a_child', 'joint', extra_inside, None))
 
-    # a composite child: an operation between two of its children
+    if big:
+        first, last = big[0], big[-1]
+
+        def extra_before(P):
+            pos = first.span[0]
+            q = P.root.in_wires()[-1]
+            insert_op(P, pos, ('x', q), P.adapter.root_path)
+            return f'X on input wire {q} inserted at {pos}, before the first child {first.path} (owned by the root)'
+        out.append(('J4b_extra_operation_before_the_first_child', 'joint', extra_before, None))
+
+        def extra_after(P):
+            pos = last.span[1]
+            q = P.root.out_wires()[0]
+            insert_op(P, pos, ('x', q), P.adapter.root_path)
+            return f'X on output wire {q} inserted at {pos}, after the last child {last.path} (owned by the root)'
+        out.append(('J4c_extra_operation_after_the_last_child', 'joint', extra_after, None))
+
+    # a composite child: an operation between two of its children; for the moved boundary (J7) a pair of
+    # neighbouring grandchildren where the first one, without its last operation, no longer meets its contract
+    from . import registry as R
+
+    def composed(k):            # a child proved from its own children (a primitive is proved on its gates as a whole)
+        c = R.contract_for(k.obj)
+        return c is None or c.kind != 'primitive'
     comp = None
-    for k in big:
+    for k in sorted(big, key=lambda k: not composed(k)):
         sub = [c for c in _proper_children(P0, k) if c.nops]
         if len(sub) >= 2:
             comp = (k, sub)
             break
+    j7 = None
+    for k in [k for k in big if composed(k)]:
+        sub_k = [c for c in _proper_children(P0, k) if c.nops]
+        for j in range(len(sub_k) - 1):
+            s0, s1 = sub_k[j], sub_k[j + 1]
+            if s0.span[1] == s1.span[0] and s0.nops >= 2 and \
+                    _leaf_differs(P0, s0, lambda o: o.__delitem__(len(o) - 1), rng):
+                j7 = (k, [s0, s1])
+                break
+        if j7:
+            break
     if comp is not None:
         k, sub = comp
 
-        def extra_between_sub(P):
+        def extra_between_sub(P, sub=sub, k=k):
             pos = sub[0].span[1]
             q = sub[0].out_wires()[0]
             insert_op(P, pos, ('x', q), k.path)
             return f'X on wire {q} inserted between {sub[0].path} and {sub[1].path} (owned by {k.path})'
         out.append(('J6_extra_operation_between_grandchildren', 'joint', extra_between_sub, None))
 
-        def move_boundary(P):
+    if j7 is not None:
+        k, sub = j7
+
+        def move_boundary(P, sub=sub):
             (a0, b0), ok0 = P.adapter.spans[sub[0].path]
             (a1, b1), ok1 = P.adapter.spans[sub[1].path]
             if b0 != a1 or b0 - a0 < 2:
@@ -236,6 +277,17 @@ def joint_canaries(P0, spec, rng):
             break
     for i, (tname, key, bad) in enumerate(wrongs):
         out.append((f'J8_wrong_contract_of_child_{tname}', 'joint', _override_contract(key, bad), None))
+    # a child that claims to leave a register unchanged (or a new register zero)
+    idle = []
+    for lf in leaves:
+        from . import registry as R
+        bad = _idle_contract(R.contract_for(lf.obj))
+        if bad is not None and lf.type not in [w[0] for w in idle]:
+            idle.append((lf.type, lf.key, bad))
+        if len(idle) >= 2:
+            break
+    for tname, key, bad in idle:
+        out.append((f'J8b_child_claims_no_effect_{tname}', 'joint', _override_contract(key, bad), None))
 
     # domain: the root precondition weakened (children called outside their domains)
     if spec.pre != 1:
@@ -285,6 +337,61 @@ def joint_canaries(P0, spec, rng):
     return out
 
 
+def _swap_effective(k, reg_pick, rng, cases=24):
+    """does exchanging the most and the least significant wire of an input register of child k (input and output
+    side, as swap_in does) change its function?  Judged on its registry contract; False without a contract"""
+    from . import registry as R
+    from .leaf import sample_inputs
+    c = R.contract_for(k.obj)
+    if c is None:
+        return False
+    names = [nm for nm, v in k.ins.items() if len(v) >= 2]
+    if not names:
+        return False
+    nm = names[reg_pick % len(names)]
+    w = c.inputs.get(nm)
+    if not w or w < 2:
+        return False
+
+    def sw(v):
+        hi, lo = (v >> (w - 1)) & 1, v & 1
+        return (v & ~((1 << (w - 1)) | 1)) | (lo << (w - 1)) | hi
+    try:
+        samples = sample_inputs(c, random.Random(rng.randrange(1 << 30)), cases)
+    except Exception:  # noqa: BLE001
+        return False
+    for v in samples:
+        v2 = dict(v, **{nm: sw(v[nm])})
+        if not c.in_domain(v2):
+            return True
+        a, b = c.evaluate(v), c.evaluate(v2)
+        if nm in b and c.outputs.get(nm) == w:
+            b = dict(b, **{nm: sw(b[nm])})
+        if a != b:
+            return True
+    return False
+
+
+def _leaf_differs(P0, lf, edit, rng, cases=200):
+    """does the edit (``edit(ops)`` changes the list of the leaf's operations in place) change leaf lf, judged by
+    simulation (every wire, phases) against its registry contract on sample inputs of its domain?"""
+    from . import registry as R
+    from .leaf import sample_inputs, simulate
+    from ..qualtran.montgomery._core import compact
+    c = R.contract_for(lf.obj)
+    if c is None:
+        return False
+    a, b = lf.span
+    ops = list(P0.ops[a:b])
+    edit(ops)
+    try:
+        nq, cops, wi, wo, _ = compact(ops, dict(lf.ins), dict(lf.outs))
+        cnt, bad = simulate(nq, cops, wi, wo, c, sample_inputs(c, random.Random(rng.randrange(1 << 30)), cases))
+    except Exception:  # noqa: BLE001
+        return True          # the damaged leaf does not even run: a change
+    return bool(bad)
+
+
 def _override_contract(key, bad):
     def f(P):
         from . import registry as R
@@ -319,6 +426,17 @@ def _wrong_contract(c):
     w = c.outputs[k]
     e = X.mod(X.add(c.out[k], 1), 1 << w)
     return replace(c, out=dict(c.out, **{k: e}), name=c.name + ' [WRONG: +1 on ' + k + ']')
+
+
+def _idle_contract(c):
+    """the contract with its first computed output replaced by 'unchanged' (or 0 for a new register)"""
+    if c is None:
+        return None
+    k = _first_out(c)
+    if k is None:
+        return None
+    e = X.var(k) if k in c.inputs and c.inputs[k] == c.outputs[k] else 0
+    return replace(c, out=dict(c.out, **{k: e}), name=c.name + ' [WRONG: ' + k + ' unchanged]')
 
 
 def _narrow(c):
@@ -379,80 +497,120 @@ def gate_canaries(P0, rng, count=14):
         a, b = lf.span
         return [i for i in range(a, b) if ops[i][0] == kind]
 
-    # phase: erase corrections
+    def differs(lf, edit):
+        return _leaf_differs(P0, lf, edit, rng)
+
+    def order(idx):
+        """candidate positions, the preferred one first"""
+        return idx[len(idx) // 2:] + idx[:len(idx) // 2][::-1]
+
+    # phase: erase corrections (only where removing / moving the correction changes the leaf)
+    g1 = g2 = None
     for lf in leaves:
-        er = positions(lf, 'erase')
-        if er:
-            i = er[len(er) // 2]
-
-            def drop_corr(P, i=i):
-                op = P.ops[i]
-                P.ops[i] = ('erase', op[1], ())
-                P._support = {}
-                return f'op {i}: erase correction removed (phase)'
-            out.append((f'G1_phase_correction_removed_{lf.type}', 'gate', drop_corr, None))
-
-            def move_corr(P, i=i, lf=lf):
-                op = P.ops[i]
-                (cz, a, b), = op[2]
-                others = [q for q in lf.in_wires() if q not in (a, b, op[1])]
-                if not others:
-                    return 'skipped'
-                P.ops[i] = ('erase', op[1], (('cz', a, others[0]),))
-                P._support = {}
-                return f'op {i}: erase correction moved to wire {others[0]} (phase)'
-            out.append((f'G2_phase_correction_moved_{lf.type}', 'gate', move_corr, None))
+        a0 = lf.span[0]
+        for i in order(positions(lf, 'erase'))[:8]:
+            op = ops[i]
+            if not op[2]:
+                continue
+            if g1 is None and differs(lf, lambda o, i=i, op=op: o.__setitem__(i - a0, ('erase', op[1], ()))):
+                g1 = (lf, i)
+            others = [q for q in lf.in_wires() if q not in (op[2][0][1], op[2][0][2], op[1])]
+            if g2 is None and others and len(op[2]) == 1 and differs(
+                    lf, lambda o, i=i, op=op, q=others[0]: o.__setitem__(i - a0, ('erase', op[1],
+                                                                                 (('cz', op[2][0][1], q),)))):
+                g2 = (lf, i, others[0])
+            if g1 and g2:
+                break
+        if g1 and g2:
             break
-    # rare inputs: a carry CX near the top of an adder
+    if g1:
+        lf, i = g1
+
+        def drop_corr(P, i=i):
+            op = P.ops[i]
+            P.ops[i] = ('erase', op[1], ())
+            P._support = {}
+            return f'op {i}: erase correction removed (phase)'
+        out.append((f'G1_phase_correction_removed_{lf.type}', 'gate', drop_corr, None))
+    if g2:
+        lf, i, q = g2
+
+        def move_corr(P, i=i, q=q):
+            op = P.ops[i]
+            (cz, a, b), = op[2]
+            P.ops[i] = ('erase', op[1], (('cz', a, q),))
+            P._support = {}
+            return f'op {i}: erase correction moved to wire {q} (phase)'
+        out.append((f'G2_phase_correction_moved_{lf.type}', 'gate', move_corr, None))
+    # rare inputs: a carry CX near the top of an adder, the AND of a high carry
     for tname in ('CAdd', 'Add', 'Controlled', 'AddK', 'LessThanConstant'):
         for lf in by_type.get(tname, [])[:1]:
+            a0 = lf.span[0]
             cx = positions(lf, 'cx')
             ands = positions(lf, 'and')
-            if len(cx) > 4:
-                i = cx[-3]
-
-                def flip_cx(P, i=i):
-                    op = P.ops[i]
-                    P.ops[i] = ('cx', op[2], op[1]) if op[1] != op[2] else op
-                    P._support = {}
-                    return f'op {i}: control and target of a CX near the top of the carry chain exchanged'
-                out.append((f'G3_carry_cx_reversed_{tname}', 'gate', flip_cx, None))
-            if len(ands) > 3:
-                i = ands[-2]
-
-                def drop_and(P, i=i):
-                    op = P.ops[i]
-                    P.ops[i] = ('cx', op[1], op[3])
-                    P._support = {}
-                    return f'op {i}: the AND of a high carry replaced by a CX of one control (wrong only on rare inputs)'
-                out.append((f'G4_high_carry_and_weakened_{tname}', 'gate', drop_and, None))
+            for i in [cx[-k] for k in range(3, min(len(cx), 12) + 1)] if len(cx) > 4 else []:
+                op = ops[i]
+                if op[1] != op[2] and differs(lf, lambda o, i=i, op=op: o.__setitem__(i - a0, ('cx', op[2], op[1]))):
+                    def flip_cx(P, i=i):
+                        op = P.ops[i]
+                        P.ops[i] = ('cx', op[2], op[1])
+                        P._support = {}
+                        return f'op {i}: control and target of a CX near the top of the carry chain exchanged'
+                    out.append((f'G3_carry_cx_reversed_{tname}', 'gate', flip_cx, None))
+                    break
+            for i in [ands[-k] for k in range(2, min(len(ands), 10) + 1)] if len(ands) > 3 else []:
+                op = ops[i]
+                if differs(lf, lambda o, i=i, op=op: o.__setitem__(i - a0, ('cx', op[1], op[3]))):
+                    def drop_and(P, i=i):
+                        op = P.ops[i]
+                        P.ops[i] = ('cx', op[1], op[3])
+                        P._support = {}
+                        return (f'op {i}: the AND of a high carry replaced by a CX of one control '
+                                f'(wrong only on rare inputs)')
+                    out.append((f'G4_high_carry_and_weakened_{tname}', 'gate', drop_and, None))
+                    break
     # an X dropped (constants are loaded with X)
+    g5 = None
     for lf in leaves:
+        a0 = lf.span[0]
         xs = positions(lf, 'x')
         if len(xs) >= 2:
-            i = xs[len(xs) // 2]
-
-            def drop_x(P, i=i):
-                del P.ops[i]
-                _shift_after_delete(P, i)
-                return f'op {i}: an X removed'
-            out.append((f'G5_x_removed_{lf.type}', 'gate', drop_x, None))
+            for i in order(xs)[:8]:
+                if differs(lf, lambda o, i=i: o.__delitem__(i - a0)):
+                    g5 = (lf, i)
+                    break
+        if g5:
             break
+    if g5:
+        lf, i = g5
+
+        def drop_x(P, i=i):
+            del P.ops[i]
+            _shift_after_delete(P, i)
+            return f'op {i}: an X removed'
+        out.append((f'G5_x_removed_{lf.type}', 'gate', drop_x, None))
     # two neighbouring operations of a leaf exchanged (they must not commute)
+    g6 = None
     for lf in leaves:
         a, b = lf.span
         for i in range(a, b - 1):
             o1, o2 = ops[i], ops[i + 1]
             if o1[0] == 'cx' and o2[0] == 'cx' and (o1[2] == o2[1] or o2[2] == o1[1]):
-                def swap2(P, i=i):
-                    P.ops[i], P.ops[i + 1] = P.ops[i + 1], P.ops[i]
-                    P._support = {}
-                    return f'ops {i}, {i + 1}: two non-commuting CX exchanged'
-                out.append((f'G6_noncommuting_swap_{lf.type}', 'gate', swap2, None))
-                break
-        else:
-            continue
-        break
+                def ed(o, i=i, a=a):
+                    o[i - a], o[i + 1 - a] = o[i + 1 - a], o[i - a]
+                if differs(lf, ed):
+                    g6 = (lf, i)
+                    break
+        if g6:
+            break
+    if g6:
+        lf, i = g6
+
+        def swap2(P, i=i):
+            P.ops[i], P.ops[i + 1] = P.ops[i + 1], P.ops[i]
+            P._support = {}
+            return f'ops {i}, {i + 1}: two non-commuting CX exchanged'
+        out.append((f'G6_noncommuting_swap_{lf.type}', 'gate', swap2, None))
     # the last operation of the program removed (the final reduction)
     def drop_last(P):
         i = len(P.ops) - 1
@@ -460,33 +618,42 @@ def gate_canaries(P0, rng, count=14):
         _shift_after_delete(P, i)
         return f'op {i} (the last one) removed'
     out.append(('G7_last_operation_removed', 'gate', drop_last, None))
-    # random single-operation mutants inside random leaves
+    # random single-operation mutants inside random leaves; a mutant is kept only if the damaged leaf differs from
+    # its contract on some input (simulation), so that an equivalent rewrite is not taken for a canary
     pool = [lf for lf in leaves if lf.nops >= 3]
     for j in range(max(0, count - len(out))):
-        if not pool:
-            break
-        lf = rng.choice(pool)
-        i = rng.randrange(lf.span[0], lf.span[1])
-
-        def rnd(P, i=i, lf=lf, seed=rng.random()):
-            r = random.Random(seed)
-            op = P.ops[i]
+        chosen = None
+        for _try in range(30):
+            if not pool:
+                break
+            lf = rng.choice(pool)
+            i = rng.randrange(lf.span[0], lf.span[1])
+            op = ops[i]
             wires = sorted(set(lf.in_wires()) | set(lf.out_wires()))
             new = op
             for _ in range(20):
                 if op[0] == 'cx':
-                    t = r.choice(wires)
+                    t = rng.choice(wires)
                     new = ('cx', op[1], t) if t != op[1] else op
                 elif op[0] == 'x':
-                    new = ('x', r.choice(wires))
+                    new = ('x', rng.choice(wires))
                 elif op[0] == 'and':
-                    a = r.choice(wires)
+                    a = rng.choice(wires)
                     new = ('and', a, op[2], op[3]) if a not in (op[2], op[3]) else op
                 else:
                     new = ('erase', op[1], ())
                 if new != op:
                     break
-            if new == op:
+            if new != op and _leaf_differs(P0, lf, lambda o, i=i, a0=lf.span[0], new=new: o.__setitem__(i - a0, new),
+                                           rng):
+                chosen = (lf, i, op, new)
+                break
+        if chosen is None:
+            continue
+        lf, i, op, new = chosen
+
+        def rnd(P, i=i, lf=lf, op=op, new=new):
+            if P.ops[i] != op:
                 return 'skipped'
             P.ops[i] = new
             P._support = {}

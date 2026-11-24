@@ -69,7 +69,7 @@ def _contract_for(bloq):
     from qualtran.bloqs.data_loading.qroam_clean import QROAMClean, QROAMCleanAdjoint, QROAMCleanAdjointWrapper
     from qualtran.bloqs.mod_arithmetic import ModAdd, CModAdd, ModSub, CModSub, ModNeg, CModNeg, ModDbl
     from qualtran.bloqs.mod_arithmetic.mod_multiplication import DirtyOutOfPlaceMontgomeryModMul
-    from qualtran import Controlled
+    from qualtran import Controlled, QUInt
     t = type(bloq)
     # ---------------------------------------------------------------- single gates and basis states
     if t is XGate:
@@ -209,6 +209,13 @@ def _contract_for(bloq):
         if not n or not _unsigned(bloq.dtype):
             return None
         return _prim(f'BitwiseNot({n})', {'x': n}, {'x': n}, {'x': X.sub((1 << n) - 1, V('x'))})
+    if t.__name__ == 'OnEach' and type(bloq.gate) is XGate:
+        regs = list(bloq.signature)
+        n = _int(bloq.n)
+        if not n or len(regs) != 1 or regs[0].shape or _bits(regs[0].dtype) != n or not _unsigned(regs[0].dtype):
+            return None
+        q = regs[0].name
+        return _prim(f'OnEach({n},X)', {q: n}, {q: n}, {q: X.sub((1 << n) - 1, V(q))})
     # ---------------------------------------------------------------- table lookup (rule C1 for the adjoint)
     if t in (QROAMClean, QROAMCleanAdjoint, QROAMCleanAdjointWrapper):
         return _qroam(bloq)
@@ -262,6 +269,27 @@ def _contract_for(bloq):
     if t is ModDbl:
         n, p = _bits(bloq.dtype), _int(bloq.mod)
         return S.mod_dbl_spec(n, p) if n and p and _unsigned(bloq.dtype) else None
+    if t.__name__ in ('Subtract', 'SubtractFrom', 'Negate'):
+        dts = [bloq.a_dtype, bloq.b_dtype] if t.__name__ == 'Subtract' else [bloq.dtype]
+        n = _bits(dts[0])
+        if not n or any(type(d) is not QUInt or _bits(d) != n for d in dts):
+            return None
+        return {'Subtract': S.subtract_spec, 'SubtractFrom': S.subtract_from_spec, 'Negate': S.negate_spec}[t.__name__](n)
+    if t.__name__ == 'OutOfPlaceAdder':
+        n = _int(bloq.bitsize)
+        if not n or bloq.is_adjoint or not getattr(bloq, 'include_most_significant_bit', True):
+            return None
+        return _prim(f'OutOfPlaceAdder({n})', {'a': n, 'b': n}, {'a': n, 'b': n, 'c': n + 1},
+                     {'a': V('a'), 'b': V('b'), 'c': X.add(V('a'), V('b'))})
+    if t.__name__ == 'CModAddK':
+        n, k, p = _int(bloq.bitsize), _int(bloq.k), _int(bloq.mod)
+        return S.cmod_add_k_spec(n, k, p) if n and p and k is not None else None
+    if t.__name__ == 'CtrlScaleModAdd':
+        n, k, p = _int(bloq.bitsize), _int(bloq.k), _int(bloq.mod)
+        return S.ctrl_scale_mod_add_spec(n, k, p) if n and p and k is not None else None
+    if t.__name__ == 'CModMulK':
+        n, k, p = _bits(bloq.dtype), _int(bloq.k), _int(bloq.mod)
+        return S.cmod_mul_k_spec(n, k, p) if n and p and k is not None and _unsigned(bloq.dtype) else None
     if t is DirtyOutOfPlaceMontgomeryModMul:
         if bloq.uncompute:
             return None
@@ -308,7 +336,7 @@ def _qroam(bloq):
                  note='measurement-based uncomputation (bridge rule C1, assumptions A1-A4)')
 
 
-_SELF_INVERSE = ('XGate', 'CNOT', 'Toffoli', 'Swap', 'CSwap', 'TwoBitSwap', 'TwoBitCSwap', 'MultiTargetCNOT', 'Xor',
+_SELF_INVERSE = ('XGate', 'CNOT', 'Toffoli', 'Swap', 'CSwap', 'TwoBitSwap', 'TwoBitCSwap', 'MultiTargetCNOT', 'Xor', 'OnEach',
                  'XorK', 'BitwiseNot', 'LessThanConstant', 'LessThanEqual', 'GreaterThan', 'LinearDepthGreaterThan',
                  'CLinearDepthGreaterThan', 'Equals', 'EqualsAConstant')
 
@@ -495,6 +523,14 @@ def _small_instances():
             QROAMClean([np.array([0, 9, 2, 15], dtype=object)], selection_bitsizes=(2,), target_bitsizes=(4,))]
     out += [ModAdd(3, 7), ModAdd(4, 13), CModAdd(QUInt(3), 7), CModAdd(QUInt(4), 11, cv=0), ModSub(QUInt(3), 7),
             CModSub(QUInt(3), 5), ModNeg(QUInt(3), 7), CModNeg(QUInt(3), 5), ModDbl(QUInt(4), 13)]
+    from qualtran.bloqs.arithmetic import Subtract, SubtractFrom, Negate, OutOfPlaceAdder
+    from qualtran.bloqs.mod_arithmetic import CModAddK, CtrlScaleModAdd, CModMulK
+    from qualtran.bloqs.basic_gates import OnEach
+    out += [OnEach(3, XGate()), OnEach(4, XGate(), target_dtype=QUInt(4)), Subtract(QUInt(3)), SubtractFrom(QUInt(3)),
+            Negate(QUInt(4)), OutOfPlaceAdder(3),
+            CModAddK(k=5, mod=13, bitsize=4), CModAddK(k=0, mod=7, bitsize=3), CtrlScaleModAdd(k=5, mod=13, bitsize=4),
+            CtrlScaleModAdd(k=3, mod=7, bitsize=3), CtrlScaleModAdd(k=-5, mod=13, bitsize=4),
+            CModMulK(QUInt(4), k=5, mod=13), CModMulK(QUInt(3), k=3, mod=7)]
     return out
 
 

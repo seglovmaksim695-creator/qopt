@@ -191,6 +191,67 @@ def mod_dbl_spec(n, p):
                     out={'x': X.mod(X.shl(V('x'), 1), p)}, name=f'ModDbl(n={n}, p={p})', kind='spec')
 
 
+# ------------------------------------------------------------------------------------------------ more blocks
+def _width(n):
+    _need(type(n) is int and n >= 1, 'the width must be a positive integer')
+
+
+def subtract_spec(n):
+    """Subtract(QUInt(n), QUInt(n)): b' = (a - b) mod 2^n, a unchanged (all inputs)"""
+    _width(n)
+    return Contract(inputs={'a': n, 'b': n}, outputs={'a': n, 'b': n},
+                    out={'a': V('a'), 'b': X.mod(X.sub(V('a'), V('b')), 1 << n)}, name=f'Subtract(n={n})', kind='spec')
+
+
+def subtract_from_spec(n):
+    """SubtractFrom(QUInt(n)): b' = (b - a) mod 2^n, a unchanged (all inputs)"""
+    _width(n)
+    return Contract(inputs={'a': n, 'b': n}, outputs={'a': n, 'b': n},
+                    out={'a': V('a'), 'b': X.mod(X.sub(V('b'), V('a')), 1 << n)}, name=f'SubtractFrom(n={n})',
+                    kind='spec')
+
+
+def negate_spec(n):
+    """Negate(QUInt(n)): x' = (-x) mod 2^n (all inputs)"""
+    _width(n)
+    return Contract(inputs={'x': n}, outputs={'x': n}, out={'x': X.mod(X.sub(0, V('x')), 1 << n)},
+                    name=f'Negate(n={n})', kind='spec')
+
+
+def cmod_add_k_spec(n, k, p):
+    """CModAddK(k, p, n): x' = (x + k) mod p if ctrl = 1, else x; ctrl unchanged; for x < p (0 <= k < p)"""
+    _odd_modulus(n, p)
+    _need(type(k) is int and 0 <= k < p, 'k must satisfy 0 <= k < p')
+    act = X.eq(V('ctrl'), 1)
+    return Contract(inputs={'ctrl': 1, 'x': n}, outputs={'ctrl': 1, 'x': n}, pre=X.lt(V('x'), p),
+                    out={'ctrl': V('ctrl'), 'x': X.ite(act, X.mod(X.add(V('x'), k), p), V('x'))},
+                    name=f'CModAddK(n={n}, k={k}, p={p})', kind='spec')
+
+
+def ctrl_scale_mod_add_spec(n, k, p):
+    """CtrlScaleModAdd(k, p, n): y' = (y + x k) mod p if ctrl = 1, else y; ctrl, x unchanged; for y < p (x any;
+    k any integer, written as k mod p)"""
+    _odd_modulus(n, p)
+    _need(type(k) is int, 'k must be an integer')
+    km = k % p
+    act = X.eq(V('ctrl'), 1)
+    return Contract(inputs={'ctrl': 1, 'x': n, 'y': n}, outputs={'ctrl': 1, 'x': n, 'y': n}, pre=X.lt(V('y'), p),
+                    out={'ctrl': V('ctrl'), 'x': V('x'),
+                         'y': X.ite(act, X.mod(X.add(V('y'), X.mul(V('x'), km)), p), V('y'))},
+                    name=f'CtrlScaleModAdd(n={n}, k={k}, p={p})', kind='spec')
+
+
+def cmod_mul_k_spec(n, k, p):
+    """CModMulK(QUInt(n), k, p): x' = x k mod p if ctrl = 1, else x; for x < p (p prime, 0 < k < p)"""
+    _odd_modulus(n, p)
+    _need(type(k) is int and 0 < k < p, 'k must satisfy 0 < k < p')
+    _need(is_probable_odd_prime(p), 'p must be prime (k must be invertible)')
+    act = X.eq(V('ctrl'), 1)
+    return Contract(inputs={'ctrl': 1, 'x': n}, outputs={'ctrl': 1, 'x': n}, pre=X.lt(V('x'), p),
+                    out={'ctrl': V('ctrl'), 'x': X.ite(act, X.mod(X.mul(V('x'), k), p), V('x'))},
+                    name=f'CModMulK(n={n}, k={k}, p={p})', kind='spec')
+
+
 # ------------------------------------------------------------------------------------------------ ECAdd, step 1
 def ecadd_step1_spec(n, p):
     """``_ECAddStepOne(n, p)`` of the fixed ECAdd (patch E05, Qualtran kind 'e'): for a, b, x, y < p it sets the

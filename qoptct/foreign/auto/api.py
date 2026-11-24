@@ -13,17 +13,18 @@ from .compose import Engine
 from .contract import ContractError
 from .leaf import sample_inputs
 
-__all__ = ['prove_bloq', 'TARGETS', 'build_target', 'end_to_end', 'SCHEMA', 'ASSUMPTIONS']
+__all__ = ['prove_bloq', 'TARGETS', 'build_target', 'end_to_end', 'spec_selfcheck', 'SCHEMA', 'ASSUMPTIONS']
 
 SCHEMA = 'qoptct.auto/1'
 
 ASSUMPTIONS = [
     'the strict bridge of 0.7 (lower_bloqgraph + translate) and its rules A1 (controlled And) and C1 '
-    '(QROAMCleanAdjoint as a primitive with a contract, assumptions A1-A4 of bridge/qroam_clean_adjoint.py)',
+    '(QROAMCleanAdjoint as a primitive with a contract, assumptions A1-A4 of bridge/qroam_clean_adjoint.py); '
+    'TwoBitCSwap, where it occurs, by the opt-in rule bridge/fredkin_rule.py (CX.CCX.CX)',
     'the qoptct prover kprove (ROBDD path sum) with the exact AND/ERASE domain guard, and the gadget lemma for AND/erase',
     'Z3 (linear integer arithmetic) for the composition of the contracts of the children',
-    'the specification of the root is the statement (formulas in qoptct/foreign/auto/specs.py, checked against '
-    'call_classically of Qualtran on small instances by registry.selfcheck)',
+    'the specification of the root is the statement (formulas in qoptct/foreign/auto/specs.py); it is compared with '
+    'call_classically of the same Qualtran on a small instance (spec_check of the verdict), not proved equal to it',
 ]
 
 
@@ -122,7 +123,7 @@ def _summary(E):
 
 def prove_bloq(bloq, spec=None, *, target=None, params=None, expect_variant=None, e2e_cases=16, seed=7,
                leaf_budget=600, leaf_max_mb=1500, z3_timeout_ms=120_000, log=None, mutate=None, out=None,
-               e2e_max_ops=3_000_000):
+               e2e_max_ops=3_000_000, spec_check=None):
     """Prove ``bloq`` against ``spec`` (default: the registry specification of its type) with the generic
     compositional mechanism.  Returns the verdict dict; ``verdict['verdict']`` is ``'PROVED'`` only if the root
     composition is proved, the independent end-to-end simulation agrees and Z3 is present.  ``mutate(P)`` damages
@@ -134,6 +135,11 @@ def prove_bloq(bloq, spec=None, *, target=None, params=None, expect_variant=None
     v = dict(schema=SCHEMA, target=target, params=params or {}, verdict='NOT_PROVED', reasons=[],
              versions=_versions(), qualtran_variant=_variant(), source_sha256=source_digest(),
              assumptions=list(ASSUMPTIONS))
+    if spec_check is not None:
+        v['spec_check'] = spec_check
+        if not spec_check.get('ok'):
+            v['reasons'].append(f"the specification differs from call_classically on a small instance: "
+                                f"{str(spec_check.get('first_mismatch') or spec_check.get('why'))[:300]}")
     if expect_variant is not None and v['qualtran_variant'].get('kind') != expect_variant:
         v['reasons'].append(f"Qualtran variant {v['qualtran_variant'].get('kind')!r}, the proof needs {expect_variant!r}")
     try:
@@ -207,12 +213,29 @@ def _p_default(n):
     return p
 
 
+def _k_default(p):
+    """the constant of the *K targets when none is given: 3^101 mod p (a fixed, unremarkable residue)"""
+    return pow(3, 101, p)
+
+
 def build_target(name, n, p=None, w=1, cv=1, k=None):
     """(bloq, expected Qualtran variant, params) for a named target"""
     from qualtran import QUInt
     from qualtran.bloqs import mod_arithmetic as M
+    from qualtran.bloqs import arithmetic as A
+    if name in ('subtract', 'subtractfrom', 'negate'):
+        cls = {'subtract': A.Subtract, 'subtractfrom': A.SubtractFrom, 'negate': A.Negate}[name]
+        return cls(QUInt(n)), None, dict(n=n)
     p = p or _p_default(n)
     params = dict(n=n, p=p)
+    if name in ('cmodaddk', 'ctrlscalemodadd', 'cmodmulk'):
+        k = _k_default(p) if k is None else k
+        params['k'] = k
+        if name == 'cmodaddk':
+            return M.CModAddK(k=k, mod=p, bitsize=n), None, params
+        if name == 'ctrlscalemodadd':
+            return M.CtrlScaleModAdd(k=k, mod=p, bitsize=n), None, params
+        return M.CModMulK(QUInt(n), k=k, mod=p), None, params
     if name == 'montgomery':
         from qualtran.bloqs.mod_arithmetic.mod_multiplication import DirtyOutOfPlaceMontgomeryModMul
         params['w'] = w
@@ -243,7 +266,55 @@ def build_target(name, n, p=None, w=1, cv=1, k=None):
     raise ValueError(f'unknown target {name}')
 
 
-TARGETS = ('montgomery', 'modadd', 'cmodadd', 'modsub', 'cmodsub', 'modneg', 'cmodneg', 'moddbl', 'ecadd_step1')
+TARGETS = ('montgomery', 'modadd', 'cmodadd', 'modsub', 'cmodsub', 'modneg', 'cmodneg', 'moddbl', 'ecadd_step1',
+           'subtract', 'subtractfrom', 'negate', 'cmodaddk', 'ctrlscalemodadd', 'cmodmulk')
+
+# the classical action of Qualtran's DirtyOutOfPlaceMontgomeryModMul is defined (and returns zeros otherwise) only
+# for 0 < x, y < p; the specification is compared with it there (it also asserts the closed form x*y*2^-n mod p)
+_CLASSICAL_DOMAIN = {'montgomery': lambda v, p: 0 < v['x'] < p and 0 < v['y'] < p}
+
+
+def spec_selfcheck(target, n=None, *, w=1, cv=1, max_inputs=1 << 16):
+    """Compare the specification of a named target with ``call_classically`` of the Qualtran in use, on every input
+    of its domain at a small width (n = 6 for Montgomery, 4 otherwise).  Must run with the target's Qualtran variant."""
+    import itertools
+    from . import registry as R
+    n = n or (6 if target == 'montgomery' else 4)
+    bloq, _kind, params = build_target(target, n, None, w=w, cv=cv)
+    spec = target_spec(target, bloq, params)
+    res = dict(target=target, params={k: str(v) for k, v in params.items()}, checked=0, ok=False, first_mismatch=None)
+    lefts, rights = list(bloq.signature.lefts()), list(bloq.signature.rights())
+    names = [nm for r in lefts for nm in R.contract_names(r)]
+    if set(names) != set(spec.inputs):
+        res['why'] = f'specification inputs {sorted(spec.inputs)} != registers {names}'
+        return res
+    total = 1
+    for k in names:
+        total *= 1 << spec.inputs[k]
+    if total > max_inputs:
+        res['why'] = f'{total} inputs > {max_inputs}'
+        return res
+    dom = _CLASSICAL_DOMAIN.get(target)
+    for vals in itertools.product(*[range(1 << spec.inputs[k]) for k in names]):
+        v = dict(zip(names, vals))
+        if not spec.in_domain(v) or (dom is not None and not dom(v, params['p'])):
+            continue
+        want = spec.evaluate(v)
+        try:
+            out = bloq.call_classically(**{r.name: R.to_classical(r, v) for r in lefts})
+        except Exception as e:  # noqa: BLE001
+            res['first_mismatch'] = dict(input=v, why=f'call_classically raised {type(e).__name__}: {e}'[:300])
+            return res
+        out = out if isinstance(out, tuple) else (out,)
+        got = {}
+        for r, val in zip(rights, out):
+            got.update(R.from_classical(r, val))
+        res['checked'] += 1
+        if got != want:
+            res['first_mismatch'] = dict(input=v, specification=want, qualtran=got)
+            return res
+    res['ok'] = res['checked'] > 0
+    return res
 
 
 def target_spec(name, bloq, params):

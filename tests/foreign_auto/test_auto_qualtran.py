@@ -27,6 +27,21 @@ def test_modular_blocks_small(target):
     assert v['qualtran_variant']['kind'] == 'original'
 
 
+@pytest.mark.parametrize('target', ['modadd', 'cmodadd', 'modsub', 'cmodsub', 'modneg', 'cmodneg', 'moddbl'])
+def test_specification_agrees_with_call_classically(target):
+    from qoptct.foreign.auto.api import spec_selfcheck
+    r = spec_selfcheck(target)
+    assert r['ok'] and r['checked'] > 0, r
+
+
+def test_ecadd_step1_small_and_same_program_as_07():
+    from qoptct.foreign.auto.cli import prove_target, main
+    v = prove_target('ecadd_step1', 16, timeout=900)
+    assert v.get('verdict') == 'PROVED', v.get('reasons')
+    assert v['spec_check']['ok'] and v['qualtran_variant']['kind'] == 'e'
+    assert main(['compare', 'ecadd_step1', '--n', '16']) == 0
+
+
 def test_montgomery_n16_has_the_programs_of_07():
     """the generic mechanism proves the same programs as the 0.7 client (fixed Qualtran, kind c)"""
     from qoptct.foreign.auto.cli import prove_target
@@ -41,6 +56,7 @@ def test_montgomery_n16_has_the_programs_of_07():
     seg = {s['label']: s['qasm_sha256'] for s in old['segments']}
     assert hashes['LessThanConstant'] == seg['lt']
     assert v['qualtran_variant']['kind'] == 'c'
+    assert v['spec_check']['ok'] and v['spec_check']['checked'] > 0
 
 
 def test_loop_without_invariant_is_not_proved():

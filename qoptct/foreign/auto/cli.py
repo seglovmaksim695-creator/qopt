@@ -4,11 +4,14 @@
     python -m qoptct.foreign.auto prove TARGET --n N [--p P] [--w W] [--cv CV] [--out FILE]
     python -m qoptct.foreign.auto selfcheck [--out FILE]
     python -m qoptct.foreign.auto canaries TARGET --n N [--p P] [--w W] [--out FILE] [--only NAME,...]
+    python -m qoptct.foreign.auto compare ecadd_stepK --n N [--p P] [--out FILE]
+    python -m qoptct.foreign.auto results [--long] [--verify DIR]
 
 TARGET: montgomery (DirtyOutOfPlaceMontgomeryModMul, fixed Qualtran kind 'c'), modadd, cmodadd, modsub, cmodsub,
-modneg, cmodneg, moddbl (installed Qualtran 0.7.0).  ``prove`` runs in a child process whose Qualtran is the right
-variant (``qualtran._variant``); the exit code is 0 only for PROVED (1 not proved, 4 usage error or Qualtran missing).
-Numbers are read without eval (``2**255-19`` is accepted).  Heavy sizes (n = 256): run under lab/tools/one.
+modneg, cmodneg, moddbl (installed Qualtran 0.7.0), ecadd_step1 (fixed ECAdd, kind 'e').  ``prove``, ``canaries`` and
+``compare`` run in a child process whose Qualtran is the right variant (``qualtran._variant``); the exit code is 0
+only for PROVED (1 not proved, 4 usage error or Qualtran missing).  Numbers are read without eval (``2**255-19`` is
+accepted).  n = 256 needs about 2 GB of memory (Montgomery: 5 minutes for a proof, about an hour for its canaries).
 """
 from __future__ import annotations
 
@@ -47,6 +50,10 @@ def prove_target(target, n, p=None, *, w=1, cv=1, out=None, timeout=None, e2e_ca
 
 def _print_summary(v):
     print(f"{v.get('target')} {v.get('params')}: {v.get('verdict', v.get('status'))}")
+    sc = v.get('spec_check')
+    if sc:
+        print(f"  specification vs call_classically at {sc.get('params')}: {'ok' if sc.get('ok') else 'MISMATCH'} "
+              f"({sc.get('checked')} inputs)")
     for r in v.get('reasons', [])[:5]:
         print('  reason:', str(r)[:300])
     prog = v.get('program') or {}
@@ -85,6 +92,15 @@ def main(argv=None):
     cn.add_argument('--out', default=None)
     cn.add_argument('--only', default=None)
     cn.add_argument('--inprocess', action='store_true')
+    cp = sub.add_parser('compare', help='compare the program of an ECAdd step with the one of the 0.7 ECAdd client')
+    cp.add_argument('target')
+    cp.add_argument('--n', required=True)
+    cp.add_argument('--p', default=None)
+    cp.add_argument('--out', default=None)
+    cp.add_argument('--inprocess', action='store_true')
+    rs = sub.add_parser('results', help='the registry of the results of this mechanism')
+    rs.add_argument('--long', action='store_true')
+    rs.add_argument('--verify', default=None, metavar='DIR', help='check the result files in DIR against the registry')
     a = ap.parse_args(argv)
     try:
         if a.cmd == 'selfcheck':
@@ -96,9 +112,19 @@ def main(argv=None):
             if a.out:
                 Path(a.out).write_text(json.dumps(dict(ok=ok, rows=rows), indent=1, default=str))
             return 0 if ok else 1
+        if a.cmd == 'results':
+            from . import results as RR
+            es = RR.entries()
+            print('\n\n'.join(RR.format_entry(e) for e in es) if a.long else RR.format_table(es))
+            if a.verify:
+                probs = RR.verify_sources(a.verify)
+                for pr in probs:
+                    print('PROBLEM', pr)
+                return 1 if probs else 0
+            return 0
         n = _num(a.n)
         p = _num(a.p) if a.p else None
-        w = _num(a.w)
+        w = _num(getattr(a, 'w', '1'))
         if a.cmd == 'canaries':
             from .canary import run_canaries, canaries_child
             if not a.inprocess:
@@ -108,22 +134,38 @@ def main(argv=None):
             print(json.dumps({k: res.get(k) for k in ('target', 'params', 'total', 'not_proved', 'proved', 'ok')},
                              default=str))
             return 0 if res.get('ok') else 1
+        if a.cmd == 'compare':
+            from .api import _p_default
+            p = p or _p_default(n)
+            if not a.inprocess:
+                from ..qualtran._variant import run_json
+                res = run_json('e', 'qoptct.foreign.auto', ['compare', a.target, '--n', str(n), '--p', str(p),
+                                                            '--inprocess'])
+                if a.out:
+                    Path(a.out).parent.mkdir(parents=True, exist_ok=True)
+                    Path(a.out).write_text(json.dumps(res, indent=1, default=str))
+            else:
+                from .crosscheck import main_compare
+                res = main_compare(a.target, n, p, out=a.out)
+            print(json.dumps(res, default=str))
+            return 0 if res.get('equal') else 1
         cv = _num(a.cv)
         if not a.inprocess:
             v = prove_target(a.target, n, p, w=w, cv=cv, out=a.out, e2e_cases=_num(a.e2e_cases),
                              extra=(['--drop-invariant'] if a.drop_invariant else []))
             _print_summary(v)
             return 0 if v.get('verdict') == 'PROVED' else 1
-        from .api import build_target, prove_bloq, target_spec
+        from .api import build_target, prove_bloq, target_spec, spec_selfcheck
         bloq, kind, params = build_target(a.target, n, p, w=w, cv=cv)
         spec = target_spec(a.target, bloq, params)
+        spec_check = spec_selfcheck(a.target, w=w, cv=cv)
         if a.drop_invariant:
             from dataclasses import replace
             spec = replace(spec, folds=[replace(f, invariant=1) for f in spec.folds])
             params = dict(params, drop_invariant=True)
         log = (lambda m: print('  ', m, flush=True)) if a.verbose else None
         v = prove_bloq(bloq, spec=spec, target=a.target, params=params, expect_variant=kind or 'original', log=log,
-                       e2e_cases=_num(a.e2e_cases), out=a.out)
+                       e2e_cases=_num(a.e2e_cases), out=a.out, spec_check=spec_check)
         if not a.out:
             _print_summary(v)
         return 0 if v.get('verdict') == 'PROVED' else 1

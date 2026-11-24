@@ -295,16 +295,22 @@ def bloq_key(b):
 
 
 def _rule_factory(basis_states=True):
+    """the atom rules of the strict bridge, a fresh book per lowering: TwoBitCSwap as CX.CCX.CX (the opt-in rule
+    ``bridge.fredkin_rule``, used by the 0.7 Kaliski client), basis states, controlled And (A1), QROAMCleanAdjoint (C1)"""
     def make():
         from ..qualtran.bridge.qroam_clean_adjoint import chained_atom_rule
+        from ..qualtran.bridge.fredkin_rule import FredkinRules
         chain = chained_atom_rule()
-        if not basis_states:
-            return chain
-        from ..qualtran.bridge.basis_vectors import BasisVectorRules
-        bv = BasisVectorRules()
+        fredkin = FredkinRules()
+        bv = None
+        if basis_states:
+            from ..qualtran.bridge.basis_vectors import BasisVectorRules
+            bv = BasisVectorRules()
 
         def rule(b, inputs, allocate, path):
-            r = bv(b, inputs, allocate, path)
+            r = fredkin(b, inputs, allocate, path)
+            if r is None and bv is not None:
+                r = bv(b, inputs, allocate, path)
             return r if r is not None else chain(b, inputs, allocate, path)
         return rule
     return make
