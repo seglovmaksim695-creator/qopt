@@ -45,7 +45,7 @@ def make_canaries(rec, count=24, seed=1, pin=None):
     seam_first = sorted({i for i in first.values() if i in set(cx)})
     seam_last = sorted({i for i in last.values() if i in set(cx)})
     free_in = rec.free_input_wires()
-    res_wires = [w for ws in rec.outputs.values() for w in ws if w not in set(free_in)]
+    res_wires = [w for name in sorted(rec.outputs) for w in rec.outputs[name]]
     gar = sorted(pin.wires) if pin is not None else []
     lg = to_logical(rec)
     erases = [i for i, o in enumerate(lg.ops) if o[0] == 'erase']

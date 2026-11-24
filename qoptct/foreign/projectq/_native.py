@@ -39,7 +39,7 @@ def _injector(values):
     return Injector()
 
 
-def run_native(program, values=None, ids=None):
+def run_native(program, values=None, ids=None, decompose=None):
     """Run ``program`` on the classical simulator.  ``values``: input register name -> int (written after allocation);
     ``ids``: {name: [qubit ids]} of the input registers (from a first run).  -> (output values, input ids, output ids)."""
     need_projectq()
@@ -50,12 +50,30 @@ def run_native(program, values=None, ids=None):
         for name, v in values.items():
             for i, q in enumerate(ids[name]):
                 inj[q] = (v >> i) & 1
-    eng = MainEngine(ClassicalSimulator(), engine_list=[_injector(inj)] if inj else [])
+    chain = [_injector(inj)] if inj else []
+    if decompose is not None:             # ProjectQ's own decomposition into X/CNOT/Toffoli, then the classical simulator
+        import projectq.libs.math
+        import projectq.setups.decompositions
+        from projectq.cengines import AutoReplacer, DecompositionRuleSet, InstructionFilter
+        from ._record import _make_filter
+        rules = DecompositionRuleSet(modules=[projectq.libs.math, projectq.setups.decompositions])
+        chain += [AutoReplacer(rules), InstructionFilter(_make_filter('nct', decompose))]
+    eng = MainEngine(ClassicalSimulator(), engine_list=chain)
     layout = program(eng)
     eng.flush()
     outs = {name: eng.backend.read_register(reg) for name, reg in layout['outputs'].items()}
     in_ids = {name: [q.id for q in reg] for name, reg in layout['inputs'].items()}
     return outs, in_ids
+
+
+def confirm_decomposition(program, values, max_controls=2):
+    """Run ``program`` on the classical simulator AFTER ProjectQ's decomposition on one input.  -> output values, or None."""
+    try:
+        _, ids = run_native(program)
+        got, _ = run_native(program, values, ids, decompose=max_controls)
+        return got
+    except Exception:  # noqa: BLE001
+        return None
 
 
 def _vectors(widths, count, seed):

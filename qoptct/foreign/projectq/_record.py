@@ -179,8 +179,14 @@ def _ops_of(cmds):
             raise Unsupported(f'command {k}: unreadable control state {c.control_state!r}')
         tw = wire[qs[0]]
         cw = [wire[q] for q in ctl]
-        if len(set(cw + [tw])) != len(cw) + 1:
-            raise Unsupported(f'command {k}: repeated wire')
+        by_wire = {}
+        for w, ch in zip(cw, state):                    # the same control twice is the same condition (AND is idempotent);
+            if by_wire.setdefault(w, ch) != ch:         # opposite control states on one wire never fire: not an atom
+                raise Unsupported(f'command {k}: one wire is a control with both states')
+        if len(by_wire) != len(cw):
+            cw, state = list(by_wire), ''.join(by_wire.values())
+        if tw in by_wire:
+            raise Unsupported(f'command {k}: the target is also a control')
         flips = [w for w, ch in zip(cw, state) if ch == '0']
         for w in flips:
             ops.append(('x', (), w))

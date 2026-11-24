@@ -1,0 +1,230 @@
+{
+ "schema": "qoptct.projectq.result/1",
+ "id": "binary_ecc_multiplier/m127",
+ "name": "binary_ecc_multiplier",
+ "block": "Binary_ECC Multiplication/Mul_x127.py",
+ "claim": "result = x*y mod f in GF(2^127), f = 0x80000000000000000000000000000003, x and y unchanged, every wire that is not x, y, result or garbage ends in |0>, the 2058 garbage wires end in the values of the pin",
+ "status": "PROVED",
+ "detail": "degree <= 2 (circuit and reference); all 32386 inputs of weight <= 2 agree with every AND / erasure precondition (31215 ops) => all inputs, all measurement outcomes",
+ "method": "exact2",
+ "domain": "all inputs",
+ "projectq": "0.8.0",
+ "program": {
+  "name": "logical_sha256",
+  "value": "753693d7269b31f54854a6a53b34273245c5359d2bd63563e09777fbb702afcd"
+ },
+ "recording_sha256": "744cd2aa7861521528f29b90a30855d11d0d9d2024f5a78066869ed22a727c69",
+ "circuit": {
+  "mode": "nct",
+  "wires": 6555,
+  "logical_wires": 6556,
+  "logical_ops": 31215,
+  "counts": {
+   "alloc": 6555,
+   "x1": 24660,
+   "x2": 2185,
+   "free": 6174
+  }
+ },
+ "independent": {
+  "ok": true,
+  "detail": "96 sample lanes agree with the schoolbook product, x and y unchanged, clean wires clean"
+ },
+ "native": {
+  "ok": true,
+  "tested": 24,
+  "detail": "24 inputs agree with ProjectQ ClassicalSimulator (sampled)"
+ },
+ "exact2": {
+  "status": "PROVED",
+  "detail": "degree <= 2 (circuit and reference); all 32386 inputs of weight <= 2 agree with every AND / erasure precondition (31215 ops) => all inputs, all measurement outcomes",
+  "time": 0.175,
+  "lanes": 32386
+ },
+ "canaries": {
+  "requested": 24,
+  "decided": 24,
+  "equivalent": 0,
+  "not_proved": 24,
+  "false_proved": [],
+  "by_group": {
+   "erasure": 8,
+   "junction": 3,
+   "phase": 4,
+   "rare": 3,
+   "other": 6
+  },
+  "targeted": 18,
+  "by_status": {
+   "UNKNOWN": 13,
+   "REFUTED": 11
+  },
+  "ok": true,
+  "rows": [
+   {
+    "desc": "erasure #527: wrong correction pair",
+    "group": "erasure",
+    "status": "UNKNOWN",
+    "detail": "op 527: erased wire != p AND q (precondition violated)"
+   },
+   {
+    "desc": "drop cx #4378 (first use of a wire)",
+    "group": "junction",
+    "status": "REFUTED",
+    "detail": "wire q262 differs from the reference on an input of weight <= 2 (all preconditions held)"
+   },
+   {
+    "desc": "erasure #511: correction removed",
+    "group": "erasure",
+    "status": "UNKNOWN",
+    "detail": "exact2 does not apply: unsupported measurement construct at line 536"
+   },
+   {
+    "desc": "drop cx #4959 (last use of a wire)",
+    "group": "junction",
+    "status": "REFUTED",
+    "detail": "wire q517 differs from the reference on an input of weight <= 2 (all preconditions held)"
+   },
+   {
+    "desc": "AND #514 replaced by a CNOT",
+    "group": "erasure",
+    "status": "UNKNOWN",
+    "detail": "op 516: erased wire != p AND q (precondition violated)"
+   },
+   {
+    "desc": "retarget cx #4927 (last use of a wire)",
+    "group": "junction",
+    "status": "REFUTED",
+    "detail": "wire q502 differs from the reference on an input of weight <= 2 (all preconditions held)"
+   },
+   {
+    "desc": "phase: Sdg of AND gadget 7 replaced by S",
+    "group": "phase",
+    "status": "UNKNOWN",
+    "detail": "exact2 does not apply: unsupported construct (not the AND gadget) at line 628"
+   },
+   {
+    "desc": "append a 3-control X (34,145,216) -> 4388",
+    "group": "rare",
+    "status": "UNKNOWN",
+    "detail": "exact2 does not apply: op 31216 (AND) reaches degree > 2"
+   },
+   {
+    "desc": "phase: a Tdg of the AND gadgets replaced by T (occurrence 11)",
+    "group": "phase",
+    "status": "UNKNOWN",
+    "detail": "exact2 does not apply: unsupported construct (not the AND gadget) at line 592"
+   },
+   {
+    "desc": "replace a control of the Toffoli #5456 by wire 205",
+    "group": "rare",
+    "status": "REFUTED",
+    "detail": "wire q4370 differs from the reference on an input of weight <= 2 (all preconditions held)"
+   },
+   {
+    "desc": "erasure #678: wrong correction pair",
+    "group": "erasure",
+    "status": "UNKNOWN",
+    "detail": "op 678: erased wire != p AND q (precondition violated)"
+   },
+   {
+    "desc": "Toffoli #5845 -> CNOT (one control dropped)",
+    "group": "rare",
+    "status": "REFUTED",
+    "detail": "wire q4370 differs from the reference on an input of weight <= 2 (all preconditions held)"
+   },
+   {
+    "desc": "AND #709 replaced by a CNOT",
+    "group": "erasure",
+    "status": "UNKNOWN",
+    "detail": "op 711: erased wire != p AND q (precondition violated)"
+   },
+   {
+    "desc": "drop cx #6887",
+    "group": "other",
+    "status": "REFUTED",
+    "detail": "wire q778 differs from the reference on an input of weight <= 2 (all preconditions held)"
+   },
+   {
+    "desc": "phase: Sdg of AND gadget 38 replaced by S",
+    "group": "phase",
+    "status": "UNKNOWN",
+    "detail": "exact2 does not apply: unsupported construct (not the AND gadget) at line 1312"
+   },
+   {
+    "desc": "reverse cx #14793",
+    "group": "other",
+    "status": "REFUTED",
+    "detail": "wire q4370 differs from the reference on an input of weight <= 2 (all preconditions held)"
+   },
+   {
+    "desc": "phase: a Tdg of the AND gadgets replaced by T (occurrence 48)",
+    "group": "phase",
+    "status": "UNKNOWN",
+    "detail": "exact2 does not apply: unsupported construct (not the AND gadget) at line 974"
+   },
+   {
+    "desc": "duplicate cx #9169",
+    "group": "other",
+    "status": "REFUTED",
+    "detail": "wire q1076 differs from the reference on an input of weight <= 2 (all preconditions held)"
+   },
+   {
+    "desc": "erasure #887: wrong correction pair",
+    "group": "erasure",
+    "status": "UNKNOWN",
+    "detail": "op 887: erased wire != p AND q (precondition violated)"
+   },
+   {
+    "desc": "drop Toffoli #31929",
+    "group": "other",
+    "status": "REFUTED",
+    "detail": "wire q4370 differs from the reference on an input of weight <= 2 (all preconditions held)"
+   },
+   {
+    "desc": "erasure #1125: correction removed",
+    "group": "erasure",
+    "status": "UNKNOWN",
+    "detail": "exact2 does not apply: unsupported measurement construct at line 1788"
+   },
+   {
+    "desc": "flip result wire 4431 at the end",
+    "group": "other",
+    "status": "REFUTED",
+    "detail": "wire q4431 differs from the reference on an input of weight <= 2 (all preconditions held)"
+   },
+   {
+    "desc": "AND #982 replaced by a CNOT",
+    "group": "erasure",
+    "status": "UNKNOWN",
+    "detail": "op 984: erased wire != p AND q (precondition violated)"
+   },
+   {
+    "desc": "append cx input -> result",
+    "group": "other",
+    "status": "REFUTED",
+    "detail": "wire q4442 differs from the reference on an input of weight <= 2 (all preconditions held)"
+   }
+  ]
+ },
+ "assumptions": [
+  "the matrices of the atoms X, Z, H, S, Sdg, T, Tdg are compared exactly, without a global phase",
+  "one explicit rule per command (qoptct.foreign.projectq._logical); ProjectQ decomposition rules are not audited, their output is what is proved",
+  "the AND gadget and its measurement-based erasure are the lemma checked by qoptct.verify.exact2.gadget_check",
+  "a freed wire is required to end in |0> like every other clean wire"
+ ],
+ "reproduce": "qoptct projectq prove multiplier --m 127 --source <Binary_ECC folder>",
+ "wall_seconds": 36.7,
+ "m": 127,
+ "poly": "0x80000000000000000000000000000003",
+ "source": {
+  "file": "Multiplication/Mul_x127.py",
+  "sha256": "f804886a30dadceb48dcac951dc8fca1dd6c7988c82766616cc1eb6ed11ab58b"
+ },
+ "garbage": {
+  "wires": 2058,
+  "pin_sha256": "b6e844e3f70bacf50312208fdf66f5b08834fdc425ea0104b90e6b6256f3fd1d",
+  "kind": "w2",
+  "note": "garbage wires are compared with the golden circuit, not proved meaningful"
+ }
+}

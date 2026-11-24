@@ -148,8 +148,15 @@ def _check_nct(program, spec, rec, lg, pin, max_input_bits, native, samples, see
         if nat['ok'] is False:
             r['status'] = 'UNKNOWN'
             r['detail'] = 'proved by the provers, but ProjectQ ClassicalSimulator disagrees (not trusted): ' + nat['detail']
-    elif r['status'] == 'REFUTED' and callable(program) and native and r.get('witness') and isinstance(r['witness'], dict):
-        r['native'] = None
+    elif r['status'] == 'REFUTED' and callable(program) and native and isinstance(r.get('witness'), dict) and \
+            all(isinstance(v, int) for v in r['witness'].values()):
+        from ._native import confirm_decomposition
+        got = confirm_decomposition(program, r['witness'])
+        want = (cspec.as_classical() if isinstance(cspec, GF2MulSpec) else cspec).fn(r['witness'])
+        r['native'] = dict(ok=None, tested=1, decomposed_run=got, specification=want,
+                           detail='ProjectQ decomposition run on the witness: '
+                                  + ('the same wrong value (the decomposition itself differs from the specification)'
+                                     if got is not None and any(got.get(k) != v for k, v in want.items()) else 'not confirmed'))
     return r
 
 
