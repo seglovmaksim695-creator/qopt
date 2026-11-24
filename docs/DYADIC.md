@@ -68,8 +68,10 @@ Angles are exact multiples of π (`Pi(p, q)`, or strings such as `'pi/4'`, `'-3*
 kept **modulo 4π**: the half-angle gates RZ, RX, RY, U, CRZ, RZZ have period 4π (RZ(t+2π) = −RZ(t); CRZ(t+2π) has a
 relative phase −1 on the control).  A float θ (radians, as Qiskit and ProjectQ give them) is read as π·p/2^k only if
 θ/π, reduced to (−2, 2], equals o + p/2^k (o ∈ {0, ±2}, 0 < |p| ≤ 2^20) within 32 units in the last place of θ/π;
-otherwise the circuit is UNKNOWN.  Every float is itself a dyadic rational, so without the bound on p every angle
-would be "recognised"; with it a random non-dyadic angle matches with probability about 10^{−6}.  For a source that
+otherwise the circuit is UNKNOWN.  A float with |θ| > 4π is first reduced EXACTLY modulo 4π (the float is an exact number; π
+is taken to 1300 bits) and only then compared with the tolerance of the reduced angle; such a float carries an absolute error
+of ulp(θ), so it is nearly always refused (UNKNOWN), never read approximately (0.8 audit, hole H3).  Every float is itself a dyadic rational, so without the bound on p every angle
+would be "recognised"; with it a random non-dyadic angle with |θ| ≤ 4π matches with probability about 10^{−6}.  For a source that
 rounds its angles, `DCircuit(n, float_abs_tol=…)` gives an absolute tolerance (ProjectQ keeps 12 decimals,
 `ANGLE_PRECISION = 12`, and re-rounds after every merge and decomposition: 2·10^{−11} rad is used); then a nonzero
 angle below 64 × tolerance is refused as ambiguous.  The proof is about the circuit with the recognised exact angles;
@@ -177,8 +179,12 @@ REFUTED for n ≥ 2, which is correct).
 
 1. Build a `DCircuit(n)` with `c.add(name, qubits, *angles)` (controls first, Qiskit conventions) and
    `c.add_global_phase(angle)`.  Prefer exact angles `Pi(p, 2**k)`; floats in radians are accepted (see §1).
-   Qiskit: `qoptct.dyadic.qiskit_io.from_qiskit(qc)` unrolls library blocks by their definitions (and checks
-   control states).  Do not `transpile` with the default `qubits_initially_zero=True`: it may use idle qubits as
+   Qiskit: `qoptct.foreign.qiskit.dyadic_io.from_qiskit_strict(qc)` (the reader of `check_qiskit`) takes a gate by its name only
+   when it is an instance of a standard Qiskit gate class and its matrix equals that of the dyadic gate; a user gate that merely
+   carries the name `h` is unrolled by its definition (no definition: UNKNOWN).  A reference circuit is placed on the wires of the
+   circuit by register NAME (same name and size = same wires, every other reference wire is a fresh clean wire, `ref_clean`
+   as in the Clifford+T path); qubits without a unique register give UNKNOWN.  (`qoptct.dyadic.qiskit_io.from_qiskit(qc)` is the
+   older helper: it unrolls library blocks by their definitions and checks control states, but trusts names and positions.)  Do not `transpile` with the default `qubits_initially_zero=True`: it may use idle qubits as
    clean ancillas and keeps only the action on |0…0⟩; use `qubits_initially_zero=False`.
    ProjectQ: rotation angles are rounded to 12 decimals by ProjectQ itself.  The bridge of 0.8
    (`qoptct.foreign.projectq.dyadic`, `check_projectq_dyadic`) accepts an angle only if it is exactly what ProjectQ stores for
@@ -220,13 +226,16 @@ circuits, the translation compared with Qiskit's own `Operator`; at the largest 
 entangle).  `results/dyadic/fuzz.json`: 3000 random circuit pairs and 1000 random circuit/specification pairs up to
 10 qubits, 0 disagreements with the dense simulator.
 
-Findings.  (1) Qiskit 2.6.2 `control()` of `CPhase(θ)` gives the angles (θ, θ, θ) instead of (θ/2, −θ/2, θ/2) when
-|θ| ≤ π/2^51, so `DraperQFTAdder(n).control(1)` is not exactly a controlled adder for n ≥ 52 (REFUTED at n = 64 with
-the all-ones witness; the error is below 10^{−15} rad, invisible to numeric checks;
-`results/dyadic/cdraper_n64_finding.json`, `test_controlled_cp_pattern_tiny_angles`).  (2) ProjectQ keeps 12 decimals
-of every angle and rounds rotations below 5·10^{−13} rad to 0 (its QFT on 64 qubits has 231 of 2016 controlled R with
-angle 0): from n ≈ 43 on its QFT and AddConstant are not exact, and from n = 33 the float angles cannot be read back
-uniquely.  (3) Qiskit `transpile` with the default `qubits_initially_zero=True` may borrow idle qubits as clean
+Findings.  (1) Qiskit 2.6.2 `control()` of a circuit or gate whose definition contains `cp(θ)` (for example `DraperQFTAdder(n)`)
+gives the angles (θ, θ, θ) instead of (θ/2, −θ/2, θ/2) when |θ| ≤ π/2^51, so `DraperQFTAdder(n).control(1)` is not exactly a controlled
+adder for n ≥ 52 (REFUTED at n = 64 with the all-ones witness).  This is an inaccuracy of Qiskit's synthesis at the level of float
+rounding (error ≤ 10^{−15} rad, invisible to numeric checks), not a practical error; `CPhaseGate(θ).control(1)` itself is correct
+(`results/dyadic/cdraper_n64_finding.json`, `test_controlled_cp_pattern_tiny_angles`).  (2) ProjectQ keeps 12 decimals
+of every angle at ANY n (error up to 5·10^{−13} rad) and rounds rotations below 5·10^{−13} rad to 0 (its QFT on 64 qubits has 231 of
+2016 controlled R with angle 0).  What is proved is the circuit with the exact dyadic angles from which the stored numbers come: about
+12.5 % of random NON-dyadic angles round to the same stored number as some p·π/2^k (k ≤ 38) and are read as that dyadic angle, so
+the answer says nothing about a ProjectQ circuit whose true intended angles were not dyadic; from n ≈ 43 on the QFT and AddConstant of
+ProjectQ are no longer equal to the exact ones, and from n = 33 the float angles cannot be read back uniquely.  (3) Qiskit `transpile` with the default `qubits_initially_zero=True` may borrow idle qubits as clean
 ancillas; the result is equal only on |0…0⟩ (HRS n = 2: 4 inputs with out = 0 differ).
 
 ## 7. Limits

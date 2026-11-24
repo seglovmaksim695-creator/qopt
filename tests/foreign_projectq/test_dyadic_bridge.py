@@ -188,3 +188,31 @@ def test_recording_equals_projectq_simulator(what):
         from projectq.ops import All, Measure
         All(Measure) | q
         eng.flush()
+
+
+def test_user_gate_named_like_a_standard_gate_is_not_read_as_that_gate():
+    """A user gate whose str() is 'S' (identity matrix) must not be taken for ProjectQ's S (audit 0.8, hole H2 for ProjectQ)."""
+    check_projectq_dyadic, _ = _pq()
+    import numpy as np
+    from projectq.ops import BasicGate, S
+    from qoptct.dyadic import DCircuit
+
+    class FakeS(BasicGate):
+        def __str__(self):
+            return 'S'
+
+        @property
+        def matrix(self):
+            return np.eye(2)
+
+    def prog(gate):
+        def program(eng):
+            q = eng.allocate_qureg(1)
+            gate | q[0]
+            return dict(registers=dict(q=q))
+        return program
+    ref = DCircuit(1)
+    ref.add('s', (0,))
+    assert check_projectq_dyadic(prog(S), ref)['status'] == 'PROVED'          # the real S
+    r = check_projectq_dyadic(prog(FakeS()), ref)
+    assert r['status'] != 'PROVED', r

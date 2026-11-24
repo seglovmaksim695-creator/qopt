@@ -524,8 +524,11 @@ qoptct results                           # one table of everything proved, over 
 ```
 
 * **Qiskit and ProjectQ** are proved gate by gate; rotations that are not multiples of pi/4 (the QFT, Draper adders, QFT multipliers,
-  `AddConstant`) go to the new prover `qoptct.dyadic`.  A float angle is read as pi*p/2^k only if it is exactly (ProjectQ: exactly
-  what ProjectQ stores) such a value; otherwise the answer is UNKNOWN.
+  `AddConstant`) go to the new prover `qoptct.dyadic`.  A Qiskit float angle is read as pi*p/2^k when it lies within 32 ulp of such a
+  value (a large angle is first reduced exactly modulo 4 pi; if it is not within the tolerance the answer is UNKNOWN).  ProjectQ stores
+  its angles rounded to 12 decimals, so a close non-dyadic angle can coincide with a dyadic one after the rounding; what is proved is
+  the circuit with the exact dyadic angles from which the stored numbers come.  Registers of a reference circuit are matched by name,
+  and a gate is taken by its name only when it is a standard Qiskit gate class (a user gate is unrolled by its definition).
 * **`qoptct.dyadic`** is a path-sum prover with phases modulo 2^K.  Qiskit QFT and the Draper adder are proved up to n = 256, the QFT
   multiplier up to n = 32, ProjectQ's QFT up to 39 qubits.  Adders and multipliers in the Fourier basis rest on a stated lemma (a
   geometric sum), listed in the answer.

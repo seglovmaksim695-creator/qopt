@@ -32,6 +32,18 @@ from .tree import Program
 __all__ = ['run_canaries', 'canaries_child', 'clone_program']
 
 
+EXCLUDED = []          # candidates that the filters D13 (_swap_effective) and D19 (_leaf_differs) dropped in this run
+
+
+def _exclude(filt, what, why):
+    """Record a candidate canary that a filter dropped (it is written next to the result file, never dropped silently)."""
+    import sys
+    f = sys._getframe(2)
+    if f.f_code.co_name == 'differs':
+        f = f.f_back
+    EXCLUDED.append(dict(filter=filt, candidate=what, reason=why, site='%s:%d' % (f.f_code.co_name, f.f_lineno)))
+
+
 def clone_program(P):
     ad = P.adapter
     ad2 = copy.copy(ad)
@@ -365,14 +377,18 @@ def _swap_effective(k, reg_pick, rng, cases=24):
     from . import registry as R
     from .leaf import sample_inputs
     c = R.contract_for(k.obj)
+    what = 'exchange of the first and last wire of an input register of %s (pick %d)' % (type(k.obj).__name__, reg_pick)
     if c is None:
+        _exclude('D13', what, 'the child has no registry contract')
         return False
     names = [nm for nm, v in k.ins.items() if len(v) >= 2]
     if not names:
+        _exclude('D13', what, 'no input register with two or more wires')
         return False
     nm = names[reg_pick % len(names)]
     w = c.inputs.get(nm)
     if not w or w < 2:
+        _exclude('D13', what, 'the contract register %s is narrower than 2 bits' % nm)
         return False
 
     def sw(v):
@@ -381,6 +397,7 @@ def _swap_effective(k, reg_pick, rng, cases=24):
     try:
         samples = sample_inputs(c, random.Random(rng.randrange(1 << 30)), cases)
     except Exception:  # noqa: BLE001
+        _exclude('D13', what, 'no sample inputs could be drawn')
         return False
     for v in samples:
         v2 = dict(v, **{nm: sw(v[nm])})
@@ -391,6 +408,7 @@ def _swap_effective(k, reg_pick, rng, cases=24):
             b = dict(b, **{nm: sw(b[nm])})
         if a != b:
             return True
+    _exclude('D13', what, 'no difference on %d sample inputs of the contract (judged by sampling, not proved equivalent)' % len(samples))
     return False
 
 
@@ -401,7 +419,9 @@ def _leaf_differs(P0, lf, edit, rng, cases=200):
     from .leaf import sample_inputs, simulate
     from ..qualtran.montgomery._core import compact
     c = R.contract_for(lf.obj)
+    what = 'edit of the leaf %s, operations %s' % (getattr(lf, 'type', type(lf.obj).__name__), tuple(lf.span))
     if c is None:
+        _exclude('D19', what, 'the leaf has no registry contract')
         return False
     a, b = lf.span
     ops = list(P0.ops[a:b])
@@ -411,6 +431,8 @@ def _leaf_differs(P0, lf, edit, rng, cases=200):
         cnt, bad = simulate(nq, cops, wi, wo, c, sample_inputs(c, random.Random(rng.randrange(1 << 30)), cases))
     except Exception:  # noqa: BLE001
         return True          # the damaged leaf does not even run: a change
+    if not bad:
+        _exclude('D19', what, 'no difference on %d sample inputs of the contract (judged by sampling, not proved equivalent)' % cases)
     return bool(bad)
 
 
@@ -772,6 +794,11 @@ def _witness(P, spec, rng, E, cases=40):
     return r
 
 
+def _write_excluded(out, res):
+    """The candidates that the filters D13 / D19 dropped, with the reason: <out>.excluded.jsonl (one object per line)."""
+    Path(str(out) + '.excluded.jsonl').write_text(''.join(json.dumps(e, sort_keys=True) + '\n' for e in res.get('excluded') or []))
+
+
 def run_canaries(target, n, p=None, *, w=1, only=None, out=None, seed=5, log=None, min_count=20):
     from .api import build_target, _versions, _variant, source_digest
     from .qualtran_adapter import lower
@@ -782,6 +809,7 @@ def run_canaries(target, n, p=None, *, w=1, only=None, out=None, seed=5, log=Non
     bloq, kind, params = build_target(target, n, p, w=w)
     spec = target_spec(target, bloq, params)
     rng = random.Random(seed)
+    del EXCLUDED[:]
     P0 = lower(bloq)
     say(f'lowered {target} {params}: {len(P0.ops)} ops ({time.time() - t0:.0f} s)')
     cands = joint_canaries(P0, spec, rng) + gate_canaries(P0, rng)
@@ -829,9 +857,12 @@ def run_canaries(target, n, p=None, *, w=1, only=None, out=None, seed=5, log=Non
                gates=sum(1 for r in counted if r['family'] == 'gate'), proved=proved, rows=rows,
                ok=(not proved and len(counted) >= min_count), seconds=round(time.time() - t0, 1))
     res['not_proved'] = sum(1 for r in rows if r['status'] not in ('PROVED', 'SKIPPED'))
+    res['excluded_candidates'] = len(EXCLUDED)
+    res['excluded'] = list(EXCLUDED)
     if out:
         Path(out).parent.mkdir(parents=True, exist_ok=True)
         Path(out).write_text(json.dumps(res, indent=1, default=str))
+        _write_excluded(out, res)
     return res
 
 
@@ -844,4 +875,5 @@ def canaries_child(target, n, p=None, *, w=1, only=None, out=None, timeout=None)
     if out:
         Path(out).parent.mkdir(parents=True, exist_ok=True)
         Path(out).write_text(json.dumps(res, indent=1, default=str))
+        _write_excluded(out, res)
     return res
