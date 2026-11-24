@@ -31,6 +31,7 @@ __all__ = ['Pi', 'NotDyadic', 'Unsupported', 'DCircuit', 'to_angle', 'expand', '
 
 FLOAT_MAX_NUM = 1 << 20       # largest numerator p of a float angle pi*p/2^k (after reduction to (-pi, pi])
 FLOAT_ULPS = 32               # tolerance of a float angle, in units in the last place of theta/pi
+AMBIGUITY_RATIO = 64          # with an absolute tolerance (rounding source), nonzero angles must exceed 64 x tolerance
 MAX_K = 4096                  # largest 2-power denominator accepted for an exact angle
 
 
@@ -79,7 +80,8 @@ def recognise_float(theta, rec=None, abs_tol=None):
     x = theta/pi is reduced to (-2, 2]; the tolerance is FLOAT_ULPS units in the last place of x (a float carries no
     more information than that), or abs_tol radians if larger (sources that round angles, e.g. ProjectQ keeps 12
     decimals); the simplest candidate p/2^k (smallest k) with 0 < |p| <= FLOAT_MAX_NUM within the tolerance is
-    taken; x within the tolerance of a multiple of 4 reads 0."""
+    taken; x within the tolerance of a multiple of 4 reads 0.  With abs_tol, a nonzero angle closer than
+    AMBIGUITY_RATIO * abs_tol to 0 or +-2 pi is refused (it could be several dyadic angles, or 0)."""
     theta = float(theta)
     if theta != theta or theta in (float('inf'), float('-inf')):
         raise NotDyadic('angle %r is not finite' % theta)
@@ -92,27 +94,29 @@ def recognise_float(theta, rec=None, abs_tol=None):
     m = round(x / 4.0)
     xr = x - 4.0 * m
     r = dev = None
-    if abs(xr) <= tol:
-        r, dev = Fraction(0), abs(xr)
-    else:
+    amb = AMBIGUITY_RATIO * tol
+    for o in (0, 2, -2):
         # x = o + p/2^k with o in {0, 2, -2}: near +-2 (angles near +-2 pi of the half-angle gates) the simple part
         # is the distance to +-2
-        for o in (0, 2, -2):
-            y = xr - o
-            if o and abs(y) > 1.0:
-                continue
-            if o and abs(y) <= tol:
-                r, dev = Fraction(o), abs(y)
+        y = xr - o
+        if o and abs(y) > 1.0:
+            continue
+        if abs_tol and 0 < abs(y) < amb:
+            # with a coarse tolerance a small angle could be several dyadic values (or 0): refuse
+            raise NotDyadic('float angle %r is below %d x the tolerance %g of its source' % (theta, AMBIGUITY_RATIO,
+                                                                                       abs_tol))
+        if abs(y) <= tol:
+            r, dev = Fraction(o), abs(y)
+            break
+        for k in range(0, 1100):
+            p = round(math.ldexp(y, k))
+            if abs(p) > FLOAT_MAX_NUM:
                 break
-            for k in range(0, 1100):
-                p = round(math.ldexp(y, k))
-                if abs(p) > FLOAT_MAX_NUM:
-                    break
-                if p and abs(y - math.ldexp(p, -k)) <= tol:
-                    r, dev = o + Fraction(p, 1 << k), abs(y - math.ldexp(p, -k))
-                    break
-            if r is not None:
+            if p and abs(y - math.ldexp(p, -k)) <= tol:
+                r, dev = o + Fraction(p, 1 << k), abs(y - math.ldexp(p, -k))
                 break
+        if r is not None:
+            break
     if r is None:
         raise NotDyadic('float angle %r is not recognised as pi*p/2^k with |p| <= 2^20' % theta)
     if rec is not None:

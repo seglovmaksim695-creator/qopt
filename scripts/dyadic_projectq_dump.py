@@ -5,7 +5,9 @@
 
 Circuits: AddConstant(c) on an n-qubit quint (ProjectQ's Draper/Beauregard constant adder: QFT, R rotations,
 inverse QFT) and QFT on n qubits, each compiled by ProjectQ's own AutoReplacer with the default decomposition rules
-(projectq.setups.decompositions + projectq.libs.math) and LocalOptimizer, down to one of two backends:
+(projectq.setups.decompositions + projectq.libs.math), with or without LocalOptimizer (--optimizer on merges
+consecutive rotations: the merged angles pi*p/2^k have large p and ProjectQ keeps only 12 decimals of every angle),
+down to one of two backends:
   native: H, X, CNOT, Toffoli, Swap, single-qubit R / Rz / Rx / Ry / Ph, controlled R (one control);
   basic:  single-qubit gates and CNOT only (controlled R is decomposed by ProjectQ into CNOT, R/Rz and Ph).
 Gate names in the dump are those of qoptct.verify.dyadic (controls first); angles are ProjectQ's floats (radians).
@@ -88,11 +90,13 @@ def to_op(cmd):
     raise ValueError('unexpected command %s' % cmd)
 
 
-def compile_circuit(mode, build):
+def compile_circuit(mode, build, optimizer=False):
     rec = Recorder(mode)
     rules = DecompositionRuleSet(modules=[pqmath, pqdecomp])
-    eng = MainEngine(backend=rec, engine_list=[TagRemover(), LocalOptimizer(10), AutoReplacer(rules), TagRemover(),
-                                               LocalOptimizer(10)], verbose=False)
+    engines = [TagRemover(), AutoReplacer(rules), TagRemover()]
+    if optimizer:
+        engines = [TagRemover(), LocalOptimizer(10), AutoReplacer(rules), TagRemover(), LocalOptimizer(10)]
+    eng = MainEngine(backend=rec, engine_list=engines, verbose=False)
     meta = build(eng)
     eng.flush()
     ops, gph = [], 0.0
@@ -104,7 +108,7 @@ def compile_circuit(mode, build):
             continue
         ops.append(op)
         nq = max([nq] + [q + 1 for q in op[1]])
-    meta.update(n=max(nq, meta.get('n', 0)), ops=ops, global_phase=gph, engine=mode)
+    meta.update(n=max(nq, meta.get('n', 0)), ops=ops, global_phase=gph, engine=mode, optimizer=optimizer)
     return meta
 
 
@@ -114,6 +118,7 @@ def main(argv=None):
                                                   'results', 'dyadic', 'projectq'))
     ap.add_argument('--sizes', default='2,4,8,16,32,64')
     ap.add_argument('--mode', default='native', choices=['native', 'basic'])
+    ap.add_argument('--optimizer', default='off', choices=['on', 'off'])
     a = ap.parse_args(argv)
     os.makedirs(a.out, exist_ok=True)
     try:
@@ -134,9 +139,9 @@ def main(argv=None):
             QFT | q
             return dict(wires=[x.id for x in q], swaps=False, n=n)
         for fam, build in (('pq_addconst', build_add), ('pq_qft', build_qft)):
-            d = compile_circuit(a.mode, build)
+            d = compile_circuit(a.mode, build, a.optimizer == 'on')
             d.update(generator='scripts/dyadic_projectq_dump.py', projectq_version=pqv, family=fam)
-            name = '%s_%d.json' % (fam, n) if a.mode == 'native' else '%s_basic_%d.json' % (fam, n)
+            name = fam + ('_basic' if a.mode == 'basic' else '') + ('_opt' if a.optimizer == 'on' else '') + '_%d.json' % n
             with open(os.path.join(a.out, name), 'w') as f:
                 json.dump(d, f)
             print(fam, n, a.mode, len(d['ops']), 'ops', flush=True)

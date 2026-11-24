@@ -5,7 +5,8 @@
     python scripts/dyadic_runs.py registry [--families f1,f2] [--sizes 2,4,8] [--out results/dyadic]
 
 Families (Qiskit 2.x): qft, qft_noswap, iqft, qft_qftdg, draper_fixed, draper_half, rgqft, hrs;
-ProjectQ (needs dumps from scripts/dyadic_projectq_dump.py in results/dyadic/projectq/): pq_addconst, pq_qft.
+ProjectQ (needs dumps from scripts/dyadic_projectq_dump.py in results/dyadic/projectq/): pq_addconst, pq_qft,
+pq_addconst_basic, pq_qft_basic (decomposed further by ProjectQ), pq_addconst_opt (with ProjectQ's LocalOptimizer).
 Each run: build, translate to a DCircuit, check the translation against Qiskit's own Operator (<= 10 qubits), prove,
 and with --canaries prove >= 20 wrong variants (every one must be REFUTED).  `registry` runs every (family, n) in its
 own process (the peak memory is that of one proof) and writes <out>/<family>.json.
@@ -32,7 +33,8 @@ SIZES = {'qft': [2, 4, 8, 16, 32, 48, 64], 'qft_noswap': [2, 4, 8, 16, 32, 64], 
          'qft_qftdg': [2, 4, 8, 16, 32, 64], 'draper_fixed': [1, 2, 4, 8, 16, 32, 48, 64],
          'draper_half': [1, 2, 4, 8, 16, 32, 64], 'rgqft': [1, 2, 3, 4, 6, 8, 12, 16],
          'hrs': [1, 2, 3, 4, 5, 6, 8], 'pq_addconst': [2, 4, 8, 16, 32, 64], 'pq_qft': [2, 4, 8, 16, 32, 64],
-         'pq_addconst_basic': [2, 4, 8, 16, 32, 64], 'pq_qft_basic': [2, 4, 8, 16, 32, 64]}
+         'pq_addconst_basic': [2, 4, 8, 16, 32, 48, 64], 'pq_qft_basic': [2, 4, 8, 16, 32, 64],
+         'pq_addconst_opt': [2, 4, 8, 16, 24, 32]}
 PQ_DIR = os.path.join(os.path.dirname(HERE), 'results', 'dyadic', 'projectq')
 
 
@@ -102,8 +104,9 @@ def projectq_case(family, n):
     """ProjectQ circuits from the JSON dumps of scripts/dyadic_projectq_dump.py."""
     path = os.path.join(PQ_DIR, '%s_%d.json' % (family, n))
     d = json.load(open(path))
-    # ProjectQ rounds rotation angles to 12 decimals (ANGLE_PRECISION); tolerance 6e-13 rad
-    c = DCircuit(d['n'], float_abs_tol=6e-13)
+    # ProjectQ rounds rotation angles to 12 decimals (ANGLE_PRECISION) after every merge and decomposition step,
+    # so errors add up (7e-13 seen after one halving); tolerance 2e-11 rad
+    c = DCircuit(d["n"], float_abs_tol=2e-11)
     for nm, qs, angles in d['ops']:
         c.add(nm, qs, *angles)                    # float radians, as ProjectQ has them
     if d.get('global_phase'):

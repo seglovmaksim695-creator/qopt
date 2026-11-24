@@ -40,9 +40,13 @@ def test_angle_recognition():
     assert recognise_float(2 * math.pi * 2 ** 40) == 0
     assert recognise_float(2 * math.pi - math.pi / 2 ** 45) == 2 - Fraction(1, 2 ** 45)
     assert recognise_float(4 * math.pi - math.pi / 2 ** 45) == 4 - Fraction(1, 2 ** 45)
-    assert recognise_float(round(math.pi / 2 ** 30, 12), abs_tol=6e-13) == Fraction(1, 2 ** 30)   # ProjectQ rounding
+    assert recognise_float(round(math.pi / 2 ** 30, 12), abs_tol=2e-11) == Fraction(1, 2 ** 30)   # ProjectQ rounding
     with pytest.raises(NotDyadic):
         recognise_float(round(math.pi / 2 ** 30, 12))
+    for tiny in (round(math.pi / 2 ** 36, 12), 1e-12, 4 * math.pi - 1e-11):
+        with pytest.raises(NotDyadic):                 # below 64 x the tolerance: ambiguous
+            recognise_float(tiny, abs_tol=2e-11)
+    assert recognise_float(0.0, abs_tol=2e-11) == 0
     assert recognise_float(3 * math.pi / 8) == Fraction(3, 8)
     for bad in (0.1, 1.0, math.e, math.pi / 3, math.pi * (2 ** 21 + 1) / 2 ** 22):
         with pytest.raises(NotDyadic):
