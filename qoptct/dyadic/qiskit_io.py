@@ -1,9 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
 """Optional helper: Qiskit QuantumCircuit -> DCircuit (needs qiskit; used by the dyadic runs and tests).
 
-Instructions whose name is in the supported gate set are taken as they are; every other instruction is replaced by
-its Qiskit definition (recursively, with the definition's global phase), so library blocks (QFTGate, adders,
-multipliers, controlled gates with open controls, ...) are unrolled down to the supported set.  A controlled gate is
+A gate is taken as a dyadic gate only when it is an instance of a standard Qiskit gate class and (up to 3 qubits) its
+matrix equals the matrix of the dyadic gate of that name (``qoptct.foreign.qiskit.dyadic_io.from_qiskit_strict``); every
+other instruction - a user gate that merely carries a standard name, a library block (QFTGate, adders, multipliers,
+controlled gates with open controls, ...) - is replaced by its Qiskit definition (recursively, with the definition's
+global phase) down to the supported set.  A controlled gate is
 taken directly only when all its controls are closed (ctrl_state all ones) and it acts on exactly controls + 1 qubits;
 otherwise its definition is used.  Measurements, resets, classical conditions and gates without a definition raise
 Unsupported.  Float angles go through the dyadic recognition of qoptct.dyadic.circuit (recorded in
@@ -41,29 +43,9 @@ def _direct(op):
 
 
 def from_qiskit(qc, max_depth=64):
-    """QuantumCircuit -> DCircuit with the same qubit order (qubit i of qc = wire i)."""
-    c = DCircuit(qc.num_qubits, name=getattr(qc, 'name', None))
+    """QuantumCircuit -> DCircuit with the same qubit order (qubit i of qc = wire i).
 
-    def walk(circ, qmap, depth):
-        if depth > max_depth:
-            raise Unsupported('definitions nested too deep')
-        gp = circ.global_phase
-        if gp:
-            c.add_global_phase(float(gp))
-        for inst in circ.data:
-            op = inst.operation
-            if op.name == 'barrier':
-                continue
-            if inst.clbits or op.name in ('measure', 'reset', 'delay') or getattr(op, 'condition', None):
-                raise Unsupported('non-unitary instruction: %s' % op.name)
-            qs = [qmap[circ.find_bit(q).index] for q in inst.qubits]
-            nm = _direct(op)
-            if nm is not None:
-                c.add(nm, qs, *[float(p) for p in op.params])
-                continue
-            d = op.definition
-            if d is None:
-                raise Unsupported('gate %s has no definition' % op.name)
-            walk(d, qs, depth + 1)
-    walk(qc, list(range(qc.num_qubits)), 0)
-    return c
+    Gate names are not trusted: this is ``qoptct.foreign.qiskit.dyadic_io.from_qiskit_strict`` (see the module text).
+    """
+    from qoptct.foreign.qiskit.dyadic_io import from_qiskit_strict
+    return from_qiskit_strict(qc, max_depth=max_depth)

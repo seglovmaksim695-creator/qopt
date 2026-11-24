@@ -184,7 +184,7 @@ REFUTED for n ≥ 2, which is correct).
    carries the name `h` is unrolled by its definition (no definition: UNKNOWN).  A reference circuit is placed on the wires of the
    circuit by register NAME (same name and size = same wires, every other reference wire is a fresh clean wire, `ref_clean`
    as in the Clifford+T path); qubits without a unique register give UNKNOWN.  (`qoptct.dyadic.qiskit_io.from_qiskit(qc)` is the
-   older helper: it unrolls library blocks by their definitions and checks control states, but trusts names and positions.)  Do not `transpile` with the default `qubits_initially_zero=True`: it may use idle qubits as
+   same strict reader with the default wire order; gate names are not trusted there either.)  Do not `transpile` with the default `qubits_initially_zero=True`: it may use idle qubits as
    clean ancillas and keeps only the action on |0…0⟩; use `qubits_initially_zero=False`.
    ProjectQ: rotation angles are rounded to 12 decimals by ProjectQ itself.  The bridge of 0.8
    (`qoptct.foreign.projectq.dyadic`, `check_projectq_dyadic`) accepts an angle only if it is exactly what ProjectQ stores for

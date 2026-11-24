@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Strict Qiskit -> DCircuit reader for the dyadic path of ``check_qiskit``.
 
-Differences from ``qoptct.dyadic.qiskit_io.from_qiskit`` (which stays as it is):
+Differences from the former name-trusting reader (``qoptct.dyadic.qiskit_io.from_qiskit`` now calls this one):
 
 * an instruction is taken as a dyadic gate only when it is an instance of EXACTLY one of the standard gate classes of
   Qiskit (or of the immutable singleton variant Qiskit builds from it) (``qiskit.circuit.library.standard_gates``) and its matrix equals the matrix of the dyadic gate of that name;
